@@ -820,4 +820,31 @@ class duration_record(models.Model):
         verbose_name_plural = "持续化测试记录表"
         db_table = 'duration_record'
 
+class stress_detail_record(models.Model):
+    """
+          压测测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
+    testid = models.CharField(max_length=100, blank=True, null=True, verbose_name="testid")
+    patientid = models.CharField(max_length=30, blank=True, null=True, verbose_name="id")
+    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
+    seriesinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="挂载uid")
+    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    duration = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测时间")
+    aistatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="预测结果")
+    diagnosis = models.CharField(max_length=100, blank=True, null=True, verbose_name="诊断结果")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
+    stability = models.CharField(max_length=20, blank=True, null=True, verbose_name="")
+    report = models.CharField(max_length=3000, blank=True, null=True, verbose_name="诊断报告")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "压测测试记录表"
+        verbose_name_plural = "压测测试记录表"
+        db_table = 'stress_detail_record'

@@ -61,6 +61,7 @@ def Weekdays(str):
 def connect_to_postgres(orthanc_ip,sql):
     conn = pc.connect(database=pg_db, user=pg_user, password=pg_psw, host=orthanc_ip, port=orthanc_port)
     result = pd.read_sql(sql, conn)
+    conn.close()
     return result
 
 

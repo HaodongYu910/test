@@ -63,11 +63,12 @@ def datacheck(sqltable, checkfield, checkdate):
                         _dict1[i][x] = 0
                     if _dict2[j][x] is None:
                         _dict2[j][x] = 0
+                    print(_dict1[i][x])
                     if _dict1[i][x] > _dict2[j][x]:
-                        _dict1[i][x] = str(_dict1[i][x]) + "H（ +" + str(
+                        _dict1[i][x] = str(_dict1[i][x]) + "H （ +" + str(
                             '%.2f' % (float(_dict1[i][x]) - float(_dict2[j][x]))) + ")"
                     else:
-                        _dict1[i][x] = str(_dict1[i][x]) + "L(" + str(
+                        _dict1[i][x] = str(_dict1[i][x]) + "L ( " + str(
                             '%.2f' % (float(_dict1[i][x]) - float(_dict2[j][x]))) + ")"
     return _dict1
 
@@ -99,5 +100,5 @@ def testcheck(sdate):
 
 
 if __name__ == '__main__':
-    list = [["2020-06-25 08:10:00", "2020-06-26 10:05:00"], ["2020-04-30 14:00:00", '2020-05-01 14:10:00']]
+    list = [["2020-07-12 00:00:00", "2020-07-12 23:00:00"], ["2020-07-10 20:00:00", "2020-07-11 16:59:00"]]
     testcheck(list)

@@ -23,7 +23,6 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = User
         fields = ('id', 'username', 'first_name')
@@ -33,10 +32,12 @@ class ProjectDeserializer(serializers.ModelSerializer):
     """
     项目信息反序列化
     """
+
     class Meta:
         model = Project
-        fields = ('id', 'name', 'version', 'type', 'status','start_date', 'api_date', 'app_date','api_online_date', 'end_date',
-                  'client', 'projectstatus','description', 'LastUpdateTime', 'createTime', 'user')
+        fields = (
+        'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date', 'end_date',
+        'client', 'projectstatus', 'description', 'LastUpdateTime', 'createTime', 'user')
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -52,9 +53,10 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ('id', 'name', 'version', 'type', 'status','start_date', 'api_date', 'app_date','api_online_date', 'end_date',
-                  'client', 'projectstatus', 'LastUpdateTime', 'createTime', 'apiCount',
-                  'dynamicCount', 'memberCount', 'description', 'user')
+        fields = (
+        'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date', 'end_date',
+        'client', 'projectstatus', 'LastUpdateTime', 'createTime', 'apiCount',
+        'dynamicCount', 'memberCount', 'description', 'user')
 
     def get_apiCount(self, obj):
         return obj.api_project.all().count()
@@ -70,6 +72,7 @@ class ProjectDynamicDeserializer(serializers.ModelSerializer):
     """
     项目动态信息反序列化
     """
+
     class Meta:
         model = ProjectDynamic
         fields = ('id', 'project', 'time', 'type', 'operationObject', 'user', 'description')
@@ -91,6 +94,7 @@ class ProjectMemberDeserializer(serializers.ModelSerializer):
     """
     项目成员信息反序列化
     """
+
     class Meta:
         model = ProjectMember
         fields = ('id', 'permissionType', 'project', 'user')
@@ -123,6 +127,7 @@ class ApiGroupLevelFirstSerializer(serializers.ModelSerializer):
     """
     接口一级分组信息序列化
     """
+
     class Meta:
         model = ApiGroupLevelFirst
         fields = ('id', 'project_id', 'name')
@@ -132,6 +137,7 @@ class ApiGroupLevelFirstDeserializer(serializers.ModelSerializer):
     """
     接口一级分组信息反序列化
     """
+
     class Meta:
         model = ApiGroupLevelFirst
         fields = ('id', 'project_id', 'name')
@@ -141,6 +147,7 @@ class ApiHeadSerializer(serializers.ModelSerializer):
     """
     接口请求头序列化
     """
+
     class Meta:
         model = ApiHead
         fields = ('id', 'api', 'name', 'value')
@@ -238,6 +245,7 @@ class ApiInfoDeserializer(serializers.ModelSerializer):
     """
     接口详细信息序列化
     """
+
     class Meta:
         model = ApiInfo
         fields = ('id', 'project_id', 'name', 'httpType',
@@ -283,6 +291,7 @@ class APIRequestHistoryDeserializer(serializers.ModelSerializer):
     """
     接口请求历史信息反序列化
     """
+
     class Meta:
         model = APIRequestHistory
         fields = ('id', 'api_id', 'requestTime', 'requestType', 'requestAddress', 'httpCode')
@@ -314,6 +323,7 @@ class AutomationGroupLevelFirstSerializer(serializers.ModelSerializer):
     """
     自动化用例一级分组信息序列化
     """
+
     class Meta:
         model = AutomationGroupLevelFirst
         fields = ('id', 'project_id', 'name')
@@ -336,6 +346,7 @@ class AutomationTestCaseDeserializer(serializers.ModelSerializer):
     """
     自动化用例信息反序列化
     """
+
     class Meta:
         model = AutomationTestCase
         fields = ('id', 'project_id', 'automationGroupLevelFirst', 'caseName', 'user',
@@ -346,6 +357,7 @@ class AutomationHeadSerializer(serializers.ModelSerializer):
     """
     自动化用例接口请求头信息序列化
     """
+
     class Meta:
         model = AutomationHead
         fields = ('id', 'automationCaseApi', 'name', 'value', 'interrelate')
@@ -355,6 +367,7 @@ class AutomationHeadDeserializer(serializers.ModelSerializer):
     """
     自动化用例接口请求头信息反序列化
     """
+
     class Meta:
         model = AutomationHead
         fields = ('id', 'automationCaseApi_id', 'name', 'value', 'interrelate')
@@ -364,6 +377,7 @@ class AutomationParameterSerializer(serializers.ModelSerializer):
     """
     自动化用例接口请求参数信息序列化
     """
+
     class Meta:
         model = AutomationParameter
         fields = ('id', 'automationCaseApi', 'name', 'value', 'interrelate')
@@ -373,6 +387,7 @@ class AutomationParameterDeserializer(serializers.ModelSerializer):
     """
     自动化用例接口请求参数信息反序列化
     """
+
     class Meta:
         model = AutomationParameter
         fields = ('id', 'automationCaseApi_id', 'name', 'value', 'interrelate')
@@ -382,6 +397,7 @@ class AutomationParameterRawSerializer(serializers.ModelSerializer):
     """
     接口请求参数源数据序列化
     """
+
     class Meta:
         model = AutomationParameterRaw
         fields = ('id', 'automationCaseApi', 'data')
@@ -391,6 +407,7 @@ class AutomationParameterRawDeserializer(serializers.ModelSerializer):
     """
     接口请求参数源数据反序列化
     """
+
     class Meta:
         model = AutomationParameterRaw
         fields = ('id', 'automationCaseApi_id', 'data')
@@ -477,16 +494,19 @@ class AutomationCaseApiDeserializer(serializers.ModelSerializer):
     """
     自动化用例接口详细信息反序列化
     """
+
     class Meta:
         model = AutomationCaseApi
-        fields = ('id', 'automationTestCase_id', 'name', 'httpType', 'requestType', 'apiAddress', 'requestParameterType',
-                  'formatRaw', 'examineType', 'httpCode', 'responseData')
+        fields = (
+        'id', 'automationTestCase_id', 'name', 'httpType', 'requestType', 'apiAddress', 'requestParameterType',
+        'formatRaw', 'examineType', 'httpCode', 'responseData')
 
 
 class AutomationCaseApiListSerializer(serializers.ModelSerializer):
     """
     自动化用例接口列表信息序列化
     """
+
     class Meta:
         model = AutomationCaseApi
         fields = ('id', 'name', 'requestType', 'apiAddress')
@@ -578,6 +598,7 @@ class AutomationTestLatelyTenTimeSerializer(serializers.ModelSerializer):
     """
     最近10次测试结果
     """
+
     class Meta:
         model = AutomationTaskRunTime
         fields = ("id", "startTime")
@@ -608,9 +629,12 @@ class test_report_Serializer(serializers.ModelSerializer):
     """
     郵件報告信息序列化
      """
+
     class Meta:
         model = test_report
-        fields = ('report_id', 'test_version', 'cns_version','type','send_time','title','receiver','email_cc','content_id','update_time','create_time')
+        fields = (
+        'report_id', 'test_version', 'cns_version', 'type', 'send_time', 'title', 'receiver', 'email_cc', 'content_id',
+        'update_time', 'create_time')
         read_only_fields = ('report_id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -622,14 +646,15 @@ class test_report_Serializer(serializers.ModelSerializer):
     def get_memberCount(self, obj):
         return obj.member_project.all().count()
 
+
 class test_report_Deserializer(serializers.ModelSerializer):
     """
     郵件報告信息反序列化
     """
+
     class Meta:
         model = test_report
-        fields = ('test_version', 'cns_version','type','send_time','title','receiver','email_cc','content_id')
-
+        fields = ('test_version', 'cns_version', 'type', 'send_time', 'title', 'receiver', 'email_cc', 'content_id')
 
 
 class test_risk_Serializer(serializers.ModelSerializer):
@@ -662,13 +687,15 @@ class test_risk_Deserializer(serializers.ModelSerializer):
         model = test_risk
         fields = ('risk_id', 'project_id', 'risk', 'development', 'delay', 'solution_status', 'status')
 
+
 class base_data_Serializer(serializers.ModelSerializer):
     """
     基础信息序列化
      """
+
     class Meta:
         model = base_data
-        fields = ('id', 'content', 'type', 'status','update_time', 'create_time')
+        fields = ('id', 'content', 'type', 'status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -685,17 +712,20 @@ class base_data_Deserializer(serializers.ModelSerializer):
     """
     基础信息反序列化
     """
+
     class Meta:
         model = base_data
-        fields = ('content', 'type', 'status','select_type')
+        fields = ('content', 'type', 'status', 'select_type')
+
 
 class stressrecord_Serializer(serializers.ModelSerializer):
     """
     性能测试记录表序列化
      """
+
     class Meta:
         model = stress_record
-        fields = ('id', 'version', 'loadserver', 'testdata','loop_time','block','update_time', 'create_time')
+        fields = ('id', 'version', 'loadserver', 'testdata', 'loop_time', 'block', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -712,6 +742,40 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
     """
     性能测试记录表反序列化
     """
+
     class Meta:
         model = stress_record
-        fields = ('version', 'loadserver', 'testdata','loop_time')
+        fields = ('version', 'loadserver', 'testdata', 'loop_time')
+
+
+class stressdetail_Serializer(serializers.ModelSerializer):
+    """
+    性能测试数据记录表序列化
+     """
+
+    class Meta:
+        model = stress_detail_record
+        fields = ('id', 'version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
+                  'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
+                  'report', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_project.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_project.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_project.all().count()
+
+
+class stressdetail_Deserializer(serializers.ModelSerializer):
+    """
+    性能测试数据记录表反序列化
+    """
+    class Meta:
+        model = stress_detail_record
+        fields = ('version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
+                  'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
+                  'report')

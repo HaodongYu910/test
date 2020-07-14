@@ -1,44 +1,56 @@
-import logging, time
-from TestPlatform.utils.graphql.graphql_query_kc import graphql_query_kc
+import logging
+from .graphql_utils import GraphQLDriver
 
 
-def graphql_prediction(study_uid, query_type, need_result, kc):
-    if need_result == "false":
+def graphql_Interface(data, kc):
+    if data['automatic'] == 'False':
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         'block : false' \
-                        ' study_uid: "' + str(study_uid) + '"' \
-                                                           'protocols: {' \
-                                                           'penable_cached_results: False' \
-                                                           '}' \
-                                                           '){' \
-                                                           '  pprediction' \
-                                                           '  preport' \
-                                                           '  pcontour' \
-                                                           '  pmodels' \
-                                                           '  pstudy_uid' \
-                                                           '}' \
-                                                           '}'
-    else:
+                        ' study_uid: "' + str(data['studyinstanceuid']) + '"' \
+                                                                          ' protocols: {' \
+                                                                          ' penable_cached_results: false' \
+                                                                          ' }' \
+                                                                          '){' \
+                                                                          '  pprediction' \
+                                                                          '  preport' \
+                                                                          '  pcontour' \
+                                                                          '  pmodels' \
+                                                                          '  pstudy_uid' \
+                                                                          '}' \
+                                                                          '}'
+    elif data['automatic'] == 'True':
         graphql_query = '{ ' \
                         'ai_biomind(' \
-                        ' study_uid: "' + str(study_uid) + '"' \
-                                                           '){' \
-                                                           '  pprediction' \
-                                                           '  preport' \
-                                                           '  pmodels' \
-                                                           '  pcontour' \
-                                                           '  pstudy_uid' \
-                                                           '}' \
-                                                           '}'
-
-        # Execute the query
-    start_time = time.time()
+                        ' study_uid: "' + str(data['studyinstanceuid']) + '"' \
+                                                                          ' protocols: { pconfig: {} ' \
+                                                                          ' penable_cached_results: false ' \
+                                                                          ' planguage: "zh-cn"' \
+                                                                          ' puser_id:"biomind"' \
+                                                                          ' pseries_classifier: {' \
+                        + data['diseases'] + ': "' + data['seriesinstanceuid'] + '"}})' \
+                                                                                 '{' \
+                                                                                 '  pprediction' \
+                                                                                 '  preport' \
+                                                                                 '  pmodels' \
+                                                                                 '  pcontour' \
+                                                                                 '  pstudy_uid' \
+                                                                                 '}' \
+                                                                                 '}'
+    elif data['ai']=='ai':
+        graphql_query = '{ ' \
+                        'studyView(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
+                                                                                                              '],type: FuzzyMatch,category: PatientInfo}])' \
+                                                                                                              '{' \
+                                                                                                              ' aistatus' \
+                                                                                                              ' diagnosis' \
+                                                                                                              ' starttime' \
+                                                                                                              ' completiontime' \
+                                                                                                              '}' \
+                                                                                                              '}'
     try:
-        queryresult = graphql_query_kc(graphql_query, query_type, kc)
+        graphql = GraphQLDriver('/graphql', kc)
+        results = graphql.execute_query(graphql_query)
     except Exception as e:
-        logging.info('Query failed: {0}'.format(e))
         logging.error('Query failed: {0}'.format(e))
-        queryresult = e
-    duration = time.time() - start_time
-    return queryresult, duration
+    return results

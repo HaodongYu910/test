@@ -109,7 +109,7 @@ class KeycloakClient():
             "{}/oauth/login".format(self.host),
             data={"username": username, "password": password},
             verify=False,
-            timeout=6
+            timeout=120
         )
         r.raise_for_status()
         self.raw_token = r.json()

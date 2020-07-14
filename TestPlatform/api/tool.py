@@ -1,22 +1,15 @@
-import logging
-import json
-
-from crontab import CronTab
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import stress_record
-from TestPlatform.serializers import stressrecord_Serializer, stressrecord_Deserializer
-from TestPlatform.common.regexUtil import *
-from TestPlatform.common.Loadtest import *
+from TestPlatform.serializers import stressrecord_Deserializer
+from ..common.regexUtil import *
+from ..common.stress import sequence
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -52,7 +45,7 @@ class stresstool(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["Loadserver"] or not data["testdata"] or not data["loop_time"]:
+            if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
                 return JsonResponse(code="999996", msg="缺失必要参数！")
 
         except KeyError:
@@ -74,8 +67,8 @@ class stresstool(APIView):
             with transaction.atomic():
                 stressserializer.is_valid()
                 stressserializer.save()
-            stressresult = loadtest().sequence(data["Loadserver"], data["loop_time"], data["testdata"],
-                                             data["need_result"])
+            stressresult = sequence(data["loadserver"], data["loop_time"], data["testdata"],
+                                             data["version"])
             return JsonResponse(data=stressresult, code="0", msg="成功")
         except Exception as e:
             print(e)
