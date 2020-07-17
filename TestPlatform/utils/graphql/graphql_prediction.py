@@ -2,8 +2,8 @@ import logging
 from .graphql_utils import GraphQLDriver
 
 
-def graphql_Interface(data, kc):
-    if data['automatic'] == 'False':
+def graphql_json(data, type):
+    if type == 'ai' and data['automatic'] == 'F':
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         'block : false' \
@@ -19,7 +19,7 @@ def graphql_Interface(data, kc):
                                                                           '  pstudy_uid' \
                                                                           '}' \
                                                                           '}'
-    elif data['automatic'] == 'True':
+    elif type == 'ai' and data['automatic'] == 'T':
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         ' study_uid: "' + str(data['studyinstanceuid']) + '"' \
@@ -27,27 +27,31 @@ def graphql_Interface(data, kc):
                                                                           ' penable_cached_results: false ' \
                                                                           ' planguage: "zh-cn"' \
                                                                           ' puser_id:"biomind"' \
-                                                                          ' pseries_classifier: {' \
-                        + data['diseases'] + ': "' + data['seriesinstanceuid'] + '"}})' \
-                                                                                 '{' \
-                                                                                 '  pprediction' \
-                                                                                 '  preport' \
-                                                                                 '  pmodels' \
-                                                                                 '  pcontour' \
-                                                                                 '  pstudy_uid' \
-                                                                                 '}' \
-                                                                                 '}'
-    elif data['ai']=='ai':
+                                                                          ' pseries_classifier: ' + data['vote'] + '})' \
+                                          '{' \
+                                          '  pprediction' \
+                                          '  preport' \
+                                          '  pmodels' \
+                                          '  pcontour' \
+                                          '  pstudy_uid' \
+                                          '}' \
+                                          '}'
+    elif type == 'result':
         graphql_query = '{ ' \
                         'studyView(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
-                                                                                                              '],type: FuzzyMatch,category: PatientInfo}])' \
-                                                                                                              '{' \
-                                                                                                              ' aistatus' \
-                                                                                                              ' diagnosis' \
-                                                                                                              ' starttime' \
-                                                                                                              ' completiontime' \
-                                                                                                              '}' \
-                                                                                                              '}'
+                                                                                                                 '],type: FuzzyMatch,category: PatientInfo}])' \
+                                                                                                                 '{' \
+                                                                                                                 ' aistatus' \
+                                                                                                                 ' diagnosis' \
+                                                                                                                 ' starttime' \
+                                                                                                                 ' completiontime' \
+                                                                                                                 '}' \
+                                                                                                                 '}'
+    return graphql_query
+
+
+def graphql_Interface(data, type, kc):
+    graphql_query = graphql_json(data, type)
     try:
         graphql = GraphQLDriver('/graphql', kc)
         results = graphql.execute_query(graphql_query)

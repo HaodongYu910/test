@@ -102,6 +102,8 @@ urlpatterns = [
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
     url(r'tool/stresstool', stresstool.as_view()),
+    url(r'tool/delete_patients', delete_patients.as_view()),
+    url(r'tool/stressdata', stressData.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
 ]

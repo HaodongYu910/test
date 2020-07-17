@@ -11,8 +11,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-import ldap
-from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType
+# import ldap
+# from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,14 +29,14 @@ DEBUG = False
 
 #服务器
 
-SITE_DBURL = "test1.db.bj.bishijie-internal.com"      # 数据库 地址
-SITE_JIRAURL = "http://jira.bishijie.com"  #JIRA 地址
+SITE_DBURL = "192.168.2.38"      # 数据库 地址
+SITE_JIRAURL = "http://jira.test.com"  #JIRA 地址
 SITE_JENKINURL = "http://127.0.0.1:8080"  #JENKINS 地址
 
 #邮箱配置
 MAIL_SERVER = "smtp.exmail.qq.com"  #邮箱地址
 MAIL_PORT = 465  #端口号
-MAIL_USER = "qa@bishijie.com"  #账号
+MAIL_USER = "qa@biomind.ai"  #账号
 MAIL_PWD = "Autotest@123"  #密码
 
 
@@ -136,28 +136,28 @@ LOGGING = {
     }
 }
 
-#使用LDAP验证
-AUTHENTICATION_BACKENDS = (
-    'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
-    'django.contrib.auth.backends.ModelBackend',
-)
-#ldap的连接基础配置
-AUTH_LDAP_SERVER_URI = 'ldap://ldap.bishijie.com'
-AUTH_LDAP_BASE_DN = 'ou=Users,dc=bishijie,dc=com'
-AUTH_LDAP_BIND_DN = 'cn=RO,dc=bishijie,dc=com'
-AUTH_LDAP_BIND_PASSWORD = 'bishijie'
-
-# 允许认证用户的路径
-
-AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=Users,dc=bishijie,dc=com",
-                                   ldap.SCOPE_SUBTREE, "(&(objectClass=person)(uid=%(user)s))")
-
-# 当ldap用户登录时，从ldap的用户属性对应写到django的user数据库，键为django的属性，值为ldap用户的属性
-AUTH_LDAP_USER_ATTR_MAP = {
-    "username": "uid",
-    "last_name": "sn",
-    "email": "mail"
-}
+# #使用LDAP验证
+# AUTHENTICATION_BACKENDS = (
+#     'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
+#     'django.contrib.auth.backends.ModelBackend',
+# )
+# #ldap的连接基础配置
+# AUTH_LDAP_SERVER_URI = 'ldap://ldap.bishijie.com'
+# AUTH_LDAP_BASE_DN = 'ou=Users,dc=bishijie,dc=com'
+# AUTH_LDAP_BIND_DN = 'cn=RO,dc=bishijie,dc=com'
+# AUTH_LDAP_BIND_PASSWORD = 'bishijie'
+#
+# # 允许认证用户的路径
+#
+# AUTH_LDAP_USER_SEARCH = LDAPSearch("ou=Users,dc=bishijie,dc=com",
+#                                    ldap.SCOPE_SUBTREE, "(&(objectClass=person)(uid=%(user)s))")
+#
+# # 当ldap用户登录时，从ldap的用户属性对应写到django的user数据库，键为django的属性，值为ldap用户的属性
+# AUTH_LDAP_USER_ATTR_MAP = {
+#     "username": "uid",
+#     "last_name": "sn",
+#     "email": "mail"
+# }
 
 ALLOWED_HOSTS = ['*',]
 
@@ -249,33 +249,27 @@ STATIC_URL = '/static/'
 WSGI_APPLICATION = 'Autotest.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/2.1/ref/settings/#databases
-
-
-# 服务器环境
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'Autotest',
-#         'USER': 'test_admin',
-#         'PASSWORD': 'a3WiwRcD1RDQcIkQ',
-#         'HOST': SITE_DBURL,
-#         'PORT': '3306',
-#     }
-# }
+# Database 服务器环境
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'test',
+        'USER': 'root',
+        'PASSWORD': 'P@ssw0rd2o8',
+        'HOST': SITE_DBURL,
+        'PORT': '3306',
     }
 }
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
-# Password validation
-# https://docs.djangoproject.com/en/2.1/ref/settings/#auth-password-validators
+
 
 AUTH_PASSWORD_VALIDATORS = [
     {
@@ -293,10 +287,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
-# Internationalization
-# https://docs.djangoproject.com/en/2.1/topics/i18n/
-
-
 #设置时区
 LANGUAGE_CODE = 'zh-hans'  #中文
 
@@ -307,9 +297,6 @@ USE_I18N = True
 USE_L10N = True
 
 USE_TZ = False   #默认是Ture，时间是utc时间，由于我们要用本地时间，所用手动修改为false！！！！
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/2.1/howto/static-files/
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (

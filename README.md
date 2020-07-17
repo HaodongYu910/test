@@ -1,24 +1,14 @@
-WINDOWS
-pip install virtualenv
-virtualenv teach
-进入虚拟环境 cd teach/Scripts
-执行 activate
-导入pip install -r requirements.txt
-生成pip freeze > requirements.txt
-停用虚拟环境 deactivate
-
-
+Linux环境
 pipenv 管理虚拟环境
 安装 pipenv：pip3 install pipenv
-下载代码之后，进入项目运行 pipenv install 安装虚拟环境以及项目所需的依赖包
-
-Linux环境
+下载代码之后，进入项目运行 pipenv install --three--安装虚拟环境以及项目所需的依赖包
+进入虚拟环境：pipenv shell 
+手动创建
 pip install virtualenv
 为一个工程创建一个虚拟环境：
 $ virtualenv -p /usr/bin/python3.6 project_env  #venv为虚拟环境目录名，目录名自定义
-
 要开始使用虚拟环境，其需要被激活：
-$ source venv/bin/activate
+$ source env/bin/activate
 
 python-ldap出现编译错误解决方法：
 sudo apt-get install libldap2-dev

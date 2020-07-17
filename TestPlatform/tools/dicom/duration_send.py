@@ -10,18 +10,21 @@
 '''
 
 import os
-import sys, getopt
 import pydicom
 import logging
 from tqdm import tqdm
 import shutil
 import subprocess as sp
-# from stopwatch import stopwatch
 import time
 import random
 import math
 import csv
 import codecs
+
+from TestPlatform.models import duration_record
+from django.db import transaction
+from TestPlatform.serializers import duration_record,duration_record_Deserializer
+
 
 log_path = './logs'
 if not os.path.exists(log_path):
@@ -250,8 +253,8 @@ def prepare_config(server_aet,server_ip,server_port,keyword):
     except Exception as e:
         print("error: failed to get args")
 
-    print(CONFIG)
-    print("please check stress, waiting for 5 seconds...")
+    logging.info(CONFIG)
+    logging.info("please check stress, waiting for 5 seconds...")
     time.sleep(5)
 
     server_ip = CONFIG["server"]["ip"]
@@ -276,15 +279,6 @@ def runsend(sever_ip, sever_port, aet, keyword,dicomfolder):
     # log_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "../..")),
     #                         'logs/{0}'.format(CONFIG["server"]["ip"]))
     folder = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "../..")),'{0}'.format(dicomfolder))
-    logging.info('start to send: path[{0}]'.format(folder))
-
-    csv_fn = "{0}/records_{1}{2}.csv".format(log_path, get_date(), get_time())
-    csv_exist = os.path.isfile(csv_fn)
-    f = codecs.open(csv_fn, 'a+', 'gbk')
-    writer = csv.writer(f)
-    if not csv_exist:
-        items = ("patientid", "patientid", "accessionnumber", "studyinstanceuid", "imagecount")
-        writer.writerow(items)
 
     src_folder = folder
     while src_folder[-1] == '/':
@@ -297,7 +291,6 @@ def runsend(sever_ip, sever_port, aet, keyword,dicomfolder):
 
         folder_fake = "{0}/data_fake{1}".format(log_path, loop_times)
 
-        # sw = stopwatch('faking: path[{0}]'.format(folder_fake), logging)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -307,11 +300,14 @@ def runsend(sever_ip, sever_port, aet, keyword,dicomfolder):
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
-        # sw.del_msg()
 
-        for (k, v) in study_infos.items():
-            info = (v["sendtime"], k, v["accessionnumber"], v["patientid"], v["imagecount"])
-            writer.writerow(info)
+        for (k, info) in study_infos.items():
+            info['studyinstanceuid'] = k
+            duration_recordserializer = duration_record_Deserializer(data=info)
+            with transaction.atomic():
+                duration_recordserializer.is_valid()
+                duration_recordserializer.save()
+
 
         time.sleep(1)
 

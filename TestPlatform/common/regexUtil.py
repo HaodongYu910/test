@@ -15,11 +15,9 @@ import csv
 
 global orthanc_port,need_result,pg_db,pg_user,pg_psw,csvname
 
-# 压测服务器
-
-orthanc_port="5432"
 
 # 数据库配置
+orthanc_port="5432"
 pg_db = "orthanc"
 pg_user = "postgres"
 pg_psw = "4a53e4f5c42fd5a31890860b204472c5"
@@ -65,7 +63,7 @@ def connect_to_postgres(orthanc_ip,sql):
     return result
 
 
-# 链接
+# 登录keycloak
 def use_keycloak_bmutils(server_ip, username, password):
     try:
         kc = KeycloakClient('https://{}'.format(server_ip), 'biomind', 'password')

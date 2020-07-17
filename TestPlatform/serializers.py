@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from rest_framework import serializers
 from rest_framework.authtoken.models import Token
 
-from TestPlatform.models import *
+from .models import *
 
 
 class TokenSerializer(serializers.ModelSerializer):
@@ -36,8 +36,9 @@ class ProjectDeserializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
-        'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date', 'end_date',
-        'client', 'projectstatus', 'description', 'LastUpdateTime', 'createTime', 'user')
+            'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date',
+            'end_date',
+            'client', 'projectstatus', 'description', 'LastUpdateTime', 'createTime', 'user')
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -54,9 +55,10 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = (
-        'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date', 'end_date',
-        'client', 'projectstatus', 'LastUpdateTime', 'createTime', 'apiCount',
-        'dynamicCount', 'memberCount', 'description', 'user')
+            'id', 'name', 'version', 'type', 'status', 'start_date', 'api_date', 'app_date', 'api_online_date',
+            'end_date',
+            'client', 'projectstatus', 'LastUpdateTime', 'createTime', 'apiCount',
+            'dynamicCount', 'memberCount', 'description', 'user')
 
     def get_apiCount(self, obj):
         return obj.api_project.all().count()
@@ -498,8 +500,8 @@ class AutomationCaseApiDeserializer(serializers.ModelSerializer):
     class Meta:
         model = AutomationCaseApi
         fields = (
-        'id', 'automationTestCase_id', 'name', 'httpType', 'requestType', 'apiAddress', 'requestParameterType',
-        'formatRaw', 'examineType', 'httpCode', 'responseData')
+            'id', 'automationTestCase_id', 'name', 'httpType', 'requestType', 'apiAddress', 'requestParameterType',
+            'formatRaw', 'examineType', 'httpCode', 'responseData')
 
 
 class AutomationCaseApiListSerializer(serializers.ModelSerializer):
@@ -633,8 +635,9 @@ class test_report_Serializer(serializers.ModelSerializer):
     class Meta:
         model = test_report
         fields = (
-        'report_id', 'test_version', 'cns_version', 'type', 'send_time', 'title', 'receiver', 'email_cc', 'content_id',
-        'update_time', 'create_time')
+            'report_id', 'test_version', 'cns_version', 'type', 'send_time', 'title', 'receiver', 'email_cc',
+            'content_id',
+            'update_time', 'create_time')
         read_only_fields = ('report_id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -774,8 +777,51 @@ class stressdetail_Deserializer(serializers.ModelSerializer):
     """
     性能测试数据记录表反序列化
     """
+
     class Meta:
         model = stress_detail_record
         fields = ('version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
                   'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
                   'report')
+
+
+class duration_record_Serializer(serializers.ModelSerializer):
+    """
+    持续化测试记录表序列化
+     """
+
+    class Meta:
+        model = duration_record
+        fields = (
+        'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'imagecount', 'imagecount_server', 'aistatus',
+        'diagnosis', 'sendserver', 'time', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_project.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_project.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_project.all().count()
+
+
+class duration_record_Deserializer(serializers.ModelSerializer):
+    """
+    持续化记录表反序列化
+    """
+
+    class Meta:
+        model = duration_record
+        fields = ('patientid', 'accessionnumber', 'studyinstanceuid', 'imagecount', 'imagecount_server', 'aistatus',
+                  'diagnosis', 'sendserver', 'time')
+
+class stress_data_Deserializer(serializers.ModelSerializer):
+    """
+    持续化记录表反序列化
+    """
+
+    class Meta:
+        model = stress_data
+        fields = ('patientid', 'studyinstanceuid', 'diseases', 'automatic', 'vote')

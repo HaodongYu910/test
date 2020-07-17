@@ -1,7 +1,6 @@
-
 import traceback
 import logging
-from TestPlatform.utils.keycloak.keycloakclient import KeycloakClient
+from .keycloakclient import KeycloakClient
 
 
 
