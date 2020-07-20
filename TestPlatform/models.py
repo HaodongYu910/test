@@ -782,7 +782,7 @@ class stress_record(models.Model):
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试版本")
     loadserver = models.CharField(max_length=40, blank=True, null=True, verbose_name="测试环境")
-    testdata = models.CharField(max_length=30, blank=True, null=True, verbose_name="测试数据")
+    testdata = models.TextField(max_length=80, blank=True, null=True, verbose_name="测试数据")
     block = models.CharField(max_length=5, blank=True, null=True, verbose_name="手动&自动预测")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行次数")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
@@ -838,7 +838,7 @@ class stress_detail_record(models.Model):
     starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
     completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
     stability = models.CharField(max_length=20, blank=True, null=True, verbose_name="")
-    report = models.CharField(max_length=3000, blank=True, null=True, verbose_name="诊断报告")
+    report = models.TextField(max_length=3000, blank=True, null=True, verbose_name="诊断报告")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

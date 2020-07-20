@@ -35,10 +35,10 @@ def graphql_prediction(data, kc):
 
 def sequence(orthanc_ip, loop_time, diseases, version):
     kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
-    data = stress_data.objects.filter()
+    stressdata = stress_data.objects.filter()
     for loop in range(int(loop_time)):
         """Execute Test sequence."""
-        for k in data:
+        for k in stressdata:
             if k.diseases in diseases:
                 data = {"version": version,
                         "testid": version + k.studyinstanceuid + str(loop),
@@ -46,23 +46,25 @@ def sequence(orthanc_ip, loop_time, diseases, version):
                         "studyinstanceuid": k.studyinstanceuid,
                         "vote":k.vote,
                         "diseases": k.diseases,
-                        "automatic": str(k.automatic)
+                        "seriesinstanceuid": str(k.automatic),
+                        'automatic': str(k.automatic)
                         }
                 if k.automatic == 'T':
                     result_ = graphql_prediction(data, kc)
-                    update_data(data)
+                    result_ai = graphql_Interface(data, 'result', kc)
+                    result_ai['studyViewFlexible'][0]['testid'] = version + k.studyinstanceuid + str(loop)
+                    update_data(result_ai['studyViewFlexible'][0])
                 else:
-                    result_ = graphql_prediction(data, kc)
                     if loop == 0:
                         result_ = graphql_prediction(data, kc)
                     else:
-                        ai_data = {'studyinstanceuid': version + k.studyinstanceuid + str(loop - 1)}
                         while True:
-                            result_ai = graphql_Interface(ai_data, result_ai, kc)
-                            if result_ai['studyViewFlexible'][0]['aistatus'] in ['-1', '0', '1', '2', '3']:
-                                update_data(result_ai['studyViewFlexible'][0])
-                                result_ = graphql_prediction(data, kc)
-                                break
+                            result_ai = graphql_Interface(data,'result', kc)
+                            if len(result_ai['studyViewFlexible'])>0:
+                                    result_ai['studyViewFlexible'][0]['testid'] = version + k.studyinstanceuid + str(loop - 1)
+                                    update_data(result_ai['studyViewFlexible'][0])
+                                    result_ = graphql_prediction(data, kc)
+                                    break
             else:
                 continue
     get_tc_perf()

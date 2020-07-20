@@ -38,7 +38,7 @@ def graphql_json(data, type):
                                           '}'
     elif type == 'result':
         graphql_query = '{ ' \
-                        'studyView(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
+                        'studyViewFlexible(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
                                                                                                                  '],type: FuzzyMatch,category: PatientInfo}])' \
                                                                                                                  '{' \
                                                                                                                  ' aistatus' \
