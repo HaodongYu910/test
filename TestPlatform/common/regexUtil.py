@@ -113,7 +113,7 @@ def getcsv(csvname):
 
 #  保存csv数据
 def savecsv(data,csvname):
-    excelPath='/Users/yin/PycharmProjects/Test_platform/TestData/'+csvname
+    excelPath='/Users/yin/Desktop/'+csvname
     with open(excelPath, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(data)

@@ -1,4 +1,5 @@
 # coding=utf-8
+
 from ...common.regexUtil import *
 
 
@@ -11,6 +12,7 @@ def delete_patients_duration(key, server_ip):
         logging.error("failed to find patirents: error[{0}]".format(e))
         return False,e
 
+
     for oid in orthanc_ids:
         try:
             res = kc.get('/orthanc/patients/{0}'.format(oid), timeout=120, verify=False)
@@ -21,6 +23,7 @@ def delete_patients_duration(key, server_ip):
         pid = pinfo.get("MainDicomTags", {}).get("PatientID", "")
         if pid.find(key) >= 0:
             try:
+                print(pinfo.get("MainDicomTags", {}).get("PatientID", ""))
                 kc.delete('/orthanc/patients/{0}'.format(oid), timeout=120)
             except Exception as e:
                 logging.error("failed to delete patientv [{0}]: error[{1}]".format(oid, e))

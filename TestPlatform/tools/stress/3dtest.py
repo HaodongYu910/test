@@ -70,10 +70,10 @@ def sequence(loop_time, severip):
         for i in testjson():
             threading.Thread(target=testkc, args=(kc, i,)).start()
             time.sleep(1)
-        time.sleep(10)
+        time.sleep(2)
 
 
-# sequence(200000, '192.168.1.208')
+sequence(10, '192.168.1.208')
 
 
 # def testusr():

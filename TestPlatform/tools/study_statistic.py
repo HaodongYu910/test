@@ -6,7 +6,7 @@ import os
 import codecs
 import sys
 import getopt
-from TestPlatform.tools.image_num_verify import runVerify
+from TestPlatform.tools.duration_verify import runVerify
 
 def get_yesterday():
     now_time = datetime.datetime.now()

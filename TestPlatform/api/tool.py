@@ -12,6 +12,7 @@ from TestPlatform.serializers import stressrecord_Deserializer, stress_data_Dese
 from ..common.regexUtil import *
 from ..common.stress import sequence
 from ..tools.orthanc.delete_patients import *
+from ..tools.duration_verify import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -221,3 +222,17 @@ class delete_patients(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
+
+class duration_verify(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        更新持续化记录
+        :param request:
+        :return:
+        """
+        data=verify()
+        return JsonResponse(data={"data": data
+                                  }, code="0", msg="成功")
