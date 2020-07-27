@@ -105,7 +105,7 @@ class stresstool(APIView):
             end_time = (datetime.datetime.now() + datetime.timedelta(hours=data["loop_time"])).strftime("%Y-%m-%d %H:%M:%S")
             data['testdata'] = str(data["testdata"])
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            data['end_time'] = end_time
+            data['end_date'] = end_time
             stressserializer = stressrecord_Deserializer(data=data)
             with transaction.atomic():
                 stressserializer.is_valid()

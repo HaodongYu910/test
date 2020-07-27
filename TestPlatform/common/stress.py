@@ -41,15 +41,14 @@ def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
         server_port=''
         server_aet ='ORTHANC208'
         for i in diseases:
-            stress_duration(orthanc_ip,server_port,server_aet,keyword,i,end_time)
-        # for i in diseases:
-        #     threading.Thread(target=stress_duration, args=(orthanc_ip,server_port,server_aet,keyword,i,end_time)).start()
-        #     time.sleep(1)
+            threading.Thread(target=stress_duration, args=(orthanc_ip,server_port,server_aet,keyword,i,end_time)).start()
+            time.sleep(1)
     kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
     stressdata = stress_data.objects.filter()
-    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!=end_time:
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!= end_time:
         """Execute Test sequence."""
         loop =loop+1
+        time.sleep(300)
         for k in stressdata:
             if k.diseases in diseases:
                 data = {"version": version,
