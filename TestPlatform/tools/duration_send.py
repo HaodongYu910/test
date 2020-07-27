@@ -19,6 +19,8 @@ import random
 import math
 import pymysql
 import logging
+from django.db import transaction
+from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
@@ -306,9 +308,11 @@ def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
         )
 
         for (k, v) in study_infos.items():
-            data=[None, v["patientid"], v["accessionnumber"], k,None,v["imagecount"], None, None, CONFIG.get('server', {}).get('ip'),
-                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), v["sendtime"]]
-            insertDB(data)
+            v['studyinstanceuid']=k
+            stressserializer = duration_record_Serializer(data=v)
+            with transaction.atomic():
+                stressserializer.is_valid()
+                stressserializer.save()
 
         time.sleep(1)
         sync_send(folder_fake)

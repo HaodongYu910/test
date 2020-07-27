@@ -956,3 +956,7 @@ django.db.utils.OperationalError: (2003, "Can't connect to MySQL server on '192.
 [2020-07-27 11:59:12,905][Thread-1:123145575104512][task_id:root][delete_patients.py:21][ERROR][failed to get patient info [a99dd0ca-ac2585fb-bde01ea6-c03c89eb-1068d672]: error[Expecting value: line 1 column 1 (char 0)]]
 [2020-07-27 14:57:41,593][Thread-9:123145545510912][task_id:root][duration_send.py:273][INFO][please check config, waiting for 5 seconds...]
 [2020-07-27 14:57:46,600][Thread-9:123145545510912][task_id:root][duration_send.py:286][INFO][start to send: path[/home/biomind/testDatas/[]]
+[2020-07-27 16:21:47,152][Thread-7:123145465675776][task_id:root][duration_send.py:273][INFO][please check config, waiting for 5 seconds...]
+[2020-07-27 16:21:57,899][Thread-7:123145465675776][task_id:root][duration_send.py:286][INFO][start to send: path[/home/biomind/testDatas/SVD]]
+[2020-07-27 16:23:03,082][Thread-7:123145465675776][task_id:root][duration_send.py:273][INFO][please check config, waiting for 5 seconds...]
+[2020-07-27 16:23:13,022][Thread-7:123145465675776][task_id:root][duration_send.py:286][INFO][start to send: path[/home/biomind/testDatas/SVD]]
