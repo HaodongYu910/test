@@ -5,7 +5,7 @@ from TestPlatform.common.regexUtil import *
 
 
 def sql(sqltable, selectdate):
-    k = {'prediction': "select studyuid,\
+    k = {'prediction': "select \
                  modelname,\
                  min(startpredictionts) as \"first_pred\",\
                  max(startpredictionts) as \"last_pred\",\
@@ -17,7 +17,7 @@ def sql(sqltable, selectdate):
                  cast(stddev(predictionsec) / avg(predictionsec) as decimal(8, 2)) as \"coef. of variation\" from prediction_metrics\
             where endpredictionts between '{0}' and '{1}'\
             and modelname != 'bodypart'\
-            group by studyuid,modelname\
+            group by modelname\
             order by min(startpredictionts)".format(selectdate[0], selectdate[1]), 'job': "select studyuid, \
                  min(startjobts) as \"first_pred\",\
                  max(startjobts) as \"last_pred\", \
