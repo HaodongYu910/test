@@ -4,9 +4,7 @@ from django.test import TestCase
 
 # -*- coding: UTF-8 -*-
 import re, urllib, json, requests
-from TestPlatform.models import stress_data
-from django.db import transaction
-from TestPlatform.serializers import stress_data_Deserializer
+
 
 
 # print(str(re.findall(r"(.+?)-", 'WEB')[0]))
@@ -41,18 +39,10 @@ def testpost():
 from TestPlatform.common.regexUtil import *
 
 
-def testdata():
-    for line in getcsv('data.csv'):
-        data = {
-            'patientid': line["patientid"],
-            'studyinstanceuid': line["studyinstanceuid"],
-            'diseases': line["diseases"],
-            'automatic': 'F'
-        }
-        stress_dataserializer = stress_data_Deserializer(data=data)
-        with transaction.atomic():
-            stress_dataserializer.is_valid()
-            stress_dataserializer.save()
 
 
-
+import datetime
+date_time = (datetime.datetime.now()+datetime.timedelta(hours=0.1)).strftime("%Y-%m-%d %H:%M:%S")
+print(date_time)
+while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!=date_time:
+    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

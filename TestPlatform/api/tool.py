@@ -101,14 +101,17 @@ class stresstool(APIView):
             return result
 
         try:
-            testdata=data["testdata"]
-            data['testdata']= str(testdata)
+            testdata=data['testdata']
+            end_time = (datetime.datetime.now() + datetime.timedelta(hours=data["loop_time"])).strftime("%Y-%m-%d %H:%M:%S")
+            data['testdata'] = str(data["testdata"])
+            data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            data['end_time'] = end_time
             stressserializer = stressrecord_Deserializer(data=data)
             with transaction.atomic():
                 stressserializer.is_valid()
                 stressserializer.save()
-            stressresult = sequence(data["loadserver"], data["loop_time"], testdata,
-                                    data["version"])
+            stressresult = sequence(data["loadserver"], end_time,testdata,
+                                    data["version"],data["duration"],data["keyword"])
             return JsonResponse(data=stressresult, code="0", msg="成功")
         except Exception as e:
             print(e)
@@ -151,7 +154,7 @@ class Update_base_Data(APIView):
             obj = stress_record.objects.get(id=data["id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称的项目
+        # 查找是否相同名称
         pro_name = stress_record.objects.filter(content=data["content"]).exclude(id=data["id"])
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
@@ -187,7 +190,7 @@ class Updatedata(APIView):
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 
-
+#删除dicom 数据
 class delete_patients(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()

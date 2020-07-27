@@ -4,7 +4,9 @@ from TestPlatform.common.regexUtil import *
 from TestPlatform.models import stress_detail_record, stress_data
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
-import time
+import datetime
+import threading
+from ..tools.duration_send import stress_duration
 
 
 # 修改数据
@@ -33,11 +35,19 @@ def graphql_prediction(data, kc):
     return True
 
 
-def sequence(orthanc_ip, loop_time, diseases, version):
+def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
+    loop =0
+    if duration =='True':
+        server_port=''
+        server_aet ='ORTHANC208'
+        for i in diseases:
+            threading.Thread(target=stress_duration, args=(orthanc_ip,server_port,server_aet,keyword,i,end_time)).start()
+            time.sleep(1)
     kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
     stressdata = stress_data.objects.filter()
-    for loop in range(int(loop_time)):
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!=end_time:
         """Execute Test sequence."""
+        loop =loop+1
         for k in stressdata:
             if k.diseases in diseases:
                 data = {"version": version,
@@ -55,17 +65,8 @@ def sequence(orthanc_ip, loop_time, diseases, version):
                     result_ai['studyViewFlexible'][0]['testid'] = version + k.studyinstanceuid + str(loop)
                     update_data(result_ai['studyViewFlexible'][0])
                 else:
-                    if loop == 0:
-                        result_ = graphql_prediction(data, kc)
-                    else:
-                        while True:
-                            result_ai = graphql_Interface(data,'result', kc)
-                            if len(result_ai['studyViewFlexible'])>0:
-                                    result_ai['studyViewFlexible'][0]['testid'] = version + k.studyinstanceuid + str(loop - 1)
-                                    update_data(result_ai['studyViewFlexible'][0])
-                                    result_ = graphql_prediction(data, kc)
-                                    break
+                    graphql_prediction(data, kc)
+
             else:
                 continue
-    get_tc_perf()
     return True
