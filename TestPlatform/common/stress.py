@@ -41,8 +41,8 @@ def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
         server_port=''
         server_aet ='ORTHANC208'
         for i in diseases:
-            # threading.Thread(target=stress_duration, args=(orthanc_ip,server_port,server_aet,keyword,i,end_time)).start()
-            stress_duration(orthanc_ip,server_port,server_aet,keyword,i,end_time)
+            threading.Thread(target=stress_duration, args=(orthanc_ip,server_port,server_aet,keyword,i,end_time)).start()
+            # stress_duration(orthanc_ip,server_port,server_aet,keyword,i,end_time)
             time.sleep(1)
     kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
     stressdata = stress_data.objects.filter()
