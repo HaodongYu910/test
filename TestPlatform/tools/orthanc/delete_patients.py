@@ -3,7 +3,7 @@
 from ...common.regexUtil import *
 
 
-def delete_patients_duration(key, server_ip):
+def delete_patients_duration(key, server_ip,type,fuzzy):
     kc = use_keycloak_bmutils(server_ip, 'biomind', 'password')
     try:
         res = kc.get('/orthanc/patients', timeout=300, verify=False)

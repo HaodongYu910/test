@@ -42,7 +42,7 @@ def verify():
         kc = use_keycloak_bmutils(i.sendserver, 'biomind', 'password')
         airesult=ai_result(kc,i.patientid)
         if airesult.json()['data']['studyViewFlexible'] ==[]:
-            data['aistatus']=None
+            data['aistatus']='9999'
             data['diagnosis'] = None
             data['instancecount'] = None
         else:

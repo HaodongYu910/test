@@ -40,9 +40,3 @@ from TestPlatform.common.regexUtil import *
 
 
 
-
-import datetime
-date_time = (datetime.datetime.now()+datetime.timedelta(hours=0.1)).strftime("%Y-%m-%d %H:%M:%S")
-print(date_time)
-while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!=date_time:
-    print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))

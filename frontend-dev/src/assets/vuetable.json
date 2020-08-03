@@ -1,0 +1,43 @@
+{
+    "list": [{
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }, {
+        "service": "测试",
+        "name": "admin/admin",
+        "address": "http://qa-jenkins.bishijie.com"
+    }]
+}

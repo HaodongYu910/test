@@ -271,9 +271,6 @@ def prepare_config(server_ip,server_port,server_aet,keyword,dicom):
     except Exception as e:
         logging.error("error: failed to get args")
 
-
-    logging.info("please check config, waiting for 5 seconds...")
-    time.sleep(5)
     logging.basicConfig(filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
@@ -293,10 +290,9 @@ def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
 
     loop_times = 0
 
-    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")!=end_time:
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")>= end_time:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
-
+        folder_fake = "{0}/{1}{2}".format(log_path,keyword,loop_times)
         study_fakeinfos = {}
         study_infos = {}
 

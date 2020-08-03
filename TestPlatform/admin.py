@@ -75,7 +75,7 @@ class ReadOnlyModelAdmin(admin.ModelAdmin):
     """ModelAdmin class that prevents modifications through the admin.
 
     The changelist and the detail view work, but a 403 is returned
-    if one actually tries to edit an object.
+    if one resolve_bugly tries to edit an object.
     """
 
     actions = None
@@ -86,7 +86,7 @@ class ReadOnlyModelAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    # Allow viewing objects but not actually changing them
+    # Allow viewing objects but not resolve_bugly changing them
     def has_change_permission(self, request, obj=None):
         if request.method not in ('GET', 'HEAD'):
             return True
@@ -100,7 +100,7 @@ class ReadAndDeleteModelAdmin(admin.ModelAdmin):
     """ModelAdmin class that prevents modifications through the admin.
 
     The changelist and the detail view work, but a 403 is returned
-    if one actually tries to edit an object.
+    if one resolve_bugly tries to edit an object.
     """
 
     actions = None
@@ -111,7 +111,7 @@ class ReadAndDeleteModelAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         return False
 
-    # Allow viewing objects but not actually changing them
+    # Allow viewing objects but not resolve_bugly changing them
     def has_change_permission(self, request, obj=None):
         if request.method not in ('GET', 'HEAD'):
             return True

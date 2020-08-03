@@ -9,6 +9,7 @@ from TestPlatform.common.sendmail import send_mail
 from TestPlatform.models import test_report
 from TestPlatform.common.regexUtil import *
 from django.conf import settings
+from TestPlatform.tools.duration_verify import *
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ def job1_task():
 
 def job2_task():
     try:
-        download('','')
+        verify()
     except Exception as e:
         logger.error("失败" % e)
 
