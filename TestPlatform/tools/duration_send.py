@@ -290,7 +290,7 @@ def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
 
     loop_times = 0
 
-    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")>= end_time:
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")<= end_time:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,keyword,loop_times)
         study_fakeinfos = {}
