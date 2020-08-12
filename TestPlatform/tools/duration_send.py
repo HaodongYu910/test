@@ -20,6 +20,8 @@ import math
 import pymysql
 import logging
 from django.db import transaction
+from django.conf import settings
+
 from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
@@ -279,7 +281,6 @@ def prepare_config(server_ip,server_port,server_aet,keyword,dicom):
 
 
 def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
-    log_path ='/home/biomind/Biomind_Test_Platform/logs'
     prepare_config(server_ip,server_port,server_aet,keyword,dicom)
     folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(folder))
@@ -290,9 +291,9 @@ def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
 
     loop_times = 0
 
-    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")>= end_time:
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")<= end_time:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(log_path,keyword,loop_times)
+        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,keyword,loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -314,3 +315,36 @@ def stress_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
         sync_send(folder_fake)
         shutil.rmtree(folder_fake)
 
+def send_duration(server_ip,server_port,server_aet,keyword,dicom,end_time):
+
+    prepare_config(server_ip,server_port,server_aet,keyword,dicom)
+    folder = CONFIG.get('dicomfolder', '')
+    src_folder = folder
+    while src_folder[-1] == '/':
+        src_folder = src_folder[0:-1]
+
+    loop_times = 0
+
+    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")<= end_time:
+        loop_times = loop_times + 1
+        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,keyword,loop_times)
+        study_fakeinfos = {}
+        study_infos = {}
+
+        fake_folder(
+            folder=src_folder,
+            folder_fake=folder_fake,
+            study_fakeinfos=study_fakeinfos,
+            study_infos=study_infos
+        )
+
+        for (k, v) in study_infos.items():
+            v['studyinstanceuid']=k
+            stressserializer = duration_record_Serializer(data=v)
+            with transaction.atomic():
+                stressserializer.is_valid()
+                stressserializer.save()
+
+        time.sleep(1)
+        sync_send(folder_fake)
+        shutil.rmtree(folder_fake)

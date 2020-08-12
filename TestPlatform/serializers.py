@@ -809,13 +809,43 @@ class duration_record_Serializer(serializers.ModelSerializer):
 
 class duration_record_Deserializer(serializers.ModelSerializer):
     """
-    持续化记录表反序列化
+    持续化反序列化
     """
 
     class Meta:
         model = duration_record
         fields = ('patientid', 'accessionnumber', 'studyinstanceuid', 'imagecount', 'imagecount_server', 'aistatus',
                   'diagnosis', 'sendserver', 'time')
+
+class duration_Serializer(serializers.ModelSerializer):
+    """
+    持续化测试记录表序列化
+     """
+
+    class Meta:
+        model = duration
+        fields = (
+        'id', 'server', 'keyword', 'dicom', 'time', 'status', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_project.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_project.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_project.all().count()
+
+
+class duration_Deserializer(serializers.ModelSerializer):
+    """
+    持续化反序列化
+    """
+
+    class Meta:
+        model = duration
+        fields = ('server', 'keyword', 'dicom', 'time', 'status')
 
 class stress_data_Deserializer(serializers.ModelSerializer):
     """

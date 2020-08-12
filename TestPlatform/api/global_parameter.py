@@ -28,25 +28,31 @@ class HostTotal(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
+            name = request.GET.get("name")
         except (TypeError, ValueError):
             return JsonResponse(code="999995", msg="page and page_size must be integer！")
-        project_id = request.GET.get("project_id")
-        if not project_id.isdecimal():
-            return JsonResponse(code="999995", msg="参数有误！")
-        try:
-            pro_data = Project.objects.get(id=project_id)
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
-        pro_data = ProjectSerializer(pro_data)
-        if not pro_data.data["status"]:
-            return JsonResponse(code="999985", msg="该项目已禁用")
-        name = request.GET.get("name")
-        if name:
-            obi = GlobalHost.objects.filter(name__contains=name, project=project_id).order_by("id")
+        if request.GET.get("project_id") is True:
+            project_id = request.GET.get("project_id")
+            if not project_id.isdecimal():
+                return JsonResponse(code="999995", msg="参数有误！")
+            try:
+                pro_data = Project.objects.get(id=project_id)
+            except ObjectDoesNotExist:
+                return JsonResponse(code="999995", msg="项目不存在！")
+            pro_data = ProjectSerializer(pro_data)
+            if not pro_data.data["status"]:
+                return JsonResponse(code="999985", msg="该项目已禁用")
+            if name:
+                obi = GlobalHost.objects.filter(name__contains=name, project=project_id).order_by("id")
+            else:
+                obi = GlobalHost.objects.filter(project=project_id).order_by("id")
         else:
-            obi = GlobalHost.objects.filter(project=project_id).order_by("id")
-        paginator = Paginator(obi, page_size)  # paginator对象
-        total = paginator.num_pages  # 总页数
+            if name:
+                obi = GlobalHost.objects.filter(name__contains=name).order_by("id")
+            else:
+                obi = GlobalHost.objects.filter().order_by("id")
+            paginator = Paginator(obi, page_size)  # paginator对象
+            total = paginator.num_pages  # 总页数
         try:
             obm = paginator.page(page)
         except PageNotAnInteger:
@@ -71,9 +77,6 @@ class AddHost(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
-            if not isinstance(data["project_id"], int):
-                return JsonResponse(code="999995", msg="参数有误！")
             # 必传参数 name, host
             if not data["name"] or not data["host"]:
                 return JsonResponse(code="999995", msg="参数有误！")

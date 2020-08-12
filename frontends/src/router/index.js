@@ -184,6 +184,11 @@ export default new Router({
                     component: resolve => require(['../components/page/403.vue'], resolve),
                     meta: { title: '403' }
                 },
+                {
+                    path: '/host',
+                    component: resolve => require(['../components/project/global/Globalhost.vue'], resolve),
+                    meta: { title: 'Host配置' }
+                },
                 //項目詳情頁面
                 {
                     path: '/project/project=:project_id',

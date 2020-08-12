@@ -4,7 +4,7 @@
       <!--工具条-->
       <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
         <aside>
-      <a href="https://www.pivotaltracker.com/n/projects/2315865" target="_blank">删除dicom数据
+      <a href="https://www.pivotaltracker.com/" target="_blank">删除dicom数据
       </a>
     </aside>
         <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
@@ -50,7 +50,7 @@
           </el-row>
         </el-form>
         <aside>
-      <a href="https://www.pivotaltracker.com/n/projects/2315865" target="_blank">匿名发送dicom数据
+      <a href="https://www.pivotaltracker.com/" target="_blank">匿名发送dicom数据
       </a>
     </aside>
         <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -94,7 +94,7 @@
             </el-col>
             <el-col :span="4">
               <el-form-item>
-                <el-button type="primary" @click="addTag('form')"> 发送</el-button>
+                <el-button type="primary" @click="senddicom('form')"> 发送</el-button>
               </el-form-item>
             </el-col>
           </el-row>

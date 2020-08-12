@@ -1,21 +1,20 @@
 <template>
-	<el-row class="container">
+	<section>
 		<el-col :span="24">
 			<template :index='project_id'>
-				<el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleselect"
-						 unique-opened v-show="!collapsed" background-color="#ffffff" text-color="#000000" active-text-color="#080d63">
+				<el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleselect">
 					<template v-for="item in $router.options.routes" v-if="!item.projectHidden">
 						<template v-for="(items,index) in item.children">
 							<el-menu-item :index="items.path" v-if="items.leaf" :key="items.path">
 								<template v-if="!items.child">
-									<router-link :to="{ name: items.name, params: {id: project_id}}" style='text-decoration: none;color: #000000;'>
+									<router-link :to="{ name: items.name, params: {id: project_id}}">
 										<div>
 											{{items.name }}
 										</div>
 									</router-link>
 								</template>
 								<template v-if="items.child">
-									<router-link :to="{ name: items.children[0].name, params: {id: project_id}}" style='text-decoration: none;color: #000000;'>
+									<router-link :to="{ name: items.children[0].name, params: {id: project_id}}">
 										<div>
 											{{items.name }}
 										</div>
@@ -39,7 +38,8 @@
 				<router-view></router-view>
 			</transition>
 		</el-col>
-	</el-row>
+
+		</section>
 </template>
 
 <script>

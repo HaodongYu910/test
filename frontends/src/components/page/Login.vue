@@ -1,7 +1,7 @@
 <template>
     <div class="login-wrap">
         <div class="ms-login">
-            <div class="ms-title">Boimind测试工具平台</div>
+            <div class="ms-title">Biomind Test Platform</div>
             <el-form :model="ruleForm" :rules="rules" ref="ruleForm" label-width="0px" class="ms-content">
                 <el-form-item prop="username">
                     <el-input v-model="ruleForm.username" placeholder="username">

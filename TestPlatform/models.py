@@ -797,30 +797,6 @@ class stress_record(models.Model):
         verbose_name_plural = "性能测试记录表"
         db_table = 'stress_record'
 
-class duration_record(models.Model):
-    """
-          持续化测试记录表
-        """
-    id = models.AutoField(primary_key=True)
-    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
-    accessionnumber = models.CharField(max_length=50, blank=True, null=True, verbose_name="accessionnumber")
-    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
-    imagecount = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
-    imagecount_server = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
-    aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="测试数据")
-    diagnosis = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试数据")
-    sendserver = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送服务")
-    time = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
-
-    def __unicode__(self):
-        return self.studyinstanceuid
-
-    class Meta:
-        verbose_name = "持续化测试记录表"
-        verbose_name_plural = "持续化测试记录表"
-        db_table = 'duration_record'
 
 class stress_detail_record(models.Model):
     """
@@ -872,3 +848,49 @@ class stress_data(models.Model):
         verbose_name = "测试数据表"
         verbose_name_plural = "测试数据表"
         db_table = 'stress_data'
+
+class duration_record(models.Model):
+    """
+          持续化测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
+    accessionnumber = models.CharField(max_length=50, blank=True, null=True, verbose_name="accessionnumber")
+    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
+    imagecount = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
+    imagecount_server = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
+    aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="测试数据")
+    diagnosis = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试数据")
+    sendserver = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送服务")
+    time = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.studyinstanceuid
+
+    class Meta:
+        verbose_name = "持续化测试记录表"
+        verbose_name_plural = "持续化测试记录表"
+        db_table = 'duration_record'
+
+class duration(models.Model):
+    """
+          持续化测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务器ip")
+    keyword = models.CharField(max_length=20, blank=True, null=True, verbose_name="匿名名称")
+    dicom = models.CharField(max_length=20, blank=True, null=True, verbose_name="dicom数据")
+    time = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
+    status = models.CharField(max_length=10, blank=True, null=True, verbose_name="发送状态")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.server
+
+    class Meta:
+        verbose_name = "持续化配置"
+        verbose_name_plural = "持续化配置"
+        db_table = 'duration'

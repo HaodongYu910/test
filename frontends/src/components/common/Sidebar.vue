@@ -51,7 +51,35 @@
                     {
                         icon: 'el-icon-lx-copy',
                         index: 'project',
-                        title: '项目列表'
+                        title: '项目',
+                        subs: [
+                            {
+                                index: 'project',
+                                title: '项目列表'
+                            },
+                            {
+                                index: 'host',
+                                title: 'Host配置'
+                            },
+                            {
+                                index: '3-3',
+                                title: '其他工具',
+                                subs: [
+                                    {
+                                        index: 'bind',
+                                        title: '风控绑定'
+                                    },
+                                    {
+                                        index: 'tag',
+                                        title: '风控测试'
+                                    },
+                                ]
+                            },
+                            {
+                                index: 'data',
+                                title: '测试数据'
+                            }
+                        ]
                     },
                     {
                         icon: 'el-icon-lx-punch',

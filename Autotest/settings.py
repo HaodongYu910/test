@@ -48,7 +48,6 @@ LOG_PATH = os.path.join(BASE_DIR, 'logs')
 # SITE_JIRAURL = "http://jira.bishijie.com"
 # SITE_JENKINURL = "http://39.105.135.38:8080"
 
-BASE_LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 LOGGING = {
     'version': 1,
@@ -86,7 +85,7 @@ LOGGING = {
         'default': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_info.log"),  # 日志文件
+            'filename': os.path.join(LOG_PATH, "test_info.log"),  # 日志文件
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
             'backupCount': 3,  # 最多备份几个
             'formatter': 'standard',
@@ -95,7 +94,7 @@ LOGGING = {
         'error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_error.log"),  # 日志文件
+            'filename': os.path.join(LOG_PATH, "test_error.log"),  # 日志文件
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
             'backupCount': 5,
             'formatter': 'standard',
@@ -105,7 +104,7 @@ LOGGING = {
         'info': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_collect.log"),
+            'filename': os.path.join(LOG_PATH, "test_collect.log"),
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
             'backupCount': 5,
             'formatter': 'collect',
