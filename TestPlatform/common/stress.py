@@ -46,6 +46,10 @@ def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
             time.sleep(1)
     kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
     stressdata = stress_data.objects.filter()
+<<<<<<< HEAD
+=======
+
+>>>>>>> 1691cdaa2286c6af471c3e83f49cff6c8654978b
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""
         loop =loop+1
