@@ -1,18 +1,19 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import transaction
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data
-from TestPlatform.serializers import stressrecord_Deserializer, stress_data_Deserializer
-from ..common.regexUtil import *
+from TestPlatform.models import stress_record, stress_data,duration
+from TestPlatform.serializers import stressrecord_Deserializer,\
+    stress_data_Deserializer,duration_Deserializer,duration_Serializer
 from ..common.stress import sequence
 from ..tools.orthanc.delete_patients import *
 from ..tools.duration_verify import *
+from TestPlatform.tools.dicom.duration import send_duration
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -189,6 +190,144 @@ class Updatedata(APIView):
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
+
+#获取 持续化数据
+class getDuration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取持续话记录
+        :param request:
+        :return:
+        """
+        obi = duration.objects.filter().order_by("id")
+        durationdata = duration_Serializer(obi,many=True)
+        return JsonResponse(data={"data": durationdata.data
+                                  }, code="0", msg="成功")
+
+
+
+class DisableDuration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用dicom 发送
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            obj = duration.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+
+
+class EnableDuration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用dicom 发送
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找id是否存在
+        try:
+            obj = duration.objects.get(id=data["id"])
+            obj.status = True
+            obj.save()
+            for i in obj.dicom.split(","):
+                threading.Thread(target=send_duration,
+                                 args=(obj.server,"4242","QA38",obj.keyword, i, obj.time,obj.id)).start()
+                time.sleep(1)
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="运行失败！")
+#发送dicom 数据
+class send_patients(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["dicom"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        #
+        try:
+            duration = duration_Deserializer(data=data)
+            with transaction.atomic():
+                duration.is_valid()
+                duration.save()
+            for i in data["dicom"]:
+                threading.Thread(target=send_duration,
+                                 args=(data["server"], "","", data["keyword"], i, "end_time")).start()
+                # stress_duration(orthanc_ip,server_port,server_aet,keyword,i,end_time)
+                time.sleep(1)
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
 
 #删除dicom 数据
 class delete_patients(APIView):

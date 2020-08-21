@@ -6,7 +6,7 @@ from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
 import datetime
 import threading
-from ..tools.duration_send import stress_duration
+from TestPlatform.tools.dicom.duration_send import stress_duration
 
 
 # 修改数据

@@ -1,9 +1,8 @@
 module.exports = {
-    publicPath: './',
+    publicPath: '/',
     outputDir: 'dist',
     assetsDir: 'static',
     productionSourceMap: false,
-
     devServer: {
         proxy: {
             /*'/api':{
@@ -15,7 +14,6 @@ module.exports = {
             },*/
             '/api':{
                 //http://127.0.0.1:8000
-                // http://39.105.135.38:8000
                 target:'http://39.105.135.38:8000',
                 ws:true,
                 changeOrigin:true,

@@ -825,17 +825,17 @@ class duration_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = (
-        'id', 'server', 'keyword', 'dicom', 'time', 'status', 'update_time', 'create_time')
+        'id','server', 'keyword', 'dicom', 'time', 'status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
-        return obj.api_project.all().count()
+        return obj.api_duration.all().count()
 
     def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
+        return obj.dynamic_duration.all().count()
 
     def get_memberCount(self, obj):
-        return obj.member_project.all().count()
+        return obj.member_duration.all().count()
 
 
 class duration_Deserializer(serializers.ModelSerializer):

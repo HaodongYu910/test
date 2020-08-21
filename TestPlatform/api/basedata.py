@@ -22,7 +22,7 @@ from TestPlatform.common.regexUtil import *
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
 
-class base_Data(APIView):
+class getBase(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -32,8 +32,9 @@ class base_Data(APIView):
         :param request:
         :return:
         """
+        selecttype = request.GET.get("selecttype")
         list = []
-        obi = base_data.objects.get(type=1)
+        obi = base_data.objects.get(select_type=selecttype)
         for i in obi.content.split(","):
             dict={'key': i, 'value': i}
             list.append(dict)
@@ -41,7 +42,7 @@ class base_Data(APIView):
                                   }, code="0", msg="成功")
 
 
-class Addbase_Data(APIView):
+class AddbaseData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -78,7 +79,7 @@ class Addbase_Data(APIView):
                             "project_id": base_data_serializer.data.get("id")
                         }, code="0", msg="成功")
 
-class Update_base_Data(APIView):
+class UpdatebaseData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 

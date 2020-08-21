@@ -12,9 +12,13 @@
             </el-col>
             <el-col :span="5">
               <el-form-item label="测试服务器" prop="Loadserver">
-                <el-select v-model="form.Loadserver" clearable placeholder="请选择">
-                  <el-option key="192.168.1.208" label="192.168.1.208" value="192.168.1.208" />
-                  <el-option key="192.168.1.122" label="192.168.1.122" value="192.168.1.122" />
+                <el-select v-model="form.Loadserver"  placeholder="请选择" @click.native="gethost()">
+                              <el-option
+                                v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
                 </el-select>
               </el-form-item>
             </el-col>
@@ -25,6 +29,15 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="测试数据" prop="testdata">
+<!--                <el-select v-model="form.testdata" multiple placeholder="请选择" @click.native="getBase()">-->
+<!--                <el-option-->
+<!--                        v-for="(item,index) in tags"-->
+<!--                        :key="item.key"-->
+<!--                        :label="item.key"-->
+<!--                        :value="item.key"-->
+<!--                />-->
+<!--                </el-select>-->
+<!--              </el-form-item>-->
                 <el-select v-model="form.testdata" multiple placeholder="请选择">
                   <el-option key="CTA" label="CTA" value="CTA" />
                   <el-option key="CTP" label="CTP" value="CTP" />
@@ -111,7 +124,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getVersion
+  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getVersion,getHost
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -197,6 +210,8 @@ export default {
   },
   mounted() {
     this.getstressdata()
+    this.getHost()
+    this.getBase()
   },
   methods: {
     run(formName) {
@@ -262,6 +277,28 @@ export default {
         this.tags = JSON.parse(json)
       })
     },
+    getBase() {
+        this.listLoading = true
+        const self = this
+        const params = {selecttype:"dicom"}
+        const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+        getbase(headers, params).then((res) => {
+            self.listLoading = false
+            const {msg, code, data} = res
+            if (code === '0') {
+                self.total = data.total
+                self.list = data.data
+                var json = JSON.stringify(self.list)
+                this.tags = JSON.parse(json)
+            } else {
+                self.$message.error({
+                    message: msg,
+                    center: true
+                })
+            }
+        })
+    },
+
     // 获取数据列表
     getstressdata() {
       this.listLoading = true
@@ -316,6 +353,8 @@ export default {
     handleCurrentChange(val) {
       this.page = val
       this.getstressdata()
+      this.gethost()
+      this.getBase()
     },
     // 显示编辑界面
     handleEdit: function(index, row) {
@@ -386,6 +425,28 @@ export default {
           })
         }
       })
+    },
+    // 获取host数据列表
+    gethost() {
+        this.listLoading = true
+        const self = this
+        const params = {}
+        const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+        getHost(headers, params).then((res) => {
+            self.listLoading = false
+            const {msg, code, data} = res
+            if (code === '0') {
+                self.total = data.total
+                self.list = data.data
+                var json = JSON.stringify(self.list)
+                this.tags = JSON.parse(json)
+            }else {
+                self.$message.error({
+                    message: msg,
+                    center: true
+                })
+            }
+        })
     },
     // 新增
     addSubmit: function() {
@@ -461,6 +522,7 @@ export default {
         type: 'success'
       })
     },
+
     // 批量删除
     batchRemove: function() {
       const ids = this.sels.map(item => item.id)

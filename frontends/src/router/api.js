@@ -3,8 +3,7 @@ import axios from 'axios';
 
 
 export const test = 'http://127.0.0.1:8000';
-//export const Autotest = 'http://39.105.135.38:8000';
-
+//export const Autotest = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -246,7 +245,32 @@ export const addstressdat = (headers, params) => {
 export const getstressdata = (headers, params) => {
   return axios.get(`${test}/api/tool/stressdata`, { params: params }, { headers }).then(res => res.data)
 }
+// 获取duration数据
+export const getduration = (headers, params) => {
+    return axios.get(`${test}/api/tool/getduration`, { params: params }, { headers }).then(res => res.data)
+}
 // 删除patient数据
 export const delete_patients = (headers, params) => {
   return axios.post(`${test}/api/tool/delete_patients`, params, headers).then(res => res.data)
 }
+// 修改duration发送状态
+export const enable_duration = (headers, params) => {
+  return axios.post(`${test}/api/tool/enable_duration`, params, headers).then(res => res.data)
+}
+// 修改duration发送状态
+export const disable_duration = (headers, params) => {
+  return axios.post(`${test}/api/tool/disable_duration`, params, headers).then(res => res.data)
+}
+// 获取基础数据
+export const getbase = (headers, params) => {
+    return axios.get(`${test}/api/base/getdata`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加基础数据
+export const addbaseData = (headers, params) => {
+  return axios.post(`${test}/api/base/AddData`, params, headers).then(res => res.data)
+}
+// 修改基础数据
+export const UpdatebaseData = (headers, params) => {
+  return axios.post(`${test}/api/base/UpdateData`, params, headers).then(res => res.data)
+}
+

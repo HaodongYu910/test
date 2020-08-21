@@ -97,7 +97,7 @@ class Project(models.Model):
     name = models.CharField(max_length=50, verbose_name='项目名称')
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
     type = models.CharField(max_length=50, verbose_name='类型', choices=ProjectType)
-    status = models.CharField(default="True", max_length=20, blank=True, null=True, verbose_name="状态")
+    status = models.BooleanField(default=True, verbose_name='状态')
     start_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="项目开始时间")
     api_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="接口提测时间")
     app_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="app提测时间")
@@ -883,7 +883,7 @@ class duration(models.Model):
     keyword = models.CharField(max_length=20, blank=True, null=True, verbose_name="匿名名称")
     dicom = models.CharField(max_length=20, blank=True, null=True, verbose_name="dicom数据")
     time = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
-    status = models.CharField(max_length=10, blank=True, null=True, verbose_name="发送状态")
+    status = models.BooleanField(default=True, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
