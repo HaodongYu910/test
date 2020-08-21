@@ -10,7 +10,8 @@ __pycache__/
 .Python
 env/
 build/
-node_modules/
+node_modules
+frontend-dev/
 develop-eggs/
 downloads/
 eggs/
