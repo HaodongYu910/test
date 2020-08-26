@@ -207,7 +207,122 @@ class getDuration(APIView):
         return JsonResponse(data={"data": durationdata.data
                                   }, code="0", msg="成功")
 
+#保存dicom 发送记录
+class add_duration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
 
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["dicom"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            data['dicom'] =','.join(data['dicom'])
+            duration = duration_Deserializer(data=data)
+            with transaction.atomic():
+                duration.is_valid()
+                duration.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
+#修改duration
+class update_duration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["dicom"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            obj =duration.objects.get(id=data["id"])
+            data['dicom'] =','.join(data['dicom'])
+            serializer = duration_Deserializer(data=data)
+            with transaction.atomic():
+                if serializer.is_valid():
+                    # 修改数据
+                    serializer.update(instance=obj, validated_data=data)
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
+
+#保存dicom 发送记录
+class del_duration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["dicom"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            duration = duration_Deserializer(data=data)
+            with transaction.atomic():
+                duration.is_valid()
+                duration.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
 
 class DisableDuration(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -241,6 +356,7 @@ class DisableDuration(APIView):
             obj = duration.objects.get(id=data["id"])
             obj.status = False
             obj.save()
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
@@ -277,57 +393,18 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             obj.status = True
+            obj.sendstatus =True
             obj.save()
             for i in obj.dicom.split(","):
-                threading.Thread(target=send_duration,
-                                 args=(obj.server,"4242","QA38",obj.keyword, i, obj.time,obj.id)).start()
+                send_duration(obj,i)
+                # threading.Thread(target=send_duration,
+                #                   args=(obj,i)).start()
                 time.sleep(1)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
-#发送dicom 数据
-class send_patients(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
 
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
 
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        send数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        #
-        try:
-            duration = duration_Deserializer(data=data)
-            with transaction.atomic():
-                duration.is_valid()
-                duration.save()
-            for i in data["dicom"]:
-                threading.Thread(target=send_duration,
-                                 args=(data["server"], "","", data["keyword"], i, "end_time")).start()
-                # stress_duration(orthanc_ip,server_port,server_aet,keyword,i,end_time)
-                time.sleep(1)
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
 
 #删除dicom 数据
 class delete_patients(APIView):

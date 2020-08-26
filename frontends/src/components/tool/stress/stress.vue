@@ -3,6 +3,10 @@
     <div class="filter-container">
         <!--工具条-->
         <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
+            <aside>
+                    <a href="http://192.168.2.38:9000/" target="_blank">负载测试
+                    </a>
+                </aside>
           <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
           <el-row>
             <el-col :span="4">
@@ -14,7 +18,7 @@
               <el-form-item label="测试服务器" prop="Loadserver">
                 <el-select v-model="form.Loadserver"  placeholder="请选择" @click.native="gethost()">
                               <el-option
-                                v-for="(item,index) in tags"
+                                v-for="(item,index) in hosts"
                                 :key="item.host"
                                 :label="item.name"
                                 :value="item.host"
@@ -29,27 +33,27 @@
             </el-col>
             <el-col :span="6">
               <el-form-item label="测试数据" prop="testdata">
-<!--                <el-select v-model="form.testdata" multiple placeholder="请选择" @click.native="getBase()">-->
-<!--                <el-option-->
-<!--                        v-for="(item,index) in tags"-->
-<!--                        :key="item.key"-->
-<!--                        :label="item.key"-->
-<!--                        :value="item.key"-->
-<!--                />-->
-<!--                </el-select>-->
-<!--              </el-form-item>-->
-                <el-select v-model="form.testdata" multiple placeholder="请选择">
-                  <el-option key="CTA" label="CTA" value="CTA" />
-                  <el-option key="CTP" label="CTP" value="CTP" />
-                  <el-option key="Lung" label="Lung" value="Lung" />
-                  <el-option key="MRA" label="MRA" value="MRA" />
-                  <el-option key="SVD" label="SVD" value="SVD" />
-                  <el-option key="SWI" label="SWI" value="SWI" />
-                  <el-option key="Tumor" label="Tumor" value="Tumor" />
-                  <el-option key="Brain" label="Brain" value="Brain" />
-                  <el-option key="Hematoma" label="Hematoma" value="Hematoma" />
+                <el-select v-model="form.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                <el-option
+                        v-for="(item,index) in bases"
+                        :key="item.remark"
+                        :label="item.remark"
+                        :value="item.remark"
+                />
                 </el-select>
               </el-form-item>
+<!--                <el-select v-model="form.testdata" multiple placeholder="请选择">-->
+<!--                  <el-option key="CTA" label="CTA" value="CTA" />-->
+<!--                  <el-option key="CTP" label="CTP" value="CTP" />-->
+<!--                  <el-option key="Lung" label="Lung" value="Lung" />-->
+<!--                  <el-option key="MRA" label="MRA" value="MRA" />-->
+<!--                  <el-option key="SVD" label="SVD" value="SVD" />-->
+<!--                  <el-option key="SWI" label="SWI" value="SWI" />-->
+<!--                  <el-option key="Tumor" label="Tumor" value="Tumor" />-->
+<!--                  <el-option key="Brain" label="Brain" value="Brain" />-->
+<!--                  <el-option key="Hematoma" label="Hematoma" value="Hematoma" />-->
+<!--                </el-select>-->
+<!--              </el-form-item>-->
             </el-col>
             <el-col :span="4">
               <el-form-item label="是否匿名数据" prop="duration">
@@ -75,7 +79,7 @@
             <el-row>
             <el-col :span="6">
               <el-form-item label="比较版本" prop="checkversion">
-                <el-select v-model="form.checkversion" multiple placeholder="请选择" @click.native="getversion()">
+                <el-select v-model="addForm.checkversion" multiple placeholder="请选择" @click.native="getversion()">
                   <el-option
                     v-for="(item,index) in tags"
                     :key="item.key"
@@ -87,7 +91,7 @@
             </el-col>
             <el-col :span="4">
               <el-form-item>
-                <el-button type="primary" @click="addTag('form')"> 生成测试报告</el-button>
+                <el-button type="primary" @click="addTag('addForm')"> 生成测试报告</el-button>
               </el-form-item>
             </el-col>
           </el-row>
@@ -124,7 +128,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getVersion,getHost
+  getbase, delstressdata, updatestressdata, addstressdata, stressTool, getVersion,getHost
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -135,7 +139,6 @@ export default {
       form: {
         Loadserver: '192.168.1.208',
         version: '',
-        testdata: [],
         loop_time: 1
       },
       rules: {
@@ -149,39 +152,9 @@ export default {
       filters: {
         diseases: ''
       },
-      project: [],
-      total: 0,
-      page: 1,
       listLoading: false,
       sels: [], // 列表选中列
 
-      editFormVisible: false, // 编辑界面是否显示
-      editLoading: false,
-      options: [{ label: 'Web', value: 'Web' }, { label: 'App', value: 'App' }],
-      editFormRules: {
-        diseases: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
-        ],
-        type: [
-          { required: true, message: '请选择类型', trigger: 'blur' }
-        ],
-        version: [
-          { required: true, message: '请输入版本号', trigger: 'change' },
-          { pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）' }
-        ],
-        description: [
-          { required: false, message: '请输入描述', trigger: 'blur' },
-          { max: 1024, message: '不能超过1024个字符', trigger: 'blur' }
-        ]
-      },
-      // 编辑界面数据
-      editForm: {
-        diseases: '',
-        version: '',
-        type: '',
-        description: ''
-      },
 
       addFormVisible: false, // 新增界面是否显示
       addLoading: false,
@@ -289,7 +262,8 @@ export default {
                 self.total = data.total
                 self.list = data.data
                 var json = JSON.stringify(self.list)
-                this.tags = JSON.parse(json)
+                this.bases = JSON.parse(json)
+                console.log(this.bases)
             } else {
                 self.$message.error({
                     message: msg,
@@ -297,27 +271,6 @@ export default {
                 })
             }
         })
-    },
-
-    // 获取数据列表
-    getstressdata() {
-      this.listLoading = true
-      const self = this
-      const params = { page: self.page, diseases: self.filters.diseases }
-      const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
-      getstressdata(headers, params).then((res) => {
-        self.listLoading = false
-        const { msg, code, data } = res
-        if (code === '0') {
-          self.total = data.total
-          self.stresslist = data.data
-        } else {
-          self.$message.error({
-            message: msg,
-            center: true
-          })
-        }
-      })
     },
     // 删除
     handleDel: function(index, row) {
@@ -439,7 +392,7 @@ export default {
                 self.total = data.total
                 self.list = data.data
                 var json = JSON.stringify(self.list)
-                this.tags = JSON.parse(json)
+                this.hosts = JSON.parse(json)
             }else {
                 self.$message.error({
                     message: msg,

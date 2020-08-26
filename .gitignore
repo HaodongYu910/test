@@ -11,7 +11,7 @@ __pycache__/
 env/
 build/
 node_modules
-frontend-dev/
+frontend/
 develop-eggs/
 downloads/
 eggs/

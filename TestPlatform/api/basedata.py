@@ -34,11 +34,12 @@ class getBase(APIView):
         """
         selecttype = request.GET.get("selecttype")
         list = []
-        obi = base_data.objects.get(select_type=selecttype)
-        for i in obi.content.split(","):
-            dict={'key': i, 'value': i}
-            list.append(dict)
-        return JsonResponse(data={"data": list
+        obi = base_data.objects.filter(select_type=selecttype)
+        serialize = base_data_Deserializer(obi, many=True)
+        # for i in obi.content.split(","):
+        #     dict={'key': i, 'value': i}
+        #     list.append(dict)
+        return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
 
 

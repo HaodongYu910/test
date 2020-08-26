@@ -62,22 +62,8 @@
                                 title: 'Host配置'
                             },
                             {
-                                index: '3-3',
-                                title: '其他工具',
-                                subs: [
-                                    {
-                                        index: 'bind',
-                                        title: '风控绑定'
-                                    },
-                                    {
-                                        index: 'tag',
-                                        title: '风控测试'
-                                    },
-                                ]
-                            },
-                            {
                                 index: 'data',
-                                title: '测试数据'
+                                title: '自动化测试报告'
                             }
                         ]
                     },
@@ -93,20 +79,6 @@
                             {
                                 index: 'stress',
                                 title: '性能工具'
-                            },
-                            {
-                                index: '3-3',
-                                title: '其他工具',
-                                subs: [
-                                    {
-                                        index: 'bind',
-                                        title: '风控绑定'
-                                    },
-                                    {
-                                        index: 'tag',
-                                        title: '风控测试'
-                                    },
-                                ]
                             },
                             {
                                 index: 'data',

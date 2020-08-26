@@ -46,7 +46,7 @@
                         </el-col>
                         <el-col :span="4">
                             <el-form-item>
-                                <el-button type="primary" @click="run('form')">删除</el-button>
+                                <el-button type="primary" @click="deldicom('form')">删除</el-button>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -187,7 +187,7 @@
                             </el-col>
                             <el-col :span="4">
                                 <el-form-item label="持续时间" prop="loop_time">
-                                    <el-input id="loop_time" v-model="editForm.loop_time" placeholder="小时"/>
+                                    <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="6">
@@ -195,9 +195,9 @@
                                     <el-select v-model="editForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
                                       <el-option
                                         v-for="(item,index) in tags"
-                                        :key="item.key"
-                                        :label="item.key"
-                                        :value="item.key"
+                                        :key="item.remarks"
+                                        :label="item.remarks"
+                                        :value="item.remarks"
                                       />
                                     </el-select>
                                 </el-form-item>
@@ -211,7 +211,7 @@
                     </el-form>
                     <div slot="footer" class="dialog-footer">
                         <el-button @click.native="editFormVisible = false">取消</el-button>
-                        <el-button type="primary" @click.native="addSubmit" :loading="editLoading">提交并发送</el-button>
+                        <el-button type="primary" @click.native="editSubmit" :loading="editLoading">save</el-button>
                     </div>
                 </el-dialog>
                 <!--新增界面-->
@@ -239,12 +239,12 @@
                                 </el-col>
                                 <el-col :span="6">
                                     <el-form-item label="数据类型" prop="senddata">
-                                        <el-select v-model="editForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
+                                        <el-select v-model="addForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
                                           <el-option
                                             v-for="(item,index) in tags"
-                                            :key="item.key"
-                                            :label="item.key"
-                                            :value="item.key"
+                                            :key="item.remarks"
+                                            :label="item.remarks"
+                                            :value="item.remarks"
                                           />
                                         </el-select>
                                     </el-form-item>
@@ -256,15 +256,11 @@
                                 </el-col>
                                 <el-col :span="4">
                                     <el-form-item>
-                                        <el-button type="primary" @click="senddicom('form')"> 保存并发送</el-button>
+                                        <el-button type="primary" @click="addSubmit('form')">保存</el-button>
                                     </el-form-item>
                                 </el-col>
                             </el-row>
                         </el-form>
-                        <div slot="footer" class="dialog-footer">
-                            <el-button @click.native="addFormVisible = false">取消</el-button>
-                            <el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交并发送</el-button>
-                        </div>
                     </el-form>
                 </el-dialog>
             </el-col>
@@ -276,7 +272,7 @@
     // import NProgress from 'nprogress'
 
     import {
-        getduration, delstressdata, updatestressdata, delete_patients, getHost, getVersion,disable_duration,enable_duration,getbase
+        getduration,addduration,delduration, updateduration, delete_patients, getHost, getVersion,disable_duration,enable_duration,getbase
     } from '@/router/api'
     import {disableProject, enableProject} from "../../router/api";
 
@@ -366,7 +362,7 @@
             this.gethost()
         },
         methods: {
-            run(formName) {
+            deldicom(formName) {
                 this.tableData = null
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
@@ -583,17 +579,14 @@
             handleAdd: function () {
                 this.addFormVisible = true
                 this.addForm = {
-                    version: null,
-                    diseases: null,
-                    status: null,
-                    start_date: null,
-                    api_date: null,
-                    app_date: null,
-                    api_online_date: null,
-                    end_date: null,
-                    type: null,
-                    projectstatus: null,
-                    description: null
+                    server: null,
+                    port:null,
+                    loop_time: null,
+                    aet:null,
+                    keyword: null,
+                    dicom: null,
+                    sendstatus: false,
+                    status: false
                 }
             },
             // 编辑
@@ -606,17 +599,18 @@
                             // NProgress.start();
                             const params = {
                                 id: self.editForm.id,
-                                patientid: self.editForm.patientid,
-                                studyinstanceuid: self.editForm.studyinstanceuid,
-                                diseases: self.editForm.diseases,
-                                automatic: self.editForm.automatic,
-                                vote: self.editForm.vote
+                                server: self.editForm.sendserver,
+                                port:'4242',
+                                loop_time: self.editForm.loop_time,
+                                aet:'qatest',
+                                keyword: this.editForm.keyword,
+                                dicom: this.editForm.senddata
                             }
                             const header = {
                                 'Content-Type': 'application/json',
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
-                            updatestressdata(header, params).then(_data => {
+                            updateduration(header, params).then(_data => {
                                 const {msg, code, data} = _data
                                 self.editLoading = false
                                 if (code === '0') {
@@ -653,22 +647,20 @@
                             self.addLoading = true
                             // NProgress.start();
                             const params = JSON.stringify({
-                                diseases: self.addForm.diseases,
-                                type: self.addForm.type,
-                                version: self.addForm.version,
-                                description: self.addForm.description,
-                                start_date: this.addForm.start_date,
-                                api_date: this.addForm.api_date,
-                                app_date: this.addForm.app_date,
-                                api_online_date: this.addForm.api_online_date,
-                                end_date: this.addForm.end_date,
-                                projectstatus: this.addForm.projectstatus
+                                server: self.addForm.sendserver,
+                                port:'4242',
+                                loop_time: self.addForm.loop_time,
+                                aet:'qatest',
+                                keyword: this.addForm.keyword,
+                                dicom: this.addForm.senddata,
+                                sendstatus: false,
+                                status: false
                             })
                             const header = {
                                 'Content-Type': 'application/json',
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
-                            addstressdata(header, params).then(_data => {
+                            addduration(header, params).then(_data => {
                                 const {msg, code, data} = _data
                                 self.addLoading = false
                                 if (code === '0') {

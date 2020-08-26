@@ -21,7 +21,7 @@ import pymysql
 import logging
 from django.db import transaction
 from django.conf import settings
-from TestPlatform.models import duration
+from TestPlatform.models import duration,base_data
 
 from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
@@ -41,22 +41,6 @@ CONFIG = {
 }
 
 
-def insertDB(data):
-    conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
-                           charset="utf8");  # 连接数据库
-    cur = conn.cursor()
-    try:
-        cur.execute(
-            'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            data)
-        conn.commit()
-    except:
-        conn.rollback()
-    cur.close()
-    conn.close()
-    return data
-
-
 def get_date():
     localtime = time.localtime(time.time())
     return (time.strftime("%Y-%m-%d", localtime))
@@ -73,7 +57,7 @@ def get_rand_uid():
 
 
 def get_fake_name(rand_uid):
-    fake_prefix = CONFIG["keyword"]
+    fake_prefix = dur.keyword
     return "{0}{1}".format(fake_prefix, rand_uid)
 
 
@@ -81,9 +65,9 @@ def sync_send_file(file_name):
     # logging.info('send file: [{0}]'.format(file_name))
     commands = [
         "storescu",
-        CONFIG.get('server', {}).get('ip'),
-        CONFIG.get('server', {}).get('port'),
-        "-aec", CONFIG.get('server', {}).get('aet'),
+        dur.server,
+        dur.port,
+        "-aec", dur.aet,
         "-aet", CONFIG.get('local', {}).get('aet'),
         file_name
     ]
@@ -187,6 +171,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         study_uid = ''
         try:
             study_uid = ds.StudyInstanceUID
+            study_old_uid =ds.StudyInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -256,48 +241,27 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
 
 
-def prepare_config(server_ip,server_port,server_aet,keyword,dicom):
-    global CONFIG
-    try:
-        CONFIG["server"]["aet"] = server_aet
-        CONFIG["server"]["ip"] = server_ip
-        CONFIG["server"]["port"] = server_port
-        keyword = norm_string(keyword, 8)
-        if dicom == 'All':
-            dicomfolder = '/home/biomind/testDatas'
-        else:
-            dicomfolder = '/home/biomind/testDatas/'+str(dicom)
-            keyword = keyword + dicom
 
-        CONFIG["keyword"] = keyword
-        CONFIG["dicomfolder"] = dicomfolder
-    except Exception as e:
-        logging.error("error: failed to get args")
+def send_duration(obj,dicomname):
+    global dur,dicomfolder
+    dur=obj
+    dicomfolder = base_data.objects.get(remarks=dicomname)
 
-    logging.basicConfig(filemode='a+',
-                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
-    return True
-
-
-
-def send_duration(ip,port,aet,keyword,dicom,end_time,durationid):
-
-    prepare_config(ip,port,aet,keyword,dicom)
-    folder = CONFIG.get('dicomfolder', '')
+    folder = dicomfolder.content
     src_folder = folder
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    if end_time:
+    if dur.time:
         now=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        end_time =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
     else:
         now=0
-        end_time=0
-    while now <= end_time:
+        end_time=1
+    while now < end_time:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,keyword,loop_times)
+        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,dur.keyword,loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -318,6 +282,9 @@ def send_duration(ip,port,aet,keyword,dicom,end_time,durationid):
         time.sleep(1)
         sync_send(folder_fake)
         shutil.rmtree(folder_fake)
-        if end_time ==0:
-            obj = duration.objects.get(id=durationid)
+        if end_time ==1:
+            obj= duration.objects.get(id=dur.id)
             end_time=int(obj.status)
+        elif end_time==0:
+            dur.sendstatus = False
+            dur.save()

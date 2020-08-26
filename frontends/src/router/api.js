@@ -245,13 +245,25 @@ export const addstressdat = (headers, params) => {
 export const getstressdata = (headers, params) => {
   return axios.get(`${test}/api/tool/stressdata`, { params: params }, { headers }).then(res => res.data)
 }
+// 删除patient数据
+export const delete_patients = (headers, params) => {
+  return axios.post(`${test}/api/tool/delete_patients`, params, headers).then(res => res.data)
+}
 // 获取duration数据
 export const getduration = (headers, params) => {
     return axios.get(`${test}/api/tool/getduration`, { params: params }, { headers }).then(res => res.data)
 }
-// 删除patient数据
-export const delete_patients = (headers, params) => {
-  return axios.post(`${test}/api/tool/delete_patients`, params, headers).then(res => res.data)
+//添加duration
+export const addduration = (headers, params) => {
+  return axios.post(`${test}/api/tool/add_duration`, params, headers).then(res => res.data)
+}
+// 修改duration
+export const updateduration = (headers, params) => {
+  return axios.post(`${test}/api/tool/update_duration`, params, headers).then(res => res.data)
+}
+// 删除duration
+export const delduration = (headers, params) => {
+  return axios.post(`${test}/api/tool/del_duration`, params, headers).then(res => res.data)
 }
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {

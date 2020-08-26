@@ -880,9 +880,12 @@ class duration(models.Model):
         """
     id = models.AutoField(primary_key=True)
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务器ip")
+    port = models.CharField(max_length=5, blank=True, null=True, verbose_name="服务器端口号")
+    aet = models.CharField(max_length=10, blank=True, null=True, verbose_name="aet")
     keyword = models.CharField(max_length=20, blank=True, null=True, verbose_name="匿名名称")
-    dicom = models.CharField(max_length=20, blank=True, null=True, verbose_name="dicom数据")
+    dicom = models.CharField(max_length=100, blank=True, null=True, verbose_name="dicom数据")
     time = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
+    sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=True, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")

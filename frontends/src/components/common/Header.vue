@@ -33,12 +33,6 @@
                         <a href="" target="_blank">
                             <el-dropdown-item>设置</el-dropdown-item>
                         </a>
-                        <a href="http://jira.bishijie.com/" target="_blank">
-                            <el-dropdown-item>jira</el-dropdown-item>
-                        </a>
-                        <a href="http://qa-jenkins.bishijie.com/" target="_blank">
-                            <el-dropdown-item>jenkins</el-dropdown-item>
-                        </a>
                         <el-dropdown-item divided  command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>
