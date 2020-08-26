@@ -396,9 +396,8 @@ class EnableDuration(APIView):
             obj.sendstatus =True
             obj.save()
             for i in obj.dicom.split(","):
-                send_duration(obj,i)
-                # threading.Thread(target=send_duration,
-                #                   args=(obj,i)).start()
+                threading.Thread(target=send_duration,
+                                  args=(obj,i)).start()
                 time.sleep(1)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
