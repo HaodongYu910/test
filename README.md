@@ -48,4 +48,7 @@ chown :www-data /usr/project_env/platform/test/
 chown :www-data /usr/project_env/platform/test/uwsgi.sock
 chmod g+rw /usr/project_env/platform/test/uwsgi.sock
 
+$ python manage.py crontab add     # 添加
+$ python manage.py crontab show    # 展示
+$ python manage.py crontab remove  # 移除
 

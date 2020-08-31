@@ -10,32 +10,21 @@
                             <div>{{role}}</div>
                         </div>
                     </div>
-                    <div class="user-info-list">上次登录时间：<span>{{date_joined}}</span></div>
+                    <div class="user-info-list">上次登录时间：<span style="margin-left: 10px">{{ date_joined  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span></div>
                     <div class="user-info-list">上次登录地点：<span>北京</span></div>
                 </el-card>
-                <!--版本下载-->
-                <el-card shadow="hover" style="height:300px;">
+                <el-card shadow="hover" style="height:350px;">
                     <el-row :gutter="20">
                         <el-col :span="12">
-                            <div class="user-info-list">Boimind下载</div>
                             <el-card shadow="hover">
-                                <div class="download"
-                                     style="display: flex;justify-content: center; align-items: center;">
-                                    <img src="../../assets/img/qrcode.jpg" style="width: 80%;height: 80%" alt="">
-                                </div>
-                            </el-card>
-                        </el-col>
-                        <el-col :span="12">
-                            <div class="user-info-list">CoinNess下载</div>
-                            <el-card shadow="hover">
-                                <div class="download"
-                                     style="display: flex;justify-content: center; align-items: center;">
-                                    <img src="../../assets/img/qrcode.jpg" style="width: 80%;height: 80%" alt="">
+                                <div id='bishijieBar' class="mybar"
+                                     style="width: 250px;height: 310px;margin:0 auto;">
                                 </div>
                             </el-card>
                         </el-col>
                     </el-row>
                 </el-card>
+                <!--版本下载-->
             </el-col>
             <el-col :span="15">
                 <!--用户访问量、系统消息、数量-->
@@ -74,37 +63,8 @@
                         </el-card>
                     </el-col>
                 </el-row>
-                <el-card shadow="hover" style="height:450px;">
-                    <el-row :gutter="20">
-                        <el-col :span="12">
-                            <el-card shadow="hover">
-                                <div id='bishijieBar' class="mybar"
-                                     style="width: 330px;height: 310px;margin:0 auto;">
-                                </div>
-                            </el-card>
-                        </el-col>
-                        <el-col :span="12">
-                            <el-card shadow="hover">
-                                <div id='coinnessBar' class="mybar"
-                                     style="width: 330px;height: 310px;margin:0 auto">
-                                </div>
-                            </el-card>
-                        </el-col>
-                    </el-row>
-                </el-card>
-            </el-col>
-        </el-row>
-        <!--//四个图表-->
-        <el-row :gutter="20">
-            <el-col :span="12">
                 <el-card shadow="hover">
                     <div id='bishijieLine' class="myLine" style="width:100%;height:350px;margin:0 auto">
-                    </div>
-                </el-card>
-            </el-col>
-            <el-col :span="12">
-                <el-card shadow="hover">
-                    <div id='coinnessLine' class="myLine" style="width:100%;height:350px;margin:0 auto">
                     </div>
                 </el-card>
             </el-col>

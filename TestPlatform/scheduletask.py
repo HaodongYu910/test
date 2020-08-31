@@ -30,7 +30,7 @@ def job1_task():
             title = data.title
             Html = html(data.test_version, data.cns_version)
             if data.receiver == 'Autotest':  # 测试邮件
-                receiver = ['yinhang@bishijie.com', 'yinhang@bishijie.com']
+                receiver = ['hang.yin@biomind.ai', 'yinhang@bishijie.com']
                 email_cc = ['yinhang@bishijie.com', 'yinhang@bishijie.com']
             else:  # 正式邮件
                 receiver = ['tech@bishijie.com', 'product@bishijie.com', 'op@bishijie.com',

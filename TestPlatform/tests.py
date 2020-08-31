@@ -40,3 +40,12 @@ from TestPlatform.common.regexUtil import *
 
 
 
+# -*-coding:utf-8-*-
+import os
+for root,dirs,files in os.walk("d:\\testDatas"):
+    for dir in dirs:
+        print(dir)
+        print(os.path.join(root,dir))
+        # for file in files:
+        #     print(os.path.join(root,file))
+

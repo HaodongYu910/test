@@ -29,7 +29,7 @@
                         <el-col :span="5">
                             <el-form-item label="数据类型" prop="testtype">
                                 <el-select v-model="form.testtype" placeholder="请选择">
-                                    <el-option key="CTA" label="患者姓名" value="CTA"/>
+                                    <el-option key="" label="患者姓名" value="CTA"/>
                                     <el-option key="CTP" label="患者编号" value="CTP"/>
                                     <el-option key="Lung" label="预测结果" value="Lung"/>
                                     <el-option key="MRA" label="检查类型" value="MRA"/>
@@ -132,8 +132,8 @@
                     </el-table-column>
                     <el-table-column prop="status" label="运行状态" min-width="6%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.status" src="../../assets/img/icon-yes.svg"/>
-                            <img v-show="!scope.row.status" src="../../assets/img/icon-no.svg"/>
+                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/qidong.png"/>
+                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
                     <el-table-column label="累计发送" min-width="8%" sortable>
@@ -274,7 +274,6 @@
     import {
         getduration,addduration,delduration, updateduration, delete_patients, getHost, getVersion,disable_duration,enable_duration,getbase
     } from '@/router/api'
-    import {disableProject, enableProject} from "../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -757,5 +756,11 @@
         position: absolute;
         right: 15px;
         top: 10px;
+    }
+    .view-png {
+        width:15px;
+        height:15px;
+        margin-right:3px;
+        margin-bottom:5px
     }
 </style>

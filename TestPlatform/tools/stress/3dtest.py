@@ -42,8 +42,8 @@ def testjson():
     return content
 
 
-def sequence(loop_time, severip):
-    kc = use_keycloak_bmutils(severip, "biomind", "password")
+def sequence(loop_time, serverip):
+    kc = use_keycloak_bmutils(serverip, "biomind", "password")
     for loop in range(int(loop_time)):
         def testkc(kc, content):
             print((content))

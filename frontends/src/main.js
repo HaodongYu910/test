@@ -6,9 +6,16 @@ import VueAxios from 'vue-axios';
 import ElementUI from 'element-ui';
 import ECharts from 'echarts';
 import 'element-ui/lib/theme-chalk/index.css'; // 默认主题
-// import '../static/css/theme-green/index.css';       // 浅绿色主题
+// import './assets/css/theme-green/index.css';       // 浅绿色主题
+import './assets/icons/iconfont.css'
 import './assets/css/icon.css';
 import './components/common/directives';
+// import 'normalize.css/normalize.css' // a modern alternative to CSS resets
+import './styles/element-variables.scss'
+import './styles/index.scss' // global css
+import './assets/icons' // icon
+
+
 import "babel-polyfill";
 import qs from 'qs';
 import moment from 'moment'

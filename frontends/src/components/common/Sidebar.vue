@@ -39,17 +39,17 @@
                 collapse: false,
                 items: [
                     {
-                        icon: 'el-icon-lx-home',
+                        icon: 'el-icon-s-home',
                         index: 'home',
                         title: '系统首页'
                     },
                     {
-                        icon: 'el-icon-lx-cascades',
+                        icon: 'el-icon-s-flag',
                         index: 'table',
                         title: '环境地址'
                     },
                     {
-                        icon: 'el-icon-lx-copy',
+                        icon: 'el-icon-s-platform',
                         index: 'project',
                         title: '项目',
                         subs: [
@@ -68,7 +68,7 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-lx-punch',
+                        icon: 'el-icon-s-help',
                         index: '3',
                         title: '测试工具',
                         subs: [
@@ -87,7 +87,7 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-lx-calendar',
+                        icon: 'el-icon-message',
                         index: '4',
                         title: '邮件管理',
                         subs: [
@@ -98,7 +98,7 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-lx-settings',
+                        icon: 'el-icon-s-tools',
                         index: '5',
                         title: '系统设置',
                         subs: [
@@ -113,12 +113,12 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-lx-message',
+                        icon: 'el-icon-s-promotion',
                         index: 'sonar',
                         title: 'Sonar 检查'
                     },
                     {
-                        icon: 'el-icon-lx-message',
+                        icon: 'el-icon-message-solid',
                         index: 'tabs',
                         title: '消息中心'
                     },

@@ -27,19 +27,6 @@ from TestPlatform.serializers import duration_record_Deserializer, duration_reco
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
-CONFIG = {
-    'local': {
-        'aet': 'ORTHANC208'
-    },
-    'server': {
-        'aet': 'ORTHANC',
-        'ip': '192.168.1.208',
-        'port': '4242'
-    },
-    'keyword': 'duration',
-    'dicomfolder': '/home/biomind/testDatas'
-}
-
 
 def get_date():
     localtime = time.localtime(time.time())
@@ -68,7 +55,7 @@ def sync_send_file(file_name):
         dur.server,
         dur.port,
         "-aec", dur.aet,
-        "-aet", CONFIG.get('local', {}).get('aet'),
+        "-aet", 'ORTHANC208',
         file_name
     ]
 
@@ -274,6 +261,7 @@ def send_duration(obj,dicomname):
 
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
+            v['sendserver']=dur.id
             stressserializer = duration_record_Serializer(data=v)
             with transaction.atomic():
                 stressserializer.is_valid()

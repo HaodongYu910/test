@@ -345,7 +345,7 @@ CORS_ALLOW_HEADERS = (
 CRONJOBS = [
     # 表示每天2：01执行
     ('30 19 * * *', 'TestPlatform.scheduletask.job1_task','>>/usr/project_env/platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/TestPlatform/logs/job.logs'
-    ('30 09 * * *', 'TestPlatform.scheduletask.job2_task','>>/usr/project_env/platform/logs/last_scheduled_job.logs')# 每天09：30 执行同步听云数据
+    ('*/5 * * * *', 'TestPlatform.scheduletask.job2_task','>>/usr/project_env/platform/logs/last_scheduled_job.logs')# 每天09：30 执行同步听云数据
 ]
 
 

@@ -13,12 +13,13 @@ from TestPlatform.serializers import stressrecord_Deserializer,\
 from ..common.stress import sequence
 from ..tools.orthanc.delete_patients import *
 from ..tools.duration_verify import *
-from TestPlatform.tools.dicom.duration import send_duration
+from ..tools.dicom.duration import send_duration
+from ..tools.stress.PerformanceResult import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
 
-class toolData(APIView):
+class stressversion(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -29,11 +30,13 @@ class toolData(APIView):
         :return:
         """
         list = []
-        obi = stress_record.objects.get(type=1)
-        for i in obi.content.split(","):
-            dict = {'key': i, 'value': i}
-            list.append(dict)
-        return JsonResponse(data={"data": list
+        server=request.GET.get("server", '192.168.1.208')
+        obi = stress_record.objects.filter(loadserver__contains=server).order_by("-id")
+        serialize = stressrecord_Deserializer(obi, many=True)
+        # for i in obi.version:
+        #     dict = {'key': i, 'value': i}
+        #     list.append(dict)
+        return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
 
 
@@ -71,6 +74,53 @@ class stressData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
+class stressResult(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 version
+            if not data["version"] or not data["checkversion"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 version,checkversion！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        预测时间 压测结果
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+
+        try:
+            starttime = stress_record.objects.get(version=data['version']).start_date
+            endtime = stress_record.objects.get(version=data['version']).end_date
+            start_time = stress_record.objects.get(version=data['checkversion']).start_date
+            end_time = stress_record.objects.get(version=data['checkversion']).end_date
+
+            checkdate = [[starttime,endtime], [start_time,end_time]]
+            predictionfield =['avg_pred_time', 'median_pred_time', 'min_pred_time', 'max_pred_time', 'coef']
+            jobfield =['avg_job_time', 'avg_single_job_time', 'median_job_time', 'min_job_time', 'max_job_time',
+                 'coef']
+            predictionresult = datacheck('prediction', predictionfield, checkdate,data['server'])
+            jobresult = datacheck('job', jobfield, checkdate,data['server'])
+            # lungresult=lung('job', jobfield, checkdate,data['server'])
+            return JsonResponse(data={"data": predictionresult,
+                                      "jobresult":jobresult
+                                      }, code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(msg="失败", code="999991", exception=e)
 
 class stresstool(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -107,13 +157,19 @@ class stresstool(APIView):
             data['testdata'] = str(data["testdata"])
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
-            stressserializer = stressrecord_Deserializer(data=data)
-            with transaction.atomic():
-                stressserializer.is_valid()
-                stressserializer.save()
-            stressresult = sequence(data["loadserver"], end_time,testdata,
-                                    data["version"],data["duration"],data["keyword"])
-            return JsonResponse(data=stressresult, code="0", msg="成功")
+
+            # 查找是否相同版本号的测试记录
+            stress_version = stress_record.objects.filter(version=data["version"])
+            if len(stress_version):
+                return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
+            else:
+                stressserializer = stressrecord_Deserializer(data=data)
+                with transaction.atomic():
+                    stressserializer.is_valid()
+                    stressserializer.save()
+                stressresult = sequence(data["loadserver"], end_time,testdata,
+                                        data["version"],data["duration"],data["keyword"])
+                return JsonResponse(data=stressresult, code="0", msg="成功")
         except Exception as e:
             print(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -392,14 +448,18 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
-            obj.status = True
-            obj.sendstatus =True
-            obj.save()
-            for i in obj.dicom.split(","):
-                threading.Thread(target=send_duration,
-                                  args=(obj,i)).start()
-                time.sleep(1)
-            return JsonResponse(code="0", msg="成功")
+
+            if obj.sendstatus is True:
+                return JsonResponse(code="999994", msg="运行中！待停止后再启动！~")
+            else:
+                obj.status = True
+                obj.sendstatus = True
+                obj.save()
+                for i in obj.dicom.split(","):
+                    threading.Thread(target=send_duration,
+                                      args=(obj,i)).start()
+                    time.sleep(1)
+                return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
@@ -454,3 +514,4 @@ class duration_verify(APIView):
         data=verify()
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
+

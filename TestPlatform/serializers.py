@@ -793,7 +793,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration_record
         fields = (
-        'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'imagecount', 'imagecount_server', 'aistatus',
+        'id', 'patientid', 'accessionnumber', 'studyinstanceuid','studyolduid', 'imagecount', 'imagecount_server', 'aistatus',
         'diagnosis', 'sendserver', 'time', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
@@ -814,7 +814,7 @@ class duration_record_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = duration_record
-        fields = ('patientid', 'accessionnumber', 'studyinstanceuid', 'imagecount', 'imagecount_server', 'aistatus',
+        fields = ('patientid', 'accessionnumber', 'studyinstanceuid','studyolduid',  'imagecount', 'imagecount_server', 'aistatus',
                   'diagnosis', 'sendserver', 'time')
 
 class duration_Serializer(serializers.ModelSerializer):

@@ -857,6 +857,7 @@ class duration_record(models.Model):
     patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
     accessionnumber = models.CharField(max_length=50, blank=True, null=True, verbose_name="accessionnumber")
     studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
+    studyolduid = models.CharField(max_length=100, blank=True, null=True, verbose_name="原数据uid")
     imagecount = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
     imagecount_server = models.CharField(max_length=50, blank=True, null=True, verbose_name="测试")
     aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="测试数据")
