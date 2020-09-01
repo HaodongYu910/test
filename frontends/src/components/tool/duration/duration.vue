@@ -141,15 +141,13 @@
                             <span style="margin-left: 10px">{{ scope.row.update_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="操作" min-width="30px">
+                    <el-table-column label="操作" min-width="20px">
                         <template slot-scope="scope">
-                            <el-button type="warning" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
+                            <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
                             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                             </el-button>
                             <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                                 {{scope.row.status===false?'启用':'停用'}}
-                            </el-button>
-                            <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除
                             </el-button>
 
                         </template>
@@ -158,7 +156,7 @@
 
                 <!--工具条-->
                 <el-col :span="24" class="toolbar">
-                    <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">批量删除</el-button>
+                    <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">删除</el-button>
                     <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20"
                                    :page-count="total" style="float:right;">
                     </el-pagination>
@@ -489,7 +487,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    delstressdata(header, params).then(_data => {
+                    delduration(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
@@ -509,8 +507,7 @@
             },
             handleCurrentChange(val) {
                 this.page = val
-                this.getDurationlist()
-                this.gethost()
+                this.handleDel()
             },
             // 显示编辑界面
             handleEdit: function (index, row) {
@@ -532,7 +529,7 @@
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
-                                message: '禁用成功',
+                                message: '停止成功',
                                 center: true,
                                 type: 'success'
                             });
@@ -714,7 +711,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    delstressdata(header, params).then(_data => {
+                    delduration(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({

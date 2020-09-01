@@ -378,43 +378,6 @@ class update_duration(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-#删除dicom 发送记录
-class del_duration(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        send数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        try:
-            duration = duration_Deserializer(data=data)
-            with transaction.atomic():
-                duration.is_valid()
-                duration.save()
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
 
 class DisableDuration(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -486,7 +449,7 @@ class EnableDuration(APIView):
             obj = duration.objects.get(id=data["id"])
 
             if obj.sendstatus is True:
-                return JsonResponse(code="999994", msg="运行中！待停止后再启动！~")
+                return JsonResponse(code="999994", msg="Send暂未结束！情请稍后再启动哦！~")
             else:
                 obj.status = True
                 obj.sendstatus = True
@@ -499,6 +462,51 @@ class EnableDuration(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
+#删除dicom 发送记录
+class del_duration(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["ids"], list):
+                return JsonResponse(code="999996", msg="参数有误！")
+            for i in data["ids"]:
+                if not isinstance(i, int):
+                    return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        删除项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            for i in data["ids"]:
+                try:
+                    obj = duration.objects.get(id=i)
+                    try:
+                        obj.delete()
+                    except ObjectDoesNotExist:
+                        return JsonResponse(code="999994", msg="删除失败！")
+                    return JsonResponse(code="0", msg="成功")
+                except ObjectDoesNotExist:
+                    return JsonResponse(code="999995", msg="数据不存在！")
+
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="执行失败！")
 
 
 #删除dicom 数据

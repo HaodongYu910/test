@@ -262,7 +262,7 @@ def send_duration(obj,dicomname):
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
             v['sendserver']=dur.server
-            v['durationid']=dur.id
+            v['duration_id']=dur.id
             stressserializer = duration_record_Serializer(data=v)
             with transaction.atomic():
                 stressserializer.is_valid()
