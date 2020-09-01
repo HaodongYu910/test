@@ -49,12 +49,12 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount_server }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="是否预测" label="是否预测" min-width="12%" sortable>
+          <el-table-column prop="预测结果" label="预测结果" min-width="12%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.aistatus }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="预测结果" label="预测结果" min-width="20%">
+          <el-table-column prop="诊断结果" label="诊断结果" min-width="20%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
             </template>
