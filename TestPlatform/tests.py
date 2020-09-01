@@ -41,11 +41,18 @@ from TestPlatform.common.regexUtil import *
 
 
 # -*-coding:utf-8-*-
-import os
-for root,dirs,files in os.walk("d:\\testDatas"):
-    for dir in dirs:
-        print(dir)
-        print(os.path.join(root,dir))
-        # for file in files:
-        #     print(os.path.join(root,file))
+# import os
+# for root,dirs,files in os.walk("d:\\testDatas"):
+#     for dir in dirs:
+#         print(dir)
+#         print(os.path.join(root,dir))
+#         # for file in files:
+#         #     print(os.path.join(root,file))
+#
 
+
+dicta=[{"a":1,"b":2,"c":3},{"a":3,"b":1,"c":3},{"a":2,"b":2,"c":3}]
+dictb=[{"a":2,"b":2,"c":1},{"a":0,"b":9,"c":3},{"a":3,"b":1,"c":0}]
+
+for i in dicta:
+    dicta[i]["a"].find

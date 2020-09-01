@@ -132,13 +132,8 @@
                     </el-table-column>
                     <el-table-column prop="status" label="运行状态" min-width="6%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../assets/img/ting-zhi.png"/>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="累计发送" min-width="8%" sortable>
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.dicomsum }} 个</span>
+                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
+                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
                     <el-table-column label="修改时间" min-width="15%" sortable>
@@ -148,6 +143,7 @@
                     </el-table-column>
                     <el-table-column label="操作" min-width="30px">
                         <template slot-scope="scope">
+                            <el-button type="warning" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
                             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                             </el-button>
                             <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
@@ -169,28 +165,16 @@
                 </el-col>
 
                 <!--编辑界面-->
-                <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
+                <el-dialog title="修改" :visible.sync="editFormVisible" :close-on-click-modal="false"
                            style="width: 75%; left: 12.5%">
                     <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                         <el-row>
-                            <el-col :span="5">
-                                <el-form-item label="发送服务器" prop="sendserver">
-                                     <el-select v-model="editForm.sendserver"  placeholder="请选择" @click.native="gethost()">
-                                      <el-option
-                                        v-for="(item,index) in tags"
-                                        :key="item.host"
-                                        :label="item.name"
-                                        :value="item.host"
-                                      />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
+                            <el-col :span="6">
                                 <el-form-item label="持续时间" prop="loop_time">
                                     <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="6">
+                            <el-col :span="8">
                                 <el-form-item label="数据类型" prop="senddata">
                                     <el-select v-model="editForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
                                       <el-option
@@ -202,20 +186,21 @@
                                     </el-select>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="4">
+                            <el-col :span="6">
                                 <el-form-item label="匿名名称" prop="keyword">
                                     <el-input id="keyword" v-model="editForm.keyword" placeholder="数据名称"/>
                                 </el-form-item>
                             </el-col>
+                            <el-col :span="4">
+                                <el-form-item label="" prop="keyword">
+                                    <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
+                                </el-form-item>
+                            </el-col>
                         </el-row>
                     </el-form>
-                    <div slot="footer" class="dialog-footer">
-                        <el-button @click.native="editFormVisible = false">取消</el-button>
-                        <el-button type="primary" @click.native="editSubmit" :loading="editLoading">save</el-button>
-                    </div>
                 </el-dialog>
                 <!--新增界面-->
-                <el-dialog title="新增匿名数据发送" :visible.sync="addFormVisible" :close-on-click-modal="false"
+                <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                            style="width: 75%; left: 12.5%">
                     <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                         <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -255,7 +240,7 @@
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="4">
-                                    <el-form-item>
+                                    <el-form-item label="保存操作" prop="save">
                                         <el-button type="primary" @click="addSubmit('form')">保存</el-button>
                                     </el-form-item>
                                 </el-col>
@@ -291,7 +276,8 @@
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
                     version: [
-                        {required: true, message: '请输入测试版本', trigger: 'blur'}
+                        {required: true, message: '请输入版本号', trigger: 'change'},
+                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 filters: {
@@ -305,7 +291,6 @@
 
                 editFormVisible: false, // 编辑界面是否显示
                 editLoading: false,
-                options: [{label: 'Web', value: 'Web'}, {label: 'App', value: 'App'}],
                 editFormRules: {
                     diseases: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
@@ -313,10 +298,6 @@
                     ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
-                    ],
-                    version: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ],
                     description: [
                         {required: false, message: '请输入描述', trigger: 'blur'},
@@ -361,6 +342,15 @@
             this.gethost()
         },
         methods: {
+            showDetail(index,row){
+             this.$router.push({
+                    path:'/durationData',
+                    query:{
+                        id:row.id,
+                        name:row.server_ip
+                    }
+                });
+            },
             deldicom(formName) {
                 this.tableData = null
                 this.$refs[formName].validate((valid) => {

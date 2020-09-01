@@ -68,8 +68,15 @@ export default new Router({
                 },
                 {
                     path: '/dicom',
-                    component: resolve => require(['../components/tool/dicom.vue'], resolve),
+                    component: resolve => require(['../components/tool/duration/duration.vue'], resolve),
                     meta: { title: 'Dicom工具' }
+
+                },
+                {
+                    path: '/durationData',
+                    component: resolve => require(['../components/tool/duration/durationData.vue'], resolve),
+                    meta: { title: '持续化数据详情' }
+
                 },
                 {
                     path: '/stress',

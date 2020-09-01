@@ -2,8 +2,8 @@ import axios from 'axios';
 
 
 
-export const test = 'http://127.0.0.1:8000';
-// export const test = 'http://192.168.2.38:9000';
+//export const test = 'http://127.0.0.1:8000';
+export const test = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -260,6 +260,11 @@ export const delete_patients = (headers, params) => {
 // 获取duration数据
 export const getduration = (headers, params) => {
     return axios.get(`${test}/api/tool/getduration`, { params: params }, { headers }).then(res => res.data)
+}
+
+// 获取duration发送数据
+export const getdurationData = (headers, params) => {
+    return axios.get(`${test}/api/tool/durationData`, { params: params }, { headers }).then(res => res.data)
 }
 //添加duration
 export const addduration = (headers, params) => {

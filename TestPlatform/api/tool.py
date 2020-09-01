@@ -262,6 +262,42 @@ class getDuration(APIView):
         durationdata = duration_Serializer(obi,many=True)
         return JsonResponse(data={"data": durationdata.data
                                   }, code="0", msg="成功")
+#获取 持续化发送详细数据
+class durationData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取持续列表详细数据
+        :param request:
+        :return:
+        """
+        try:
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        patientid = request.GET.get("patientid")
+        durationid=int(request.GET.get("id"))
+        if patientid:
+            obi = duration_record.objects.filter(patientid__contains=patientid).order_by("-id")
+        else:
+            obi = duration_record.objects.filter(duration_id__contains=durationid).order_by("-id")
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        serialize = duration_record_Deserializer(obm, many=True)
+        return JsonResponse(data={"data": serialize.data,
+                                  "page": page,
+                                  "total": total
+                                  }, code="0", msg="成功")
+
 
 #保存dicom 发送记录
 class add_duration(APIView):
@@ -314,8 +350,8 @@ class update_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["dicom"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -342,7 +378,7 @@ class update_duration(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-#保存dicom 发送记录
+#删除dicom 发送记录
 class del_duration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()

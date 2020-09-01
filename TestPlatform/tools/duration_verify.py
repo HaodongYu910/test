@@ -39,10 +39,14 @@ def verify():
     duration_data = duration_record.objects.filter(aistatus__isnull=True)
     for i in duration_data:
         data = {'studyinstanceuid':i.studyinstanceuid}
-        kc = use_keycloak_bmutils(i.sendserver, 'biomind', 'password')
+        if i.sendserver=="192.168.1.228":
+            serverip="192.168.1.124"
+        else:
+            serverip=i.sendserver
+        kc = use_keycloak_bmutils(serverip, 'biomind', 'password')
         airesult=ai_result(kc,i.patientid)
         if airesult.json()['data']['studyViewFlexible'] ==[]:
-            data['aistatus']='9999'
+            data['aistatus']= None
             data['diagnosis'] = None
             data['instancecount'] = None
         else:

@@ -81,9 +81,9 @@
                         <el-select v-model="filters.version"  placeholder="当前版本" @click.native="getversion()">
                               <el-option
                                 v-for="(item,index) in versions"
-                                :key="item.host"
-                                :label="item.name"
-                                :value="item.host"
+                                :key="item.version"
+                                :label="item.version"
+                                :value="item.version"
                               />
                             </el-select>
                         <el-select v-model="filters.checkversion"  placeholder="以前版本" @click.native="getversion()">
@@ -104,11 +104,9 @@
                 </el-col>
                 <!--列表-->
                 <span style="margin-left: 10px">prediction time</span>
-                <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
+                <el-table :data="durationlist" v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
-                    <el-table-column type="selection" min-width="5%">
-                    </el-table-column>
                     <el-table-column prop="modelname" label="modelname" min-width="6%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
@@ -141,8 +139,7 @@
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
+                            <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="预测成功率" min-width="8%" sortable>
@@ -156,8 +153,6 @@
                 <el-table :data="jobresult" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
-                    <el-table-column type="selection" min-width="5%">
-                    </el-table-column>
                     <el-table-column prop="version" label="modelname" min-width="6%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
@@ -180,7 +175,7 @@
                     </el-table-column>
                     <el-table-column label="median job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median_job_time }} 小时</span>
+                            <span style="margin-left: 10px">{{ scope.row.median_job_time }} 秒</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min job time /s" min-width="10%" sortable>
@@ -195,8 +190,7 @@
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.coef" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.coef" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
+                            <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -204,8 +198,6 @@
                 <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
-                    <el-table-column type="selection" min-width="5%">
-                    </el-table-column>
                     <el-table-column prop="version" label="slicenumber" min-width="6%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
@@ -223,12 +215,12 @@
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median_pred_time }} 小时</span>
+                            <span style="margin-left: 10px">{{ scope.row.median_pred_time }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.min_pred_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
+                            <span style="margin-left: 10px">{{ scope.min_pred_time }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
