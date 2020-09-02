@@ -24,6 +24,8 @@ from TestPlatform.models import duration,base_data
 from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
 
+logger = logging.getLogger(__name__)
+
 def get_date():
     localtime = time.localtime(time.time())
     return (time.strftime("%Y-%m-%d", localtime))
@@ -228,10 +230,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def send_duration(obj,dicomname):
     global dur
     dur = obj
-    log_file = "{0}/{1}.log".format(settings.LOG_PATH, dur.keyword)
-    logging.basicConfig(filename=log_file, filemode='a+',
-                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
+    # log_file = "{0}/{1}.log".format(settings.LOG_PATH, dur.keyword)
+    # logging.basicConfig(filename=log_file, filemode='a+',
+    #                     format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
+    #                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
 
     dicomfolder = base_data.objects.get(remarks=dicomname)
 
