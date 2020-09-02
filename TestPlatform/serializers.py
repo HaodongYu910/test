@@ -814,7 +814,7 @@ class duration_record_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = duration_record
-        fields = ('patientid', 'accessionnumber', 'studyinstanceuid','studyolduid',  'imagecount', 'imagecount_server', 'aistatus',
+        fields = ('id','patientid', 'accessionnumber', 'studyinstanceuid','studyolduid',  'imagecount', 'imagecount_server', 'aistatus',
                   'diagnosis', 'sendserver','duration_id')
 
 class duration_Serializer(serializers.ModelSerializer):

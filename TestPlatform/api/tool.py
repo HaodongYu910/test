@@ -287,6 +287,7 @@ class durationData(APIView):
             obi = duration_record.objects.filter(duration_id__contains=durationid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
+        count = paginator.count  # 总页数
         try:
             obm = paginator.page(page)
         except PageNotAnInteger:
@@ -296,7 +297,8 @@ class durationData(APIView):
         serialize = duration_record_Deserializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
-                                  "total": total
+                                  "total": total,
+                                  "count":count
                                   }, code="0", msg="成功")
 
 

@@ -5,10 +5,13 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters" @submit.native.prevent>
         <el-form-item>
-          <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getData" />
+          <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getDurationlist" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="getProjectList">查询</el-button>
+          <el-button type="primary" @click="getDurationlist">查询</el-button>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="getdurationVerify">同步结果</el-button>
         </el-form-item>
       </el-form>
     </el-col>
@@ -19,6 +22,11 @@
           highlight-current-row
           style="width: 100%;"
           @selection-change="selsChange">
+          <el-table-column prop="ID" label="ID" min-width="5%" sortable>
+            <template slot-scope="scope" >
+              <span style="margin-left: 10px">{{ scope.row.id }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="patientid" label="Patientid" min-width="15%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
@@ -59,22 +67,36 @@
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="发送服务器" label="发送服务器" min-width="10%">
+          <el-table-column prop="发送服务器" label="发送服务器" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.sendserver }}</span>
             </template>
           </el-table-column>
           <el-table-column label="发送时间" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.create_time }}</span>
+              <span style="margin-left: 10px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="10px">
-            <template slot-scope="scope">
-              <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查询结果</el-button>
-            </template>
-          </el-table-column>
+<!--          <el-table-column label="操作" min-width="10px">-->
+<!--            <template slot-scope="scope">-->
+<!--              <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查询结果</el-button>-->
+<!--            </template>-->
+<!--          </el-table-column>-->
         </el-table>
+      <el-footer style="margin-top:20px;">
+          <el-pagination
+                  @size-change="handleSizeChange"
+                  @current-change="handleCurrentChange"
+                  :current-page="page"
+                  :page-sizes="[10, 20, 40,100]"
+                  :page-size="page-size"
+                  layout="total, sizes, prev, pager, next, jumper"
+                  :total="count"
+                   style="float:right;"
+                ></el-pagination>
+      </el-footer>
+      <!--工具条-->
+
     </div>
   </div>
 </template>
@@ -83,7 +105,7 @@
     // import NProgress from 'nprogress'
 
     import {
-        getduration,getdurationData,getHost, getVersion,getbase
+        getduration,getdurationData,getdurationverify
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -96,6 +118,8 @@
                 },
                 total: 0,
                 page: 1,
+                page_size:20,
+                patientid:'',
                 listLoading: false,
                 sels: [], // 列表选中列
 
@@ -114,11 +138,18 @@
             getParams(){
               this.routerParams=this.$route.query;
               },
+          handleSizeChange: function(size) {
+              this.page_size = size;
+              this.getDurationlist()
+            },
             // 获取数据列表
             getDurationlist() {
                 this.listLoading = true
                 const self = this
                 const params = {
+                  page: self.page,
+                  page_size: self.page_size,
+                  patientid: self.filters.patientid,
                   id:this.routerParams.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -127,6 +158,7 @@
                     const {msg, code, data} = res
                     if (code === '0') {
                         self.total = data.total
+                        self.count = data.count
                         self.durationdatalist = data.data
                     } else {
                         self.$message.error({
@@ -136,7 +168,26 @@
                     }
                 })
             },
-
+            getdurationVerify() {
+                this.listLoading = true
+                const self = this
+                const params = {
+                  patientid: self.filters.patientid
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getdurationverify(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.datalist = data.data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             handleCurrentChange(val) {
                 this.page = val
                 this.getDurationlist()

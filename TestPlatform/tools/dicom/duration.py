@@ -17,15 +17,11 @@ import subprocess as sp
 import time,datetime
 import random
 import math
-import pymysql
 import logging
 from django.db import transaction
 from django.conf import settings
 from TestPlatform.models import duration,base_data
-
 from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
-logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
-
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
 
 def get_date():
@@ -55,7 +51,7 @@ def sync_send_file(file_name):
         dur.server,
         dur.port,
         "-aec", dur.aet,
-        "-aet", 'ORTHANC208',
+        "-aet", 'QA38',
         file_name
     ]
 
@@ -230,25 +226,31 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 
 
 def send_duration(obj,dicomname):
-    global dur,dicomfolder
-    dur=obj
+    global dur
+    dur = obj
+    log_file = "{0}/{1}Send.log".format(settings.LOG_PATH, dur.keyword)
+    logging.basicConfig(filename=log_file, filemode='a+',
+                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
+
     dicomfolder = base_data.objects.get(remarks=dicomname)
 
-    folder = dicomfolder.content
-    src_folder = folder
+    src_folder = dicomfolder.content
+    if dur.folder:
+        sync_send(dur.folder)
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
-
     loop_times = 0
     if dur.time:
         now=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end_time =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
+        end =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
     else:
         now=0
-        end_time=1
-    while now < end_time:
+        end=1
+
+    while now < end:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,dur.keyword,loop_times)
+        folder_fake = "{0}/{1}{2}".format("/files/logs",dur.keyword,loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -258,8 +260,10 @@ def send_duration(obj,dicomname):
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
-
+        dur.folder = str(folder_fake)
+        dur.save()
         sync_send(folder_fake)
+
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
             v['sendserver']=dur.server
@@ -270,9 +274,9 @@ def send_duration(obj,dicomname):
                 stressserializer.save()
 
         shutil.rmtree(folder_fake)
-        if end_time ==1:
+        if end ==1:
             obj= duration.objects.get(id=dur.id)
-            end_time=int(obj.status)
-        elif end_time==0:
+            end=int(obj.status)
+        elif end==0:
             dur.sendstatus = False
             dur.save()
