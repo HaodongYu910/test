@@ -888,6 +888,8 @@ class duration(models.Model):
     time = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
     sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=True, verbose_name='状态')
+    pid =models.CharField(max_length=50,blank=True, null=True, verbose_name="进程号")
+    folder= models.CharField(max_length=30, blank=True, null=True, verbose_name="dicom文件夹名称")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

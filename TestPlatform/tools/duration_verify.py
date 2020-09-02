@@ -54,7 +54,7 @@ def verify():
             res_studyView = airesult.json()['data']['studyViewFlexible']
             data['aistatus'] = res_studyView[0].get('aistatus')
             data['diagnosis'] = res_studyView[0].get('diagnosis')
-            data['imagecount'] = res_studyView[0].get('instancecount')
+            data['imagecount_server'] = res_studyView[0].get('instancecount')
         update_data(data)
     return True
 

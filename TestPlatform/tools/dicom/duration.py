@@ -158,7 +158,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         study_uid = ''
         try:
             study_uid = ds.StudyInstanceUID
-            studyolduid =ds.StudyInstanceUID
+            study_infos['studyolduid'] = ds.StudyInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -259,17 +259,16 @@ def send_duration(obj,dicomname):
             study_infos=study_infos
         )
 
+        sync_send(folder_fake)
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
             v['sendserver']=dur.server
-            v['duration_id']=dur.id
+            v['durationid']=dur.id
             stressserializer = duration_record_Serializer(data=v)
             with transaction.atomic():
                 stressserializer.is_valid()
                 stressserializer.save()
 
-        time.sleep(1)
-        sync_send(folder_fake)
         shutil.rmtree(folder_fake)
         if end_time ==1:
             obj= duration.objects.get(id=dur.id)

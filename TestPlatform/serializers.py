@@ -825,7 +825,7 @@ class duration_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = (
-        'id','server','port','aet', 'keyword', 'dicom', 'time','sendstatus', 'status', 'update_time', 'create_time')
+        'id','server','port','aet', 'keyword', 'dicom', 'time','sendstatus', 'status','pid','folder', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):

@@ -51,8 +51,29 @@ from TestPlatform.common.regexUtil import *
 #
 
 
-dicta=[{"a":1,"b":2,"c":3},{"a":3,"b":1,"c":3},{"a":2,"b":2,"c":3}]
-dictb=[{"a":2,"b":2,"c":1},{"a":0,"b":9,"c":3},{"a":3,"b":1,"c":0}]
+# dicta=[{"a":1,"b":2,"c":3},{"a":3,"b":1,"c":3},{"a":2,"b":2,"c":3}]
+# dictb=[{"a":2,"b":2,"c":1},{"a":0,"b":9,"c":3},{"a":3,"b":1,"c":0}]
+#
+# for i in dicta:
+#     dicta[i]["a"].find
+from multiprocessing import Pool,Process
+# import time,os
+# def Foo(a):#创建函数
+#     for i in range(10):
+#         a=a+a
+#         time.sleep(1)
+#
+#     print('process:',a,'time:',bar())
+#     return a
 
-for i in dicta:
-    dicta[i]["a"].find
+# def bar():#创建函数
+#     arga=datetime.datetime.today()
+#     print('---->',arga)
+# if __name__ == '__main__':
+#     pool = Pool(2)#创建进程池最大容量为2，最多允许2个进程同时运行，参照线程信号量模式
+#     for i in range(5):#创建10个进程
+#         print('in the time:', bar())
+#         pool.apply_async(func=Foo,args=(i,))#创建线程，参数1调用函数，参数2设置i为函数FOO参数，参数3为返回函数
+#     pool.close() #关闭
+#     print("返回成功")
+

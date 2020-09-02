@@ -5,6 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
+from multiprocessing import Pool,Process
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress_record, stress_data,duration
@@ -447,17 +448,21 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
-
+            pidlist=[]
             if obj.sendstatus is True:
                 return JsonResponse(code="999994", msg="Send暂未结束！情请稍后再启动哦！~")
             else:
+                pool = Pool(10)
+                for i in obj.dicom.split(","):
+                    pool.apply_async(func=send_duration, args=(obj,i,))
+                    pidlist.append(os.getpid())
+                    # threading.Thread(target=send_duration,
+                    #                   ).start()
+                    time.sleep(1)
+                pool.close()
                 obj.status = True
                 obj.sendstatus = True
                 obj.save()
-                for i in obj.dicom.split(","):
-                    threading.Thread(target=send_duration,
-                                      args=(obj,i)).start()
-                    time.sleep(1)
                 return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
