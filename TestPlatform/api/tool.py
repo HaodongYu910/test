@@ -460,7 +460,6 @@ class EnableDuration(APIView):
                     pidlist.append(os.getpid())
                     # threading.Thread(target=send_duration,
                     #                   ).start()
-                    time.sleep(1)
                 pool.close()
                 obj.status = True
                 obj.sendstatus = True

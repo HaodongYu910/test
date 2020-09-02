@@ -24,8 +24,6 @@ from TestPlatform.models import duration,base_data
 from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
 
-logger = logging.getLogger(__name__)
-
 def get_date():
     localtime = time.localtime(time.time())
     return (time.strftime("%Y-%m-%d", localtime))
@@ -156,7 +154,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         study_uid = ''
         try:
             study_uid = ds.StudyInstanceUID
-            study_infos['studyolduid'] = ds.StudyInstanceUID
+            dur['studyolduid'] = ds.StudyInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -228,17 +226,16 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 
 
 def send_duration(obj,dicomname):
-    global dur
+    global dur,dicomfolder
     dur = obj
-    # log_file = "{0}/{1}.log".format(settings.LOG_PATH, dur.keyword)
-    # logging.basicConfig(filename=log_file, filemode='a+',
-    #                     format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
-    #                     datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
+    log_file = "{0}/{1}Send.log".format(settings.LOG_PATH, dur.keyword)
+    logging.basicConfig(filename=log_file, filemode='a+',
+                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
 
     dicomfolder = base_data.objects.get(remarks=dicomname)
 
     src_folder = dicomfolder.content
-
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
     loop_times = 0
@@ -251,7 +248,7 @@ def send_duration(obj,dicomname):
 
     while now < end:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format("/files/logs",dur.keyword,loop_times)
+        folder_fake = "{0}/{1}{2}".format(settings.LOG_PATH,dur.keyword,loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
