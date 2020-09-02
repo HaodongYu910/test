@@ -228,7 +228,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def send_duration(obj,dicomname):
     global dur
     dur = obj
-    log_file = "{0}/{1}Send.log".format(settings.LOG_PATH, dur.keyword)
+    log_file = "{0}/{1}.log".format(settings.LOG_PATH, dur.keyword)
     logging.basicConfig(filename=log_file, filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
@@ -236,8 +236,7 @@ def send_duration(obj,dicomname):
     dicomfolder = base_data.objects.get(remarks=dicomname)
 
     src_folder = dicomfolder.content
-    if dur.folder:
-        sync_send(dur.folder)
+
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
     loop_times = 0
