@@ -451,13 +451,14 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             if obj.sendstatus is True:
-                return JsonResponse(code="999994", msg="Send暂未发送完成！请稍后再启动哦！~")
+                return JsonResponse(code="999994", msg="Send暂未结束！请稍后再启动哦！~")
             else:
-                pool = Pool(10)
+                # pool = Pool(10)
                 for i in obj.dicom.split(","):
-                    pool.apply_async(func=send_duration, args=(obj,i,))
-                pool.close()
-
+                    # pool.apply_async(func=send_duration, args=(obj,i,))
+                    threading.Thread(target=send_duration,
+                                       args=(obj,i,)).start()
+                # pool.close()
                 obj.status = True
                 obj.sendstatus = True
                 obj.save()
