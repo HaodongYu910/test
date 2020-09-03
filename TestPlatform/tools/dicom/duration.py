@@ -158,7 +158,6 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         study_uid = ''
         try:
             study_uid = ds.StudyInstanceUID
-            dict['studyolduid'] = ds.StudyInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -177,7 +176,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             series_uid = ds.SeriesInstanceUID
         except Exception as e:
-            logging.info(
+            logging.error(
                 'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SeriesInstanceUID = norm_string(
             '{0}.{1}'.format(series_uid, rand_uid), 64)
@@ -228,10 +227,8 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
 
 
-
 def send_duration(obj,dicomname):
-    global dur,dict
-    dict={}
+    global dur
     dur=obj
     dicomfolder = base_data.objects.get(remarks=dicomname)
 
@@ -243,11 +240,11 @@ def send_duration(obj,dicomname):
     loop_times = 0
     if dur.time:
         now=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end_time =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
+        end =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
     else:
         now=0
-        end_time=1
-    while now < end_time:
+        end=1
+    while now < end:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format('/files/logs',dur.keyword,loop_times)
         study_fakeinfos = {}
@@ -259,22 +256,20 @@ def send_duration(obj,dicomname):
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
-
-        sync_send(folder_fake)
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
             v['sendserver']=dur.server
             v['durationid']=dur.id
-            v['studyceolduid']=dur.
             stressserializer = duration_record_Serializer(data=v)
             with transaction.atomic():
                 stressserializer.is_valid()
                 stressserializer.save()
 
+        sync_send(folder_fake)
         shutil.rmtree(folder_fake)
-        if end_time ==1:
+        if end ==1:
             obj= duration.objects.get(id=dur.id)
-            end_time=int(obj.status)
-        elif end_time==0:
-            dur.sendstatus = False
-            dur.save()
+            end=int(obj.status)
+            if end==0:
+                dur.sendstatus = False
+                dur.save()
