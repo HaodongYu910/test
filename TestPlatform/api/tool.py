@@ -8,13 +8,13 @@ import threading
 from multiprocessing import Pool,Process
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data,duration
+from TestPlatform.models import stress_record, stress_data,duration,base_data
 from TestPlatform.serializers import stressrecord_Deserializer,\
     stress_data_Deserializer,duration_Deserializer,duration_Serializer
 from ..common.stress import sequence
 from ..tools.orthanc.delete_patients import *
 from ..tools.duration_verify import *
-from ..tools.dicom.duration import send_duration
+
 from ..tools.stress.PerformanceResult import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -334,8 +334,9 @@ class add_duration(APIView):
             return result
         try:
             data['dicom'] =','.join(data['dicom'])
-            data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
-                "%Y-%m-%d %H:%M:%S")
+            if not data["loop_time"]:
+                data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
+                    "%Y-%m-%d %H:%M:%S")
             duration = duration_Deserializer(data=data)
             with transaction.atomic():
                 duration.is_valid()
@@ -375,7 +376,8 @@ class update_duration(APIView):
         try:
             obj =duration.objects.get(id=data["id"])
             data['dicom'] =','.join(data['dicom'])
-            data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
+            if not data["loop_time"]:
+                data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
             serializer = duration_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
@@ -454,19 +456,24 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
-            if obj.sendstatus is True:
-                return JsonResponse(code="999994", msg="Send暂未结束！请稍后再启动哦！~")
-            else:
-                pool = Pool(4)
-                for i in obj.dicom.split(","):
-                    pool.apply_async(func=send_duration, args=(obj,i,))
-                    # threading.Thread(target=send_duration,
-                    #                    args=(obj,i,)).start()
-                pool.close()
-                obj.status = True
-                obj.sendstatus = True
-                obj.save()
-                return JsonResponse(code="0", msg="成功")
+
+            for i in obj.dicom.split(","):
+                dicomfolder = base_data.objects.get(remarks=i)
+                folder = dicomfolder.content
+                cmd = ('/home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
+                           '--ip {0}'
+                           '--aet {1}'
+                           '--port {2}'
+                           '--keyword {3}'
+                           '--dicomfolder {4} '
+                           '--id {5}').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id)
+                logging.info(cmd)
+                os.system(cmd)
+
+            obj.status = True
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
