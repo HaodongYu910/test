@@ -100,17 +100,17 @@
                           style="width: 100%;">
                     <el-table-column type="selection" min-width="5%">
                     </el-table-column>
-                    <el-table-column prop="version" label="ID" min-width="5%" sortable>
+                    <el-table-column prop="version" label="ID" min-width="8%" sortable>
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.id }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="type" label="服务器IP" min-width="10%">
+                    <el-table-column prop="type" label="服务器IP" min-width="12%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.server }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="type" label="匿名名称" min-width="9%">
+                    <el-table-column prop="type" label="匿名名称" min-width="12%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
                         </template>
@@ -120,7 +120,7 @@
                             <span style="margin-left: 10px">{{ scope.row.end_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="type" label="发送类型" min-width="20%">
+                    <el-table-column prop="type" label="发送类型" min-width="25%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                         </template>
@@ -135,7 +135,7 @@
                             <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="AI预测成功" min-width="8%">
+                    <el-table-column label="AI预测成功" min-width="10%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
                         </template>
@@ -151,19 +151,15 @@
                             <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
-                    <el-table-column label="修改时间" min-width="15%">
+                    <el-table-column label="操作" min-width="30px">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.update_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="操作" min-width="20px">
-                        <template slot-scope="scope">
-                            <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
-                            <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
-                            </el-button>
                             <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                                 {{scope.row.status===false?'启用':'停用'}}
                             </el-button>
+                            <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
+                            <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
+                            </el-button>
+
 
                         </template>
                     </el-table-column>
