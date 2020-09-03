@@ -231,6 +231,10 @@ def send_duration(obj,dicomname):
     global dur
     dur=obj
     dicomfolder = base_data.objects.get(remarks=dicomname)
+    log_file = '{0}/{1}.log'.format('/home/biomind/Biomind_Test_Platform/logs', dur.keyword)
+    logging.basicConfig(filename=log_file, filemode='a+',
+                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
 
     folder = dicomfolder.content
     src_folder = folder
