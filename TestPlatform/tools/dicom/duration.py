@@ -226,15 +226,21 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
 
+def saveData(data):
+    for (k, v) in data:
+        v['studyinstanceuid'] = k
+        v['sendserver'] = dur.server
+        v['duration_id'] = dur.id
+    stressserializer = duration_record_Serializer(data=data)
+    with transaction.atomic():
+        stressserializer.is_valid()
+        stressserializer.save()
+
 
 def send_duration(obj,dicomname):
     global dur
     dur=obj
     dicomfolder = base_data.objects.get(remarks=dicomname)
-    log_file = '{0}/{1}.log'.format('/home/biomind/Biomind_Test_Platform/logs', dur.keyword)
-    logging.basicConfig(filename=log_file, filemode='a+',
-                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
 
     folder = dicomfolder.content
     src_folder = folder
@@ -243,37 +249,43 @@ def send_duration(obj,dicomname):
 
     loop_times = 0
     if dur.end_time:
-        now=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end =dur.end_time
+        while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") < dur.end_time:
+            loop_times = loop_times + 1
+            folder_fake = "{0}/{1}{2}".format('/files/logs', dur.keyword, loop_times)
+            shutil.rmtree(folder_fake)
+            study_fakeinfos = {}
+            study_infos = {}
+
+            fake_folder(
+                folder=src_folder,
+                folder_fake=folder_fake,
+                study_fakeinfos=study_fakeinfos,
+                study_infos=study_infos
+            )
+            saveData(study_infos.items())
+            sync_send(folder_fake)
+            shutil.rmtree(folder_fake)
     else:
-        now=0
         end=1
-    while now < end:
-        loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format('/files/logs',dur.keyword,loop_times)
-        study_fakeinfos = {}
-        study_infos = {}
+        while end > 0:
+            loop_times = loop_times + 1
+            folder_fake = "{0}/{1}{2}".format('/files/logs',dur.keyword,loop_times)
+            shutil.rmtree(folder_fake)
+            study_fakeinfos = {}
+            study_infos = {}
 
-        fake_folder(
-            folder=src_folder,
-            folder_fake=folder_fake,
-            study_fakeinfos=study_fakeinfos,
-            study_infos=study_infos
-        )
-        for (k, v) in study_infos.items():
-            v['studyinstanceuid']=k
-            v['sendserver']=dur.server
-            v['duration_id']=dur.id
-            stressserializer = duration_record_Serializer(data=v)
-            with transaction.atomic():
-                stressserializer.is_valid()
-                stressserializer.save()
-
-        sync_send(folder_fake)
-        shutil.rmtree(folder_fake)
-        if end ==1:
-            obj= duration.objects.get(id=dur.id)
-            end=int(obj.status)
-            if end==0:
-                dur.sendstatus = False
-                dur.save()
+            fake_folder(
+                folder=src_folder,
+                folder_fake=folder_fake,
+                study_fakeinfos=study_fakeinfos,
+                study_infos=study_infos
+            )
+            saveData(study_infos.items())
+            sync_send(folder_fake)
+            shutil.rmtree(folder_fake)
+            if end ==1:
+                obj= duration.objects.get(id=dur.id)
+                end=int(obj.status)
+                if end==0:
+                    dur.sendstatus = False
+                    dur.save()
