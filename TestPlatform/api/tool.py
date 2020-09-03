@@ -260,6 +260,7 @@ class getDuration(APIView):
         :return:
         """
         obi = duration.objects.filter().order_by("id")
+        # end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.time))).strftime("%Y-%m-%d %H:%M:%S")
         durationdata = duration_Serializer(obi,many=True)
         return JsonResponse(data={"data": durationdata.data
                                   }, code="0", msg="成功")
@@ -333,6 +334,8 @@ class add_duration(APIView):
             return result
         try:
             data['dicom'] =','.join(data['dicom'])
+            data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
+                "%Y-%m-%d %H:%M:%S")
             duration = duration_Deserializer(data=data)
             with transaction.atomic():
                 duration.is_valid()
@@ -372,6 +375,7 @@ class update_duration(APIView):
         try:
             obj =duration.objects.get(id=data["id"])
             data['dicom'] =','.join(data['dicom'])
+            data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
             serializer = duration_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
@@ -453,12 +457,12 @@ class EnableDuration(APIView):
             if obj.sendstatus is True:
                 return JsonResponse(code="999994", msg="Send暂未结束！请稍后再启动哦！~")
             else:
-                # pool = Pool(10)
+                pool = Pool(4)
                 for i in obj.dicom.split(","):
-                    # pool.apply_async(func=send_duration, args=(obj,i,))
-                    threading.Thread(target=send_duration,
-                                       args=(obj,i,)).start()
-                # pool.close()
+                    pool.apply_async(func=send_duration, args=(obj,i,))
+                    # threading.Thread(target=send_duration,
+                    #                    args=(obj,i,)).start()
+                pool.close()
                 obj.status = True
                 obj.sendstatus = True
                 obj.save()

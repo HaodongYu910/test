@@ -13,6 +13,34 @@
         <el-form-item>
           <el-button type="primary" @click="getdurationVerify">同步结果</el-button>
         </el-form-item>
+        <el-form-item>
+          <el-select v-model="filters.type" multiple placeholder="请选择" @click.native="getDurationlist()">
+            <el-option key="aitrue" label="预测成功" value="aitrue"></el-option>
+            <el-option key="aifalse" label="预测失败" value="aifalse"></el-option>
+            <el-option key="nosend" label="未发送" value="nosend"></el-option>
+            <el-option key="false" label="失败数据" value="false"></el-option>
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">昨日发送结果</span>
+            </template>
+        </el-form-item>
+        <el-form-item>
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">共计发送：</span>
+            </template>
+        </el-form-item>
+        <el-form-item>
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">AI预测成功</span>
+            </template>
+        </el-form-item>
+        <el-form-item>
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">AI预测失败：</span>
+            </template>
+        </el-form-item>
       </el-form>
     </el-col>
         <!--列表-->
@@ -42,11 +70,6 @@
               <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="原studyuid" min-width="20%">
-            <template slot-scope="scope">
-              <span style="margin-left: 20px">{{ scope.row.studyolduid }}</span>
-            </template>
-          </el-table-column>
           <el-table-column prop="发送影像张数" label="发送影像张数" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
@@ -74,7 +97,12 @@
           </el-table-column>
           <el-table-column label="发送时间" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
+              <span style="margin-left: 10px">{{ scope.row.sendtime  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="更新时间" min-width="10%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.update_time  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
             </template>
           </el-table-column>
 <!--          <el-table-column label="操作" min-width="10px">-->
@@ -88,7 +116,7 @@
                   @size-change="handleSizeChange"
                   @current-change="handleCurrentChange"
                   :current-page="page"
-                  :page-sizes="[10, 20, 40,100]"
+                  :page-sizes="[20,50,100]"
                   :page-size="page-size"
                   layout="total, sizes, prev, pager, next, jumper"
                   :total="count"
@@ -150,6 +178,7 @@
                   page: self.page,
                   page_size: self.page_size,
                   patientid: self.filters.patientid,
+                  type:self.filters.type,
                   id:this.routerParams.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}

@@ -115,14 +115,9 @@
                             <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="持续时间" min-width="8%" sortable>
+                    <el-table-column label="结束时间" min-width="15%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.time }} 小时</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="结束时间" min-width="15%" sortable>
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
+                            <span style="margin-left: 10px">{{ scope.row.end_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="发送类型" min-width="20%">
@@ -130,13 +125,33 @@
                             <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="运行状态" min-width="6%">
+                    <el-table-column label="共计发送" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="接收成功" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI预测成功" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI预测失败" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="status" label="运行状态" min-width="8%">
                         <template slot-scope="scope">
                             <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
                             <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
-                    <el-table-column label="修改时间" min-width="15%" sortable>
+                    <el-table-column label="修改时间" min-width="15%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.update_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
                         </template>
@@ -281,7 +296,9 @@
                 filters: {
                     diseases: ''
                 },
-                durationlist: [],
+                durationlist: {
+                    end_date:'2099-12-31 23:59:59'
+                },
                 total: 0,
                 page: 1,
                 listLoading: false,

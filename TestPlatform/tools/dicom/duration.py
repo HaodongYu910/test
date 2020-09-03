@@ -238,9 +238,9 @@ def send_duration(obj,dicomname):
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    if dur.time:
+    if dur.end_time:
         now=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end =(datetime.datetime.now() + datetime.timedelta(hours=int(dur.time))).strftime("%Y-%m-%d %H:%M:%S")
+        end =dur.end_time
     else:
         now=0
         end=1
@@ -259,7 +259,7 @@ def send_duration(obj,dicomname):
         for (k, v) in study_infos.items():
             v['studyinstanceuid']=k
             v['sendserver']=dur.server
-            v['durationid']=dur.id
+            v['duration_id']=dur.id
             stressserializer = duration_record_Serializer(data=v)
             with transaction.atomic():
                 stressserializer.is_valid()
