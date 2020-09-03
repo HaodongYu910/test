@@ -289,3 +289,6 @@ def send_duration(obj,dicomname):
                 if end==0:
                     dur.sendstatus = False
                     dur.save()
+
+
+

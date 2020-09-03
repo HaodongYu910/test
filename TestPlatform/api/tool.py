@@ -462,12 +462,12 @@ class EnableDuration(APIView):
                 folder = dicomfolder.content
                 cmd = ('/home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
-                           '--ip {0}'
-                           '--aet {1}'
-                           '--port {2}'
-                           '--keyword {3}'
+                           '--ip {0} --aet {1} '
+                           '--port {2} '
+                           '--keyword {3} '
                            '--dicomfolder {4} '
-                           '--id {5}').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id)
+                           '--id {5} '
+                           '--id {6} ').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)
 

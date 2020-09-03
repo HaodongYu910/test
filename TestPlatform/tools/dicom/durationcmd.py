@@ -36,26 +36,23 @@ CONFIG = {
         'port': '4242'
     },
     'keyword': 'duration',
-    'dicomfolder': '/file/',
+    'dicomfolder': '/files/',
     'id':'1'
 }
 
 
-def insertDB(data):
+def insertDB(sql,data):
     conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:
-        cur.execute(
-            'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-            data)
+        cur.execute(sql,data)
         conn.commit()
     except:
         conn.rollback()
     cur.close()
     conn.close()
     return data
-
 
 def get_date():
     localtime = time.localtime(time.time())
@@ -278,10 +275,13 @@ def prepare_config(argv):
                 CONFIG["keyword"] = keyword
             elif opt in ("--dicomfolder"):
                 dicom = arg
-                CONFIG["server"]["port"] = dicom
+                CONFIG["dicomfolder"] = dicom
             elif opt in ("--id"):
                 id = arg
-                CONFIG["server"]["port"] = dicom
+                CONFIG["id"] = id
+            elif opt in ("--pid"):
+                pid = arg
+                CONFIG["pid"] = pid
     except Exception as e:
         logging.error("error: failed to get args")
 
@@ -307,7 +307,7 @@ if __name__ == '__main__':
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-
+    pid =int(os.getpid())
     folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(folder))
 
@@ -316,6 +316,8 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
+    insertsql ='INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    updatesql ='UPDATE duration set pid ="{0}","{1}" where id ={2}'.format(CONFIG.get('pid', ''),pid,CONFIG.get('id', ''))
 
     while True:
         loop_times = loop_times + 1
@@ -334,7 +336,7 @@ if __name__ == '__main__':
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
                  str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,v["sendtime"]]
-            insertDB(data)
+            insertDB(insertsql,data)
 
         time.sleep(1)
 
