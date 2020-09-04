@@ -41,7 +41,7 @@ CONFIG = {
 }
 
 
-def insertDB(sql,data):
+def sqlDB(sql,data):
     conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
@@ -307,8 +307,20 @@ if __name__ == '__main__':
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-    pid =int(os.getpid())
+
+    pid = str(os.getpid())
+    if CONFIG.get('pid', '') is None:
+        pid =pid
+    else:
+        pid =CONFIG.get('pid', '')+','+ pid
+
+
+    insertsql = 'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    updatesql = 'UPDATE duration set pid ="%s"  where id =%s'
+    # 修改 pid号
+    sqlDB(updatesql, [pid, CONFIG.get('id', '')])
     folder = CONFIG.get('dicomfolder', '')
+    shutil.rmtree(folder)
     logging.info('start to send: path[{0}]'.format(folder))
 
     src_folder = folder
@@ -316,8 +328,6 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    insertsql ='INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    updatesql ='UPDATE duration set pid ="{0}","{1}" where id ={2}'.format(CONFIG.get('pid', ''),pid,CONFIG.get('id', ''))
 
     while True:
         loop_times = loop_times + 1
@@ -336,12 +346,9 @@ if __name__ == '__main__':
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
                  str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,v["sendtime"]]
-            insertDB(insertsql,data)
-
-        time.sleep(1)
+            sqlDB(insertsql,data)
 
         sync_send(folder_fake)
-
         shutil.rmtree(folder_fake)
 
     f.close()

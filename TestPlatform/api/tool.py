@@ -415,9 +415,14 @@ class DisableDuration(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        # 查找项目是否存在
         try:
+            # 查找pid
             obj = duration.objects.get(id=data["id"])
+            for i in obj.dicom.split(","):
+                cmd = ('kill -9 {0}').format()
+                logging.info(cmd)
+                os.system(cmd)
+
             obj.status = False
             obj.save()
 
@@ -456,18 +461,17 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
-
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
-                cmd = ('/home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '
                            '--port {2} '
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--id {5} '
-                           '--id {6} ').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
+                           '--id {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)
 
