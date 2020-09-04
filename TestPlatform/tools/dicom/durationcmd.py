@@ -320,7 +320,6 @@ if __name__ == '__main__':
     # 修改 pid号
     sqlDB(updatesql, [pid, CONFIG.get('id', '')])
     folder = CONFIG.get('dicomfolder', '')
-    shutil.rmtree(folder)
     logging.info('start to send: path[{0}]'.format(folder))
 
     src_folder = folder
