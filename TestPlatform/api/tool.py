@@ -472,7 +472,7 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--id {5} '
-                           '--id {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
+                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)
 
