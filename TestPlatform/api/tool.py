@@ -259,10 +259,30 @@ class getDuration(APIView):
         :param request:
         :return:
         """
+        datalist=[]
         obi = duration.objects.filter().order_by("id")
-        # end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.time))).strftime("%Y-%m-%d %H:%M:%S")
         durationdata = duration_Serializer(obi,many=True)
-        return JsonResponse(data={"data": durationdata.data
+        yesterday = datetime.date.today() - datetime.timedelta(days=1)
+        yesterday = str(yesterday)+ ' 00:00:00'
+
+        for i in durationdata.data:
+            duration_all = duration_record.objects.filter(duration_id=i['id'],
+                                                          create_time__lte=yesterday)
+            duration_true = duration_record.objects.filter(aistatus__isnull=False, duration_id=i['id'],
+                                                           create_time__lte=yesterday)
+            duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'],
+                                                              create_time__lte=yesterday)
+            duration_ai_false = duration_record.objects.filter(aistatus__in=[0, -1, -2, 3], duration_id=i['id'],
+                                                               create_time__lte=yesterday)
+
+
+            i['all']=duration_all.count()
+            i['duration_true'] = duration_true.count()
+            i['ai_true'] = duration_ai_true.count()
+            i['ai_false'] = duration_ai_false.count()
+            datalist.append(i)
+        return JsonResponse(data={"data": datalist,
+                                  "verifydata":verifydata()
                                   }, code="0", msg="成功")
 #获取 持续化发送详细数据
 class durationData(APIView):
@@ -475,7 +495,7 @@ class EnableDuration(APIView):
                            '--port {2} '
                            '--keyword {3} '
                            '--dicomfolder {4} '
-                           '--id {5} '
+                           '--durationid {5} '
                            '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)

@@ -127,22 +127,22 @@
                     </el-table-column>
                     <el-table-column label="共计发送" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                            <span style="margin-left: 10px">{{ scope.row.all }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="接收成功" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                            <span style="margin-left: 10px">{{ scope.row.duration_true }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="AI预测成功" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                            <span style="margin-left: 10px">{{ scope.row.ai_true }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="AI预测失败" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.time }} 个</span>
+                            <span style="margin-left: 10px">{{ scope.row.ai_false }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="运行状态" min-width="8%">
@@ -293,7 +293,6 @@
                     diseases: ''
                 },
                 durationlist: {
-                    end_date:'2099-12-31 23:59:59'
                 },
                 total: 0,
                 page: 1,

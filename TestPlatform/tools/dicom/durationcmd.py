@@ -37,7 +37,7 @@ CONFIG = {
     },
     'keyword': 'duration',
     'dicomfolder': '/files/',
-    'id':'1',
+    'durationid':'1',
     'pid':None
 }
 
@@ -104,7 +104,7 @@ def sync_send(folder):
     file_names = os.listdir(folder)
     file_names.sort()
 
-    print(' sending: {0}'.format(folder))
+    logging.info(' sending: {0}'.format(folder))
     for fn in tqdm(file_names):
         full_fn = os.path.join(folder, fn)
 
@@ -280,9 +280,9 @@ def prepare_config(argv):
             elif opt in ("--dicomfolder"):
                 dicom = arg
                 CONFIG["dicomfolder"] = dicom
-            elif opt in ("--id"):
-                id = arg
-                CONFIG["id"] = id
+            elif opt in ("--durationid"):
+                durationid = arg
+                CONFIG["durationid"] = durationid
             elif opt in ("--pid"):
                 pid = arg
                 CONFIG["pid"] = pid
@@ -344,8 +344,8 @@ if __name__ == '__main__':
 
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
-                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,None]
-            logging.info(data)
+                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('durationid', ''),None,None]
+            logging.info('INSERT into sql',data)
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
 
         sync_send(folder_fake)
