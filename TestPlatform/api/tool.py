@@ -418,12 +418,13 @@ class DisableDuration(APIView):
         try:
             # 查找pid
             obj = duration.objects.get(id=data["id"])
-            for i in obj.dicom.split(","):
-                cmd = ('kill -9 {0}').format()
+            for i in obj.pid.split(","):
+                cmd = ('kill -9 {0}').format(int(i))
                 logging.info(cmd)
                 os.system(cmd)
 
             obj.status = False
+            obj.pid =None
             obj.save()
 
             return JsonResponse(code="0", msg="成功")
@@ -578,3 +579,17 @@ class duration_verify(APIView):
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 
+
+class duration_verify_data(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        更新持续化记录
+        :param request:
+        :return:
+        """
+        data=verifydata()
+        return JsonResponse(data={"data": data
+                                  }, code="0", msg="成功")

@@ -291,6 +291,10 @@ export const disable_duration = (headers, params) => {
 export const getdurationverify = (headers, params) => {
       return axios.get(`${test}/api/tool/duration_verify`, { params: params }, { headers }).then(res => res.data)
 }
+// 持续化数据验证统计
+export const durationverifydata = (headers, params) => {
+      return axios.get(`${test}/api/tool/durationverifydata`, { params: params }, { headers }).then(res => res.data)
+}
 // 获取基础数据
 export const getbase = (headers, params) => {
     return axios.get(`${test}/api/base/getdata`, { params: params }, { headers }).then(res => res.data)

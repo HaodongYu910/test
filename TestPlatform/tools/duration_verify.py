@@ -1,9 +1,9 @@
 # coding = utf-8
 from TestPlatform.common.regexUtil import *
 
-from TestPlatform.models import duration_record
+from TestPlatform.models import duration_record,duration
 from django.db import transaction
-from TestPlatform.serializers import duration_record_Deserializer,duration_record_Serializer
+from TestPlatform.serializers import duration_record_Deserializer,duration_record_Serializer,duration_Serializer
 
 
 def update_data(data):
@@ -58,6 +58,23 @@ def verify():
         update_data(data)
     return True
 
+def verifydata():
+    datalist=[]
+    for i in duration.objects.filter():
+        duration_false = duration_record.objects.filter(aistatus__isnull=True,duration_id=i)
+        duration_all = duration_record.objects.filter(duration_id=i)
+        duration_true = duration_record.objects.filter(aistatus__isnull=False,duration_id=i)
+        duration_ai_true= duration_record.objects.filter(aistatus=1,duration_id=i)
+        data = {
+            'id' :i,
+            'all':duration_all,
+            'duration_true': duration_true,
+            'ai_true': duration_ai_true,
+            'ai_false': duration_ai_true,
+        }
+        datalist.append(data)
+
+    return datalist
 
 # class ImageCount():
 #     def __init__(self):

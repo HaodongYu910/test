@@ -37,7 +37,8 @@ CONFIG = {
     },
     'keyword': 'duration',
     'dicomfolder': '/files/',
-    'id':'1'
+    'id':'1',
+    'pid':None
 }
 
 
@@ -71,7 +72,7 @@ def get_rand_uid():
 
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
-    return "{0}{1}".format(fake_prefix, rand_uid)
+    return "{0}{1}{2}".format(fake_prefix,get_date(),rand_uid)
 
 
 def sync_send_file(file_name):
@@ -308,15 +309,16 @@ if __name__ == '__main__':
         logging.info("failed to start")
         sys.exit(0)
 
-    pid = str(os.getpid())
+    pid = os.getpid()
     if CONFIG.get('pid', '') is None:
         pid =pid
     else:
-        pid =CONFIG.get('pid', '')+','+ pid
+        pid =CONFIG.get('pid', '')+','+ str(pid)
 
 
     insertsql = 'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
     updatesql = 'UPDATE duration set pid ="%s"  where id =%s'
+
     # 修改 pid号
     sqlDB(updatesql, [pid, CONFIG.get('id', '')])
     folder = CONFIG.get('dicomfolder', '')
@@ -331,7 +333,7 @@ if __name__ == '__main__':
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
-
+        shutil.rmtree(folder_fake)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -344,7 +346,7 @@ if __name__ == '__main__':
 
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
-                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,v["sendtime"]]
+                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,str(get_date()) + ' ' + str(get_time())]
             sqlDB(insertsql,data)
 
         sync_send(folder_fake)

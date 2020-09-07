@@ -266,7 +266,7 @@
     // import NProgress from 'nprogress'
 
     import {
-        getduration,addduration,delduration, updateduration, delete_patients, getHost, getVersion,disable_duration,enable_duration,getbase
+        getduration,getdurationverifydata,addduration,delduration, updateduration, delete_patients, getHost, getVersion,disable_duration,enable_duration,getbase
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -351,6 +351,7 @@
         mounted() {
             this.getDurationlist()
             this.gethost()
+            this.durationVerifyData()
         },
         methods: {
             showDetail(index,row){
@@ -410,6 +411,25 @@
                     'Content-Type': 'application/json'
                 }
                 getVersion(headers, params).then(_data => {
+                    console.log(_data)
+                    const {msg, code, data} = _data
+                    if (code != '0') {
+                        this.$message.error(msg)
+                        return
+                    }
+                    // 请求正确时执行的代码
+                    var mydata = data.data
+                    console.log(mydata)
+                    var json = JSON.stringify(mydata)
+                    this.tags = JSON.parse(json)
+                })
+            },
+            durationVerifyData() {
+                const params = {}
+                const headers = {
+                    'Content-Type': 'application/json'
+                }
+                durationverifydata(headers, params).then(_data => {
                     console.log(_data)
                     const {msg, code, data} = _data
                     if (code != '0') {
