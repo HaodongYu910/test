@@ -16,7 +16,7 @@ import logging
 from tqdm import tqdm
 import shutil
 import subprocess as sp
-import time
+import time,datetime
 import random
 import math
 import pymysql
@@ -43,14 +43,16 @@ CONFIG = {
 
 
 def sqlDB(sql,data):
-    conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
+    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:
+        logging.info(sql,data)
         cur.execute(sql,data)
         conn.commit()
-    except:
+    except Exception as e:
         conn.rollback()
+        logging.error(e)
     cur.close()
     conn.close()
     return data
@@ -72,7 +74,8 @@ def get_rand_uid():
 
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
-    return "{0}{1}{2}".format(fake_prefix,get_date(),rand_uid)
+    ts = time.localtime(time.time())
+    return "{0}{1}".format(fake_prefix,time.strftime("%Y%m%d-%H%M%S", ts))
 
 
 def sync_send_file(file_name):
@@ -308,19 +311,12 @@ if __name__ == '__main__':
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-
     pid = os.getpid()
     if CONFIG.get('pid', '') is None:
         pid =pid
     else:
         pid =CONFIG.get('pid', '')+','+ str(pid)
 
-
-    insertsql = 'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    updatesql = 'UPDATE duration set pid ="%s"  where id =%s'
-
-    # 修改 pid号
-    sqlDB(updatesql, [pid, CONFIG.get('id', '')])
     folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(folder))
 
@@ -329,11 +325,15 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-
+    insertsql = 'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
+    updatesql = 'UPDATE duration set pid ="%s"  where id =%s'
+    # 修改 pid号
+    sqlDB(updatesql, [pid, CONFIG.get('id', '')])
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
-        shutil.rmtree(folder_fake)
+        if os.path.exists(folder_fake):
+            shutil.rmtree(folder_fake)
         study_fakeinfos = {}
         study_infos = {}
 
