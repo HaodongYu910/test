@@ -260,10 +260,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","id="])
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","pid="])
         for opt, arg in opts:
             if opt == '-h':
-                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>')
+                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --pid <pid>')
                 sys.exit()
             elif opt in ("--aet"):
                 server_aet = arg
@@ -287,7 +287,7 @@ def prepare_config(argv):
                 pid = arg
                 CONFIG["pid"] = pid
     except Exception as e:
-        logging.error("error: failed to get args")
+        logging.error("error: failed to get args",e)
 
     logging.info(CONFIG)
     logging.info("please check config, waiting for 5 seconds...")
@@ -311,11 +311,12 @@ if __name__ == '__main__':
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-    pid = os.getpid()
+
+    ospid = os.getpid()
     if CONFIG.get('pid', '') is None:
-        pid =pid
+        pid =ospid
     else:
-        pid =CONFIG.get('pid', '')+','+ str(pid)
+        pid =CONFIG.get('pid', '')+','+ str(ospid)
 
     folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(folder))
@@ -326,7 +327,7 @@ if __name__ == '__main__':
 
     loop_times = 0
     # 修改 pid号
-    sqlDB('UPDATE duration set pid ="%s"  where id =%s', [pid, CONFIG.get('id', '')])
+    sqlDB('UPDATE duration set pid ="%s"  where id =%s', [pid, CONFIG.get('durationid', '')])
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
@@ -341,13 +342,14 @@ if __name__ == '__main__':
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
-
+        studytime=str(get_date()) + ' ' + str(get_time())
         for (k, v) in study_infos.items():
-            data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
-                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('durationid', ''),None,None]
-            logging.info('INSERT into sql',data)
-            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
+            data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None,
+                  None, None, CONFIG.get('server', {}).get('ip'),
+                 studytime, studytime, CONFIG.get('durationid', ''),None,None]
 
+            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
+            logging.info('INSERT into sql', data)
         sync_send(folder_fake)
         shutil.rmtree(folder_fake)
 

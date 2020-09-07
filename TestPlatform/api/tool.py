@@ -272,14 +272,17 @@ class getDuration(APIView):
                                                            create_time__lte=yesterday)
             duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'],
                                                               create_time__lte=yesterday)
-            duration_ai_false = duration_record.objects.filter(aistatus__in=[0, -1, -2, 3], duration_id=i['id'],
+            duration_ai_false = duration_record.objects.filter(aistatus__in=[-2, 3], duration_id=i['id'],
                                                                create_time__lte=yesterday)
-
+            duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'],
+                                                               create_time__lte=yesterday)
 
             i['all']=duration_all.count()
             i['duration_true'] = duration_true.count()
             i['ai_true'] = duration_ai_true.count()
             i['ai_false'] = duration_ai_false.count()
+            i['notai'] = duration_ai.count()
+
             datalist.append(i)
         return JsonResponse(data={"data": datalist,
                                   "verifydata":verifydata()
@@ -485,7 +488,8 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
-            obj = duration.objects.get(id=data["id"])
+            durationid=data["id"]
+            obj = duration.objects.get(id=durationid)
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
@@ -496,7 +500,7 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
+                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)
 

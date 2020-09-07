@@ -854,17 +854,17 @@ class duration_record(models.Model):
           持续化测试记录表
         """
     id = models.AutoField(primary_key=True)
-    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
-    accessionnumber = models.CharField(max_length=50, blank=True, null=True, verbose_name="accessionnumber")
-    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
+    patientid = models.CharField(max_length=80, blank=True, null=True, verbose_name="patientid")
+    accessionnumber = models.CharField(max_length=80, blank=True, null=True, verbose_name="accessionnumber")
+    studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
     studyolduid = models.CharField(max_length=100, blank=True, null=True, verbose_name="原数据uid")
     imagecount = models.CharField(max_length=50, blank=True, null=True, verbose_name="发送影像张数")
     imagecount_server = models.CharField(max_length=50, blank=True, null=True, verbose_name="接收影像张数")
     aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="AI预测结果")
-    diagnosis = models.CharField(max_length=50, blank=True, null=True, verbose_name="诊断结果")
+    diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
     sendserver = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送服务")
     sendtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
-    duration_id = models.IntegerField(blank=True, null=True, verbose_name="关联持续id")
+    duration_id = models.CharField(max_length=20, blank=True, null=True, verbose_name="关联持续id")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
