@@ -490,6 +490,10 @@ class EnableDuration(APIView):
         try:
             durationid=data["id"]
             obj = duration.objects.get(id=durationid)
+            if obj.pid is None:
+                pid =''
+            else:
+                pid=obj.pid
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
@@ -500,7 +504,7 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.pid)
+                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,pid)
                 logging.info(cmd)
                 os.system(cmd)
 

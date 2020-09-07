@@ -75,7 +75,7 @@ def get_rand_uid():
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
     ts = time.localtime(time.time())
-    return "{0}{1}".format(fake_prefix,time.strftime("%m%d-%H%M", ts))
+    return "{0}{1}".format(fake_prefix,time.strftime("%m%d", ts),norm_string(rand_uid, 6))
 
 
 def sync_send_file(file_name):
@@ -182,7 +182,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             ds = pydicom.dcmread(full_fn, force=True)
         except Exception as e:
-            print('errormsg: failed to read file [{0}]'.format(full_fn))
+            logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
             continue
 
         study_uid = ''
