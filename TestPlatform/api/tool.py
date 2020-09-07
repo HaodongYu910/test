@@ -488,7 +488,8 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
-            obj = duration.objects.get(id=data["id"])
+            durationid=data["id"]
+            obj = duration.objects.get(id=durationid)
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
@@ -499,7 +500,7 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,obj.id,obj.pid)
+                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.pid)
                 logging.info(cmd)
                 os.system(cmd)
 

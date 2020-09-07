@@ -260,10 +260,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","id="])
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","pid="])
         for opt, arg in opts:
             if opt == '-h':
-                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>')
+                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --pid <pid>')
                 sys.exit()
             elif opt in ("--aet"):
                 server_aet = arg
