@@ -285,7 +285,10 @@ def prepare_config(argv):
                 CONFIG["durationid"] = durationid
             elif opt in ("--pid"):
                 pid = arg
-                CONFIG["pid"] = pid
+                if pid =='NUll':
+                    CONFIG["pid"]=None
+                else:
+                    CONFIG["pid"] = pid
     except Exception as e:
         logging.error("error: failed to get args",e)
 
