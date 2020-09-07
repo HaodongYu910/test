@@ -334,7 +334,9 @@ class add_duration(APIView):
             return result
         try:
             data['dicom'] =','.join(data['dicom'])
-            if not data["loop_time"]:
+            if  data["loop_time"] =='':
+                data['end_time'] = '2099-12-31 23:59:59'
+            else:
                 data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                     "%Y-%m-%d %H:%M:%S")
             duration = duration_Deserializer(data=data)
@@ -376,7 +378,9 @@ class update_duration(APIView):
         try:
             obj =duration.objects.get(id=data["id"])
             data['dicom'] =','.join(data['dicom'])
-            if not data["loop_time"]:
+            if data["loop_time"]=='':
+                data['end_time'] ='2099-12-31 23:59:59'
+            else:
                 data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
             serializer = duration_Deserializer(data=data)
             with transaction.atomic():

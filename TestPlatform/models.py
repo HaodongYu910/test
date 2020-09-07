@@ -863,7 +863,7 @@ class duration_record(models.Model):
     aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="AI预测结果")
     diagnosis = models.CharField(max_length=50, blank=True, null=True, verbose_name="诊断结果")
     sendserver = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送服务")
-    sendtime = models.DateTimeField(max_length=20, blank=True, null=True, verbose_name="发送时间")
+    sendtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
     duration_id = models.IntegerField(blank=True, null=True, verbose_name="关联持续id")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")

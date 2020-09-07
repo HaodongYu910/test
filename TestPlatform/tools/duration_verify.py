@@ -60,17 +60,24 @@ def verify():
 
 def verifydata():
     datalist=[]
+    def getYesterday():
+        today = datetime.date.today()
+        oneday = datetime.timedelta(days=1)
+        yesterday = today - oneday
+        return yesterday
+    yesterday =str(getYesterday()) +' 00:00:00'
     for i in duration.objects.filter():
-        duration_false = duration_record.objects.filter(aistatus__isnull=True,duration_id=i)
-        duration_all = duration_record.objects.filter(duration_id=i)
-        duration_true = duration_record.objects.filter(aistatus__isnull=False,duration_id=i)
-        duration_ai_true= duration_record.objects.filter(aistatus=1,duration_id=i)
+        duration_all = duration_record.objects.filter(duration_id=i.id,create_time__lte=yesterday)
+        duration_true = duration_record.objects.filter(aistatus__isnull=False,duration_id=i.id,create_time__lte=yesterday)
+        duration_ai_true= duration_record.objects.filter(aistatus=1,duration_id=i.id,create_time__lte=yesterday)
+        duration_ai_false = duration_record.objects.filter(aistatus__in=[0,-1,-2,2], duration_id=i.id,
+                                                        create_time__lte=yesterday)
         data = {
-            'id' :i,
-            'all':duration_all,
-            'duration_true': duration_true,
-            'ai_true': duration_ai_true,
-            'ai_false': duration_ai_true,
+            'id' :i.id,
+            'all':duration_all.count(),
+            'duration_true': duration_true.count(),
+            'ai_true': duration_ai_true.count(),
+            'ai_false': duration_ai_false.count(),
         }
         datalist.append(data)
 

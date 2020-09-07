@@ -317,10 +317,8 @@
                 },
                 // 编辑界面数据
                 editForm: {
-                    diseases: '',
-                    version: '',
-                    type: '',
-                    description: ''
+                    loop_time: '',
+                    port: '4242'
                 },
 
                 addFormVisible: false, // 新增界面是否显示
@@ -546,7 +544,7 @@
             handleEdit: function (index, row) {
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
-            },
+                },
             // 改变状态
             handleChangeStatus: function (index, row) {
                 let self = this;
@@ -600,7 +598,7 @@
                 this.addForm = {
                     server: null,
                     port:null,
-                    loop_time: null,
+                    loop_time: '',
                     aet:null,
                     keyword: null,
                     dicom: null,

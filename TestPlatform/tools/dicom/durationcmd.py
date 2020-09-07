@@ -75,7 +75,7 @@ def get_rand_uid():
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
     ts = time.localtime(time.time())
-    return "{0}{1}".format(fake_prefix,time.strftime("%Y%m%d-%H%M%S", ts))
+    return "{0}{1}".format(fake_prefix,time.strftime("%m%d-%H%M", ts))
 
 
 def sync_send_file(file_name):
@@ -325,10 +325,8 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    insertsql = 'INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)'
-    updatesql = 'UPDATE duration set pid ="%s"  where id =%s'
     # 修改 pid号
-    sqlDB(updatesql, [pid, CONFIG.get('id', '')])
+    sqlDB('UPDATE duration set pid ="%s"  where id =%s', [pid, CONFIG.get('id', '')])
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
@@ -346,8 +344,9 @@ if __name__ == '__main__':
 
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None, None, None, CONFIG.get('server', {}).get('ip'),
-                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,str(get_date()) + ' ' + str(get_time())]
-            sqlDB(insertsql,data)
+                 str(get_date()) + ' ' + str(get_time()), str(get_date()) + ' ' + str(get_time()), CONFIG.get('id', ''),None,None]
+            logging.info(data)
+            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
 
         sync_send(folder_fake)
         shutil.rmtree(folder_fake)
