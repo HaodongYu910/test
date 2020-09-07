@@ -272,14 +272,17 @@ class getDuration(APIView):
                                                            create_time__lte=yesterday)
             duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'],
                                                               create_time__lte=yesterday)
-            duration_ai_false = duration_record.objects.filter(aistatus__in=[0, -1, -2, 3], duration_id=i['id'],
+            duration_ai_false = duration_record.objects.filter(aistatus__in=[-2, 3], duration_id=i['id'],
                                                                create_time__lte=yesterday)
-
+            duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'],
+                                                               create_time__lte=yesterday)
 
             i['all']=duration_all.count()
             i['duration_true'] = duration_true.count()
             i['ai_true'] = duration_ai_true.count()
             i['ai_false'] = duration_ai_false.count()
+            i['notai'] = duration_ai.count()
+
             datalist.append(i)
         return JsonResponse(data={"data": datalist,
                                   "verifydata":verifydata()
