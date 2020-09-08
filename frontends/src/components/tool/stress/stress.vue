@@ -58,7 +58,7 @@
                         </el-col>
                         <el-col :span="4">
                             <el-form-item>
-                                <el-button type="primary" @click="run('form')">执行</el-button>
+                                <el-button type="primary" @click="stressrun">执行</el-button>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -264,7 +264,7 @@
                     deldata: ''
                 },
                 rules: {
-                    server_ip: [
+                    Loadserver: [
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
                     version: [
@@ -337,47 +337,34 @@
             this.gethost()
         },
         methods: {
-            run(formName) {
-              this.tableData = null
-              this.$refs[formName].validate((valid) => {
-                if (valid) {
-                  const params = {
+            // 执行压测
+            stressrun() {
+                this.listLoading = true
+                const self = this
+                const params = {
                     version: this.form.version,
                     loadserver: this.form.Loadserver,
                     loop_time: this.form.loop_time,
                     testdata: this.form.testdata,
                     duration: this.form.duration,
                     keyword: this.form.keyword
-                  }
-                  const headers = {
-                    'Content-Type': 'application/json'
-                  }
-                  stressTool(headers, params).then(_data => {
-                    console.log(this.form.testdata)
-                    const { msg, code, data } = _data
-                    if (code != '0') {
-                      this.$message.error(msg)
-                      return
-                    }
-                    var result = data[0]
-                    if (data != null && result == false) {
-                      this.$message.error(data[1])
-                      return
-                    }
-                    // 请求正确时执行的代码
-                    var mydata = data[1]
-                    var tableData = []
-                    for (var i = 0; i < mydata.length; i++) {
-                      tableData.push({ 'name': mydata[i] })
-                    }
-                    var json = JSON.stringify(tableData)
-                    this.tableData = JSON.parse(json)
-                  })
-                } else {
-                  console.log('error submit')
-                  return false
                 }
-              })
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                stressTool(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.list = data.data
+                        var json = JSON.stringify(self.list)
+                        this.tags = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
             },
             getversion() {
                 this.listLoading = true

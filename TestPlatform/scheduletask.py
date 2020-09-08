@@ -1,15 +1,11 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-import logging
-import datetime
 from TestPlatform.HTML_template.test_html import html
-from TestPlatform.common.download_mail import download
 from TestPlatform.common.sendmail import send_mail
 from TestPlatform.models import test_report
-from TestPlatform.common.regexUtil import *
 from django.conf import settings
-from TestPlatform.tools.duration_verify import *
+from TestPlatform.tools.dicom.duration_verify import *
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)

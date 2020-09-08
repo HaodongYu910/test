@@ -122,6 +122,30 @@ def lung(sqltable, checkfield, checkdate,server):
                                                           starttime=checkdate[0][0],
                                                           endtime=checkdate[0][1],
                                                           studyuid=key,
-                                                          slicenumber =dict[key]))
+                                                          slicenumber = dict[key]))
         result_dict = result_db.to_dict(orient='records')
     return result_dict
+
+
+def dataCheck(datadict1,datadict2,check_field):
+    _dict1=datadict1
+    _dict2=datadict2
+    checkfield=check_field
+    _num1 = len(_dict1)
+    _num2 = len(_dict2)
+
+    for i in range(_num1):
+        for j in range(_num2):
+            if _dict1[i]['modelname'] == _dict2[j]['modelname']:
+                for x in checkfield:
+                    if _dict1[i][x] is None:
+                        _dict1[i][x] = 0
+                    if _dict2[j][x] is None:
+                        _dict2[j][x] = 0
+                    if _dict1[i][x] > _dict2[j][x]:
+                        _dict1[i][x] = str(_dict1[i][x]) + " （ +" + str(
+                            '%.2f' % (float(_dict1[i][x]) - float(_dict2[j][x]))) + ")"
+                    elif _dict1[i][x] <_dict2[j][x]:
+                        _dict1[i][x] = str(_dict1[i][x]) + " ( " + str(
+                            '%.2f' % (float(_dict1[i][x]) - float(_dict2[j][x]))) + ")"
+    return _dict1

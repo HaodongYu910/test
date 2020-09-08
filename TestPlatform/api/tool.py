@@ -4,16 +4,14 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import threading
-from multiprocessing import Pool,Process
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data,duration,base_data
+from TestPlatform.models import stress_record, stress_data, base_data
 from TestPlatform.serializers import stressrecord_Deserializer,\
-    stress_data_Deserializer,duration_Deserializer,duration_Serializer
+    stress_data_Deserializer,duration_Deserializer
 from ..common.stress import sequence
 from ..tools.orthanc.delete_patients import *
-from ..tools.duration_verify import *
+from TestPlatform.tools.dicom.duration_verify import *
 
 from ..tools.stress.PerformanceResult import *
 

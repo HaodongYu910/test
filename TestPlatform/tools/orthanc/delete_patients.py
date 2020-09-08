@@ -1,10 +1,11 @@
 # coding=utf-8
 
 from ...common.regexUtil import *
+from django.conf import settings
 
 
 def delete_patients_duration(key, server_ip,type,fuzzy):
-    kc = use_keycloak_bmutils(server_ip, 'biomind', 'password')
+    kc = use_keycloak_bmutils(server_ip, settings.user, settings.passwd)
     try:
         res = kc.get('/orthanc/patients', timeout=300, verify=False)
         orthanc_ids = eval(res.content)

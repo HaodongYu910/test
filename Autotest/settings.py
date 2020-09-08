@@ -42,6 +42,10 @@ MAIL_PWD = "Autotest@123"  #密码
 # Dicom的路径
 Dicom_PATH = '/home/biomind/testDatas'
 
+# keycloak 用户名
+user ='test'
+passwd ='Asd@123456'
+
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'logs')
 # 本地

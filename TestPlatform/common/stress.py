@@ -5,8 +5,6 @@ from TestPlatform.models import stress_detail_record, stress_data
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
 import datetime
-import threading
-from TestPlatform.tools.dicom.duration_send import stress_duration
 
 
 # 修改数据
@@ -36,7 +34,7 @@ def graphql_prediction(data, kc):
 
 
 def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
-    kc = use_keycloak_bmutils(orthanc_ip, "biomind", "password")
+    kc = use_keycloak_bmutils(orthanc_ip, "test", "Asd@123456")
     stressdata = stress_data.objects.filter()
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""
