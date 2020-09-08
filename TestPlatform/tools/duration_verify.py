@@ -43,7 +43,7 @@ def verify():
             serverip="192.168.1.124"
         else:
             serverip=i.sendserver
-        kc = use_keycloak_bmutils(serverip, 'biomind', 'password')
+        kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
         airesult=ai_result(kc,i.patientid)
         if airesult.json()['data']['studyViewFlexible'] ==[]:
             data['aistatus']= None

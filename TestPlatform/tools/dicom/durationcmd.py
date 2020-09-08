@@ -75,7 +75,7 @@ def get_rand_uid():
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
     ts = time.localtime(time.time())
-    return "{0}{1}".format(fake_prefix,time.strftime("%m%d", ts),norm_string(rand_uid, 6))
+    return "{0}{1}{2}".format(fake_prefix,time.strftime("%m%d", ts),norm_string(rand_uid, 6))
 
 
 def sync_send_file(file_name):
@@ -285,7 +285,7 @@ def prepare_config(argv):
                 CONFIG["durationid"] = durationid
             elif opt in ("--pid"):
                 pid = arg
-                if pid =='NUll':
+                if pid =='None':
                     CONFIG["pid"]=None
                 else:
                     CONFIG["pid"] = pid

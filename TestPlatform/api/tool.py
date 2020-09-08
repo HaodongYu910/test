@@ -262,8 +262,7 @@ class getDuration(APIView):
         datalist=[]
         obi = duration.objects.filter().order_by("id")
         durationdata = duration_Serializer(obi,many=True)
-        yesterday = datetime.date.today() - datetime.timedelta(days=1)
-        yesterday = str(yesterday)+ ' 00:00:00'
+        yesterday = str(datetime.date.today()) + ' 00:00:00'
 
         for i in durationdata.data:
             duration_all = duration_record.objects.filter(duration_id=i['id'],
@@ -608,16 +607,3 @@ class duration_verify(APIView):
                                   }, code="0", msg="成功")
 
 
-class duration_verify_data(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        更新持续化记录
-        :param request:
-        :return:
-        """
-        data=verifydata()
-        return JsonResponse(data={"data": data
-                                  }, code="0", msg="成功")

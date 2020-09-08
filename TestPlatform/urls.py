@@ -115,7 +115,6 @@ urlpatterns = [
     url(r'tool/update_duration', update_duration.as_view()),
     url(r'tool/del_duration', del_duration.as_view()),
     url(r'tool/duration_verify', duration_verify.as_view()),
-    url(r'tool/durationverifydata', duration_verify_data.as_view()),
     url(r'tool/disable_duration', DisableDuration.as_view()),
     url(r'tool/enable_duration', EnableDuration.as_view()),
     url(r'updatedata', Updatedata.as_view()),
