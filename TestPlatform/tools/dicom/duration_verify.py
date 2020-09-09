@@ -38,7 +38,7 @@ def ai_result(kc,patientid):
 def verifyData(id):
     today=str(datetime.date.today()) + ' 00:00:00'
     duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True,duration_id=id)
-    obj =duration.objects.filter(id=id)
+    obj =duration.objects.get(id=id)
     if obj.server == "192.168.1.228":
         serverip = "192.168.1.124"
     else:

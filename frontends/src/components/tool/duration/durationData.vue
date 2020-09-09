@@ -187,7 +187,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                  patientid: self.filters.patientid
+                  id: this.routerParams.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdurationverify(headers, params).then((res) => {
