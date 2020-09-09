@@ -16,7 +16,7 @@ import logging
 from tqdm import tqdm
 import shutil
 import subprocess as sp
-import time,datetime
+import time
 import random
 import math
 import pymysql
@@ -253,7 +253,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             )
 
         except Exception as e:
-            print('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
 
 
@@ -345,6 +345,7 @@ if __name__ == '__main__':
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
+        sync_send(folder_fake)
         studytime=str(get_date()) + ' ' + str(get_time())
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None,
@@ -353,7 +354,6 @@ if __name__ == '__main__':
 
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
             logging.info('INSERT into sql', data)
-        sync_send(folder_fake)
-        shutil.rmtree(folder_fake)
 
+        shutil.rmtree(folder_fake)
     f.close()

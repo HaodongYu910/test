@@ -30,7 +30,7 @@ def task_start_timing():
     # now_day = datetime.datetime.now().day
     my_user_cron = CronTab(user=True)
     my_user_cron.remove_all(comment=sys.argv[8])
-    logging.info('测试开始')
+    logger.info('测试开始')
     job = my_user_cron.new(command='/usr/local/python3/bin/python3 /var/lib/jenkins/workspace/'
                                    'api_automation_test_master-JU72M6SAEYKDY6SN3LUUPLXPTX3F35MVFZ5'
                                    '7J4JE3I5TJCTRFXHQ/TestPlatform/common/auto_test.py %s %s  >> /var/lib/task/%s.logs'
@@ -46,7 +46,7 @@ def task_start_timing():
         _time = '%s %s * * */%s' % (now_minute, now_hour, sys.argv[1])
     job.setall(_time)
     my_user_cron.write()
-    logging.info('添加测试结束时间')
+    logger.info('添加测试结束时间')
     end_task = CronTab(user=True)
     jobs = end_task.new(command='/usr/local/python3/bin/python3 /var/lib/jenkins/workspace/'
                                 'api_automation_test_master-JU72M6SAEYKDY6SN3LUUPLXPTX3F35MVFZ5'

@@ -84,14 +84,14 @@ def fake_series(folder, folder_fake, loop_times):
         try:
             series_num = int(ds.SeriesNumber) + loop_times
         except Exception as e:
-            logging.info(
+            logger.info(
                 'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
 
         series_uid = ''
         try:
             series_uid = ds.SeriesInstanceUID
         except Exception as e:
-            logging.info(
+            logger.info(
                 'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SeriesInstanceUID = norm_string(
             '{0}.{1}'.format(series_uid, rand_uid), 64)
@@ -100,7 +100,7 @@ def fake_series(folder, folder_fake, loop_times):
         try:
             instance_uid = ds.SOPInstanceUID
         except Exception as e:
-            logging.info(
+            logger.info(
                 'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SOPInstanceUID = norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
@@ -119,7 +119,7 @@ def fake_series(folder, folder_fake, loop_times):
 if __name__ == '__main__':
 
     folder = CONFIG.get('sourcefolder', '')
-    logging.info('send: path[{0}]'.format(folder))
+    logger.info('send: path[{0}]'.format(folder))
 
     src_folder = folder
     while src_folder[-1] == '/':

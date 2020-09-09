@@ -208,11 +208,11 @@ def test_api(host_id, case_id, project_id, _id):
             if not response_parameter_list:
                 response_parameter_list = "{}"
             try:
-                logging.info(response_parameter_list)
-                logging.info(response_data)
+                logger.info(response_parameter_list)
+                logger.info(response_data)
                 result = check_json(json.loads(response_parameter_list), response_data)
             except Exception:
-                logging.info(response_parameter_list)
+                logger.info(response_parameter_list)
                 result = check_json(eval(response_parameter_list.replace('true', 'True').replace('false', 'False').replace("null", "None")), response_data)
             if result:
                 record_results(_id=_id, url=url, request_type=request_type, header=header, parameter=parameter,
@@ -267,9 +267,9 @@ def test_api(host_id, case_id, project_id, _id):
     elif examine_type == 'Regular_check':
         if int(http_code) == code:
             try:
-                logging.info(response_parameter_list)
+                logger.info(response_parameter_list)
                 result = re.findall(response_parameter_list, json.dumps(response_data).encode('latin-1').decode('unicode_escape'))
-                logging.info(result)
+                logger.info(result)
             except Exception as e:
                 logging.exception(e)
                 return "fail"
@@ -316,7 +316,7 @@ def post(header, address, request_parameter_type, data):
         return response.status_code, '', response.headers
     except Exception as e:
         logging.exception('ERROR')
-        logging.error(e)
+        logger.error(e)
         return {}, {}, response.headers
 
 
@@ -342,7 +342,7 @@ def get(header, address, request_parameter_type, data):
         return response.status_code, '', response.headers
     except Exception as e:
         logging.exception('ERROR')
-        logging.error(e)
+        logger.error(e)
         return {}, {}, response.headers
 
 
@@ -366,7 +366,7 @@ def put(header, address, request_parameter_type, data):
         return response.status_code, '', response.headers
     except Exception as e:
         logging.exception('ERROR')
-        logging.error(e)
+        logger.error(e)
         return {}, {}, response.headers
 
 
@@ -387,5 +387,5 @@ def delete(header, address, data):
         return response.status_code, '', response.headers
     except Exception as e:
         logging.exception('ERROR')
-        logging.error(e)
+        logger.error(e)
         return {}, {}, response.headers

@@ -170,7 +170,7 @@ class stresstool(APIView):
                                         data["version"],data["duration"],data["keyword"])
                 return JsonResponse(data=stressresult, code="0", msg="成功")
         except Exception as e:
-            print(e)
+            logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
 
 
@@ -281,8 +281,7 @@ class getDuration(APIView):
             i['notai'] = duration_ai.count()
 
             datalist.append(i)
-        return JsonResponse(data={"data": datalist,
-                                  "verifydata":verifydata()
+        return JsonResponse(data={"data": datalist
                                   }, code="0", msg="成功")
 #获取 持续化发送详细数据
 class durationData(APIView):
@@ -300,12 +299,29 @@ class durationData(APIView):
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        patientid = request.GET.get("patientid")
+        type = request.GET.get("type")
         durationid=int(request.GET.get("id"))
-        if patientid:
-            obi = duration_record.objects.filter(patientid__contains=patientid).order_by("-id")
+
+        #判断是否有查询时间
+        if request.GET.get("selectdate"):
+            selectdate=datetime.datetime.now()
         else:
-            obi = duration_record.objects.filter(duration_id__contains=durationid).order_by("-id")
+            selectdate=request.GET.get("selectdate")
+
+        #判断查询数据类型
+        if type=='patientid':
+            patientid = request.GET.get("patientid")
+            obi = duration_record.objects.filter(patientid__contains=patientid).order_by("-id")
+        elif type=='Not_sent':
+            obi = duration_record.objects.filter(aistatus__isnull=True,create_time__lte=selectdate).order_by("-id")
+        elif type=='sent':
+            obi = duration_record.objects.filter(aistatus__isnull=False,create_time__lte=selectdate).order_by("-id")
+        elif type=='AiTrue':
+            obi = duration_record.objects.filter(aistatus__in=[1,2],create_time__lte=selectdate).order_by("-id")
+        elif type=='AiFalse':
+            obi = duration_record.objects.filter(aistatus__in=[-1,-2,3],create_time__lte=selectdate).order_by("-id")
+        else:
+            obi = duration_record.objects.filter(duration_id=durationid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -444,7 +460,7 @@ class DisableDuration(APIView):
             obj = duration.objects.get(id=data["id"])
             for i in obj.pid.split(","):
                 cmd = ('kill -9 {0}').format(int(i))
-                logging.info(cmd)
+                logger.info(cmd)
                 os.system(cmd)
 
             obj.status = False
@@ -487,9 +503,11 @@ class EnableDuration(APIView):
         try:
             durationid=data["id"]
             obj = duration.objects.get(id=durationid)
+
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
+                obk = duration.objects.get(id=durationid)
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '
@@ -497,9 +515,11 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--pid {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.pid)
-                logging.info(cmd)
+                           '--pid {6} &').format(obk.server,obk.aet,obk.port,obk.keyword,folder,durationid,obk.pid)
+                logger.info(cmd)
                 os.system(cmd)
+                time.sleep(3)
+
 
             obj.status = True
             obj.save()

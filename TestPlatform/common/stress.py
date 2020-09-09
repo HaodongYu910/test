@@ -28,7 +28,7 @@ def graphql_prediction(data, kc):
             stress_detailserializer.is_valid()
             stress_detailserializer.save()
     except Exception as e:
-        logging.error('Query failed: {0}'.format(e))
+        logger.error('Query failed: {0}'.format(e))
         return e
     return True
 
@@ -36,6 +36,7 @@ def graphql_prediction(data, kc):
 def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
     kc = use_keycloak_bmutils(orthanc_ip, "test", "Asd@123456")
     stressdata = stress_data.objects.filter()
+    loop=0
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""
         loop =loop+1

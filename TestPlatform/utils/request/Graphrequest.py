@@ -28,7 +28,7 @@ class graphRequest():
     def graphrequest(self,**kwargs):
         """ 发送请求 """
         headers = {}
-        logging.info(f'请求 URL：{self.base_url + self.api}\n请求参数：{self.common_params}')
+        logger.info(f'请求 URL：{self.base_url + self.api}\n请求参数：{self.common_params}')
         try:
             response = requests.get(
                 self.base_url + self.api,

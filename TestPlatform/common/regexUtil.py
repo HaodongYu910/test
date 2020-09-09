@@ -70,16 +70,16 @@ def use_keycloak_bmutils(server_ip, username, password):
         kc.login(username, password)
         return kc
     except Exception as e:
-        logging.error('Query failed: {0}'.format(e))
+        logger.error('Query failed: {0}'.format(e))
         return e
 
 
 def get_tc_perf():
     pid = os.getpid()
-    logging.info("pid: {}".format(pid))
+    logger.info("pid: {}".format(pid))
     for proc in psutil.process_iter():
         if proc.pid == pid:
-            logging.info("[PERF]# Thread, Memory(percentage) used while loading: %s, %s (%s) ",
+            logger.info("[PERF]# Thread, Memory(percentage) used while loading: %s, %s (%s) ",
                          proc.num_threads(), proc.memory_info(), proc.memory_percent())
 
 

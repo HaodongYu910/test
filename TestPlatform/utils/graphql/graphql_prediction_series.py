@@ -41,7 +41,7 @@ def graphql_prediction_series(study_uid, series_classifier, query_type, need_res
     try:
         queryresult = graphql_query_kc(graphql_query, query_type,kc)
     except Exception as e:
-        logging.error('Query failed: {0}'.format(e))
+        logger.error('Query failed: {0}'.format(e))
         queryresult = e
     duration = time.time() - start_time
     return queryresult, duration

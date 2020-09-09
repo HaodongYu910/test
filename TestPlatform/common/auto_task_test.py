@@ -149,7 +149,7 @@ def test_api(host, case_id, _id, time):
 
             except Exception as e:
                 logging.exception("ERROR")
-                logging.error(e)
+                logger.error(e)
                 record_auto_results(_id=_id, header=header, parameter=parameter,
                                     _result='ERROR', code="", response_data="", time=time, responseHeader="{}")
                 return 'fail'
@@ -188,11 +188,11 @@ def test_api(host, case_id, _id, time):
             if not response_parameter_list:
                 response_parameter_list = "{}"
             try:
-                logging.info(response_parameter_list)
-                logging.info(response_data)
+                logger.info(response_parameter_list)
+                logger.info(response_data)
                 result = check_json(json.loads(response_parameter_list), response_data)
             except Exception:
-                logging.info(response_parameter_list)
+                logger.info(response_parameter_list)
                 result = check_json(eval(response_parameter_list.replace('true', 'True').replace('false', 'False').replace("null", "None")), response_data)
             if result:
                 record_auto_results(_id=_id, header=header, parameter=parameter,
@@ -251,9 +251,9 @@ def test_api(host, case_id, _id, time):
             # except:
             #     result = re.findall(response_parameter_list, eval(response_data.replace('true', 'True').replace('false', 'False')))
             try:
-                logging.info(response_parameter_list)
+                logger.info(response_parameter_list)
                 result = re.findall(response_parameter_list, json.dumps(response_data).encode('latin-1').decode('unicode_escape'))
-                logging.info(result)
+                logger.info(result)
             except Exception as e:
                 logging.exception(e)
                 return "fail"

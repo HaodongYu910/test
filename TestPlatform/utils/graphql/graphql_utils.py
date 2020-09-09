@@ -34,7 +34,7 @@ class GraphQLDriver():
                     'query': query
                 }
             )
-        logging.info(r.json())
+        logger.info(r.json())
         if r.status_code == 200 and r.json()['data'] != None:
             return r.json()['data']
         return {}

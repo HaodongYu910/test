@@ -49,7 +49,7 @@ def get_fake_name(rand_uid):
 
 
 def sync_send_file(file_name):
-    # logging.info('send file: [{0}]'.format(file_name))
+    # logger.info('send file: [{0}]'.format(file_name))
     commands = [
         "storescu",
         dur.server,
@@ -63,18 +63,18 @@ def sync_send_file(file_name):
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
     except Exception as e:
-        logging.error('send_file error: {0}'.format(e))
+        logger.error('send_file error: {0}'.format(e))
 
 
 def sync_send(folder):
     if not folder or not os.path.exists(folder):
-        logging.info('send: path is not exist [{0}]'.format(folder))
+        logger.info('send: path is not exist [{0}]'.format(folder))
         return
 
     file_names = os.listdir(folder)
     file_names.sort()
 
-    logging.info(' sending: {0}'.format(folder))
+    logger.info(' sending: {0}'.format(folder))
     for fn in tqdm(file_names):
         full_fn = os.path.join(folder, fn)
 
@@ -86,7 +86,7 @@ def sync_send(folder):
         try:
             sync_send_file(full_fn)
         except Exception as e:
-            logging.error(
+            logger.error(
                 'failed to send file: file[{0}], error[{1}]'.format(full_fn, e))
             continue
 
@@ -152,7 +152,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             ds = pydicom.dcmread(full_fn, force=True)
         except Exception as e:
-            logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
+            logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
             continue
 
         study_uid = ''
@@ -166,7 +166,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             cur_date = study_fakeinfo.get("cur_date")
             cur_time = study_fakeinfo.get("cur_time")
         except Exception as e:
-            logging.error(
+            logger.error(
                 'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
             continue
         ds.StudyInstanceUID = norm_string(
@@ -176,7 +176,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             series_uid = ds.SeriesInstanceUID
         except Exception as e:
-            logging.error(
+            logger.error(
                 'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SeriesInstanceUID = norm_string(
             '{0}.{1}'.format(series_uid, rand_uid), 64)
@@ -185,7 +185,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             instance_uid = ds.SOPInstanceUID
         except Exception as e:
-            logging.info(
+            logger.info(
                 'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SOPInstanceUID = norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
@@ -223,7 +223,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             )
 
         except Exception as e:
-            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+            logger.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
 
 def saveData(data):
