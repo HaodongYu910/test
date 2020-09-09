@@ -35,6 +35,33 @@ def ai_result(kc,patientid):
     )
     return res_study
 
+def verifyData(id):
+    today=str(datetime.date.today()) + ' 00:00:00'
+    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True,duration_id=id)
+    obj =duration.objects.filter(id=id)
+    if obj.server == "192.168.1.228":
+        serverip = "192.168.1.124"
+    else:
+        serverip = obj.server
+    kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
+    for i in duration_data:
+        data = {'studyinstanceuid':i.studyinstanceuid}
+        airesult=ai_result(kc,i.patientid)
+        if airesult.json()['data']['studyViewFlexible'] ==[]:
+            data['aistatus']= None
+            data['diagnosis'] = '--'
+            data['instancecount'] = None
+        else:
+            # text = eval(str(airesult.content, 'utf-8'), globals)
+            res_studyView = airesult.json()['data']['studyViewFlexible']
+            data['aistatus'] = res_studyView[0].get('aistatus')
+            data['diagnosis'] = res_studyView[0].get('diagnosis')
+            data['imagecount_server'] = res_studyView[0].get('instancecount')
+            if res_studyView[0].get('instancecount') == i.imagecount:
+                data['studyolduid']=1
+        update_data(data)
+    return True
+
 def verify():
     today=str(datetime.date.today()) + ' 00:00:00'
     duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True)
@@ -61,7 +88,6 @@ def verify():
                 data['studyolduid']=1
         update_data(data)
     return True
-
 
 # class ImageCount():
 #     def __init__(self):

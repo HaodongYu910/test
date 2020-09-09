@@ -617,7 +617,9 @@ class duration_verify(APIView):
         :param request:
         :return:
         """
-        data=verify()
+        id = request.GET.get("id")
+        data=verifyData(id)
+
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 
