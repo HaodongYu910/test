@@ -263,8 +263,7 @@ class getDuration(APIView):
         yesterday = str(datetime.date.today()) + ' 00:00:00'
 
         for i in durationdata.data:
-            duration_all = duration_record.objects.filter(duration_id=i['id'],
-                                                          create_time__lte=yesterday)
+            duration_all = duration_record.objects.filter(duration_id=i['id'])
             duration_true = duration_record.objects.filter(aistatus__isnull=False, duration_id=i['id'],
                                                            create_time__lte=yesterday)
             duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'],
@@ -273,12 +272,14 @@ class getDuration(APIView):
                                                                create_time__lte=yesterday)
             duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'],
                                                                create_time__lte=yesterday)
-
+            duration_notsent = duration_record.objects.filter(aistatus__isnull=True, duration_id=i['id'],
+                                                           create_time__lte=yesterday)
             i['all']=duration_all.count()
-            i['duration_true'] = duration_true.count()
+            i['sent'] = duration_true.count()
             i['ai_true'] = duration_ai_true.count()
             i['ai_false'] = duration_ai_false.count()
             i['notai'] = duration_ai.count()
+            i['notsent'] = duration_notsent.count()
 
             datalist.append(i)
         return JsonResponse(data={"data": datalist
@@ -303,25 +304,30 @@ class durationData(APIView):
         durationid=int(request.GET.get("id"))
 
         #判断是否有查询时间
-        if request.GET.get("selectdate"):
-            selectdate=datetime.datetime.now()
+        if request.GET.get("startdate"):
+            startdate = request.GET.get("startdate")
         else:
-            selectdate=request.GET.get("selectdate")
+            startdate = '2000-01-01 00:00:00'
+
+        if request.GET.get("enddate"):
+            enddate = request.GET.get("enddate")
+        else:
+            enddate = datetime.datetime.now()
 
         #判断查询数据类型
         if type=='patientid':
             patientid = request.GET.get("patientid")
-            obi = duration_record.objects.filter(patientid__contains=patientid).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,patientid__contains=patientid).order_by("-id")
         elif type=='Not_sent':
-            obi = duration_record.objects.filter(aistatus__isnull=True,create_time__lte=selectdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,aistatus__isnull=True,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
         elif type=='sent':
-            obi = duration_record.objects.filter(aistatus__isnull=False,create_time__lte=selectdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,aistatus__isnull=False,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
         elif type=='AiTrue':
-            obi = duration_record.objects.filter(aistatus__in=[1,2],create_time__lte=selectdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,aistatus__in=[1,2],create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
         elif type=='AiFalse':
-            obi = duration_record.objects.filter(aistatus__in=[-1,-2,3],create_time__lte=selectdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,aistatus__in=[-1,-2,3],create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
         else:
-            obi = duration_record.objects.filter(duration_id=durationid).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数

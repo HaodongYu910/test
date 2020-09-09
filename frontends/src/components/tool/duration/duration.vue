@@ -97,7 +97,7 @@
                 <!--列表-->
                 <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
-                          style="width: 100%;">
+                          style="width: 150%">
                     <el-table-column type="selection" min-width="5%">
                     </el-table-column>
                     <el-table-column prop="version" label="ID" min-width="8%" sortable>
@@ -105,9 +105,12 @@
                             <span style="margin-left: 10px">{{ scope.row.id }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="type" label="服务器IP" min-width="12%">
+                    <el-table-column prop="type" label="服务器IP" min-width="15%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.server }}</span>
+                             <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
+                                 style='text-decoration: none;color: #000000;'>
+                                 <span style="margin-left: 10px">{{ scope.row.server }}</span>
+                    </router-link>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="匿名名称" min-width="12%">
@@ -115,7 +118,7 @@
                             <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="结束时间" min-width="15%">
+                    <el-table-column label="结束时间" min-width="18%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.end_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
                         </template>
@@ -125,33 +128,43 @@
                             <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="共计发送" min-width="8%">
+                    <el-table-column label="共计发送" min-width="10%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.all }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="接收成功" min-width="8%">
+                    <el-table-column label="成功接收" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.duration_true }} 个</span>
+                            <span style="margin-left: 10px">{{ scope.row.sent }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="AI预测成功" min-width="10%">
+                    <el-table-column label="未确认" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.notsent }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI预测成功" min-width="12%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.ai_true }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="AI预测失败" min-width="8%">
+                    <el-table-column label="AI预测失败" min-width="12%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.ai_false }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="运行状态" min-width="8%">
+                    <el-table-column label="AI未预测" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.notai }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="status" label="运行状态" min-width="10%">
                         <template slot-scope="scope">
                             <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
                             <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
-                    <el-table-column label="操作" min-width="30px">
+                    <el-table-column label="操作" min-width="30%">
                         <template slot-scope="scope">
                             <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                                 {{scope.row.status===false?'启用':'停用'}}

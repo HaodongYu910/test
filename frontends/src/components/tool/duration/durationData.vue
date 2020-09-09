@@ -7,39 +7,27 @@
         <el-form-item>
           <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getDurationlist" />
         </el-form-item>
+        <el-form-item label="开始时间">
+          <el-date-picker v-model="filters.startdate" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+          </el-form-item>
+        <el-form-item label="结束时间">
+          <el-date-picker v-model="filters.enddate" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+          </el-form-item>
+        <el-form-item>
+          <el-select v-model="filters.type" placeholder="请选择类型">
+            <el-option key="AiTrue" label="预测成功" value="AiTrue"></el-option>
+            <el-option key="AiFalse" label="预测失败" value="AiFalse"></el-option>
+            <el-option key="Not_sent" label="未发送" value="Not_sent"></el-option>
+            <el-option key="sent" label="已发送数据" value="sent"></el-option>
+          </el-select>
+        </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getDurationlist">查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="getdurationVerify">同步结果</el-button>
-        </el-form-item>
-        <el-form-item>
-          <el-select v-model="filters.type" multiple placeholder="请选择" @click.native="getDurationlist()">
-            <el-option key="aitrue" label="预测成功" value="aitrue"></el-option>
-            <el-option key="aifalse" label="预测失败" value="aifalse"></el-option>
-            <el-option key="nosend" label="未发送" value="nosend"></el-option>
-            <el-option key="false" label="失败数据" value="false"></el-option>
-          </el-select>
-        </el-form-item>
-        <el-form-item>
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">昨日发送结果</span>
-            </template>
-        </el-form-item>
-        <el-form-item>
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">共计发送：</span>
-            </template>
-        </el-form-item>
-        <el-form-item>
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">AI预测成功</span>
-            </template>
-        </el-form-item>
-        <el-form-item>
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">AI预测失败：</span>
-            </template>
         </el-form-item>
       </el-form>
     </el-col>
@@ -95,14 +83,9 @@
               <span style="margin-left: 10px">{{ scope.row.sendserver }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="发送时间" min-width="10%">
+          <el-table-column label="发送日期" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.sendtime  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="更新时间" min-width="10%">
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.update_time  | dateformat('YYYY-MM-DD HH:mm:ss') }}</span>
+              <span style="margin-left: 10px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD') }}</span>
             </template>
           </el-table-column>
 <!--          <el-table-column label="操作" min-width="10px">-->
@@ -143,6 +126,7 @@
             return {
                 filters: {
                     durationlist: [],
+                    selectdate:'',
                 },
                 total: 0,
                 page: 1,
@@ -179,6 +163,8 @@
                   page_size: self.page_size,
                   patientid: self.filters.patientid,
                   type:self.filters.type,
+                  startdate:self.filters.startdate,
+                  enddate:self.filters.enddate,
                   id:this.routerParams.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}

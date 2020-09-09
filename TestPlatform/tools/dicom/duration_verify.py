@@ -47,7 +47,7 @@ def verify():
         airesult=ai_result(kc,i.patientid)
         if airesult.json()['data']['studyViewFlexible'] ==[]:
             data['aistatus']= None
-            data['diagnosis'] = None
+            data['diagnosis'] = '--'
             data['instancecount'] = None
         else:
             # text = eval(str(airesult.content, 'utf-8'), globals)
