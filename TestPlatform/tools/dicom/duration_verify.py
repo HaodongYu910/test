@@ -37,7 +37,7 @@ def ai_result(kc,patientid):
 
 def verify():
     today=str(datetime.date.today()) + ' 00:00:00'
-    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid=1)
+    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True)
 
     for i in duration_data:
         data = {'studyinstanceuid':i.studyinstanceuid}
