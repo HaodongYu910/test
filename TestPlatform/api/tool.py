@@ -415,10 +415,6 @@ class update_duration(APIView):
         try:
             obj =duration.objects.get(id=data["id"])
             data['dicom'] =','.join(data['dicom'])
-            if data["loop_time"]=='':
-                data['end_time'] ='2099-12-31 23:59:59'
-            else:
-                data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
             serializer = duration_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
