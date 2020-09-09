@@ -7,6 +7,8 @@ from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deser
 import datetime
 
 
+logger = logging.getLogger(__name__)
+
 # 修改数据
 def update_data(data):
     obj = stress_detail_record.objects.get(testid=data["testid"])

@@ -10,17 +10,7 @@ from TestPlatform.utils.keycloak.keycloakclient import KeycloakClient
 from influxdb import InfluxDBClient
 import csv
 
-
-
-
-global orthanc_port,need_result,pg_db,pg_user,pg_psw,csvname
-
-
-# 数据库配置
-orthanc_port="5432"
-pg_db = "orthanc"
-pg_user = "postgres"
-pg_psw = "4a53e4f5c42fd5a31890860b204472c5"
+logger = logging.getLogger(__name__)
 
 # 判断是否是手机
 def isMobile(str):
@@ -57,7 +47,7 @@ def Weekdays(str):
 
 # """链接数据库"""
 def connect_to_postgres(orthanc_ip,sql):
-    conn = pc.connect(database=pg_db, user=pg_user, password=pg_psw, host=orthanc_ip, port=orthanc_port)
+    conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=orthanc_ip, port="5432")
     result = pd.read_sql(sql, conn)
     conn.close()
     return result
@@ -113,8 +103,7 @@ def getcsv(csvname):
 
 #  保存csv数据
 def savecsv(data,csvname):
-    excelPath='/Users/yin/Desktop/'+csvname
-    with open(excelPath, 'w') as f:
+    with open(csvname, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(data)
 

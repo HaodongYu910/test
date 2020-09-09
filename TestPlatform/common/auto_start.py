@@ -4,6 +4,7 @@ from crontab import CronTab
 import sys
 import logging
 import logging.config
+logger = logging.getLogger(__name__)
 
 runtime = time.strftime('%Y-%m-%d', time.localtime(time.time()))
 logger = logging.getLogger()

@@ -264,16 +264,11 @@ class getDuration(APIView):
 
         for i in durationdata.data:
             duration_all = duration_record.objects.filter(duration_id=i['id'])
-            duration_true = duration_record.objects.filter(aistatus__isnull=False, duration_id=i['id'],
-                                                           create_time__lte=yesterday)
-            duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'],
-                                                              create_time__lte=yesterday)
-            duration_ai_false = duration_record.objects.filter(aistatus__in=[-2, 3], duration_id=i['id'],
-                                                               create_time__lte=yesterday)
-            duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'],
-                                                               create_time__lte=yesterday)
-            duration_notsent = duration_record.objects.filter(aistatus__isnull=True, duration_id=i['id'],
-                                                           create_time__lte=yesterday)
+            duration_true = duration_record.objects.filter(aistatus__isnull=False, duration_id=i['id'])
+            duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'])
+            duration_ai_false = duration_record.objects.filter(aistatus__in=[-2, 3], duration_id=i['id'])
+            duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'])
+            duration_notsent = duration_record.objects.filter(aistatus__isnull=True, duration_id=i['id'])
             i['all']=duration_all.count()
             i['sent'] = duration_true.count()
             i['ai_true'] = duration_ai_true.count()

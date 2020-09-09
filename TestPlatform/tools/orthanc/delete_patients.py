@@ -2,7 +2,8 @@
 
 from ...common.regexUtil import *
 from django.conf import settings
-
+import logging
+logger = logging.getLogger(__name__)
 
 def delete_patients_duration(key, server_ip,type,fuzzy):
     kc = use_keycloak_bmutils(server_ip, settings.user, settings.passwd)

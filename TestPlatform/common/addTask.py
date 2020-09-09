@@ -1,7 +1,7 @@
 import re
-
+import logging
 from crontab import CronTab
-
+logger = logging.getLogger(__name__)
 
 def add(host_id, _type, start_time, end_time, project, frequency=None, unit=None):
     """

@@ -4,7 +4,8 @@ from TestPlatform.common.regexUtil import *
 from TestPlatform.models import duration_record,duration
 from django.db import transaction
 from TestPlatform.serializers import duration_record_Deserializer,duration_record_Serializer,duration_Serializer
-
+import logging
+logger = logging.getLogger(__name__)
 
 def update_data(data):
     obj = duration_record.objects.get(studyinstanceuid=data["studyinstanceuid"])
@@ -35,8 +36,9 @@ def ai_result(kc,patientid):
     return res_study
 
 def verify():
+    today=str(datetime.date.today()) + ' 00:00:00'
+    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid=1)
 
-    duration_data = duration_record.objects.filter(aistatus__isnull=True)
     for i in duration_data:
         data = {'studyinstanceuid':i.studyinstanceuid}
         if i.sendserver=="192.168.1.228":
@@ -55,6 +57,8 @@ def verify():
             data['aistatus'] = res_studyView[0].get('aistatus')
             data['diagnosis'] = res_studyView[0].get('diagnosis')
             data['imagecount_server'] = res_studyView[0].get('instancecount')
+            if res_studyView[0].get('instancecount') == i.imagecount:
+                data['studyolduid']=1
         update_data(data)
     return True
 

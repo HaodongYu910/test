@@ -118,11 +118,6 @@
                             <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="结束时间" min-width="18%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.end_time  | dateformat('YYYY-MM-DD HH:mm:ss')}}</span>
-                        </template>
-                    </el-table-column>
                     <el-table-column prop="type" label="发送类型" min-width="25%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
