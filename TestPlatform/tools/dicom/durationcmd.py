@@ -334,8 +334,6 @@ if __name__ == '__main__':
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
-        if os.path.exists(folder_fake):
-            shutil.rmtree(folder_fake)
         study_fakeinfos = {}
         study_infos = {}
 

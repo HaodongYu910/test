@@ -57,8 +57,8 @@ def verifyData(id):
             data['aistatus'] = res_studyView[0].get('aistatus')
             data['diagnosis'] = res_studyView[0].get('diagnosis')
             data['imagecount_server'] = res_studyView[0].get('instancecount')
-            if res_studyView[0].get('instancecount') == i.imagecount:
-                data['studyolduid']=1
+            if i.imagecount==res_studyView[0].get('instancecount'):
+                data['studyolduid']='False'
         update_data(data)
     return True
 

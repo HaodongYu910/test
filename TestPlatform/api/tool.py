@@ -4,6 +4,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+import shutil
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress_record, stress_data, base_data
@@ -28,7 +29,6 @@ class stressversion(APIView):
         :param request:
         :return:
         """
-        list = []
         server=request.GET.get("server", '192.168.1.208')
         obi = stress_record.objects.filter(loadserver__contains=server).order_by("-id")
         serialize = stressrecord_Deserializer(obi, many=True)
@@ -167,7 +167,7 @@ class stresstool(APIView):
                     stressserializer.is_valid()
                     stressserializer.save()
                 stressresult = sequence(data["loadserver"], end_time,testdata,
-                                        data["version"],data["duration"],data["keyword"])
+                                        data["version"])
                 return JsonResponse(data=stressresult, code="0", msg="成功")
         except Exception as e:
             logger.error(e)
@@ -455,11 +455,15 @@ class DisableDuration(APIView):
         try:
             # 查找pid
             obj = duration.objects.get(id=data["id"])
+
+            folder_fake = "{0}/{1}".format('/files/logs',obj.keyword)
             for i in obj.pid.split(","):
                 cmd = ('kill -9 {0}').format(int(i))
                 logger.info(cmd)
                 os.system(cmd)
-
+                time.sleep(1)
+            if os.path.exists(folder_fake):
+                shutil.rmtree(folder_fake)
             obj.status = False
             obj.pid =None
             obj.save()
@@ -515,7 +519,7 @@ class EnableDuration(APIView):
                            '--pid {6} &').format(obk.server,obk.aet,obk.port,obk.keyword,folder,durationid,obk.pid)
                 logger.info(cmd)
                 os.system(cmd)
-                time.sleep(3)
+                time.sleep(5)
 
 
             obj.status = True
@@ -619,7 +623,6 @@ class duration_verify(APIView):
         """
         id = request.GET.get("id")
         data=verifyData(id)
-
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 

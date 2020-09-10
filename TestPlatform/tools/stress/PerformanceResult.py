@@ -1,5 +1,6 @@
 from TestPlatform.common.regexUtil import *
 from TestPlatform.utils.graphql.graphql_utils import GraphQLDriver
+logger = logging.getLogger(__name__)
 
 def selectsql(**kwargs):
     sql = {

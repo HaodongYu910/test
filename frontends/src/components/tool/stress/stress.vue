@@ -1,5 +1,6 @@
 <template>
     <div class="app-container">
+
         <div class="filter-container">
             <!--工具条-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
@@ -9,14 +10,14 @@
                 </aside>
                 <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
                     <el-row>
-                      <el-col :span="4">
+                        <el-col :span="4">
                         <el-form-item label="测试版本" prop="version">
                           <el-input id="version" v-model="form.version" placeholder="测试版本" />
                         </el-form-item>
                       </el-col>
                         <el-col :span="5">
-                            <el-form-item label="测试服务器" prop="server_ip">
-                            <el-select v-model="form.Loadserver"  placeholder="请选择" @click.native="gethost()">
+                            <el-form-item label="测试服务器" prop="loadserver">
+                            <el-select v-model="form.loadserver"  placeholder="请选择" @click.native="gethost()">
                               <el-option
                                 v-for="(item,index) in tags"
                                 :key="item.host"
@@ -32,33 +33,20 @@
                           </el-form-item>
                         </el-col>
                         <el-col :span="6">
-                                    <el-form-item label="数据类型" prop="senddata">
-                                        <el-select v-model="addForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
-                                          <el-option
+                            <el-form-item label="数据类型" prop="testdata">
+                                <el-select v-model="form.senddata" multiple placeholder="请选择" @click.native="getBase()">
+                                    <el-option
                                             v-for="(item,index) in tags"
                                             :key="item.remarks"
                                             :label="item.remarks"
                                             :value="item.remarks"
                                           />
-                                        </el-select>
-                                    </el-form-item>
-                        </el-col>
-                        <el-col :span="4">
-                          <el-form-item label="是否匿名数据" prop="duration">
-                            <el-select v-model="form.duration" clearable placeholder="请选择">
-                              <el-option key=True label="是" value=True />
-                              <el-option key=False label="否" value=False />
-                            </el-select>
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="4">
-                          <el-form-item label="匿名数据名称" prop="keyword">
-                            <el-input id="keyword" v-model="form.keyword" placeholder="数据名称" />
-                          </el-form-item>
+                                </el-select>
+                            </el-form-item>
                         </el-col>
                         <el-col :span="4">
                             <el-form-item>
-                                <el-button type="primary" @click="stressrun">执行</el-button>
+                                <el-button type="primary" @click="stressrun('form')">执行</el-button>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -249,7 +237,7 @@
     // import NProgress from 'nprogress'
 
     import {
-        getstressversion,getstressresult, getHost,getbase
+        getstressversion,getstressresult, getHost,getbase,stressTool
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -258,13 +246,13 @@
         data() {
             return {
                 form: {
-                    server_ip: '',
-                    fuzzy: '是',
-                    testtype: '患者编号',
-                    deldata: ''
+                    version: '',
+                    loadserver: '192.168.1.208',
+                    loop_time: '',
+                    testdata: 'ALL'
                 },
                 rules: {
-                    Loadserver: [
+                    server: [
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
                     version: [
@@ -307,21 +295,7 @@
                     server: '192.168.1.208'
                 },
 
-                addFormVisible: false, // 新增界面是否显示
-                addLoading: false,
-                addFormRules: {
-                    diseases: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
-                    type: [
-                        {required: true, message: '请选择类型', trigger: 'blur'}
-                    ],
-                    version: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
-                    ]
-                },
+
                 // 新增界面数据
                 addForm: {
                     diseases: '',
@@ -338,30 +312,35 @@
         },
         methods: {
             // 执行压测
-            stressrun() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    version: this.form.version,
-                    loadserver: this.form.Loadserver,
-                    loop_time: this.form.loop_time,
-                    testdata: this.form.testdata,
-                    duration: this.form.duration,
-                    keyword: this.form.keyword
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                stressTool(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
+            stressrun(formName) {
+                this.tableData = null
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        const params = {
+                            version: this.form.version,
+                            loadserver: this.form.loadserver,
+                            loop_time: this.form.loop_time,
+                            testdata: this.form.senddata,
+                            duration: this.form.duration,
+                            keyword: this.form.keyword
+                        }
+                        const headers = {
+                            'Content-Type': 'application/json'
+                        }
+                        stressTool(headers, params).then(_data => {
+                            console.log(this.form.testtype)
+                            const {msg, code, data} = _data
+                            if (code === '0') {
+                                self.total = data.total
+                                self.list = data.data
+                                var json = JSON.stringify(self.list)
+                                this.tags = JSON.parse(json)
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            }
                         })
                     }
                 })

@@ -35,7 +35,7 @@ def graphql_prediction(data, kc):
     return True
 
 
-def sequence(orthanc_ip,end_time, diseases, version,duration,keyword):
+def sequence(orthanc_ip,end_time, diseases, version):
     kc = use_keycloak_bmutils(orthanc_ip, "test", "Asd@123456")
     stressdata = stress_data.objects.filter()
     loop=0

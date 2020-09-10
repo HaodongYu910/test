@@ -205,7 +205,7 @@
                             </el-col>
                             <el-col :span="6">
                                 <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="keyword" v-model="editForm.keyword" placeholder="数据名称"/>
+                                    <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="4">

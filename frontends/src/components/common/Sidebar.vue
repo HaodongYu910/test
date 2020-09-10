@@ -44,11 +44,6 @@
                         title: '系统首页'
                     },
                     {
-                        icon: 'el-icon-s-flag',
-                        index: 'table',
-                        title: '环境地址'
-                    },
-                    {
                         icon: 'el-icon-s-platform',
                         index: 'project',
                         title: '项目',
@@ -73,16 +68,16 @@
                         title: '测试工具',
                         subs: [
                             {
+                                index: 'data',
+                                title: '测试数据'
+                            },
+                            {
                                 index: 'dicom',
                                 title: 'dicom工具'
                             },
                             {
                                 index: 'stress',
                                 title: '性能工具'
-                            },
-                            {
-                                index: 'data',
-                                title: '测试数据'
                             }
                         ]
                     },
@@ -111,11 +106,6 @@
                                 title: '其他配置'
                             }
                         ]
-                    },
-                    {
-                        icon: 'el-icon-s-promotion',
-                        index: 'sonar',
-                        title: 'Sonar 检查'
                     },
                     {
                         icon: 'el-icon-message-solid',
