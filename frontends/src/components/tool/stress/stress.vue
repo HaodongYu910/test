@@ -5,7 +5,7 @@
             <!--工具条-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
                 <aside>
-                    <a href="http://192.168.2.38:9000/" target="_blank">Stress Tools
+                    <a href="http://192.168.2.38:3000/d/Ss3q6hSZk/docker-and-os-metrics-test?orgId=1&refresh=5s&from=now-5m&to=now&var-host_name=192.168.2.60&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080" target="_blank">Stress Monitor
                     </a>
                 </aside>
                 <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">

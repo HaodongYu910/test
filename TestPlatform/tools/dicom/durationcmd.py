@@ -38,7 +38,7 @@ CONFIG = {
     'keyword': 'duration',
     'dicomfolder': '/files/',
     'durationid':'1',
-    'pid':None
+    'end':1
 }
 
 
@@ -260,7 +260,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","pid="])
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","end="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --pid <pid>')
@@ -283,12 +283,9 @@ def prepare_config(argv):
             elif opt in ("--durationid"):
                 durationid = arg
                 CONFIG["durationid"] = durationid
-            elif opt in ("--pid"):
-                pid = arg
-                if pid =='None':
-                    CONFIG["pid"]=None
-                else:
-                    CONFIG["pid"] = pid
+            elif opt in ("--end"):
+                end = arg
+                CONFIG["end"] = end
     except Exception as e:
         logging.error("error: failed to get args",e)
 
@@ -311,15 +308,13 @@ def prepare_config(argv):
 
 
 if __name__ == '__main__':
+    ospid = os.getpid()
+
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-
-    ospid = os.getpid()
-    if CONFIG.get('pid', '') is None:
-        pid =ospid
-    else:
-        pid =CONFIG.get('pid', '')+','+ str(ospid)
+    # 添加 pid号
+    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')])
 
     folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(folder))
@@ -329,8 +324,7 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    # 修改 pid号
-    sqlDB('UPDATE duration set pid ="%s"  where id =%s', [pid, CONFIG.get('durationid', '')])
+
     while True:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)

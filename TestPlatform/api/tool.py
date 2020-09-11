@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data, base_data,stress_result
+from TestPlatform.models import stress_record, stress_data, base_data,pid
 from TestPlatform.serializers import stressrecord_Deserializer,\
     stress_data_Deserializer,duration_Deserializer
 from TestPlatform.tools.stress.stress import sequence
@@ -494,23 +494,23 @@ class DisableDuration(APIView):
             return result
         try:
             # 查找pid
-            obj = duration.objects.get(id=data["id"])
-
-            folder_fake = "{0}/{1}".format('/files/logs',obj.keyword)
-            for i in obj.pid.split(","):
-                cmd = ('kill -9 {0}').format(int(i))
+            obj = pid.objects.filter(durationid=data["id"])
+            okj = duration.objects.filter(id=data["id"])
+            folder_fake = "{0}/{1}".format('/files/logs',okj.keyword)
+            for i in obj:
+                cmd = 'kill -9 {0}'.format(int(i.pid))
                 logger.info(cmd)
                 os.system(cmd)
+                i.delete()
                 time.sleep(1)
             if os.path.exists(folder_fake):
                 shutil.rmtree(folder_fake)
             obj.status = False
-            obj.pid =None
             obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="无法正常关闭！")
 
 
 class EnableDuration(APIView):
@@ -548,7 +548,6 @@ class EnableDuration(APIView):
             for i in obj.dicom.split(","):
                 dicomfolder = base_data.objects.get(remarks=i)
                 folder = dicomfolder.content
-                obk = duration.objects.get(id=durationid)
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '
@@ -556,11 +555,10 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--pid {6} &').format(obk.server,obk.aet,obk.port,obk.keyword,folder,durationid,obk.pid)
+                           '--end {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.end_time)
                 logger.info(cmd)
                 os.system(cmd)
-                time.sleep(5)
-
+                time.sleep(1)
 
             obj.status = True
             obj.save()

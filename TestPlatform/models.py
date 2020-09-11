@@ -928,3 +928,20 @@ class duration(models.Model):
         verbose_name = "持续化配置"
         verbose_name_plural = "持续化配置"
         db_table = 'duration'
+
+class pid(models.Model):
+    """
+          pid表
+        """
+    id = models.AutoField(primary_key=True)
+    pid = models.IntegerField(blank=True, null=True, verbose_name="进程号")
+    durationid = models.CharField(max_length=5, blank=True, null=True, verbose_name="持续化id")
+
+
+    def __unicode__(self):
+        return self.pid
+
+    class Meta:
+        verbose_name = "pid表"
+        verbose_name_plural = "pid表"
+        db_table = 'pid'
