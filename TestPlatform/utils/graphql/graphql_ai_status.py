@@ -1,5 +1,6 @@
 import logging
 from TestPlatform.utils.graphql.graphql_query_kc import graphql_query_kc
+logger = logging.getLogger(__name__)
 
 def graphql_ai_status(study_uid, query_type,kc):
     ai_status_query = '{ ' \
@@ -19,3 +20,16 @@ def graphql_ai_status(study_uid, query_type,kc):
         ai_status_result = e
     return ai_status_result
 
+
+
+
+# graphql_query = '{ ' \
+#                         'studyViewFlexible(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
+#                                                                                                                  '],type: FuzzyMatch,category: PatientInfo}])' \
+#                                                                                                                  '{' \
+#                                                                                                                  ' aistatus' \
+#                                                                                                                  ' diagnosis' \
+#                                                                                                                  ' starttime' \
+#                                                                                                                  ' completiontime' \
+#                                                                                                                  '}' \
+#                                                                                                                  '}'

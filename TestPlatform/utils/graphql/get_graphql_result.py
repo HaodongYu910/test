@@ -2,6 +2,8 @@ import operator,logging
 from TestPlatform.utils.graphql.graphql_prediction_series import graphql_prediction_series
 from TestPlatform.utils.graphql.graphql_ai_status import graphql_ai_status
 
+logger = logging.getLogger(__name__)
+
 def get_graphql_result(study_uid,series,kc):
     cat = 'default_none'
     vol = float(0)

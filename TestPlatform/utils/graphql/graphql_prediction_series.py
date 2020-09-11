@@ -1,5 +1,6 @@
 import logging,time
 from TestPlatform.utils.graphql.graphql_query_kc import graphql_query_kc
+logger = logging.getLogger(__name__)
 
 def graphql_prediction_series(study_uid, series_classifier, query_type, need_result,kc):
 
@@ -37,7 +38,7 @@ def graphql_prediction_series(study_uid, series_classifier, query_type, need_res
 
     # Execute the query
     start_time = time.time()
-    print(graphql_query)
+    logger.info(graphql_query)
     try:
         queryresult = graphql_query_kc(graphql_query, query_type,kc)
     except Exception as e:

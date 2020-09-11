@@ -827,6 +827,33 @@ class stress_detail_record(models.Model):
         verbose_name_plural = "压测测试记录表"
         db_table = 'stress_detail_record'
 
+class stress_result(models.Model):
+    """
+          压测结果记录表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
+    modelname = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型")
+    type = models.CharField(max_length=15, blank=True, null=True, verbose_name="结果类型")
+    slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="层厚")
+    count = models.IntegerField( blank=True, null=True, verbose_name="次数")
+    avg = models.CharField(max_length=10, blank=True, null=True, verbose_name="平均值")
+    single = models.CharField(max_length=10, blank=True, null=True, verbose_name="单任务")
+    median = models.CharField(max_length=10, blank=True, null=True, verbose_name="中间值")
+    min = models.CharField(max_length=10, blank=True, null=True, verbose_name="最小时间")
+    max = models.CharField(max_length=10, blank=True, null=True, verbose_name="最大时间")
+    coef = models.CharField(max_length=10, blank=True, null=True, verbose_name="系数")
+    rate = models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "压测结果记录表"
+        verbose_name_plural = "压测结果记录表"
+        db_table = 'stress_result'
 
 class stress_data(models.Model):
     """
@@ -857,7 +884,7 @@ class duration_record(models.Model):
     patientid = models.CharField(max_length=80, blank=True, null=True, verbose_name="patientid")
     accessionnumber = models.CharField(max_length=80, blank=True, null=True, verbose_name="accessionnumber")
     studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
-    studyolduid = models.CharField(max_length=100, blank=True, null=True, verbose_name="原数据uid")
+    studyolduid = models.CharField(max_length=100, blank=True, null=True, verbose_name="影像张数验证")
     imagecount = models.CharField(max_length=50, blank=True, null=True, verbose_name="发送影像张数")
     imagecount_server = models.CharField(max_length=50, blank=True, null=True, verbose_name="接收影像张数")
     aistatus = models.CharField(max_length=10, blank=True, null=True, verbose_name="AI预测结果")

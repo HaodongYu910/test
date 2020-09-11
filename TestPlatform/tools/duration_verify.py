@@ -4,8 +4,7 @@ from TestPlatform.common.regexUtil import *
 from TestPlatform.models import duration_record,duration
 from django.db import transaction
 from TestPlatform.serializers import duration_record_Deserializer,duration_record_Serializer,duration_Serializer
-import logging
-logger = logging.getLogger(__name__)
+
 
 def update_data(data):
     obj = duration_record.objects.get(studyinstanceuid=data["studyinstanceuid"])
@@ -35,49 +34,20 @@ def ai_result(kc,patientid):
     )
     return res_study
 
-def verifyData(id):
-    today=str(datetime.date.today()) + ' 00:00:00'
-
-    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True,duration_id=id)
-    obj =duration.objects.get(id=id)
-    if obj.server == "192.168.1.228":
-        serverip = "192.168.1.124"
-    else:
-        serverip = obj.server
-    kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
-    for i in duration_data:
-        data = {'studyinstanceuid':i.studyinstanceuid}
-        airesult=ai_result(kc,i.patientid)
-        if airesult.json()['data']['studyViewFlexible'] ==[]:
-            data['aistatus']= None
-            data['diagnosis'] = '--'
-            data['instancecount'] = None
-        else:
-            # text = eval(str(airesult.content, 'utf-8'), globals)
-            res_studyView = airesult.json()['data']['studyViewFlexible']
-            data['aistatus'] = res_studyView[0].get('aistatus')
-            data['diagnosis'] = res_studyView[0].get('diagnosis')
-            data['imagecount_server'] = res_studyView[0].get('instancecount')
-            if i.imagecount==res_studyView[0].get('instancecount'):
-                data['studyolduid']='False'
-        update_data(data)
-    return True
-
 def verify():
-    today=str(datetime.date.today()) + ' 00:00:00'
-    duration_data = duration_record.objects.filter(create_time__gte=today,studyolduid__isnull=True)
 
+    duration_data = duration_record.objects.filter(aistatus__isnull=True)
     for i in duration_data:
         data = {'studyinstanceuid':i.studyinstanceuid}
         if i.sendserver=="192.168.1.228":
             serverip="192.168.1.124"
         else:
             serverip=i.sendserver
-        kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
+        kc = use_keycloak_bmutils(serverip, 'biomind', 'password')
         airesult=ai_result(kc,i.patientid)
         if airesult.json()['data']['studyViewFlexible'] ==[]:
             data['aistatus']= None
-            data['diagnosis'] = '--'
+            data['diagnosis'] = None
             data['instancecount'] = None
         else:
             # text = eval(str(airesult.content, 'utf-8'), globals)
@@ -85,10 +55,33 @@ def verify():
             data['aistatus'] = res_studyView[0].get('aistatus')
             data['diagnosis'] = res_studyView[0].get('diagnosis')
             data['imagecount_server'] = res_studyView[0].get('instancecount')
-            if res_studyView[0].get('instancecount') == i.imagecount:
-                data['studyolduid']=1
         update_data(data)
     return True
+
+def verifydata():
+    datalist=[]
+    def getYesterday():
+        today = datetime.date.today()
+        oneday = datetime.timedelta(days=1)
+        yesterday = today - oneday
+        return yesterday
+    yesterday =str(getYesterday()) +' 00:00:00'
+    for i in duration.objects.filter():
+        duration_all = duration_record.objects.filter(duration_id=i.id,create_time__lte=yesterday)
+        duration_true = duration_record.objects.filter(aistatus__isnull=False,duration_id=i.id,create_time__lte=yesterday)
+        duration_ai_true= duration_record.objects.filter(aistatus=1,duration_id=i.id,create_time__lte=yesterday)
+        duration_ai_false = duration_record.objects.filter(aistatus__in=[0,-1,-2,2], duration_id=i.id,
+                                                        create_time__lte=yesterday)
+        data = {
+            'id' :i.id,
+            'all':duration_all.count(),
+            'duration_true': duration_true.count(),
+            'ai_true': duration_ai_true.count(),
+            'ai_false': duration_ai_false.count(),
+        }
+        datalist.append(data)
+
+    return datalist
 
 # class ImageCount():
 #     def __init__(self):
@@ -183,7 +176,7 @@ def verify():
 #                 send_csv.append(eachfile)
 #             elif len(eachfile.split("_")) == 3:
 #                 analysis_csv.append(eachfile)
-#     logger.info(send_csv)
+#     logging.info(send_csv)
 #     for eachfile in analysis_csv:
 #         if eachfile.rsplit("_", 1)[0] in send_csv:
 #             send_csv.remove(eachfile.rsplit("_", 1)[0])
@@ -197,7 +190,7 @@ def verify():
 #     try:
 #         CONFIG["server"]["ip"] = server_ip
 #     except Exception as e:
-#         logger.error("error: failed to get args")
+#         logging.error("error: failed to get args")
 #
 #     log_path = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "../..")),
 #                             'logs/{0}'.format(CONFIG["server"]["ip"]))

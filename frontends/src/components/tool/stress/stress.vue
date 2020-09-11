@@ -92,10 +92,10 @@
                 </el-col>
                 <!--列表-->
                 <span style="margin-left: 10px">prediction time</span>
-                <el-table :data="durationlist" v-loading="listLoading"
+                <el-table :data="prediction" v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
-                    <el-table-column prop="modelname" label="modelname" min-width="6%">
+                    <el-table-column prop="modelname" label="modelname" min-width="8%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
                         </template>
@@ -107,22 +107,22 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.median }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.min_pred_time}}</span>
+                            <span style="margin-left: 10px">{{ scope.row.min}}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
@@ -130,50 +130,50 @@
                             <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="预测成功率" min-width="8%" sortable>
+                    <el-table-column label="rate of success" min-width="8%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.dicomsum }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.rate }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
 
                 <span style="margin-left: 10px">job time</span>
-                <el-table :data="jobresult" highlight-current-row v-loading="listLoading"
+                <el-table :data="job" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
-                    <el-table-column prop="version" label="modelname" min-width="6%">
+                    <el-table-column prop="version" label="modelname" min-width="8%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="job_count" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.job_count }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.count }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="avg job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg_job_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="avg single job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg_single_job_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.single }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median_job_time }} 秒</span>
+                            <span style="margin-left: 10px">{{ scope.row.median }} 秒</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.min_job_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max_job_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
@@ -183,7 +183,7 @@
                     </el-table-column>
                 </el-table>
                 <span style="margin-left: 10px">Lung prediction time</span>
-                <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
+                <el-table :data="lung" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 100%;">
                     <el-table-column prop="version" label="slicenumber" min-width="6%">
@@ -191,40 +191,34 @@
                             <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="type" label="modelname" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
-                        </template>
-                    </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.median }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.min_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max_pred_time }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="coef. of variation" min-width="10%">
+                    <el-table-column prop="type" label="coef. of variation" min-width="10%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
+                            <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="预测成功率" min-width="8%" sortable>
+                    <el-table-column label="rate of success" min-width="8%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.dicomsum }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.rate }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -424,9 +418,9 @@
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.durationlist = data.data
-                        self.jobresult =data.jobresult
+                        self.prediction = data.predictionresult
+                        self.job =data.jobresult
+                        self.lung =data.lungresult
                     } else {
                         self.$message.error({
                             message: msg,

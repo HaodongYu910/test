@@ -7,16 +7,16 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data, base_data
+from TestPlatform.models import stress_record, stress_data, base_data,stress_result
 from TestPlatform.serializers import stressrecord_Deserializer,\
     stress_data_Deserializer,duration_Deserializer
-from ..common.stress import sequence
+from TestPlatform.tools.stress.stress import sequence
 from ..tools.orthanc.delete_patients import *
 from TestPlatform.tools.dicom.duration_verify import *
 
 from ..tools.stress.PerformanceResult import *
 
-logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
+logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
 class stressversion(APIView):
@@ -103,21 +103,61 @@ class stressResult(APIView):
             return result
 
         try:
-            starttime = stress_record.objects.get(version=data['version']).start_date
-            endtime = stress_record.objects.get(version=data['version']).end_date
-            start_time = stress_record.objects.get(version=data['checkversion']).start_date
-            end_time = stress_record.objects.get(version=data['checkversion']).end_date
+            prediction = stress_result.objects.filter(version=data['version'],type='prediction')
+            job = stress_result.objects.filter(version=data['version'], type='job')
+            lung = stress_result.objects.filter(version=data['version'], type='lung')
 
-            checkdate = [[starttime,endtime], [start_time,end_time]]
-            predictionfield =['avg_pred_time', 'median_pred_time', 'min_pred_time', 'max_pred_time', 'coef']
-            jobfield =['avg_job_time', 'avg_single_job_time', 'median_job_time', 'min_job_time', 'max_job_time',
-                 'coef']
-            predictionresult = datacheck('prediction', predictionfield, checkdate,data['server'])
-            jobresult = datacheck('job', jobfield, checkdate,data['server'])
-            # lungresult=lung('job', jobfield, checkdate,data['server'])
-            return JsonResponse(data={"data": predictionresult,
-                                      "jobresult":jobresult
+            predictionobj = stress_result.objects.filter(version=data['checkversion'], type='prediction')
+            jobobj = stress_result.objects.filter(version=data['checkversion'], type='job')
+            lungobj = stress_result.objects.filter(version=data['checkversion'], type='lung')
+
+            predictionresult = dataCheck(prediction,predictionobj)
+            jobresult = dataCheck(job,jobobj)
+            lungresult=dataCheck(lung,lungobj)
+
+            return JsonResponse(data={"predictionresult":predictionresult,
+                                      "jobresult":jobresult,
+                                      "lungresult":lungresult
                                       }, code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(msg="失败", code="999991", exception=e)
+class stressResultsave(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 version
+            if not data["version"] or not data["checkversion"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 version,checkversion！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        预测时间 压测结果
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+
+        try:
+            obj =stress_record.objects.get(version=data['version'])
+            checkdate = [obj.start_date,obj.end_date]
+            savecheck('job', checkdate, obj.loadserver,obj.version)
+            savecheck('prediction', checkdate, obj.loadserver, obj.version)
+            lung(checkdate, obj.loadserver, obj.version)
+
+            return JsonResponse(data={"data": ''}, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
 
@@ -166,9 +206,9 @@ class stresstool(APIView):
                 with transaction.atomic():
                     stressserializer.is_valid()
                     stressserializer.save()
-                stressresult = sequence(data["loadserver"], end_time,testdata,
+                sequence(data["loadserver"], end_time,testdata,
                                         data["version"])
-                return JsonResponse(data=stressresult, code="0", msg="成功")
+                return JsonResponse(code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)

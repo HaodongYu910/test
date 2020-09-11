@@ -1,9 +1,11 @@
 import logging
 from .graphql_utils import GraphQLDriver
 
+logger = logging.getLogger(__name__)
 
-def graphql_json(data, type):
-    if type == 'ai' and data['automatic'] == 'F':
+
+def graphql_json(data):
+    if data['automatic'] == 'F':
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         'block : false' \
@@ -19,7 +21,7 @@ def graphql_json(data, type):
                                                                           '  pstudy_uid' \
                                                                           '}' \
                                                                           '}'
-    elif type == 'ai' and data['automatic'] == 'T':
+    else:
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         ' study_uid: "' + str(data['studyinstanceuid']) + '"' \
@@ -36,22 +38,12 @@ def graphql_json(data, type):
                                           '  pstudy_uid' \
                                           '}' \
                                           '}'
-    elif type == 'result':
-        graphql_query = '{ ' \
-                        'studyViewFlexible(filter:[{filter:studyinstanceuid,value:[ "' + str(data['studyinstanceuid']) + '"' \
-                                                                                                                 '],type: FuzzyMatch,category: PatientInfo}])' \
-                                                                                                                 '{' \
-                                                                                                                 ' aistatus' \
-                                                                                                                 ' diagnosis' \
-                                                                                                                 ' starttime' \
-                                                                                                                 ' completiontime' \
-                                                                                                                 '}' \
-                                                                                                                 '}'
+
     return graphql_query
 
 
-def graphql_Interface(data, type, kc):
-    graphql_query = graphql_json(data, type)
+def graphql_Interface(data, kc):
+    graphql_query = graphql_json(data)
     try:
         graphql = GraphQLDriver('/graphql', kc)
         results = graphql.execute_query(graphql_query)

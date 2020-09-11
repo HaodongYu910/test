@@ -5,7 +5,7 @@ import time
 import requests
 import logging
 
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 class GraphQLDriver():
     def __init__(self, graphql_url, keycloakclient=None):

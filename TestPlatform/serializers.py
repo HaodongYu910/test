@@ -784,6 +784,36 @@ class stressdetail_Deserializer(serializers.ModelSerializer):
                   'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
                   'report')
 
+class stress_result_Serializer(serializers.ModelSerializer):
+    """
+    性能测试数据记录表序列化
+     """
+
+    class Meta:
+        model = stress_result
+        fields = ('id', 'version', 'modelname', 'type','slicenumber',  'count', 'avg',
+                  'single', 'median', 'min', 'max', 'coef', 'rate','update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_project.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_project.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_project.all().count()
+
+
+class stress_result_Deserializer(serializers.ModelSerializer):
+    """
+    性能测试数据记录表反序列化
+    """
+
+    class Meta:
+        model = stress_result
+        fields = ('version', 'modelname', 'type','slicenumber', 'count', 'avg',
+                  'single', 'median', 'min', 'max', 'coef', 'rate')
 
 class duration_record_Serializer(serializers.ModelSerializer):
     """
