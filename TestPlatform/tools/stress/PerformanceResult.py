@@ -124,8 +124,8 @@ def dataCheck(datadict1,datadict2):
                 b = j['slicenumber']
             if a == b:
                 for x in ['avg','single','median','min','max','coef','rate']:
-                    if i[x] is None:i[x] = 0
-                    if j[x] is None:j[x] = 0
+                    if i[x] is None:i[x] = '0'
+                    if j[x] is None:j[x] = '0'
                     if i[x] > j[x]:
                         i[x] = str(i[x]) + " （ +" + str(
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"

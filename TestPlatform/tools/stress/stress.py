@@ -62,3 +62,4 @@ def sequence(orthanc_ip,end_time, diseases, version):
     savecheck('job', checkdate,server,version)
     savecheck('prediction', checkdate,server,version)
     lung(checkdate, server, version)
+

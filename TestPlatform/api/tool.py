@@ -495,7 +495,7 @@ class DisableDuration(APIView):
         try:
             # 查找pid
             obj = pid.objects.filter(durationid=data["id"])
-            okj = duration.objects.filter(id=data["id"])
+            okj = duration.objects.get(id=data["id"])
             folder_fake = "{0}/{1}".format('/files/logs',okj.keyword)
             for i in obj:
                 cmd = 'kill -9 {0}'.format(int(i.pid))
@@ -505,8 +505,8 @@ class DisableDuration(APIView):
                 time.sleep(1)
             if os.path.exists(folder_fake):
                 shutil.rmtree(folder_fake)
-            obj.status = False
-            obj.save()
+            okj.status = False
+            okj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
