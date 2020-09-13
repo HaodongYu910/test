@@ -1,5 +1,6 @@
 # from TestPlatform.utils.graphql.get_graphql_result import get_graphql_result
 from TestPlatform.utils.graphql.graphql_prediction import graphql_Interface
+from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
 from TestPlatform.common.regexUtil import *
 from TestPlatform.models import stress_detail_record, stress_data
 from django.db import transaction
@@ -34,6 +35,22 @@ def graphql_prediction(data, kc):
         return e
     return True
 
+
+
+def stress(stressdata,diseases,kc):
+    for k in stressdata:
+        if k.diseases in diseases:
+            data = {
+                    "studyinstanceuid": k.studyinstanceuid,
+                    "vote": k.vote,
+                    "diseases": k.diseases,
+                    "seriesinstanceuid": str(k.automatic),
+                    'automatic': str(k.automatic)
+                    }
+            graphql_delreport(data, kc)
+            graphql_Interface(data, kc)
+        else:
+            continue
 # 压测循环
 def sequence(orthanc_ip,end_time, diseases, version):
     server=orthanc_ip
@@ -41,23 +58,41 @@ def sequence(orthanc_ip,end_time, diseases, version):
     start_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = stress_data.objects.filter()
-    # loop=0
+    loop=0
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""
-        # loop =loop+1
-        for k in stressdata:
-            if k.diseases in diseases:
-                data = {"version": version,
-                        "patientid": k.patientid,
+        if loop==0:
+            for k in stressdata:
+                if k.diseases in diseases:
+                    data = {
                         "studyinstanceuid": k.studyinstanceuid,
-                        "vote":k.vote,
+                        "vote": k.vote,
                         "diseases": k.diseases,
                         "seriesinstanceuid": str(k.automatic),
                         'automatic': str(k.automatic)
-                        }
-                graphql_Interface(data, kc)
-            else:
-                continue
+                    }
+                    graphql_delreport(data, kc)
+                    graphql_Interface(data, kc)
+                else:
+                    continue
+        else:
+            for k in stressdata:
+                if k.diseases in diseases:
+                    data = {
+                        "studyinstanceuid": k.studyinstanceuid,
+                        "vote": k.vote,
+                        "diseases": k.diseases,
+                        "seriesinstanceuid": str(k.automatic),
+                        'automatic': str(k.automatic)
+                    }
+                    db = connect_to_postgres(server, "select studyuid from hanalyticsreport where studyuid ='"+k.studyinstanceuid+"'")
+                    _dict1 = db.to_dict(orient='records')
+                    graphql_delreport(data, kc)
+                    graphql_Interface(data, kc)
+                else:
+                    continue
+
+        #loop = loop + 1
     checkdate=[start_time,end_time]
     savecheck('job', checkdate,server,version)
     savecheck('prediction', checkdate,server,version)

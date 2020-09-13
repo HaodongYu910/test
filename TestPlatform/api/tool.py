@@ -555,7 +555,8 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--end {6} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,obj.end_time)
+                           '--dicom {6} '
+                           '--end {7} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,i,obj.end_time)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)

@@ -38,7 +38,8 @@ CONFIG = {
     'keyword': 'duration',
     'dicomfolder': '/files/',
     'durationid':'1',
-    'end':1
+    'dicom':'all',
+    'end':None
 }
 
 
@@ -260,10 +261,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","end="])
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","dicom=","end="])
         for opt, arg in opts:
             if opt == '-h':
-                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --pid <pid>')
+                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --dicom <dicom> --end <end>')
                 sys.exit()
             elif opt in ("--aet"):
                 server_aet = arg
@@ -283,9 +284,15 @@ def prepare_config(argv):
             elif opt in ("--durationid"):
                 durationid = arg
                 CONFIG["durationid"] = durationid
+            elif opt in ("--dicom"):
+                dicom = arg
+                CONFIG["dicom"] = dicom
             elif opt in ("--end"):
                 end = arg
-                CONFIG["end"] = end
+                if end =='None':
+                    CONFIG["end"] = None
+                else:
+                    CONFIG["end"] = end
     except Exception as e:
         logging.error("error: failed to get args",e)
 
@@ -327,7 +334,7 @@ if __name__ == '__main__':
 
     while True:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', ''),loop_times)
+        folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', '')+CONFIG.get('dicom', ''),loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
