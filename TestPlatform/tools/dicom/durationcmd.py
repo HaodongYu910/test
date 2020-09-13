@@ -334,7 +334,7 @@ if __name__ == '__main__':
 
     while True:
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(log_path,CONFIG.get('keyword', '')+CONFIG.get('dicom', ''),loop_times)
+        folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('dicom', '')),loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
