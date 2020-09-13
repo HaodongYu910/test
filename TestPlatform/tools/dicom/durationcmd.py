@@ -279,8 +279,8 @@ def prepare_config(argv):
                 keyword = arg
                 CONFIG["keyword"] = keyword
             elif opt in ("--dicomfolder"):
-                dicom = arg
-                CONFIG["dicomfolder"] = dicom
+                dicomfolder = arg
+                CONFIG["dicomfolder"] = dicomfolder
             elif opt in ("--durationid"):
                 durationid = arg
                 CONFIG["durationid"] = durationid

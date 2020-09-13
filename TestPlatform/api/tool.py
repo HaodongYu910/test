@@ -496,7 +496,7 @@ class DisableDuration(APIView):
             # 查找pid
             obj = pid.objects.filter(durationid=data["id"])
             okj = duration.objects.get(id=data["id"])
-            folder_fake = "{0}/{1}".format('/files/logs',okj.keyword)
+            folder_fake = "{0}/{1}".format('/files/logs',str(okj.keyword))
             for i in obj:
                 cmd = 'kill -9 {0}'.format(int(i.pid))
                 logger.info(cmd)
