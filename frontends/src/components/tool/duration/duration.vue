@@ -56,7 +56,7 @@
                         <el-table-column label="结果显示" width="180">
                             <template slot-scope="scope">
                                 <el-popover trigger="hover" placement="top">
-                                    <p>tag标签: {{ scope.row.name }}</p>
+                                    <p>标签: {{ scope.row.name }}</p>
                                     <div slot="reference" class="name-wrapper">
                                         <el-tag size="medium">{{ scope.row.name }}</el-tag>
                                     </div>
@@ -97,19 +97,14 @@
                 <!--列表-->
                 <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
-                          style="width: 150%">
+                          style="width: 200%">
                     <el-table-column type="selection" min-width="5%">
                     </el-table-column>
-                    <el-table-column prop="version" label="ID" min-width="8%" sortable>
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.id }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="type" label="服务器IP" min-width="15%">
+                    <el-table-column prop="type" label="服务器" min-width="20%">
                         <template slot-scope="scope">
                              <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
                                  style='text-decoration: none;color: #000000;'>
-                                 <span style="margin-left: 10px">{{ scope.row.server }}</span>
+                                 <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                     </router-link>
                         </template>
                     </el-table-column>
@@ -130,7 +125,7 @@
                     </el-table-column>
                     <el-table-column label="成功接收" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.sent }} 个</span>
+                            <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.sent }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="未确认" min-width="10%">
@@ -140,12 +135,12 @@
                     </el-table-column>
                     <el-table-column label="AI预测成功" min-width="12%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.ai_true }} 个</span>
+                            <span style="margin-left: 10px;color: #02C874;">{{ scope.row.ai_true }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="AI预测失败" min-width="12%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.ai_false }} 个</span>
+                            <span style="margin-left: 10px;color: #FF0000;" >{{ scope.row.ai_false }} 个</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="AI未预测" min-width="10%">
@@ -153,16 +148,16 @@
                             <span style="margin-left: 10px">{{ scope.row.notai }} 个</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="运行状态" min-width="10%">
+                    <el-table-column prop="sendstatus" label="运行状态" min-width="10%">
                         <template slot-scope="scope">
-                            <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.status" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
+                            <img v-show="scope.row.sendstatus" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qidong.png"/>
+                            <img v-show="!scope.row.sendstatus" style="width:15px;height:15px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/ting-zhi.png"/>
                         </template>
                     </el-table-column>
                     <el-table-column label="操作" min-width="30%">
                         <template slot-scope="scope">
                             <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                                {{scope.row.status===false?'启用':'停用'}}
+                                {{scope.row.sendstatus===false?'启用':'停用'}}
                             </el-button>
                             <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据</el-button>
                             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
@@ -186,11 +181,6 @@
                            style="width: 75%; left: 12.5%">
                     <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                         <el-row>
-                            <el-col :span="6">
-                                <el-form-item label="持续时间" prop="loop_time">
-                                    <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
-                                </el-form-item>
-                            </el-col>
                             <el-col :span="8">
                                 <el-form-item label="数据类型" prop="senddata">
                                     <el-select v-model="editForm.senddata" multiple placeholder="请选择" @click.native="getBase()">
@@ -206,6 +196,21 @@
                             <el-col :span="6">
                                 <el-form-item label="匿名名称" prop="keyword">
                                     <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="6">
+                                <el-form-item label="发送数据" prop="keyword">
+                                    <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="6">
+                                <el-form-item label="持续时间" prop="loop_time">
+                                    <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="12">
+                                <el-form-item label="定时器" prop="timer">
+                                    <el-input id="timer" v-model="editForm.timer" placeholder="30 09 * * *  表示每天9：30执行"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="4">
@@ -234,9 +239,9 @@
                                         </el-select>
                                     </el-form-item>
                                 </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="持续时间" prop="loop_time">
-                                        <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
+                                <el-col :span="3">
+                                    <el-form-item label="端口号" prop="port">
+                                        <el-input id="port" v-model="addForm.port" placeholder=""/>
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="6">
@@ -256,8 +261,31 @@
                                         <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
                                     </el-form-item>
                                 </el-col>
+                                <el-col :span="3">
+                                    <el-form-item label="持续时间" prop="loop_time">
+                                        <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="3">
+                                    <el-form-item label="发送数量" prop="count">
+                                        <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="10">
+                                    <el-form-item label="定时器" prop="timer">
+                                        <el-input id="timer" v-model="addForm.timer" placeholder="30 09 * * *  表示每天9：30执行"/>
+                                    </el-form-item>
+                                </el-col>
                                 <el-col :span="4">
-                                    <el-form-item label="保存操作" prop="save">
+                                    <el-form-item label="DDS服务" prop="fuzzy">
+                                        <el-select v-model="addForm.dds" clearable placeholder="请选择">
+                                            <el-option key="True" label="是" value="True"/>
+                                            <el-option key="False" label="否" value="False"/>
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="4">
+                                    <el-form-item label="" prop="save">
                                         <el-button type="primary" @click="addSubmit('form')">保存</el-button>
                                     </el-form-item>
                                 </el-col>
@@ -327,7 +355,9 @@
                     loop_time: '',
                     port: '4242'
                 },
-
+                addForm:{
+                    port:'4242'
+                },
                 addFormVisible: false, // 新增界面是否显示
                 addLoading: false,
                 addFormRules: {
@@ -561,7 +591,7 @@
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
-                if (row.status) {
+                if (row.sendstatus) {
                     disable_duration(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
@@ -571,7 +601,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            row.status = !row.status;
+                            row.sendstatus = !row.sendstatus;
                         } else {
                             self.$message.error({
                                 message: msg,
@@ -589,7 +619,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            row.status = !row.status;
+                            row.sendstatus = !row.sendstatus;
                         } else {
                             self.$message.error({
                                 message: msg,
@@ -604,11 +634,11 @@
                 this.addFormVisible = true
                 this.addForm = {
                     server: null,
-                    port:null,
+                    port:4242,
                     loop_time: '',
-                    aet:null,
                     keyword: null,
                     dicom: null,
+                    dds:false,
                     sendstatus: false,
                     status: false
                 }
@@ -623,12 +653,11 @@
                             // NProgress.start();
                             const params = {
                                 id: self.editForm.id,
-                                server: self.editForm.sendserver,
-                                port:'4242',
                                 loop_time: self.editForm.loop_time,
-                                aet:'qatest',
                                 keyword: this.editForm.keyword,
-                                dicom: this.editForm.senddata
+                                dicom: this.editForm.senddata,
+                                sendcount:this.editForm.sendcount,
+                                timer: this.editForm.timer,
                             }
                             const header = {
                                 'Content-Type': 'application/json',
@@ -672,11 +701,13 @@
                             // NProgress.start();
                             const params = JSON.stringify({
                                 server: self.addForm.sendserver,
-                                port:'4242',
+                                port:self.addForm.port,
                                 loop_time: self.addForm.loop_time,
-                                aet:'qatest',
                                 keyword: this.addForm.keyword,
                                 dicom: this.addForm.senddata,
+                                sendcount:this.addForm.sendcount,
+                                timer: this.addForm.timer,
+                                dds:this.addForm.dds,
                                 sendstatus: false,
                                 status: false
                             })

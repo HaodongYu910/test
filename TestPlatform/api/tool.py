@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data, base_data,pid
+from TestPlatform.models import stress_record, stress_data, base_data,pid,GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer,\
     stress_data_Deserializer,duration_Deserializer
 from TestPlatform.tools.stress.stress import sequence
@@ -298,7 +298,7 @@ class getDuration(APIView):
         :return:
         """
         datalist=[]
-        obi = duration.objects.filter().order_by("id")
+        obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi,many=True)
         yesterday = str(datetime.date.today()) + ' 00:00:00'
 
@@ -411,16 +411,23 @@ class add_duration(APIView):
             return result
         try:
             data['dicom'] =','.join(data['dicom'])
+            obj= GlobalHost.objects.get(host=str(data['server']))
             if  data["loop_time"] =='':
                 data['end_time'] = '2099-12-31 23:59:59'
             else:
                 data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                     "%Y-%m-%d %H:%M:%S")
+            data['aet'] =obj.description
             duration = duration_Deserializer(data=data)
-            with transaction.atomic():
-                duration.is_valid()
-                duration.save()
-            return JsonResponse(code="0", msg="成功")
+
+            keyword = duration.objects.filter(keyword=data["keyword"])
+            if len(keyword):
+                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
+            else:
+                with transaction.atomic():
+                    duration.is_valid()
+                    duration.save()
+                return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 #修改duration
@@ -455,12 +462,16 @@ class update_duration(APIView):
         try:
             obj =duration.objects.get(id=data["id"])
             data['dicom'] =','.join(data['dicom'])
-            serializer = duration_Deserializer(data=data)
-            with transaction.atomic():
-                if serializer.is_valid():
-                    # 修改数据
-                    serializer.update(instance=obj, validated_data=data)
-            return JsonResponse(code="0", msg="成功")
+            keyword = duration.objects.filter(keyword=data["keyword"])
+            if len(keyword):
+                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
+            else:
+                serializer = duration_Deserializer(data=data)
+                with transaction.atomic():
+                    if serializer.is_valid():
+                        # 修改数据
+                        serializer.update(instance=obj, validated_data=data)
+                return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
@@ -505,7 +516,7 @@ class DisableDuration(APIView):
                 time.sleep(1)
             if os.path.exists(folder_fake):
                 shutil.rmtree(folder_fake)
-            okj.status = False
+            okj.sendstatus = False
             okj.save()
 
             return JsonResponse(code="0", msg="成功")
@@ -546,8 +557,9 @@ class EnableDuration(APIView):
             obj = duration.objects.get(id=durationid)
 
             for i in obj.dicom.split(","):
-                dicomfolder = base_data.objects.get(remarks=i)
-                folder = dicomfolder.content
+                dicom = base_data.objects.get(remarks=i)
+                folder = dicom.content
+                sendcount= int(int(obj.sendcount) / int(dicom.other))
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '
@@ -556,12 +568,13 @@ class EnableDuration(APIView):
                            '--dicomfolder {4} '
                            '--durationid {5} '
                            '--diseases {6} '
-                           '--end {7} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,i,obj.end_time)
+                           '--end {7} '
+                           '--sendcount {8} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,i,obj.end_time,sendcount)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
 
-            obj.status = True
+            obj.sendstatus = True
             obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:

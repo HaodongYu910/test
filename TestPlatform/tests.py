@@ -51,12 +51,12 @@ from TestPlatform.common.regexUtil import *
 #
 
 
-dict1=[{"a":1,"b":2,"c":3},{"a":3,"b":1,"c":3},{"a":2,"b":2,"c":3}]
-dict2=[{"a":2,"b":2,"c":1},{"a":0,"b":9,"c":3},{"a":3,"b":1,"c":0}]
-
-diff = dict1.keys() & dict2
-diff_vals = [(k, dict1[k], dict2[k]) for k in diff if dict1[k] != dict2[k]]
-
+# dict1=[{"a":1,"b":2,"c":3},{"a":3,"b":1,"c":3},{"a":2,"b":2,"c":3}]
+# dict2=[{"a":2,"b":2,"c":1},{"a":0,"b":9,"c":3},{"a":3,"b":1,"c":0}]
+#
+# diff = dict1.keys() & dict2
+# diff_vals = [(k, dict1[k], dict2[k]) for k in diff if dict1[k] != dict2[k]]
+#
 
 # from multiprocessing import Pool,Process
 # import time,os

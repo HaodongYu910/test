@@ -698,7 +698,7 @@ class base_data_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = base_data
-        fields = ('id', 'content', 'type','select_type','status','remarks','update_time', 'create_time')
+        fields = ('id', 'content', 'type','select_type','status','remarks','other','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -718,7 +718,7 @@ class base_data_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = base_data
-        fields = ('content', 'type', 'select_type','status','remarks')
+        fields = ('content', 'type', 'select_type','status','remarks','other')
 
 
 class stressrecord_Serializer(serializers.ModelSerializer):
@@ -855,7 +855,7 @@ class duration_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = (
-        'id','server','port','aet', 'keyword', 'dicom', 'end_time','sendstatus', 'status','pid','folder', 'update_time', 'create_time')
+        'id','server','port','aet', 'keyword', 'dicom', 'end_time','sendstatus', 'status','sendcount','timer','dds', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -875,7 +875,7 @@ class duration_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = duration
-        fields = ('server','port','aet', 'keyword', 'dicom', 'end_time', 'sendstatus', 'status')
+        fields = ('server','port','aet', 'keyword', 'dicom', 'end_time', 'sendstatus', 'status','sendcount','timer','dds')
 
 class stress_data_Deserializer(serializers.ModelSerializer):
     """
