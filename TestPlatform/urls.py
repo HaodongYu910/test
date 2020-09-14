@@ -107,6 +107,7 @@ urlpatterns = [
     url(r'tool/stressversion', stressversion.as_view()),
     url(r'tool/stresstool', stresstool.as_view()),
     url(r'tool/stressresult', stressResult.as_view()),
+    url(r'tool/stresssave', stressResultsave.as_view()),
     url(r'tool/stressdata', stressData.as_view()),
     url(r'tool/delete_patients', delete_patients.as_view()),
     url(r'tool/durationData', durationData.as_view()),

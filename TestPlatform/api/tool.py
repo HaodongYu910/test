@@ -133,7 +133,7 @@ class stressResultsave(APIView):
         """
         try:
             # 必传参数 version
-            if not data["version"] or not data["checkversion"]:
+            if not data["version"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 version,checkversion！")
 
         except KeyError:
@@ -555,7 +555,7 @@ class EnableDuration(APIView):
                            '--keyword {3} '
                            '--dicomfolder {4} '
                            '--durationid {5} '
-                           '--dicom {6} '
+                           '--diseases {6} '
                            '--end {7} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,i,obj.end_time)
                 logger.info(cmd)
                 os.system(cmd)
