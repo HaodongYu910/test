@@ -562,11 +562,11 @@ class EnableDuration(APIView):
                 if dicom.other is None:
                     sendcount = None
                 else:
-                    i = divmod(int(obj.sendcount),int(dicom.other))
-                    if int(i[1]) < (int(dicom.other)/2):
-                        sendcount = i[0]
+                    imod = divmod(int(obj.sendcount),int(dicom.other))
+                    if int(imod[1]) < (int(dicom.other)/2):
+                        sendcount = imod[0]
                     else:
-                        sendcount = i[0]+1
+                        sendcount = imod[0]+1
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '
