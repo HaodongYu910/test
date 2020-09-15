@@ -52,3 +52,4 @@ $ python manage.py crontab add     # 添加
 $ python manage.py crontab show    # 展示
 $ python manage.py crontab remove  # 移除
 
+python manage.py collectstatic  后台样式

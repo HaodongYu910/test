@@ -56,7 +56,7 @@ from TestPlatform.common.regexUtil import *
 #
 # diff = dict1.keys() & dict2
 # diff_vals = [(k, dict1[k], dict2[k]) for k in diff if dict1[k] != dict2[k]]
-#
+
 
 # from multiprocessing import Pool,Process
 # import time,os
@@ -102,3 +102,4 @@ from TestPlatform.common.regexUtil import *
 #     p.join()
 #     pa.start()
 
+sendcount= int(int(obj.sendcount) / int(dicom.other))

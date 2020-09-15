@@ -16,7 +16,7 @@ import logging
 from tqdm import tqdm
 import shutil
 import subprocess as sp
-import time
+import time,datetime
 import random
 import math
 import pymysql
@@ -39,7 +39,8 @@ CONFIG = {
     'dicomfolder': '/files/',
     'durationid':'1',
     'diseases':'all',
-    'end':None
+    'end':None,
+    'sendcount':None
 }
 
 
@@ -261,7 +262,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","diseases=","end="])
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","diseases=","end=","sendcount="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
@@ -293,6 +294,13 @@ def prepare_config(argv):
                     CONFIG["end"] = None
                 else:
                     CONFIG["end"] = end
+            elif opt in ("--sendcount"):
+                sendcount = arg
+                if sendcount =='None':
+                    CONFIG["sendcount"] = None
+                else:
+                    CONFIG["sendcount"] = sendcount
+
     except Exception as e:
         logging.error("error: failed to get args",e)
 
@@ -316,7 +324,6 @@ def prepare_config(argv):
 
 if __name__ == '__main__':
     ospid = os.getpid()
-
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
@@ -331,8 +338,17 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
+    if CONFIG.get('sendcount', '') is not None and CONFIG.get('end', '') is None:
+        start = 0
+        end = int(CONFIG.get('sendcount', ''))
+    elif CONFIG.get('sendcount', '') is None and CONFIG.get('end', '') is not None:
+        start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        end = CONFIG.get('end', '')
+    else:
+        start = 0
+        end = 1
 
-    while True:
+    while start <= end:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('diseases', '')),loop_times)
         study_fakeinfos = {}
@@ -355,4 +371,3 @@ if __name__ == '__main__':
             logging.info('INSERT into sql', data)
 
         shutil.rmtree(folder_fake)
-    f.close()

@@ -559,7 +559,10 @@ class EnableDuration(APIView):
             for i in obj.dicom.split(","):
                 dicom = base_data.objects.get(remarks=i)
                 folder = dicom.content
-                sendcount= int(int(obj.sendcount) / int(dicom.other))
+                if dicom.other is None:
+                    sendcount = None
+                else:
+                    sendcount = int(int(obj.sendcount) / int(dicom.other))
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '

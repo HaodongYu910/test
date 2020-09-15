@@ -16,6 +16,7 @@ from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import base_data,test_risk,Project
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
+from TestPlatform.tools.dicom.dicomcount import filecount
 
 
 
@@ -152,3 +153,15 @@ class Updatedata(APIView):
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 
+class getDicomfile(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取基础数据
+        :param request:
+        :return:
+        """
+        filecount()
+        return JsonResponse( code="0", msg="成功")

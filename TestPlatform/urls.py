@@ -102,6 +102,7 @@ urlpatterns = [
     url(r'base/getdata',getBase.as_view()),
     url(r'base/AddData', AddbaseData.as_view()),
     url(r'base/UpdateData', UpdatebaseData.as_view()),
+    url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
     url(r'tool/stressversion', stressversion.as_view()),
