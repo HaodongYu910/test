@@ -163,5 +163,6 @@ class getDicomfile(APIView):
         :param request:
         :return:
         """
-        filecount()
+        id = request.GET.get("id")
+        filecount(id)
         return JsonResponse( code="0", msg="成功")

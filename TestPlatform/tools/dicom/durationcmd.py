@@ -348,7 +348,7 @@ if __name__ == '__main__':
         start = 0
         end = 1
 
-    while start <= end:
+    while start < end:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('diseases', '')),loop_times)
         study_fakeinfos = {}
@@ -369,5 +369,5 @@ if __name__ == '__main__':
 
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
             logging.info('INSERT into sql', data)
-
+        start=start+1
         shutil.rmtree(folder_fake)

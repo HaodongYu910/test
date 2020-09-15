@@ -51,8 +51,8 @@ def fake_folder(src_folder,study_infos):
 
     return list(set(study_infos))
 
-def filecount():
-    obj= base_data.objects.filter()
+def filecount(id):
+    obj= base_data.objects.filter(id=id)
 
     for i in obj:
         folder=i.content
