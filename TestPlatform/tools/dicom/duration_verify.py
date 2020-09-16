@@ -69,9 +69,10 @@ def verify():
         if i.imagecount == i.imagecount_server:
             continue
         else:
+            obn= duration.objects.get(id=i.duration_id)
             data = {'studyinstanceuid':i.studyinstanceuid}
-            if i.dds is not None:
-                serverip=i.dds
+            if obn.dds is not None:
+                serverip=obn.dds
             else:
                 serverip=i.sendserver
             kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
