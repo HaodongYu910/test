@@ -11,7 +11,7 @@ from TestPlatform.models import stress_record, stress_data, base_data,pid,Global
 from TestPlatform.serializers import stressrecord_Deserializer,\
     stress_data_Deserializer,duration_Deserializer
 from TestPlatform.tools.stress.stress import sequence
-from ..tools.orthanc.delete_patients import *
+from ..tools.orthanc.deletepatients import *
 from TestPlatform.tools.dicom.duration_verify import *
 
 from ..tools.stress.PerformanceResult import *
@@ -412,22 +412,13 @@ class add_duration(APIView):
         try:
             data['dicom'] =','.join(data['dicom'])
             obj= GlobalHost.objects.get(host=str(data['server']))
-            if  data["loop_time"] =='':
-                data['end_time'] = '2099-12-31 23:59:59'
-            else:
-                data['end_time'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
-                    "%Y-%m-%d %H:%M:%S")
             data['aet'] =obj.description
             duration = duration_Deserializer(data=data)
 
-            keyword = duration.objects.filter(keyword=data["keyword"])
-            if len(keyword):
-                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
-            else:
-                with transaction.atomic():
-                    duration.is_valid()
-                    duration.save()
-                return JsonResponse(code="0", msg="成功")
+            with transaction.atomic():
+                duration.is_valid()
+                duration.save()
+            return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 #修改duration

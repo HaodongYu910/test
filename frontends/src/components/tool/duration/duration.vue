@@ -29,10 +29,10 @@
                         <el-col :span="5">
                             <el-form-item label="数据类型" prop="testtype">
                                 <el-select v-model="form.testtype" placeholder="请选择">
-                                    <el-option key="" label="患者姓名" value="CTA"/>
-                                    <el-option key="CTP" label="患者编号" value="CTP"/>
-                                    <el-option key="Lung" label="预测结果" value="Lung"/>
-                                    <el-option key="MRA" label="检查类型" value="MRA"/>
+                                    <el-option key="PatientName" label="患者姓名" value="PatientName"/>
+                                    <el-option key="PatientID" label="患者编号" value="PatientID"/>
+                                    <el-option key="ai" label="预测结果" value="ai"/>
+                                    <el-option key="StudyInstanceUID" label="StudyInstanceUID" value="StudyInstanceUID"/>
                                 </el-select>
                             </el-form-item>
                         </el-col>

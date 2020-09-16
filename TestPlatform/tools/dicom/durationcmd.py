@@ -223,7 +223,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
 
         ds.PatientID = norm_string(
-            fake_name, 16)
+            '{0}.{1}'.format(str(CONFIG.get('diseases', '')), rand_uid), 16)
 
         ds.PatientName = norm_string(
             fake_name, 16)
@@ -293,7 +293,8 @@ def prepare_config(argv):
                 if end =='None':
                     CONFIG["end"] = None
                 else:
-                    CONFIG["end"] = end
+                    CONFIG["end"] =(datetime.datetime.now() + datetime.timedelta(hours=int(end))).strftime(
+                "%Y-%m-%d %H:%M:%S")
             elif opt in ("--sendcount"):
                 sendcount = arg
                 if sendcount =='None':
@@ -348,7 +349,7 @@ if __name__ == '__main__':
         start = 0
         end = 1
 
-    while start < end:
+    while int(start) < end:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('diseases', '')),loop_times)
         study_fakeinfos = {}
@@ -369,5 +370,10 @@ if __name__ == '__main__':
 
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
             logging.info('INSERT into sql', data)
-        start=start+1
-        shutil.rmtree(folder_fake)
+        if str(start).isdecimal() is True:
+            start = int(start)+1
+        else:
+            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    sqlDB('update duration set sendcount= FALSE where id ="%s";', [CONFIG.get('durationid', '')])
+    sqlDB('DELETE from pid where durationid ="%s"', [CONFIG.get('durationid', '')])

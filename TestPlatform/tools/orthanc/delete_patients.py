@@ -6,7 +6,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 def delete_patients_duration(key, server_ip,type,fuzzy):
-    kc = use_keycloak_bmutils(server_ip, settings.user, settings.passwd)
+    data={}
+    kc = use_keycloak_bmutils(server_ip,'test', 'Asd@123456')
     try:
         res = kc.get('/orthanc/patients', timeout=300, verify=False)
         orthanc_ids = eval(res.content)
@@ -25,8 +26,10 @@ def delete_patients_duration(key, server_ip,type,fuzzy):
         pid = pinfo.get("MainDicomTags", {}).get("PatientID", "")
         if pid.find(key) >= 0:
             try:
-                print(pinfo.get("MainDicomTags", {}).get("PatientID", ""))
+                logger.info(pinfo.get("MainDicomTags", {}).get("PatientID", ""))
                 kc.delete('/orthanc/patients/{0}'.format(oid), timeout=120)
+
             except Exception as e:
                 logger.error("failed to delete patientv [{0}]: error[{1}]".format(oid, e))
                 return False, e
+    return data
