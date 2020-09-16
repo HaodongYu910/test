@@ -61,12 +61,12 @@ def sqlDB(sql,data):
 
 def get_date():
     localtime = time.localtime(time.time())
-    return (time.strftime("%Y-%m-%d", localtime))
+    return (time.strftime("%Y%m%d", localtime))
 
 
 def get_time():
     localtime = time.localtime(time.time())
-    return (time.strftime("%H:%M:%S", localtime))
+    return (time.strftime("%H%M%S", localtime))
 
 
 def get_rand_uid():
