@@ -16,7 +16,6 @@ def delete_patients_duration(key, server_ip,type,fuzzy):
 
     try:
         result_1 = connect_to_postgres(server_ip,sql)
-        _num1 = len(result_1)
         _dict1 = result_1.to_dict(orient='records')
         kc = use_keycloak_bmutils(server_ip, 'test', 'Asd@123456')
     except Exception as e:

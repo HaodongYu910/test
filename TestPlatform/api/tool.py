@@ -373,7 +373,27 @@ class durationData(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True)
-        return JsonResponse(data={"data": serialize.data,
+        rdata = serialize.data
+        for i in rdata:
+            du =duration.objects.get(id=i["duration_id"])
+            if du.dds is True:
+                server='192.168.1.124'
+            else:
+                server=du.server
+            dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))
+            _dict = dbresult.to_dict(orient='records')
+            if _dict==[]:
+                i['aistatus'] = None
+                i['diagnosis'] = None
+                i['imagecount_server'] = None
+            else:
+                for j in _dict:
+                    i['aistatus']=j['aistatus']
+                    i['diagnosis'] = j['diagnosis']
+                    i['imagecount_server'] = j['imagecount']
+
+
+        return JsonResponse(data={"data":rdata,
                                   "page": page,
                                   "total": total,
                                   "count":count
@@ -544,20 +564,33 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
+            min =1000
             durationid=data["id"]
             obj = duration.objects.get(id=durationid)
+            for j in obj.dicom.split(","):
+                dicom = base_data.objects.get(remarks=j)
+                if dicom.other is None:
+                    sumdicom = sumdicom
+                else:
+                    if min > int(dicom.other):
+                        min = int(dicom.other)
+                        mindicom = j
+                    sumdicom =int(dicom.other) + sumdicom
+
+            imod = divmod(int(obj.sendcount),sumdicom)
+            imin =divmod(int(imod[1]),min)
+            if int(imin[1]) < (int(imin)/2):
+                mincount = imin[0]
+            else:
+                mincount = imin[0]+1
 
             for i in obj.dicom.split(","):
                 dicom = base_data.objects.get(remarks=i)
                 folder = dicom.content
-                if dicom.other is None:
-                    sendcount = None
+                if i == mindicom:
+                    sendcount = mincount
                 else:
-                    imod = divmod(int(obj.sendcount),int(dicom.other))
-                    if int(imod[1]) < (int(dicom.other)/2):
-                        sendcount = imod[0]
-                    else:
-                        sendcount = imod[0]+1
+                    sendcount = imod[0]
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
                            '--ip {0} --aet {1} '

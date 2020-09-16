@@ -362,7 +362,7 @@ if __name__ == '__main__':
             study_infos=study_infos
         )
         sync_send(folder_fake)
-        studytime=str(get_date()) + ' ' + str(get_time())
+        studytime=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
         for (k, v) in study_infos.items():
             data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None,
                   None, None, CONFIG.get('server', {}).get('ip'),
@@ -375,5 +375,4 @@ if __name__ == '__main__':
         else:
             start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    sqlDB('update duration set sendcount= FALSE where id ="%s";', [CONFIG.get('durationid', '')])
-    sqlDB('DELETE from pid where durationid ="%s"', [CONFIG.get('durationid', '')])
+    sqlDB('DELETE from pid where pid ="%s"', [ospid])
