@@ -919,7 +919,7 @@ class duration(models.Model):
     timer = models.CharField(max_length=20, blank=True, null=True, verbose_name="定时器")
     sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=False, verbose_name='状态')
-    dds = models.BooleanField(default=True, verbose_name='状态')
+    dds = models.CharField(max_length=20, blank=True, null=True,  verbose_name='dds 服务')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

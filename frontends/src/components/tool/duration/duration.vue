@@ -276,12 +276,9 @@
                                         <el-input id="timer" v-model="addForm.timer" placeholder="30 09 * * *  表示每天9：30执行"/>
                                     </el-form-item>
                                 </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="DDS服务" prop="fuzzy">
-                                        <el-select v-model="addForm.dds" clearable placeholder="请选择">
-                                            <el-option key="True" label="是" value="True"/>
-                                            <el-option key="False" label="否" value="False"/>
-                                        </el-select>
+                                <el-col :span="6">
+                                    <el-form-item label="" prop="timer">
+                                        <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="4">
@@ -638,7 +635,7 @@
                     loop_time: '',
                     keyword: null,
                     dicom: null,
-                    dds:false,
+                    dds:null,
                     sendstatus: false,
                     status: false
                 }

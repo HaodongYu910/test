@@ -376,8 +376,8 @@ class durationData(APIView):
         rdata = serialize.data
         for i in rdata:
             du =duration.objects.get(id=i["duration_id"])
-            if du.dds is True:
-                server='192.168.1.124'
+            if du.dds is not None:
+                server=du.dds
             else:
                 server=du.server
             dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))

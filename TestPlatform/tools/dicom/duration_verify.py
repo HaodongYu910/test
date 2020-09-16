@@ -38,8 +38,8 @@ def ai_result(kc,patientid):
 def verifyData(id):
     duration_data = duration_record.objects.filter(duration_id=id)
     obj =duration.objects.get(id=id)
-    if obj.dds is True:
-        serverip = "192.168.1.124"
+    if obj.dds is not None:
+        serverip = obj.dds
     else:
         serverip = obj.server
     kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
@@ -70,8 +70,8 @@ def verify():
             continue
         else:
             data = {'studyinstanceuid':i.studyinstanceuid}
-            if i.dds is True:
-                serverip="192.168.1.124"
+            if i.dds is not None:
+                serverip=i.dds
             else:
                 serverip=i.sendserver
             kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
