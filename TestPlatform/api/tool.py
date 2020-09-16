@@ -566,6 +566,7 @@ class EnableDuration(APIView):
         try:
             min =1000
             durationid=data["id"]
+            sumdicom=0
             obj = duration.objects.get(id=durationid)
             for j in obj.dicom.split(","):
                 dicom = base_data.objects.get(remarks=j)
@@ -579,10 +580,10 @@ class EnableDuration(APIView):
 
             imod = divmod(int(obj.sendcount),sumdicom)
             imin =divmod(int(imod[1]),min)
-            if int(imin[1]) < (int(imin)/2):
-                mincount = imin[0]
+            if int(imin[1]) < (int(imin[1])/2):
+                mincount = int(imin[0])+int(imod[0])
             else:
-                mincount = imin[0]+1
+                mincount = int(imin[0])+int(imod[0])+1
 
             for i in obj.dicom.split(","):
                 dicom = base_data.objects.get(remarks=i)
