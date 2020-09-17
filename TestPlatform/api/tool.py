@@ -300,21 +300,19 @@ class getDuration(APIView):
         datalist=[]
         obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi,many=True)
-        yesterday = str(datetime.date.today()) + ' 00:00:00'
 
         for i in durationdata.data:
             duration_all = duration_record.objects.filter(duration_id=i['id'])
-            duration_true = duration_record.objects.filter(aistatus__isnull=False, duration_id=i['id'])
-            duration_ai_true = duration_record.objects.filter(aistatus__in=[1,2], duration_id=i['id'])
-            duration_ai_false = duration_record.objects.filter(aistatus__in=[-2, 3], duration_id=i['id'])
-            duration_ai = duration_record.objects.filter(aistatus__in=[-1], duration_id=i['id'])
-            duration_notsent = duration_record.objects.filter(aistatus__isnull=True, duration_id=i['id'])
+            if i["dds"] is None:
+                server = i["server"]
+            else:
+                server = i["dds"]
+            i['sent'] = durationtotal(duration_all,server , '-2,-1,1,2,3')
+            i['ai_true'] = durationtotal(duration_all, server, '1,2')
+            i['ai_false'] = durationtotal(duration_all,server,'-2,3')
+            i['notai'] = durationtotal(duration_all, server,'-1')
             i['all']=duration_all.count()
-            i['sent'] = duration_true.count()
-            i['ai_true'] = duration_ai_true.count()
-            i['ai_false'] = duration_ai_false.count()
-            i['notai'] = duration_ai.count()
-            i['notsent'] = duration_notsent.count()
+            i['notsent'] = int(i['all'])-int(i['sent'])
 
             datalist.append(i)
         return JsonResponse(data={"data": datalist

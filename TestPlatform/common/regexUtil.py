@@ -107,3 +107,15 @@ def savecsv(data,csvname):
         writer = csv.writer(f)
         writer.writerows(data)
 
+#  duration 统计数据
+def durationtotal(duration_all, server, aistatus):
+    if int(duration_all.count()) == 0:
+        return 0
+    studyuid= ''
+    for j in duration_all:
+        studyuid = studyuid+',\''+j.studyinstanceuid+'\''
+    sql = 'SELECT count(1) FROM study_view WHERE studyinstanceuid in ({0}) and aistatus in ({1})'.format(
+        studyuid[1:], aistatus)
+    result_1 = connect_to_postgres(server, sql)
+    total = result_1.to_dict(orient='records')
+    return int(total[0]['count'])
