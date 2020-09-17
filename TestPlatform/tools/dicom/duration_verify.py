@@ -42,29 +42,47 @@ def verifyData(id):
         serverip = obj.dds
     else:
         serverip = obj.server
-    kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
     for i in duration_data:
         if i.imagecount == i.imagecount_server:
             continue
         else:
             data = {'studyinstanceuid':i.studyinstanceuid}
-            airesult=ai_result(kc,i.patientid)
-            if airesult.json()['data']['studyViewFlexible'] ==[]:
+            sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
+                    i.studyinstanceuid)
+            result_1 = connect_to_postgres(serverip, sql)
+            sqldata = result_1.to_dict(orient='records')
+
+            if sqldata == []:
                 continue
             else:
-                # text = eval(str(airesult.content, 'utf-8'), globals)
-                res_studyView = airesult.json()['data']['studyViewFlexible']
-                data['aistatus'] = res_studyView[0].get('aistatus')
-                data['diagnosis'] = res_studyView[0].get('diagnosis')
-                data['imagecount_server'] = res_studyView[0].get('instancecount')
-                if str(data['imagecount_server'])==str(i.imagecount):
-                    data['studyolduid']='1'
+                data['aistatus'] = sqldata[0]['aistatus']
+                data['diagnosis'] = sqldata[0]['diagnosis']
+                data['imagecount_server'] = sqldata[0]['imagecount']
+                if str(data['imagecount_server']) == str(i.imagecount):
+                        data['studyolduid'] = '1'
             update_data(data)
+    # kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
+    # for i in duration_data:
+    #     if i.imagecount == i.imagecount_server:
+    #         continue
+    #     else:
+    #         data = {'studyinstanceuid':i.studyinstanceuid}
+    #         airesult=ai_result(kc,i.patientid)
+    #         if airesult.json()['data']['studyViewFlexible'] ==[]:
+    #             continue
+    #         else:
+    #             # text = eval(str(airesult.content, 'utf-8'), globals)
+    #             res_studyView = airesult.json()['data']['studyViewFlexible']
+    #             data['aistatus'] = res_studyView[0].get('aistatus')
+    #             data['diagnosis'] = res_studyView[0].get('diagnosis')
+    #             data['imagecount_server'] = res_studyView[0].get('instancecount')
+    #             if str(data['imagecount_server'])==str(i.imagecount):
+    #                 data['studyolduid']='1'
+
 
 
 def verify():
     duration_data = duration_record.objects.filter()
-
     for i in duration_data:
         if i.imagecount == i.imagecount_server:
             continue
@@ -75,16 +93,19 @@ def verify():
                 serverip=obn.dds
             else:
                 serverip=i.sendserver
-            kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
-            airesult=ai_result(kc,i.patientid)
-            if airesult.json()['data']['studyViewFlexible'] ==[]:
+
+            sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
+                i.studyinstanceuid)
+            result_1 = connect_to_postgres(serverip, sql)
+            sqldata = result_1.to_dict(orient='records')
+
+            if sqldata ==[]:
                 continue
             else:
-                # text = eval(str(airesult.content, 'utf-8'), globals)
-                res_studyView = airesult.json()['data']['studyViewFlexible']
-                data['aistatus'] = res_studyView[0].get('aistatus')
-                data['diagnosis'] = res_studyView[0].get('diagnosis')
-                data['imagecount_server'] = res_studyView[0].get('instancecount')
+
+                data['aistatus'] = sqldata[0]['aistatus']
+                data['diagnosis'] = sqldata[0]['diagnosis']
+                data['imagecount_server'] = sqldata[0]['imagecount']
                 if str(data['imagecount_server']) == str(i.imagecount):
                     data['studyolduid']='1'
             update_data(data)
