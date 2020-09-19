@@ -73,16 +73,16 @@ def sequence(loop_time, serverip):
         time.sleep(2)
 
 
-sequence(10, '192.168.1.208')
+# sequence(10, '192.168.1.208')
 
 
 # def testusr():
-#     kc = use_keycloak_bmutils('192.168.2.36', "biomind", "password")
-#     for loop in range(int(200)):
+#     kc = use_keycloak_bmutils('192.168.1.32', "biomind", "password")
+#     for loop in range(int(10)):
 #         content={"username": "test"+str(loop),
 #                  "group_id": "44be0473-c073-4c55-b780-bf784820ee5f",
-#                  "password": "111111",
-#                   "confirm": "111111",
+#                  "password": "Asd@123456",
+#                   "confirm": "Asd@123456",
 #                  "firstname": "测",
 #                  "lastname":"试"+str(loop)}
 #         r = kc.post(

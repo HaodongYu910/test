@@ -116,6 +116,10 @@ def durationtotal(duration_all, server, aistatus):
         studyuid = studyuid+',\''+j.studyinstanceuid+'\''
     sql = 'SELECT count(1) FROM study_view WHERE studyinstanceuid in ({0}) and aistatus in ({1})'.format(
         studyuid[1:], aistatus)
-    result_1 = connect_to_postgres(server, sql)
-    total = result_1.to_dict(orient='records')
-    return int(total[0]['count'])
+    try:
+        result_1 = connect_to_postgres(server, sql)
+        total = result_1.to_dict(orient='records')
+        return int(total[0]['count'])
+    except Exception as e:
+        logger.error(e)
+        return 0

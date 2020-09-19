@@ -2,6 +2,34 @@
 	<section>
 		<el-col :span="24">
 			<template :index='project_id'>
+				<el-menu class="el-menu-demo" mode="horizontal" :default-active="activeIndex" :collapse="collapse" background-color="#fff"
+					text-color="#000000" active-text-color="#20a0ff" unique-opened router>
+					<template v-for="item in items">
+						<template v-if="item.subs">
+							<el-submenu :index="item.index +project_id" :key="item.index +project_id">
+								<template slot="title">
+									<i :class="item.icon"></i><span slot="title">{{ item.title }}</span>
+								</template>
+								<template v-for="subItem in item.subs">
+									<el-submenu v-if="subItem.subs" :index="subItem.index" :key="subItem.index">
+										<template slot="title">{{ subItem.title }}</template>
+										<el-menu-item v-for="(threeItem,i) in subItem.subs" :key="i" :index="threeItem.index">
+											{{ threeItem.title }}{{ threeItem.index }}{{ i }}
+										</el-menu-item>
+									</el-submenu>
+									<el-menu-item v-else :index="subItem.index" :key="subItem.index">
+										{{ subItem.title }}{{ subItem.index }}{{ threeItem.index }}
+									</el-menu-item>
+								</template>
+							</el-submenu>
+						</template>
+						<template v-else>
+							<el-menu-item :index="item.index" :key="item.index">
+								<i :class="item.icon"></i><span slot="title">{{ item.title }}</span>
+							</el-menu-item>
+						</template>
+					</template>
+				</el-menu>
 				<el-menu :default-active="$route.path" class="el-menu-demo" mode="horizontal" @select="handleselect">
 					<template v-for="item in $router.options.routes" v-if="!item.projectHidden">
 						<template v-for="(items,index) in item.children">
@@ -21,17 +49,16 @@
 									</router-link>
 								</template>
 							</el-menu-item>
-							<el-submenu :index="index+''" v-if="!items.leaf">
-								<template slot="title">{{items.name}}</template>
-								<el-menu-item v-for="child in items.children" :key="child.path" :index="child.path">
-									{{child.name}}
-								</el-menu-item>
-							</el-submenu>
+<!--							<el-submenu :index="index+''" v-if="!items.leaf">-->
+<!--								<template >{{items.name}}</template>-->
+<!--								<el-menu-item v-for="child in items.children" :key="child.path" :index="child.path">-->
+<!--									{{child.name}}-->
+<!--								</el-menu-item>-->
+<!--							</el-submenu>-->
 						</template>
 					</template>
 				</el-menu>
 			</template>
-			<strong class="title">{{$route.name}}</strong>
 		</el-col>
 		<el-col :span="24">
 			<transition name="fade" mode="out-in">
@@ -52,14 +79,55 @@
                 collapsed:false,
                 sysUserName: '',
                 sysUserAvatar: '',
+				items: [
+                    {
+                        icon: 'el-icon-s-platform',
+                        index: '/ProjectTitle/project=1',
+                        title: '项目详情'
+                    },
+						{
+                        icon: 'el-icon-s-platform',
+                        index: '/apiList/project=1',
+                        title: 'API接口'
+                    },
+						{
+                        icon: 'el-icon-s-platform',
+                        index: '/automationTest/project=1',
+                        title: '自动化测试'
+                    },
+						{
+                        icon: 'el-icon-s-platform',
+                        index: '/projectMember/project=1',
+                        title: '成员管理'
+                    },
+						{
+                        icon: 'el-icon-s-platform',
+                        index: '/projectDynamic/project=1',
+                        title: '项目记录'
+                    },
+						{
+                        icon: '',
+                        index: '/projectReport/project=1',
+                        title: '自动化报告'
+                    }
+				]
             }
         },
+		created(){
+			  this.getParams();
+			  },
+		activated() {
+			  this.getParams();
+			  },
         methods: {
             handleselect: function (a, b) {
             },
             onSubmit() {
                 console.log('submit!');
             },
+			getParams(){
+              this.routerParams=this.$route.query;
+              },
             //退出登录
             logout: function () {
                 let _this = this;

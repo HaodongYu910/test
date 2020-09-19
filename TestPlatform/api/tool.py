@@ -300,23 +300,26 @@ class getDuration(APIView):
         datalist=[]
         obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi,many=True)
+        try:
+            for i in durationdata.data:
+                duration_all = duration_record.objects.filter(duration_id=i['id'])
+                if i["dds"] is None:
+                    server = i["server"]
+                else:
+                    server = i["dds"]
+                i['sent'] = durationtotal(duration_all,server , '-2,-1,1,2,3')
+                i['ai_true'] = durationtotal(duration_all, server, '1,2')
+                i['ai_false'] = durationtotal(duration_all,server,'-2,3')
+                i['notai'] = durationtotal(duration_all, server,'-1')
+                i['all']=duration_all.count()
+                i['notsent'] = int(i['all'])-int(i['sent'])
 
-        for i in durationdata.data:
-            duration_all = duration_record.objects.filter(duration_id=i['id'])
-            if i["dds"] is None:
-                server = i["server"]
-            else:
-                server = i["dds"]
-            i['sent'] = durationtotal(duration_all,server , '-2,-1,1,2,3')
-            i['ai_true'] = durationtotal(duration_all, server, '1,2')
-            i['ai_false'] = durationtotal(duration_all,server,'-2,3')
-            i['notai'] = durationtotal(duration_all, server,'-1')
-            i['all']=duration_all.count()
-            i['notsent'] = int(i['all'])-int(i['sent'])
-
-            datalist.append(i)
-        return JsonResponse(data={"data": datalist
-                                  }, code="0", msg="成功")
+                datalist.append(i)
+            return JsonResponse(data={"data": datalist
+                                      }, code="0", msg="成功")
+        except ValueError:
+            return JsonResponse(data={"data": durationdata.data
+                                      }, code="0", msg="测试环境数据库连接失败")
 #获取 持续化发送详细数据
 class durationData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -378,8 +381,12 @@ class durationData(APIView):
                 server=du.dds
             else:
                 server=du.server
-            dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))
-            _dict = dbresult.to_dict(orient='records')
+            try:
+                dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))
+                _dict = dbresult.to_dict(orient='records')
+            except Exception as e:
+                logger.error(e)
+                _dict == []
             if _dict==[]:
                 i['aistatus'] = None
                 i['diagnosis'] = None

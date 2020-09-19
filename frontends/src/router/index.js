@@ -229,6 +229,7 @@ export default new Router({
                         {   path: '/automationTest/project=:project_id',
                             component: AutomationTest,
                             name: '自动化测试',
+                            meta: { title: '自动化测试' },
                             leaf: true,
                             child: true,
                             children: [
