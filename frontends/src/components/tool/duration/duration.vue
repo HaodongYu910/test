@@ -310,7 +310,7 @@
                 form: {
                     server_ip: '',
                     fuzzy: '是',
-                    testtype: '患者编号',
+                    testtype: 'PatientID',
                     deldata: ''
                 },
                 rules: {

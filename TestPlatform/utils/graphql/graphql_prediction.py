@@ -46,7 +46,7 @@ def graphql_Interface(data, kc):
     graphql_query = graphql_json(data)
     try:
         graphql = GraphQLDriver('/graphql', kc)
+        logger.info(graphql)
         results = graphql.execute_query(graphql_query)
     except Exception as e:
         logger.error('Query failed: {0}'.format(e))
-    return results

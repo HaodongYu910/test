@@ -386,7 +386,6 @@ class durationData(APIView):
                 _dict = dbresult.to_dict(orient='records')
             except Exception as e:
                 logger.error(e)
-                _dict == []
             if _dict==[]:
                 i['aistatus'] = None
                 i['diagnosis'] = None

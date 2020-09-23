@@ -57,40 +57,25 @@ def sequence(orthanc_ip,end_time, diseases, version):
     version=version
     start_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    stressdata = stress_data.objects.filter()
-    loop=0
+    stressdata = stress_data.objects.filter(diseases__in=diseases)
+
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""
-        if loop==0:
-            for k in stressdata:
-                if k.diseases in diseases:
-                    data = {
-                        "studyinstanceuid": k.studyinstanceuid,
-                        "vote": k.vote,
-                        "diseases": k.diseases,
-                        "seriesinstanceuid": str(k.automatic),
-                        'automatic': str(k.automatic)
-                    }
-                    graphql_delreport(data, kc)
-                    graphql_Interface(data, kc)
-                else:
-                    continue
-        else:
-            for k in stressdata:
-                if k.diseases in diseases:
-                    data = {
-                        "studyinstanceuid": k.studyinstanceuid,
-                        "vote": k.vote,
-                        "diseases": k.diseases,
-                        "seriesinstanceuid": str(k.automatic),
-                        'automatic': str(k.automatic)
-                    }
-                    db = connect_to_postgres(server, "select studyuid from hanalyticsreport where studyuid ='"+k.studyinstanceuid+"'")
-                    _dict1 = db.to_dict(orient='records')
-                    graphql_delreport(data, kc)
-                    graphql_Interface(data, kc)
-                else:
-                    continue
+        for k in stressdata:
+            data = {
+                "studyinstanceuid": k.studyinstanceuid,
+                "vote": k.vote,
+                "diseases": k.diseases,
+                "seriesinstanceuid": str(k.automatic),
+                'automatic': str(k.automatic)
+            }
+            if str(k.automatic) =='T':
+                graphql_Interface(data, kc)
+            else:
+                graphql_delreport(data, kc)
+                graphql_Interface(data, kc)
+
+
 
         #loop = loop + 1
     checkdate=[start_time,end_time]
