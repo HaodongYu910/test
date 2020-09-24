@@ -299,6 +299,12 @@ class getDuration(APIView):
         """
         obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi,many=True)
+        du=durationdata.data
+        for i in du:
+            obj = duration_record.objects.filter(duration_id=i["id"],
+                                             create_time__gte=i["update_time"])
+            i['send']=str(obj.count())
+
 
         return JsonResponse(data={"data": durationdata.data
                                       }, code="0", msg="成功")

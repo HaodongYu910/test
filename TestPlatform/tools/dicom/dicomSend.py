@@ -306,7 +306,6 @@ def prepare_config(argv):
     logging.info(CONFIG)
     logging.info("please check config, waiting for 5 seconds...")
 
-
     keyword = CONFIG["keyword"]
     global log_path
     log_path = "{0}/{1}".format(log_path, keyword)

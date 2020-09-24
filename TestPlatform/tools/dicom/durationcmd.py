@@ -325,7 +325,8 @@ if __name__ == '__main__':
         logging.info("failed to start")
         sys.exit(0)
     # 添加 pid号
-    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, os.getpid(), CONFIG.get('durationid', '')])
+    ospid=os.getpid()
+    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None,ospid , CONFIG.get('durationid', '')])
 
     src_folder = CONFIG.get('dicomfolder', '')
     logging.info('start to send: path[{0}]'.format(src_folder))
