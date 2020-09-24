@@ -14,7 +14,6 @@ import sys, getopt
 import pydicom
 import logging
 from tqdm import tqdm
-import shutil
 import subprocess as sp
 import time,datetime
 import random
@@ -168,7 +167,6 @@ def add_image(sendtime, study_infos, study_uid, patientid, accessionnumber):
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
-
     file_names = os.listdir(folder)
     file_names.sort()
 
@@ -307,7 +305,7 @@ def prepare_config(argv):
 
     logging.info(CONFIG)
     logging.info("please check config, waiting for 5 seconds...")
-    time.sleep(5)
+
 
     keyword = CONFIG["keyword"]
     global log_path

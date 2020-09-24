@@ -783,7 +783,7 @@ class stress_record(models.Model):
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试版本")
     loadserver = models.CharField(max_length=40, blank=True, null=True, verbose_name="测试环境")
-    testdata = models.TextField(max_length=80, blank=True, null=True, verbose_name="测试数据")
+    testdata = models.CharField(max_length=400, blank=True, null=True, verbose_name="测试数据")
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")

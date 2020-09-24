@@ -9,12 +9,11 @@
 4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
 '''
 
-import os
+import os,gc
 import sys, getopt
 import pydicom
 import logging
 from tqdm import tqdm
-import shutil
 import subprocess as sp
 import time,datetime
 import random
@@ -306,8 +305,6 @@ def prepare_config(argv):
         logging.error("error: failed to get args",e)
 
     logging.info(CONFIG)
-    logging.info("please check config, waiting for 5 seconds...")
-    time.sleep(5)
 
     keyword = CONFIG["keyword"]
     global log_path
@@ -324,17 +321,15 @@ def prepare_config(argv):
 
 
 if __name__ == '__main__':
-    ospid = os.getpid()
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
     # 添加 pid号
-    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')])
+    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, os.getpid(), CONFIG.get('durationid', '')])
 
-    folder = CONFIG.get('dicomfolder', '')
-    logging.info('start to send: path[{0}]'.format(folder))
+    src_folder = CONFIG.get('dicomfolder', '')
+    logging.info('start to send: path[{0}]'.format(src_folder))
 
-    src_folder = folder
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
@@ -374,5 +369,7 @@ if __name__ == '__main__':
             start = int(start)+1
         else:
             start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        del study_infos
+        gc.collect()
 
     sqlDB('DELETE from pid where pid ="%s"', [ospid])

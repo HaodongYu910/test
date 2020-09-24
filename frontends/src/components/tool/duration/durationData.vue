@@ -3,7 +3,7 @@
     <div class="filter-container">
         <!--工具条-->
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-      <el-form :inline="true" :model="filters" @submit.native.prevent>
+            <el-form :inline="true" :model="filters" @submit.native.prevent>
         <el-form-item>
           <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getDurationlist" />
         </el-form-item>
@@ -30,7 +30,44 @@
           <el-button type="primary" @click="getdurationVerify">同步结果</el-button>
         </el-form-item>
       </el-form>
+
     </el-col>
+        <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+           <el-table :data="durationresult" highlight-current-row v-loading="listLoading"
+                          @selection-change="selsChange"
+                          style="width: 200%">
+            <el-table-column label="共计发送" min-width="10%">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.all }} 个</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="成功接收" min-width="10%">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.sent }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="未确认" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.notsent }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI预测成功" min-width="12%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px;color: #02C874;">{{ scope.row.ai_true }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI预测失败" min-width="12%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px;color: #FF0000;" >{{ scope.row.ai_false }} 个</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="AI未预测" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.notai }} 个</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+        </el-col>
         <!--列表-->
         <el-table
           v-loading="listLoading"
@@ -175,6 +212,8 @@
                         self.total = data.total
                         self.count = data.count
                         self.durationdatalist = data.data
+                        self.durationresult = data.durationresult
+                        console.log(self.durationresult)
                     } else {
                         self.$message.error({
                             message: msg,

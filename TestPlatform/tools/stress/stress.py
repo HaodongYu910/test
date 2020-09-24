@@ -1,4 +1,6 @@
 # from TestPlatform.utils.graphql.get_graphql_result import get_graphql_result
+import gc
+
 from TestPlatform.utils.graphql.graphql_prediction import graphql_Interface
 from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
 from TestPlatform.common.regexUtil import *
@@ -35,32 +37,18 @@ def graphql_prediction(data, kc):
         return e
     return True
 
-
-
-def stress(stressdata,diseases,kc):
-    for k in stressdata:
-        if k.diseases in diseases:
-            data = {
-                    "studyinstanceuid": k.studyinstanceuid,
-                    "vote": k.vote,
-                    "diseases": k.diseases,
-                    "seriesinstanceuid": str(k.automatic),
-                    'automatic': str(k.automatic)
-                    }
-            graphql_delreport(data, kc)
-            graphql_Interface(data, kc)
-        else:
-            continue
 # 压测循环
 def sequence(orthanc_ip,end_time, diseases, version):
     server=orthanc_ip
     version=version
-    start_time=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = stress_data.objects.filter(diseases__in=diseases)
 
-    while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
+    while start_time < end_time:
         """Execute Test sequence."""
+        del start_time
+        gc.collect()
         for k in stressdata:
             data = {
                 "studyinstanceuid": k.studyinstanceuid,
@@ -74,12 +62,16 @@ def sequence(orthanc_ip,end_time, diseases, version):
             else:
                 graphql_delreport(data, kc)
                 graphql_Interface(data, kc)
-
-
+            del data
+            gc.collect()
+        start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         #loop = loop + 1
     checkdate=[start_time,end_time]
-    savecheck('job', checkdate,server,version)
-    savecheck('prediction', checkdate,server,version)
-    lung(checkdate, server, version)
+    try:
+        savecheck('job', checkdate,server,version)
+        savecheck('prediction', checkdate,server,version)
+        lung(checkdate, server, version)
+    except Exception as e:
+        logger.error("生成版本测试结果失败error{0}".format(e))
 

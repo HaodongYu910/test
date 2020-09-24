@@ -297,29 +297,11 @@ class getDuration(APIView):
         :param request:
         :return:
         """
-        datalist=[]
         obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi,many=True)
-        try:
-            for i in durationdata.data:
-                duration_all = duration_record.objects.filter(duration_id=i['id'])
-                if i["dds"] is None:
-                    server = i["server"]
-                else:
-                    server = i["dds"]
-                i['sent'] = durationtotal(duration_all,server , '-2,-1,1,2,3')
-                i['ai_true'] = durationtotal(duration_all, server, '1,2')
-                i['ai_false'] = durationtotal(duration_all,server,'-2,3')
-                i['notai'] = durationtotal(duration_all, server,'-1')
-                i['all']=duration_all.count()
-                i['notsent'] = int(i['all'])-int(i['sent'])
 
-                datalist.append(i)
-            return JsonResponse(data={"data": datalist
+        return JsonResponse(data={"data": durationdata.data
                                       }, code="0", msg="成功")
-        except ValueError:
-            return JsonResponse(data={"data": durationdata.data
-                                      }, code="0", msg="测试环境数据库连接失败")
 #获取 持续化发送详细数据
 class durationData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -338,6 +320,7 @@ class durationData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
         durationid=int(request.GET.get("id"))
+        datalist={}
 
         #判断是否有查询时间
         if request.GET.get("startdate"):
@@ -375,12 +358,23 @@ class durationData(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True)
         rdata = serialize.data
+        du = duration.objects.get(id=durationid)
+        if du.dds is not None:
+            server = du.dds
+        else:
+            server = du.server
+        try:
+            datalist['sent'] = durationtotal(obi , server, '1,2')
+            datalist['ai_false'] = durationtotal(obi,server,'-2,-1,1,2,3')
+            datalist['ai_true'] = durationtotal(obi, server, '1,2')
+            datalist['ai_false'] = durationtotal(obi,server,'-2,3')
+            datalist['notai'] = durationtotal(obi, server,'-1')
+            datalist['all']=obi.count()
+            datalist['notsent'] = int(datalist['all'])-int(datalist['sent'])
+        except ValueError:
+            return JsonResponse(data={"data": datalist
+                                      }, code="0", msg="测试环境数据库连接失败")
         for i in rdata:
-            du =duration.objects.get(id=i["duration_id"])
-            if du.dds is not None:
-                server=du.dds
-            else:
-                server=du.server
             try:
                 dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))
                 _dict = dbresult.to_dict(orient='records')
@@ -396,8 +390,8 @@ class durationData(APIView):
                     i['diagnosis'] = j['diagnosis']
                     i['imagecount_server'] = j['imagecount']
 
-
         return JsonResponse(data={"data":rdata,
+                                  "durationresult": [datalist],
                                   "page": page,
                                   "total": total,
                                   "count":count
