@@ -144,7 +144,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
             if int(len(study_infos)) == 1:
                 uid = study_uid
             else:
-                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
+                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\';',
                       [study_infos[uid]["imagecount"], uid])
                 uid = study_uid
     except Exception as e:
@@ -157,7 +157,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
     file_names = os.listdir(folder)
     file_names.sort()
 
-    for fn in file_names:
+    for fn in tqdm(file_names):
         full_fn = os.path.join(folder, fn)
         full_fn_fake = os.path.join(folder_fake, fn)
 
