@@ -324,8 +324,8 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-
-    while str(CONFIG["start"]) < str(CONFIG["end"]):
+    start = str(CONFIG["start"])
+    while start < str(CONFIG["end"]):
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
