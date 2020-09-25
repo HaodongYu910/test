@@ -256,7 +256,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
         try:
-            sync_send(full_fn)
+            sync_send_file(full_fn_fake)
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
@@ -264,7 +264,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
                 accessionnumber=ds.AccessionNumber
             )
         except Exception as e:
-            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn_fake,e))
+            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
             continue
 
 
