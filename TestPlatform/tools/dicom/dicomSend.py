@@ -98,31 +98,6 @@ def sync_send_file(file_name):
         logging.error('send_file error: {0}'.format(e))
 
 
-def sync_send(folder):
-    if not folder or not os.path.exists(folder):
-        logging.info('send: path is not exist [{0}]'.format(folder))
-        return
-
-    file_names = os.listdir(folder)
-    file_names.sort()
-
-    logging.info(' sending: {0}'.format(folder))
-    for fn in tqdm(file_names):
-        full_fn = os.path.join(folder, fn)
-
-        if (fn == '.DS_Store'):
-            continue
-        elif (os.path.isdir(full_fn)):
-            sync_send(full_fn)
-            continue
-        try:
-            sync_send_file(full_fn)
-        except Exception as e:
-            logging.error(
-                'failed to send file: file[{0}], error[{1}]'.format(full_fn, e))
-            continue
-
-
 def norm_string(str, len_norm):
     str_dest = str
     while len(str_dest) > len_norm or str_dest[0] == '.':
@@ -156,8 +131,8 @@ def add_image(study_infos, study_uid, patientid, accessionnumber):
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
-            sqlDB('update duration_record set imagecount = %s where =\'%s\')',
-                  [study_infos[study_uid]["imagecount"], str(study_infos.get(study_uid))])
+            sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
+                  [study_infos[study_uid]["imagecount"], study_uid])
         else:
             study_info = {
                 "imagecount": 1
@@ -170,7 +145,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber):
                    None, None, CONFIG.get('server', {}).get('ip'),
                    studytime, studytime, CONFIG.get('durationid', ''), None, None])
     except Exception as e:
-        logging.error('errormsg: failed to update sql [{0}]'.format(str(study_infos.get(study_uid))))
+        logging.error('errormsg: failed to update sql [{0}]'.format(study_uid))
 
 
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
