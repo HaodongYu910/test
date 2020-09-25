@@ -163,7 +163,8 @@ def add_image(study_infos, study_uid, patientid, accessionnumber):
             "imagecount": 1
         }
         study_infos[study_uid] = study_info
-
+        logging.info([None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
+               None, None, CONFIG.get('server', {}).get('ip')])
         sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
               [None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
                None, None, CONFIG.get('server', {}).get('ip'),
@@ -202,7 +203,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             cur_date = study_fakeinfo.get("cur_date")
             cur_time = study_fakeinfo.get("cur_time")
         except Exception as e:
-            logging.info(
+            logging.error(
                 'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
             continue
         ds.StudyInstanceUID = norm_string(
@@ -212,7 +213,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             series_uid = ds.SeriesInstanceUID
         except Exception as e:
-            logging.info(
+            logging.error(
                 'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SeriesInstanceUID = norm_string(
             '{0}.{1}'.format(series_uid, rand_uid), 64)
@@ -325,7 +326,7 @@ if __name__ == '__main__':
 
     loop_times = 0
     start = str(CONFIG["start"])
-    while start < str(CONFIG["end"]):
+    while str(start) < str(CONFIG["end"]):
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
@@ -339,6 +340,7 @@ if __name__ == '__main__':
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
+
         del folder_fake
         del study_infos
         del study_fakeinfos
