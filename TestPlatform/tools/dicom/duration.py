@@ -9,33 +9,63 @@
 4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
 '''
 
-import os
+import os,gc
+import sys, getopt
 import pydicom
+import logging
 from tqdm import tqdm
-import shutil
 import subprocess as sp
 import time,datetime
 import random
 import math
 import pymysql
-import logging
-from django.db import transaction
-from django.conf import settings
-from TestPlatform.models import duration,base_data
 
-from TestPlatform.serializers import duration_record_Deserializer, duration_record_Serializer
-logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
+log_path = '/files/logs'
+if not os.path.exists(log_path):
+    os.makedirs(log_path)
 
 # 下面只是个数据结构示例，具体的值会采用命令行传进来的
+CONFIG = {
+    'local': {
+        'aet': 'QA38'
+    },
+    'server': {
+        'aet': 'ORTHANC',
+        'ip': '192.168.1.208',
+        'port': '4242'
+    },
+    'keyword': 'duration',
+    'dicomfolder': '/files/',
+    'durationid':'1',
+    'diseases':'all',
+    'end':None,
+    'sendcount':None
+}
+
+
+def sqlDB(sql,data):
+    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
+                           charset="utf8");  # 连接数据库
+    cur = conn.cursor()
+    try:
+        logging.info(sql,data)
+        cur.execute(sql,data)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+        logging.error(e)
+    cur.close()
+    conn.close()
+    return data
 
 def get_date():
     localtime = time.localtime(time.time())
-    return (time.strftime("%Y-%m-%d", localtime))
+    return (time.strftime("%Y%m%d", localtime))
 
 
 def get_time():
     localtime = time.localtime(time.time())
-    return (time.strftime("%H:%M:%S", localtime))
+    return (time.strftime("%H%M%S", localtime))
 
 
 def get_rand_uid():
@@ -44,18 +74,19 @@ def get_rand_uid():
 
 
 def get_fake_name(rand_uid):
-    fake_prefix = dur.keyword
-    return "{0}{1}".format(fake_prefix, rand_uid)
+    fake_prefix = CONFIG["keyword"]
+    ts = time.localtime(time.time())
+    return "{0}{1}{2}".format(fake_prefix,time.strftime("%m%d", ts),norm_string(rand_uid, 6))
 
 
 def sync_send_file(file_name):
-    # logger.info('send file: [{0}]'.format(file_name))
+    # logging.info('send file: [{0}]'.format(file_name))
     commands = [
         "storescu",
-        dur.server,
-        dur.port,
-        "-aec", dur.aet,
-        "-aet", 'QA38',
+        CONFIG.get('server', {}).get('ip'),
+        CONFIG.get('server', {}).get('port'),
+        "-aec", CONFIG.get('server', {}).get('aet'),
+        "-aet", CONFIG.get('local', {}).get('aet'),
         file_name
     ]
 
@@ -63,18 +94,18 @@ def sync_send_file(file_name):
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
     except Exception as e:
-        logger.error('send_file error: {0}'.format(e))
+        logging.error('send_file error: {0}'.format(e))
 
 
 def sync_send(folder):
     if not folder or not os.path.exists(folder):
-        logger.info('send: path is not exist [{0}]'.format(folder))
+        logging.info('send: path is not exist [{0}]'.format(folder))
         return
 
     file_names = os.listdir(folder)
     file_names.sort()
 
-    logger.info(' sending: {0}'.format(folder))
+    logging.info(' sending: {0}'.format(folder))
     for fn in tqdm(file_names):
         full_fn = os.path.join(folder, fn)
 
@@ -86,7 +117,7 @@ def sync_send(folder):
         try:
             sync_send_file(full_fn)
         except Exception as e:
-            logger.error(
+            logging.error(
                 'failed to send file: file[{0}], error[{1}]'.format(full_fn, e))
             continue
 
@@ -120,7 +151,7 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
 
 
 def add_image(sendtime, study_infos, study_uid, patientid, accessionnumber):
-
+    # print(study_infos)
     if study_infos.get(study_uid):
         study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
     else:
@@ -152,7 +183,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             ds = pydicom.dcmread(full_fn, force=True)
         except Exception as e:
-            logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
+            logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
             continue
 
         study_uid = ''
@@ -166,7 +197,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             cur_date = study_fakeinfo.get("cur_date")
             cur_time = study_fakeinfo.get("cur_time")
         except Exception as e:
-            logger.error(
+            logging.info(
                 'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
             continue
         ds.StudyInstanceUID = norm_string(
@@ -176,7 +207,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             series_uid = ds.SeriesInstanceUID
         except Exception as e:
-            logger.error(
+            logging.info(
                 'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SeriesInstanceUID = norm_string(
             '{0}.{1}'.format(series_uid, rand_uid), 64)
@@ -185,13 +216,13 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             instance_uid = ds.SOPInstanceUID
         except Exception as e:
-            logger.info(
+            logging.info(
                 'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SOPInstanceUID = norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
 
         ds.PatientID = norm_string(
-            fake_name, 16)
+            '{0}.{1}'.format(str(CONFIG.get('diseases', '')), rand_uid), 16)
 
         ds.PatientName = norm_string(
             fake_name, 16)
@@ -223,72 +254,123 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             )
 
         except Exception as e:
-            logger.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
 
-def saveData(data):
-    for (k, v) in data:
-        v['studyinstanceuid'] = k
-        v['sendserver'] = dur.server
-        v['duration_id'] = dur.id
-    stressserializer = duration_record_Serializer(data=data)
-    with transaction.atomic():
-        stressserializer.is_valid()
-        stressserializer.save()
+
+def prepare_config(argv):
+    global CONFIG
+    try:
+        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","diseases=","end=","sendcount="])
+        for opt, arg in opts:
+            if opt == '-h':
+                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
+                sys.exit()
+            elif opt in ("--aet"):
+                server_aet = arg
+                CONFIG["server"]["aet"] = server_aet
+            elif opt in ("--ip"):
+                server_ip = arg
+                CONFIG["server"]["ip"] = server_ip
+            elif opt in ("--port"):
+                server_port = arg
+                CONFIG["server"]["port"] = server_port
+            elif opt in ("--keyword"):
+                keyword = arg
+                CONFIG["keyword"] = keyword
+            elif opt in ("--dicomfolder"):
+                CONFIG["dicomfolder"] = arg
+
+            elif opt in ("--durationid"):
+                durationid = arg
+                CONFIG["durationid"] = durationid
+            elif opt in ("--diseases"):
+                diseases = arg
+                CONFIG["diseases"] = diseases
+            elif opt in ("--end"):
+                end = arg
+                if end =='None':
+                    CONFIG["end"] = None
+                else:
+                    CONFIG["end"] =(datetime.datetime.now() + datetime.timedelta(hours=int(end))).strftime(
+                "%Y-%m-%d %H:%M:%S")
+            elif opt in ("--sendcount"):
+                sendcount = arg
+                if sendcount =='None':
+                    CONFIG["sendcount"] = None
+                else:
+                    CONFIG["sendcount"] = sendcount
+
+    except Exception as e:
+        logging.error("error: failed to get args",e)
+
+    logging.info(CONFIG)
+
+    keyword = CONFIG["keyword"]
+    global log_path
+    log_path = "{0}/{1}".format(log_path, keyword)
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
+
+    log_file = '{0}/{1}Send.log'.format(log_path, CONFIG["keyword"])
+    logging.basicConfig(filename=log_file, filemode='a+',
+                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
+                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
+
+    return True
 
 
-def send_duration(obj,dicomname):
-    global dur
-    dur=obj
-    dicomfolder = base_data.objects.get(remarks=dicomname)
+if __name__ == '__main__':
+    if not prepare_config(sys.argv[1:]):
+        logging.info("failed to start")
+        sys.exit(0)
+    # 添加 pid号
+    ospid=os.getpid()
+    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None,ospid , CONFIG.get('durationid', '')])
 
-    folder = dicomfolder.content
-    src_folder = folder
+    src_folder = CONFIG.get('dicomfolder', '')
+    logging.info('start to send: path[{0}]'.format(src_folder))
+
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    if dur.end_time:
-        while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") < dur.end_time:
-            loop_times = loop_times + 1
-            folder_fake = "{0}/{1}{2}".format('/files/logs', dur.keyword, loop_times)
-            shutil.rmtree(folder_fake)
-            study_fakeinfos = {}
-            study_infos = {}
-
-            fake_folder(
-                folder=src_folder,
-                folder_fake=folder_fake,
-                study_fakeinfos=study_fakeinfos,
-                study_infos=study_infos
-            )
-            saveData(study_infos.items())
-            sync_send(folder_fake)
-            shutil.rmtree(folder_fake)
+    if CONFIG.get('sendcount', '') is not None and CONFIG.get('end', '') is None:
+        start = 0
+        end = int(CONFIG.get('sendcount', ''))
+    elif CONFIG.get('sendcount', '') is None and CONFIG.get('end', '') is not None:
+        start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        end = CONFIG.get('end', '')
     else:
-        end=1
-        while end > 0:
-            loop_times = loop_times + 1
-            folder_fake = "{0}/{1}{2}".format('/files/logs',dur.keyword,loop_times)
-            shutil.rmtree(folder_fake)
-            study_fakeinfos = {}
-            study_infos = {}
+        start = 0
+        end = 1
 
-            fake_folder(
-                folder=src_folder,
-                folder_fake=folder_fake,
-                study_fakeinfos=study_fakeinfos,
-                study_infos=study_infos
-            )
-            saveData(study_infos.items())
-            sync_send(folder_fake)
-            shutil.rmtree(folder_fake)
-            if end ==1:
-                obj= duration.objects.get(id=dur.id)
-                end=int(obj.status)
-                if end==0:
-                    dur.sendstatus = False
-                    dur.save()
+    while start < end:
+        loop_times = loop_times + 1
+        folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('diseases', '')),loop_times)
+        study_fakeinfos = {}
+        study_infos = {}
 
+        fake_folder(
+            folder=src_folder,
+            folder_fake=folder_fake,
+            study_fakeinfos=study_fakeinfos,
+            study_infos=study_infos
+        )
+        sync_send(folder_fake)
+        studytime=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        for (k, v) in study_infos.items():
+            data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None,
+                  None, None, CONFIG.get('server', {}).get('ip'),
+                 studytime, studytime, CONFIG.get('durationid', ''),None,None]
 
+            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
+            logging.info('INSERT into sql', data)
+        if str(start).isdecimal() is True:
+            start = int(start)+1
+        else:
+            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        del study_infos
+        gc.collect()
 
+    sqlDB('DELETE from pid where pid ="%s"', [ospid])

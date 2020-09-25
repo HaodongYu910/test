@@ -102,6 +102,10 @@
                                 title: '用户配置'
                             },
                             {
+                                index: 'base',
+                                title: '基础配置'
+                            },
+                            {
                                 index: 'mailconfig',
                                 title: '其他配置'
                             }

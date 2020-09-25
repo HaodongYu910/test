@@ -117,8 +117,8 @@ export const download = (headers, params) => {
 export const tagTool = (headers, params) => {
   return axios.post(`${test}/api/tag`, params, { headers }).then(res => res.data)
 }
-// tag 基础数据
-export const tagBase = (headers, params) => {
+// 基础数据
+export const Base = (headers, params) => {
   return axios.post(`${test}/api/base`, params, { headers }).then(res => res.data)
 }
 // 推送相关工具

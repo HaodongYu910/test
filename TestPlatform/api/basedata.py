@@ -33,15 +33,34 @@ class getBase(APIView):
         :param request:
         :return:
         """
-        selecttype = request.GET.get("selecttype")
-        list = []
-        obi = base_data.objects.filter(select_type=selecttype)
-        serialize = base_data_Deserializer(obi, many=True)
+
         # for i in obi.content.split(","):
         #     dict={'key': i, 'value': i}
         #     list.append(dict)
-        return JsonResponse(data={"data": serialize.data
+        try:
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        selecttype = request.GET.get("select_type")
+        if selecttype:
+            obi = base_data.objects.filter(select_type__contains=selecttype).order_by("-id")
+        else:
+            obi = base_data.objects.all().order_by("-id")
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        serialize = base_data_Deserializer(obm, many=True)
+        return JsonResponse(data={"data": serialize.data,
+                                  "page": page,
+                                  "total": total
                                   }, code="0", msg="成功")
+
 
 
 class AddbaseData(APIView):

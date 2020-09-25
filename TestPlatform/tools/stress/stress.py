@@ -63,7 +63,7 @@ def sequence(orthanc_ip,end_time, diseases, version):
                 graphql_delreport(data, kc)
                 graphql_Interface(data, kc)
             del data
-            gc.collect()
+        gc.collect()
         start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         #loop = loop + 1

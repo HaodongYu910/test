@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db.models import Sum,Min
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -7,9 +8,9 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, stress_data, base_data,pid,GlobalHost
-from TestPlatform.serializers import stressrecord_Deserializer,\
-    stress_data_Deserializer,duration_Deserializer
+from TestPlatform.models import stress_record, stress_data, base_data, pid, GlobalHost
+from TestPlatform.serializers import stressrecord_Deserializer, \
+    stress_data_Deserializer, duration_Deserializer
 from TestPlatform.tools.stress.stress import sequence
 from ..tools.orthanc.deletepatients import *
 from TestPlatform.tools.dicom.duration_verify import *
@@ -29,7 +30,7 @@ class stressversion(APIView):
         :param request:
         :return:
         """
-        server=request.GET.get("server", '192.168.1.208')
+        server = request.GET.get("server", '192.168.1.208')
         obi = stress_record.objects.filter(loadserver__contains=server).order_by("-id")
         serialize = stressrecord_Deserializer(obi, many=True)
         # for i in obi.version:
@@ -73,6 +74,7 @@ class stressData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
+
 class stressResult(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -103,7 +105,7 @@ class stressResult(APIView):
             return result
 
         try:
-            prediction = stress_result.objects.filter(version=data['version'],type='prediction')
+            prediction = stress_result.objects.filter(version=data['version'], type='prediction')
             job = stress_result.objects.filter(version=data['version'], type='job')
             lung = stress_result.objects.filter(version=data['version'], type='lung')
 
@@ -111,16 +113,18 @@ class stressResult(APIView):
             jobobj = stress_result.objects.filter(version=data['checkversion'], type='job')
             lungobj = stress_result.objects.filter(version=data['checkversion'], type='lung')
 
-            predictionresult = dataCheck(prediction,predictionobj)
-            jobresult = dataCheck(job,jobobj)
-            lungresult=dataCheck(lung,lungobj)
+            predictionresult = dataCheck(prediction, predictionobj)
+            jobresult = dataCheck(job, jobobj)
+            lungresult = dataCheck(lung, lungobj)
 
-            return JsonResponse(data={"predictionresult":predictionresult,
-                                      "jobresult":jobresult,
-                                      "lungresult":lungresult
+            return JsonResponse(data={"predictionresult": predictionresult,
+                                      "jobresult": jobresult,
+                                      "lungresult": lungresult
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
+
+
 class stressResultsave(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -151,15 +155,16 @@ class stressResultsave(APIView):
             return result
 
         try:
-            obj =stress_record.objects.get(version=data['version'])
-            checkdate = [obj.start_date,obj.end_date]
-            savecheck('job', checkdate, obj.loadserver,obj.version)
+            obj = stress_record.objects.get(version=data['version'])
+            checkdate = [obj.start_date, obj.end_date]
+            savecheck('job', checkdate, obj.loadserver, obj.version)
             savecheck('prediction', checkdate, obj.loadserver, obj.version)
             lung(checkdate, obj.loadserver, obj.version)
 
             return JsonResponse(data={"data": ''}, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
+
 
 class stresstool(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -191,8 +196,9 @@ class stresstool(APIView):
             return result
 
         try:
-            testdata=data['testdata']
-            end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime("%Y-%m-%d %H:%M:%S")
+            testdata = data['testdata']
+            end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
+                "%Y-%m-%d %H:%M:%S")
             data['testdata'] = str(data["testdata"])
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
@@ -206,8 +212,8 @@ class stresstool(APIView):
                 with transaction.atomic():
                     stressserializer.is_valid()
                     stressserializer.save()
-                sequence(data["loadserver"], end_time,testdata,
-                                        data["version"])
+                sequence(data["loadserver"], end_time, testdata,
+                         data["version"])
                 return JsonResponse(code="0", msg="成功")
         except Exception as e:
             logger.error(e)
@@ -286,7 +292,8 @@ class Updatedata(APIView):
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 
-#获取 持续化数据
+
+# 获取 持续化数据
 class getDuration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -298,17 +305,18 @@ class getDuration(APIView):
         :return:
         """
         obi = duration.objects.filter().order_by("server")
-        durationdata = duration_Serializer(obi,many=True)
-        du=durationdata.data
+        durationdata = duration_Serializer(obi, many=True)
+        du = durationdata.data
         for i in du:
             obj = duration_record.objects.filter(duration_id=i["id"],
-                                             create_time__gte=i["update_time"])
-            i['send']=str(obj.count())
-
+                                                 create_time__gte=i["update_time"])
+            i['send'] = str(obj.count())
 
         return JsonResponse(data={"data": durationdata.data
-                                      }, code="0", msg="成功")
-#获取 持续化发送详细数据
+                                  }, code="0", msg="成功")
+
+
+# 获取 持续化发送详细数据
 class durationData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -325,10 +333,10 @@ class durationData(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
-        durationid=int(request.GET.get("id"))
-        datalist={}
+        durationid = int(request.GET.get("id"))
+        datalist = {}
 
-        #判断是否有查询时间
+        # 判断是否有查询时间
         if request.GET.get("startdate"):
             startdate = request.GET.get("startdate")
         else:
@@ -339,20 +347,25 @@ class durationData(APIView):
         else:
             enddate = datetime.datetime.now()
 
-        #判断查询数据类型
-        if type=='patientid':
+        # 判断查询数据类型
+        if type == 'patientid':
             patientid = request.GET.get("patientid")
-            obi = duration_record.objects.filter(duration_id=durationid,patientid__contains=patientid).order_by("-id")
-        elif type=='Not_sent':
-            obi = duration_record.objects.filter(duration_id=durationid,aistatus__isnull=True,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
-        elif type=='sent':
-            obi = duration_record.objects.filter(duration_id=durationid,aistatus__isnull=False,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
-        elif type=='AiTrue':
-            obi = duration_record.objects.filter(duration_id=durationid,aistatus__in=[1,2],create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
-        elif type=='AiFalse':
-            obi = duration_record.objects.filter(duration_id=durationid,aistatus__in=[-1,-2,3],create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid, patientid__contains=patientid).order_by("-id")
+        elif type == 'Not_sent':
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
+                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+        elif type == 'sent':
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
+                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+        elif type == 'AiTrue':
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[1, 2], create_time__lte=enddate,
+                                                 create_time__gte=startdate).order_by("-id")
+        elif type == 'AiFalse':
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 3],
+                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         else:
-            obi = duration_record.objects.filter(duration_id=durationid,create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
+            obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
+                                                 create_time__gte=startdate).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -370,41 +383,43 @@ class durationData(APIView):
         else:
             server = du.server
         try:
-            datalist['sent'] = durationtotal(obi , server, '1,2')
-            datalist['ai_false'] = durationtotal(obi,server,'-2,-1,1,2,3')
+            datalist['sent'] = durationtotal(obi, server, '1,2')
+            datalist['ai_false'] = durationtotal(obi, server, '-2,-1,1,2,3')
             datalist['ai_true'] = durationtotal(obi, server, '1,2')
-            datalist['ai_false'] = durationtotal(obi,server,'-2,3')
-            datalist['notai'] = durationtotal(obi, server,'-1')
-            datalist['all']=obi.count()
-            datalist['notsent'] = int(datalist['all'])-int(datalist['sent'])
+            datalist['ai_false'] = durationtotal(obi, server, '-2,3')
+            datalist['notai'] = durationtotal(obi, server, '-1')
+            datalist['all'] = obi.count()
+            datalist['notsent'] = int(datalist['all']) - int(datalist['sent'])
         except ValueError:
             return JsonResponse(data={"data": datalist
                                       }, code="0", msg="测试环境数据库连接失败")
         for i in rdata:
             try:
-                dbresult = connect_to_postgres(server, "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(i["studyinstanceuid"]))
+                dbresult = connect_to_postgres(server,
+                                               "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
+                                                   i["studyinstanceuid"]))
                 _dict = dbresult.to_dict(orient='records')
             except Exception as e:
                 logger.error(e)
-            if _dict==[]:
+            if _dict == []:
                 i['aistatus'] = None
                 i['diagnosis'] = None
                 i['imagecount_server'] = None
             else:
                 for j in _dict:
-                    i['aistatus']=j['aistatus']
+                    i['aistatus'] = j['aistatus']
                     i['diagnosis'] = j['diagnosis']
                     i['imagecount_server'] = j['imagecount']
 
-        return JsonResponse(data={"data":rdata,
+        return JsonResponse(data={"data": rdata,
                                   "durationresult": [datalist],
                                   "page": page,
                                   "total": total,
-                                  "count":count
+                                  "count": count
                                   }, code="0", msg="成功")
 
 
-#保存dicom 发送记录
+# 保存dicom 发送记录
 class add_duration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -434,9 +449,9 @@ class add_duration(APIView):
         if result:
             return result
         try:
-            data['dicom'] =','.join(data['dicom'])
-            obj= GlobalHost.objects.get(host=str(data['server']))
-            data['aet'] =obj.description
+            data['dicom'] = ','.join(data['dicom'])
+            obj = GlobalHost.objects.get(host=str(data['server']))
+            data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
 
             with transaction.atomic():
@@ -445,7 +460,9 @@ class add_duration(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
-#修改duration
+
+
+# 修改duration
 class update_duration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -475,8 +492,8 @@ class update_duration(APIView):
         if result:
             return result
         try:
-            obj =duration.objects.get(id=data["id"])
-            data['dicom'] =','.join(data['dicom'])
+            obj = duration.objects.get(id=data["id"])
+            data['dicom'] = ','.join(data['dicom'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -522,7 +539,7 @@ class DisableDuration(APIView):
             # 查找pid
             obj = pid.objects.filter(durationid=data["id"])
             okj = duration.objects.get(id=data["id"])
-            folder_fake = "{0}/{1}".format('/files/logs',str(okj.keyword))
+            folder_fake = "{0}/{1}".format('/files/logs', str(okj.keyword))
             for i in obj:
                 cmd = 'kill -9 {0}'.format(int(i.pid))
                 logger.info(cmd)
@@ -568,44 +585,55 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
-            min =1000
-            durationid=data["id"]
-            sumdicom=0
+            durationid = data["id"]
             obj = duration.objects.get(id=durationid)
-            for j in obj.dicom.split(","):
-                dicom = base_data.objects.get(remarks=j)
-                if dicom.other is None:
-                    sumdicom = sumdicom
-                else:
-                    if min > int(dicom.other):
-                        min = int(dicom.other)
-                        mindicom = j
-                    sumdicom =int(dicom.other) + sumdicom
 
-            imod = divmod(int(obj.sendcount),sumdicom)
-            imin =divmod(int(imod[1]),min)
-            if int(imin[1]) < (int(imin[1])/2):
-                mincount = int(imin[0])+int(imod[0])
+            if obj.sendcount is None and obj.end is None:
+                start = 0
+                end = 1
+            elif obj.sendcount is None and obj.end is not None:
+                start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end))).strftime(
+                    "%Y-%m-%d %H:%M:%S")
             else:
-                mincount = int(imin[0])+int(imod[0])+1
+                start = 0
+                min = 10000
+                sumdicom = 0
+                for j in obj.dicom.split(","):
+                    dicom = base_data.objects.get(remarks=j)
+                    if dicom.other is None:
+                        sumdicom = sumdicom
+                    else:
+                        if min > int(dicom.other):
+                            min = int(dicom.other)
+                        sumdicom = int(dicom.other) + sumdicom
 
             for i in obj.dicom.split(","):
                 dicom = base_data.objects.get(remarks=i)
                 folder = dicom.content
-                if i == mindicom:
-                    sendcount = mincount
-                else:
-                    sendcount = imod[0]
+                if sumdicom:
+                    imod = divmod(int(obj.sendcount), sumdicom)
+                    imin = divmod(int(imod[1]), min)
+                    if int(imin[1]) < (int(imin[1]) / 2):
+                        mincount = int(imin[0]) + int(imod[0])
+                    else:
+                        mincount = int(imin[0]) + int(imod[0]) + 1
+                    if int(dicom.other) == int(min):
+                        end = mincount
+                    else:
+                        end = imod[0]
+
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/durationcmd.py '
-                           '--ip {0} --aet {1} '
-                           '--port {2} '
-                           '--keyword {3} '
-                           '--dicomfolder {4} '
-                           '--durationid {5} '
-                           '--diseases {6} '
-                           '--end {7} '
-                           '--sendcount {8} &').format(obj.server,obj.aet,obj.port,obj.keyword,folder,durationid,i,obj.end_time,sendcount)
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       '--ip {0} --aet {1} '
+                       '--port {2} '
+                       '--keyword {3} '
+                       '--dicomfolder {4} '
+                       '--durationid {5} '
+                       '--diseases {6} '
+                       '--start {7} '
+                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
+                                             start, end)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
@@ -616,7 +644,8 @@ class EnableDuration(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
-#删除dicom 发送记录
+
+# 删除dicom 发送记录
 class del_duration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -663,7 +692,7 @@ class del_duration(APIView):
             return JsonResponse(code="999995", msg="执行失败！")
 
 
-#删除dicom 数据
+# 删除dicom 数据
 class delete_patients(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -694,10 +723,11 @@ class delete_patients(APIView):
             return result
         #
         try:
-            delete_patients_duration(data['deldata'], data['server_ip'],data['testtype'], data['fuzzy'])
+            delete_patients_duration(data['deldata'], data['server_ip'], data['testtype'], data['fuzzy'])
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
+
 
 class duration_verify(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -710,8 +740,6 @@ class duration_verify(APIView):
         :return:
         """
         id = request.GET.get("id")
-        data=verifyData(id)
+        data = verifyData(id)
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
-
-

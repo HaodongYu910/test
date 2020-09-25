@@ -9,13 +9,13 @@
 4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
 '''
 
-import os
+import os,gc
 import sys, getopt
 import pydicom
 import logging
 from tqdm import tqdm
 import subprocess as sp
-import time,datetime
+import time, datetime
 import random
 import math
 import pymysql
@@ -36,20 +36,20 @@ CONFIG = {
     },
     'keyword': 'duration',
     'dicomfolder': '/files/',
-    'durationid':'1',
-    'diseases':'all',
-    'end':None,
-    'sendcount':None
+    'durationid': '1',
+    'diseases': 'all',
+    'start': 0,
+    'end': 1
 }
 
 
-def sqlDB(sql,data):
+def sqlDB(sql, data):
     conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:
-        logging.info(sql,data)
-        cur.execute(sql,data)
+        logging.info(sql, data)
+        cur.execute(sql, data)
         conn.commit()
     except Exception as e:
         conn.rollback()
@@ -57,6 +57,7 @@ def sqlDB(sql,data):
     cur.close()
     conn.close()
     return data
+
 
 def get_date():
     localtime = time.localtime(time.time())
@@ -76,7 +77,7 @@ def get_rand_uid():
 def get_fake_name(rand_uid):
     fake_prefix = CONFIG["keyword"]
     ts = time.localtime(time.time())
-    return "{0}{1}{2}".format(fake_prefix,time.strftime("%m%d", ts),norm_string(rand_uid, 6))
+    return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), norm_string(rand_uid, 6))
 
 
 def sync_send_file(file_name):
@@ -150,18 +151,23 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(sendtime, study_infos, study_uid, patientid, accessionnumber):
-    # print(study_infos)
+def add_image(study_infos, study_uid, patientid, accessionnumber):
+    studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+
     if study_infos.get(study_uid):
         study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
+        sqlDB('update duration_record set imagecount = %s where =\'%s\')',
+              [study_infos[study_uid]["imagecount"], str(study_infos.get(study_uid))])
     else:
         study_info = {
-            "sendtime": sendtime,
-            "accessionnumber": accessionnumber,
-            "patientid": patientid,
             "imagecount": 1
         }
         study_infos[study_uid] = study_info
+
+        sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+              [None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
+               None, None, CONFIG.get('server', {}).get('ip'),
+               studytime, studytime, CONFIG.get('durationid', ''), None, None])
 
 
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
@@ -244,14 +250,13 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             new_study_uid = ds.StudyInstanceUID
             new_patient_id = ds.PatientID
 
+            sync_send(full_fn_fake)
             add_image(
-                sendtime=send_time,
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber
             )
-
         except Exception as e:
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
@@ -260,51 +265,37 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 def prepare_config(argv):
     global CONFIG
     try:
-        opts, args = getopt.getopt(argv, "h", ["aet=", "ip=", "port=", "keyword=", "dicomfolder=","durationid=","diseases=","end=","sendcount="])
+        opts, args = getopt.getopt(argv, "h",
+                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
+                                    "end=", "sendcount="])
         for opt, arg in opts:
             if opt == '-h':
-                logging.info('--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
+                logging.info(
+                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
                 sys.exit()
             elif opt in ("--aet"):
-                server_aet = arg
-                CONFIG["server"]["aet"] = server_aet
+                CONFIG["server"]["aet"] = arg
             elif opt in ("--ip"):
-                server_ip = arg
-                CONFIG["server"]["ip"] = server_ip
+                CONFIG["server"]["ip"] = arg
             elif opt in ("--port"):
-                server_port = arg
-                CONFIG["server"]["port"] = server_port
+                CONFIG["server"]["port"] = arg
             elif opt in ("--keyword"):
-                keyword = arg
-                CONFIG["keyword"] = keyword
+                CONFIG["keyword"] = arg
             elif opt in ("--dicomfolder"):
                 CONFIG["dicomfolder"] = arg
-
             elif opt in ("--durationid"):
-                durationid = arg
-                CONFIG["durationid"] = durationid
+                CONFIG["durationid"] = arg
             elif opt in ("--diseases"):
                 diseases = arg
                 CONFIG["diseases"] = diseases
+            elif opt in ("--start"):
+                CONFIG["start"] = arg
             elif opt in ("--end"):
-                end = arg
-                if end =='None':
-                    CONFIG["end"] = None
-                else:
-                    CONFIG["end"] =(datetime.datetime.now() + datetime.timedelta(hours=int(end))).strftime(
-                "%Y-%m-%d %H:%M:%S")
-            elif opt in ("--sendcount"):
-                sendcount = arg
-                if sendcount =='None':
-                    CONFIG["sendcount"] = None
-                else:
-                    CONFIG["sendcount"] = sendcount
+                CONFIG["end"] = arg
+
 
     except Exception as e:
-        logging.error("error: failed to get args",e)
-
-    logging.info(CONFIG)
-    logging.info("please check config, waiting for 5 seconds...")
+        logging.error("error: failed to get args", e)
 
     keyword = CONFIG["keyword"]
     global log_path
@@ -327,28 +318,18 @@ if __name__ == '__main__':
         sys.exit(0)
     # 添加 pid号
     sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')])
+    src_folder = CONFIG.get('dicomfolder', '')
 
-    folder = CONFIG.get('dicomfolder', '')
-    logging.info('start to send: path[{0}]'.format(folder))
-
-    src_folder = folder
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    if CONFIG.get('sendcount', '') is not None and CONFIG.get('end', '') is None:
-        start = 0
-        end = int(CONFIG.get('sendcount', ''))
-    elif CONFIG.get('sendcount', '') is None and CONFIG.get('end', '') is not None:
-        start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        end = CONFIG.get('end', '')
-    else:
-        start = 0
-        end = 1
 
-    while int(start) < end:
+    while str(CONFIG["start"]) < str(CONFIG["end"]):
         loop_times = loop_times + 1
-        folder_fake = "{0}/{1}{2}".format(log_path,str(CONFIG.get('keyword', ''))+'_'+str(CONFIG.get('diseases', '')),loop_times)
+        folder_fake = "{0}/{1}{2}".format(log_path,
+                                          str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
+                                          loop_times)
         study_fakeinfos = {}
         study_infos = {}
 
@@ -358,17 +339,13 @@ if __name__ == '__main__':
             study_fakeinfos=study_fakeinfos,
             study_infos=study_infos
         )
-        sync_send(folder_fake)
-        studytime=str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-        for (k, v) in study_infos.items():
-            data=[None, v["patientid"], v["accessionnumber"], k,v["imagecount"],None,
-                  None, None, CONFIG.get('server', {}).get('ip'),
-                 studytime, studytime, CONFIG.get('durationid', ''),None,None]
+        del folder_fake
+        del study_infos
+        del study_fakeinfos
+        gc.collect()
 
-            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',data)
-            logging.info('INSERT into sql', data)
         if str(start).isdecimal() is True:
-            start = int(start)+1
+            start = int(start) + 1
         else:
             start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

@@ -47,11 +47,6 @@ export default new Router({
                     meta: { title: '系统首页' }
                 },
                 {
-                    path: '/icon',
-                    component: resolve => require(['../components/page/Icon.vue'], resolve),
-                    meta: { title: '自定义图标' }
-                },
-                {
                     path: '/project',
                     component: resolve => require(['../components/project/Projectlist.vue'], resolve),
                     meta: { title: '项目列表' }
@@ -75,7 +70,7 @@ export default new Router({
                 {
                     path: '/durationData',
                     component: resolve => require(['../components/tool/duration/durationData.vue'], resolve),
-                    meta: { title: '持续化数据详情' }
+                    meta: { title: '持续化详情' }
 
                 },
                 {
@@ -98,7 +93,7 @@ export default new Router({
                 {
                     path: '/',
                     component: ReportInfo,
-                    meta: { title: '邮件' },
+                    meta: { title: '邮件详情' },
                     hidden: true,
                     children: [
                         {   path: 'ReportTitle/report=:report_id', component: ReportTitle, name: '邮件详情', leaf: true},
@@ -128,18 +123,6 @@ export default new Router({
 
                 },
                 {
-                    // 富文本编辑器组件
-                    path: '/editor',
-                    component: resolve => require(['../components/page/VueEditor.vue'], resolve),
-                    meta: { title: '富文本编辑器' }
-                },
-                {
-                    // markdown组件
-                    path: '/markdown',
-                    component: resolve => require(['../components/page/Markdown.vue'], resolve),
-                    meta: { title: 'markdown编辑器' }
-                },
-                {
                     // 图片上传组件
                     path: '/upload',
                     component: resolve => require(['../components/page/Upload.vue'], resolve),
@@ -150,12 +133,6 @@ export default new Router({
                     path: '/charts',
                     component: resolve => require(['../components/page/BaseCharts.vue'], resolve),
                     meta: { title: 'schart图表' }
-                },
-                {
-                    // 拖拽列表组件
-                    path: '/bind',
-                    component: resolve => require(['../components/tool/BindList.vue'], resolve),
-                    meta: { title: '风控绑定' }
                 },
                 {
                     // 拖拽Dialog组件
@@ -174,6 +151,12 @@ export default new Router({
                     path: '/sonar',
                     component: resolve => require(['../components/page/qrcode.vue'], resolve),
                     meta: { title: '版本下载' }
+                },
+                {
+                    //基础配置
+                    path: '/base',
+                    component: resolve => require(['../components/set/baseData.vue'], resolve),
+                    meta: { title: '基础配置' }
                 },
                 {
                     // 权限页面
