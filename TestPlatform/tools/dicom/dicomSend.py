@@ -126,24 +126,27 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(study_infos, study_uid, patientid, accessionnumber):
+def add_image(study_infos, study_uid,study_old_uid, patientid, accessionnumber):
+    global uid
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
-            sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
-                  [study_infos[study_uid]["imagecount"], study_uid])
         else:
+            if int(len(study_infos)) == 1:
+                uid = study_uid
+            else:
+                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
+                      [study_infos[uid]["imagecount"], uid])
+                uid = study_uid
             study_info = {
                 "imagecount": 1
             }
             study_infos[study_uid] = study_info
-            logging.info([None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
-                   None, None, CONFIG.get('server', {}).get('ip')])
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, 1, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, studytime, CONFIG.get('durationid', ''), None, None])
+                   studytime, studytime, CONFIG.get('durationid', ''), None, study_old_uid])
     except Exception as e:
         logging.error('errormsg: failed to update sql [{0}]'.format(study_uid))
 
@@ -172,6 +175,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         study_uid = ''
         try:
             study_uid = ds.StudyInstanceUID
+            study_old_uid = ds.StudyInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -235,6 +239,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
+                study_old_uid=study_old_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber
             )
