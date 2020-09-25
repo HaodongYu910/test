@@ -140,13 +140,13 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, 1, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, studytime, CONFIG.get('durationid', ''), None, study_old_uid])
+                   studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
             if int(len(study_infos)) == 1:
                 uid = study_uid
-            # else:
-            #     sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
-            #           [study_infos[uid]["imagecount"], uid])
-            #     uid = study_uid
+            else:
+                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
+                      [study_infos[uid]["imagecount"], uid])
+                uid = study_uid
     except Exception as e:
         logging.error('errormsg: failed to update sql [{0}]'.format(e))
 

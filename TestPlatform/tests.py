@@ -72,3 +72,7 @@ import re, urllib, json, requests
 #     p.start()
 #     p.join()
 #     pa.start()
+
+study_infos={'a':1,'c':1}
+
+print(int(len(study_infos)))
