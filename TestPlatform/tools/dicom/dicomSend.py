@@ -250,8 +250,11 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             ds.save_as(full_fn_fake)
             new_study_uid = ds.StudyInstanceUID
             new_patient_id = ds.PatientID
-
-            sync_send(full_fn_fake)
+        except Exception as e:
+            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+            continue
+        try:
+            sync_send(full_fn)
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
@@ -259,7 +262,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
                 accessionnumber=ds.AccessionNumber
             )
         except Exception as e:
-            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn_fake,e))
             continue
 
 
