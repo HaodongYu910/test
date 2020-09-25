@@ -126,19 +126,13 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(study_infos, study_uid, patientid, accessionnumber):
+def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
     global uid
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
         else:
-            if int(len(study_infos)) == 1:
-                uid = study_uid
-            else:
-                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
-                      [study_infos[uid]["imagecount"], uid])
-                uid = study_uid
             study_info = {
                 "imagecount": 1
             }
@@ -146,9 +140,15 @@ def add_image(study_infos, study_uid, patientid, accessionnumber):
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, 1, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, studytime, CONFIG.get('durationid', ''), None, None])
+                   studytime, studytime, CONFIG.get('durationid', ''), None, study_old_uid])
+            if int(len(study_infos)) == 1:
+                uid = study_uid
+            # else:
+            #     sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\')',
+            #           [study_infos[uid]["imagecount"], uid])
+            #     uid = study_uid
     except Exception as e:
-        logging.error('errormsg: failed to update sql [{0}]'.format(study_uid))
+        logging.error('errormsg: failed to update sql [{0}]'.format(e))
 
 
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
@@ -240,7 +240,8 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
-                accessionnumber=ds.AccessionNumber
+                accessionnumber=ds.AccessionNumber,
+                study_old_uid=study_old_uid
             )
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
