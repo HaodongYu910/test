@@ -267,7 +267,7 @@ def prepare_config(argv):
     try:
         opts, args = getopt.getopt(argv, "h",
                                    ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
-                                    "end=", "sendcount="])
+                                    "start=", "end="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
