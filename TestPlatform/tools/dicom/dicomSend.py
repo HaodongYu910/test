@@ -144,7 +144,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
             if int(len(study_infos)) == 1:
                 uid = study_uid
             else:
-                sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\'%s\';',
+                sqlDB('update duration_record set imagecount = %s where studyinstanceuid = %s ;',
                       [study_infos[uid]["imagecount"], uid])
                 uid = study_uid
     except Exception as e:
