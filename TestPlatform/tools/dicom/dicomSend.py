@@ -157,7 +157,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
     file_names = os.listdir(folder)
     file_names.sort()
 
-    for fn in tqdm(file_names):
+    for fn in file_names:
         full_fn = os.path.join(folder, fn)
         full_fn_fake = os.path.join(folder_fake, fn)
 
@@ -236,6 +236,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
         try:
             sync_send_file(full_fn_fake)
+            logging.info('msg: send file to [{0}]'.format(new_study_uid))
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
