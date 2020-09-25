@@ -153,22 +153,24 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
 
 def add_image(study_infos, study_uid, patientid, accessionnumber):
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-
-    if study_infos.get(study_uid):
-        study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
-        sqlDB('update duration_record set imagecount = %s where =\'%s\')',
-              [study_infos[study_uid]["imagecount"], str(study_infos.get(study_uid))])
-    else:
-        study_info = {
-            "imagecount": 1
-        }
-        study_infos[study_uid] = study_info
-        logging.info([None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
-               None, None, CONFIG.get('server', {}).get('ip')])
-        sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-              [None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
-               None, None, CONFIG.get('server', {}).get('ip'),
-               studytime, studytime, CONFIG.get('durationid', ''), None, None])
+    try:
+        if study_infos.get(study_uid):
+            study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
+            sqlDB('update duration_record set imagecount = %s where =\'%s\')',
+                  [study_infos[study_uid]["imagecount"], str(study_infos.get(study_uid))])
+        else:
+            study_info = {
+                "imagecount": 1
+            }
+            study_infos[study_uid] = study_info
+            logging.info([None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
+                   None, None, CONFIG.get('server', {}).get('ip')])
+            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+                  [None, patientid, accessionnumber, str(study_infos.get(study_uid)), 1, None,
+                   None, None, CONFIG.get('server', {}).get('ip'),
+                   studytime, studytime, CONFIG.get('durationid', ''), None, None])
+    except Exception as e:
+        logging.error('errormsg: failed to update sql [{0}]'.format(str(study_infos.get(study_uid))))
 
 
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
