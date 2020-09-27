@@ -151,7 +151,7 @@ class UpdatebaseData(APIView):
                     return JsonResponse(code="999998", msg="失败")
 
 
-class DelProject(APIView):
+class Delbasedata(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -190,7 +190,7 @@ class DelProject(APIView):
             return JsonResponse(code="999995", msg="项目不存在！")
 
 
-class DisableProject(APIView):
+class Disablebase(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -227,7 +227,7 @@ class DisableProject(APIView):
             return JsonResponse(code="999995", msg="项目不存在！")
 
 
-class EnableProject(APIView):
+class Enablebase(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 

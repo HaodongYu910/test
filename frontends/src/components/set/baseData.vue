@@ -206,7 +206,7 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        getbase, delProject, disableProject, enableProject,
+        getbase, Delbasedata, Disablebase, Enablebase,
         UpdatebaseData, addbaseData
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
@@ -321,7 +321,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    delProject(header, params).then(_data => {
+                    Delbasedata(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
@@ -349,7 +349,7 @@
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    disableProject(headers, params).then(_data => {
+                    Disablebase(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -367,7 +367,7 @@
                         }
                     });
                 } else {
-                    enableProject(headers, params).then(_data => {
+                    Enablebase(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -538,7 +538,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    delProject(header, params).then(_data => {
+                    Delbasedata(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({

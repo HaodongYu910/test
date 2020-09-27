@@ -2,8 +2,8 @@ import axios from 'axios';
 
 
 
-export const test = 'http://127.0.0.1:8000';
-//export const test = 'http://192.168.2.38:9000';
+//export const test = 'http://127.0.0.1:8000';
+export const test = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -301,10 +301,22 @@ export const getbase = (headers, params) => {
 }
 // 添加基础数据
 export const addbaseData = (headers, params) => {
-  return axios.post(`${test}/api/base/AddData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/base/addData`, params, headers).then(res => res.data)
 }
 // 修改基础数据
 export const UpdatebaseData = (headers, params) => {
-  return axios.post(`${test}/api/base/UpdateData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/base/updateData`, params, headers).then(res => res.data)
+}
+// 启用基础数据
+export const Enablebase = (headers, params) => {
+  return axios.post(`${test}/api/base/enablebase`, params, headers).then(res => res.data)
+}
+// 禁用基础数据
+export const Disablebase = (headers, params) => {
+  return axios.post(`${test}/api/base/disablebase`, params, headers).then(res => res.data)
+}
+// 删除基础数据
+export const Delbasedata = (headers, params) => {
+  return axios.post(`${test}/api/base/delbasedata`, params, headers).then(res => res.data)
 }
 

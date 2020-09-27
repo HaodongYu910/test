@@ -72,7 +72,3 @@ import re, urllib, json, requests
 #     p.start()
 #     p.join()
 #     pa.start()
-
-import os
-name = 'a.dcm.png'
-print(os.path.splitext(name)[1] in  ['.dcm'])
