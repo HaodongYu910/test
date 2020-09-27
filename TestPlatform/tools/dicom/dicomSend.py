@@ -161,7 +161,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         full_fn = os.path.join(folder, fn)
         full_fn_fake = os.path.join(folder_fake, fn)
 
-        if (fn == '.DS_Store'):
+        if (os.path.splitext(fn)[1] in  ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos)

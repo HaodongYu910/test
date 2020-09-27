@@ -55,7 +55,7 @@ class getBase(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = base_data_Deserializer(obm, many=True)
+        serialize = base_data_Serializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -97,7 +97,7 @@ class AddbaseData(APIView):
         with transaction.atomic():
             base_data_serializer.save()
             return JsonResponse(data={
-                            "project_id": base_data_serializer.data.get("id")
+                            "id": base_data_serializer.data.get("id")
                         }, code="0", msg="成功")
 
 class UpdatebaseData(APIView):
@@ -137,8 +137,8 @@ class UpdatebaseData(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称的项目
-        pro_name = base_data.objects.filter(content=data["content"]).exclude(id=data["id"])
-        if len(pro_name):
+        name = base_data.objects.filter(content=data["content"]).exclude(id=data["id"])
+        if len(name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
             serializer = base_data_Deserializer(data=data)
@@ -149,6 +149,120 @@ class UpdatebaseData(APIView):
                     return JsonResponse(code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg="失败")
+
+
+class DelProject(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["ids"], list):
+                return JsonResponse(code="999996", msg="参数有误！")
+            for i in data["ids"]:
+                if not isinstance(i, int):
+                    return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        删除项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            for j in data["ids"]:
+                obj = base_data.objects.filter(id=j)
+                obj.delete()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+
+
+class DisableProject(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            obj = base_data.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+
+
+class EnableProject(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            obj = base_data.objects.get(id=data["id"])
+            obj.status = True
+            obj.save()
+
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
 
 
 class Updatedata(APIView):

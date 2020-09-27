@@ -73,22 +73,6 @@ import re, urllib, json, requests
 #     p.join()
 #     pa.start()
 
-import pymysql
-
-def sqlDB(sql, data):
-    conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
-                           charset="utf8");  # 连接数据库
-    cur = conn.cursor()
-    try:
-
-        cur.execute(sql, data)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-
-    cur.close()
-    conn.close()
-    return data
-
-sqlDB('update duration_record set imagecount = %s where studyinstanceuid =\%s\;',
-                      [465, '40.113619.2.416.292683627687835752857043748571015490815.71196024'])
+import os
+name = 'a.dcm.png'
+print(os.path.splitext(name)[1] in  ['.dcm'])
