@@ -311,8 +311,8 @@ if __name__ == '__main__':
         src_folder = src_folder[0:-1]
 
     loop_times = 0
-    start = str(CONFIG["start"])
-    while str(start) < str(CONFIG["end"]):
+    start = CONFIG["start"]
+    while start < CONFIG["end"]:
         loop_times = loop_times + 1
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
@@ -333,7 +333,7 @@ if __name__ == '__main__':
         gc.collect()
 
         if str(start).isdecimal() is True:
-            start = int(start) + 1
+            start = start + 1
         else:
             start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 

@@ -72,3 +72,20 @@ import re, urllib, json, requests
 #     p.start()
 #     p.join()
 #     pa.start()
+
+
+import datetime
+
+if __name__ == '__main__':
+
+
+    loop_times = 0
+    start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    while start < '2020-09-27 16:30:00':
+        loop_times = loop_times + 1
+        print(start)
+
+        if str(start).isdecimal() is True:
+            start = start + 1
+        else:
+            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
