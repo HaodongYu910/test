@@ -80,8 +80,8 @@ if __name__ == '__main__':
 
 
     loop_times = 0
-    start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    while start < '2020-09-27 16:30:00':
+    start = 1
+    while start < 100:
         loop_times = loop_times + 1
         print(start)
 

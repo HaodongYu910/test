@@ -225,7 +225,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         # ds.AcquisitionDate = cur_date
         # ds.AcquisitionTime = cur_time
 
-        send_time = ds.StudyDate + "-" + ds.StudyTime
+        #send_time = ds.StudyDate + "-" + ds.StudyTime
 
         try:
             ds.save_as(full_fn_fake)
@@ -310,13 +310,11 @@ if __name__ == '__main__':
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
-    loop_times = 0
     start = CONFIG["start"]
-    while start < CONFIG["end"]:
-        loop_times = loop_times + 1
+    while int(start) < int(CONFIG["end"]):
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
-                                          loop_times)
+                                          str(start))
         study_fakeinfos = {}
         study_infos = {}
 
@@ -332,9 +330,7 @@ if __name__ == '__main__':
         del study_fakeinfos
         gc.collect()
 
-        if str(start).isdecimal() is True:
-            start = start + 1
-        else:
-            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        start = int(start) + 1
+
 
     sqlDB('DELETE from pid where pid ="%s"', [ospid])
