@@ -62,7 +62,7 @@ def stress(orthanc_ip, diseases,version,thread,loop,synchronizing):
         f.close()
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H:%M:%S")
-        cmd = 'jmeter -n -t centos.jmx -l {0}.jtl'.format(start_time)
+        cmd = 'jmeter -n -t {0}/stress/centos.jmx -l {1}/logs/{2}.jtl'.format(path,path,start_time)
         logger.info(cmd)
         os.system(cmd)
     except Exception as e:
