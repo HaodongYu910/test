@@ -5,10 +5,7 @@ from django.test import TestCase
 # -*- coding: UTF-8 -*-
 import re, urllib, json, requests
 
-
-
 # print(str(re.findall(r"(.+?)-", 'WEB')[0]))
-
 
 
 # -*-coding:utf-8-*-
@@ -75,17 +72,35 @@ import re, urllib, json, requests
 
 
 import datetime
+import pandas as pd
+import psycopg2 as pc
+import csv
+from TestPlatform.common.regexUtil import connect_to_postgres
+
+def getcsv():
+    # print(os.path.abspath(os.path.dirname(os.getcwd())))
+
+    csv_pd = pd.read_csv("C:\\Users\\yinhang\\Desktop\\stress\\lung2.csv")
+    csv = csv_pd.to_dict(orient='records')
+    return csv
+
 
 if __name__ == '__main__':
+    patientid='0950028'
+    orthanc_ip='192.168.1.208'
+    vote=''
+    # Series = connect_to_postgres(orthanc_ip,
+    #                                  "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
+    #                                      patientid)).to_dict(orient='records')
+    # pseries_classifier = connect_to_postgres(orthanc_ip,
+    #                                              "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
+    #                                                  uid)).to_dict(orient='records')
+    #
+    # pseries=pseries_classifier[0]['pseries']
+    # for key in pseries:
+    #     for i in Series:
+    #         if str(i['SeriesInstanceUID']) in str(pseries[key]):
+    #             vote= vote+'{0}: \\"{1}\\",'.format(str(key),str(i['SeriesInstanceUID']))
+    # vote="{"+vote+"}"
+    print(vote)
 
-
-    loop_times = 0
-    start = 1
-    while start < 100:
-        loop_times = loop_times + 1
-        print(start)
-
-        if str(start).isdecimal() is True:
-            start = start + 1
-        else:
-            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")

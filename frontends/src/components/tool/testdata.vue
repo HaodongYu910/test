@@ -5,10 +5,19 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters" @submit.native.prevent>
         <el-form-item>
-          <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="getProjectList" />
+          <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getdata" />
         </el-form-item>
         <el-form-item>
-          <el-button type="primary" @click="getProjectList">查询</el-button>
+          <el-select v-model="filters.diseases" placeholder="请选择" @click.native="getBase()">
+            <el-option v-for="(item,index) in tags"
+                             :key="item.remarks"
+                             :label="item.remarks"
+                             :value="item.remarks"
+            />
+          </el-select>
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" @click="getdata">查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
@@ -28,7 +37,7 @@
               <span style="margin-left: 10px">{{ scope.row.id }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="patientid" label="Patientid" min-width="20%" sortable>
+          <el-table-column prop="patientid" label="Patientid" min-width="10%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
             </template>
@@ -43,38 +52,16 @@
               <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
             </template>
           </el-table-column>
-                <el-table-column label="手动/自动" min-width="10%" sortable>
-                  <template slot-scope="scope">
-                    <span style="margin-left: 20px">{{ scope.row.automatic }}</span>
-                  </template>
-                </el-table-column>
-    <!--      <el-table-column min-width="10%" label="类型">-->
-    <!--        <template slot-scope="scope">-->
-    <!--          <template v-if="row.edit">-->
-    <!--            <el-input v-model="row.diseases" class="edit-input" size="small" />-->
-    <!--            <el-button-->
-    <!--              class="cancel-btn"-->
-    <!--              size="small"-->
-    <!--              icon="el-icon-refresh"-->
-    <!--              type="warning"-->
-    <!--              @click="cancelEdit(row)"-->
-    <!--            >-->
-    <!--              cancel-->
-    <!--            </el-button>-->
-    <!--          </template>-->
-    <!--          <span v-else>{{ scope.row.diseases }}</span>-->
-    <!--        </template>-->
-    <!--      </el-table-column>-->
-          <el-table-column label="挂载序列" min-width="35%">
+          <el-table-column label="挂载序列" min-width="55%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.vote }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="操作" min-width="30px">
+          <el-table-column label="操作" min-width="8px">
             <template slot-scope="scope">
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
     <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
-              <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+  <!--             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>-->
               <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
             </template>
           </el-table-column>
@@ -101,95 +88,23 @@
           <el-form ref="addForm" :model="addForm" label-width="80px" :rules="addFormRules">
             <el-row :gutter="24">
               <el-col :span="12">
-                <el-form-item label="类型" prop="type">
-                  <el-select v-model="addForm.type" placeholder="请选择">
-                    <el-option
-                      v-for="item in options"
-                      :key="item.value"
-                      :label="item.label"
-                      :value="item.value"
-                    />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
                 <el-form-item label="patientid" prop="patientid">
                   <el-input v-model.trim="addForm.patientid" auto-complete="off" />
                 </el-form-item>
               </el-col>
+               <el-col :span="12">
+                 <el-form-item label="类型" prop="diseases">
+                   <el-select v-model="addForm.diseases" placeholder="请选择" @click.native="getBase()">
+                     <el-option
+                             v-for="(item,index) in tags"
+                             :key="item.remarks"
+                             :label="item.remarks"
+                             :value="item.remarks"
+                     />
+                   </el-select>
+                 </el-form-item>
+               </el-col>
             </el-row>
-            <el-row :gutter="24">
-              <el-col :span="12">
-                <el-form-item label="项目开始时间">
-                  <el-date-picker
-                    v-model="addForm.start_date"
-                    type="datetime"
-                    placeholder="选择日期"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="接口提测时间" prop="api_date">
-                  <el-date-picker
-                    v-model="addForm.api_date"
-                    type="datetime"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="选择日期"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="24">
-              <el-col :span="12">
-                <el-form-item label="APP提测时间" prop="app_date">
-                  <el-date-picker
-                    v-model="addForm.app_date"
-                    type="datetime"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="选择日期"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="接口上线时间" prop="api_online_date">
-                  <el-date-picker
-                    v-model="addForm.api_online_date"
-                    type="datetime"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="选择日期"
-                  />
-                </el-form-item>
-              </el-col>
-            </el-row>
-            <el-row :gutter="24">
-              <el-col :span="12">
-                <el-form-item label="发布日期" prop="end_date">
-                  <el-date-picker
-                    v-model="addForm.end_date"
-                    type="datetime"
-                    value-format="yyyy-MM-dd HH:mm:ss"
-                    placeholder="选择日期"
-                  />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="项目状态" prop="projectstatus">
-                  <el-select v-model="addForm.projectstatus" placeholder="请选择">
-                    <el-option key="未开发" label="未开发" value="未开发" />
-                    <el-option key="开发中" label="开发中" value="开发中" />
-                    <el-option key="接口测试" label="接口测试" value="接口测试" />
-                    <el-option key="功能测试" label="功能测试" value="功能测试" />
-                    <el-option key="灰度测试" label="灰度测试" value="灰度测试" />
-                    <el-option key="已上线" label="已上线" value="已上线" />
-                  </el-select>
-                </el-form-item>
-              </el-col>
-
-            </el-row>
-            <el-form-item label="描述" prop="description">
-              <el-input v-model="addForm.description" type="textarea" :rows="6" />
-            </el-form-item>
           </el-form>
           <div slot="footer" class="dialog-footer">
             <el-button @click.native="addFormVisible = false">取消</el-button>
@@ -203,7 +118,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getVersion
+  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getbase
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -268,29 +183,44 @@ export default {
         diseases: [
           { required: true, message: '请输入名称', trigger: 'blur' },
           { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
-        ],
-        type: [
-          { required: true, message: '请选择类型', trigger: 'blur' }
-        ],
-        version: [
-          { required: true, message: '请输入版本号', trigger: 'change' },
-          { pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）' }
         ]
       },
       // 新增界面数据
       addForm: {
-        diseases: '',
-        version: '',
-        type: '',
-        description: ''
+        diseases: ''
       }
 
     }
   },
   mounted() {
-    this.getstressdata()
+    this.getdata()
   },
   methods: {
+    // 获取getBase列表
+    getBase() {
+      this.listLoading = true
+      const self = this
+      const params = {
+        selecttype:"dicom",
+        status:1
+      }
+      const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+      getbase(headers, params).then((res) => {
+        self.listLoading = false
+        const {msg, code, data} = res
+        if (code === '0') {
+          self.total = data.total
+          self.list = data.data
+          var json = JSON.stringify(self.list)
+          this.tags = JSON.parse(json)
+        } else {
+          self.$message.error({
+            message: msg,
+            center: true
+          })
+        }
+      })
+    },
     run(formName) {
       this.tableData = null
       this.$refs[formName].validate((valid) => {
@@ -334,7 +264,7 @@ export default {
       })
     },
     // 获取数据列表
-    getstressdata() {
+    getdata() {
       this.listLoading = true
       const self = this
       const params = { page: self.page, diseases: self.filters.diseases }
@@ -380,13 +310,13 @@ export default {
               center: true
             })
           }
-          self.getstressdata()
+          self.getdata()
         })
       })
     },
     handleCurrentChange(val) {
       this.page = val
-      this.getstressdata()
+      this.getdata()
     },
     // 显示编辑界面
     handleEdit: function(index, row) {
@@ -397,17 +327,8 @@ export default {
     handleAdd: function() {
       this.addFormVisible = true
       this.addForm = {
-        version: null,
-        diseases: null,
-        status: null,
-        start_date: null,
-        api_date: null,
-        app_date: null,
-        api_online_date: null,
-        end_date: null,
-        type: null,
-        projectstatus: null,
-        description: null
+        patientid: null,
+        diseases: null
       }
     },
     // 编辑
@@ -441,7 +362,7 @@ export default {
                 })
                 self.$refs['editForm'].resetFields()
                 self.editFormVisible = false
-                self.getstressdata()
+                self.getdata()
               } else if (code === '999997') {
                 self.$message.error({
                   message: msg,
@@ -468,15 +389,7 @@ export default {
             // NProgress.start();
             const params = JSON.stringify({
               diseases: self.addForm.diseases,
-              type: self.addForm.type,
-              version: self.addForm.version,
-              description: self.addForm.description,
-              start_date: this.addForm.start_date,
-              api_date: this.addForm.api_date,
-              app_date: this.addForm.app_date,
-              api_online_date: this.addForm.api_online_date,
-              end_date: this.addForm.end_date,
-              projectstatus: this.addForm.projectstatus
+              patientid: self.addForm.patientid
             })
             const header = {
               'Content-Type': 'application/json',
@@ -493,7 +406,7 @@ export default {
                 })
                 self.$refs['addForm'].resetFields()
                 self.addFormVisible = false
-                self.getstressdata()
+                self.getdata()
               } else if (code === '999997') {
                 self.$message.error({
                   message: msg,
@@ -506,7 +419,7 @@ export default {
                 })
                 self.$refs['addForm'].resetFields()
                 self.addFormVisible = false
-                self.getstressdata()
+                self.getdata()
               }
             })
           })
@@ -561,7 +474,7 @@ export default {
               center: true
             })
           }
-          self.getstressdata()
+          self.getdata()
         })
       })
     }

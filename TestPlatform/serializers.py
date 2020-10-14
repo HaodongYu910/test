@@ -884,4 +884,4 @@ class stress_data_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = stress_data
-        fields = ('patientid', 'studyinstanceuid', 'diseases', 'automatic', 'vote')
+        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'automatic', 'vote')

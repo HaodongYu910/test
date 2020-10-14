@@ -10,13 +10,8 @@
                 </aside>
                 <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
                     <el-row>
-                        <el-col :span="4">
-                        <el-form-item label="测试版本" prop="version">
-                          <el-input id="version" v-model="form.version" placeholder="测试版本" />
-                        </el-form-item>
-                      </el-col>
-                        <el-col :span="5">
-                            <el-form-item label="测试服务器" prop="loadserver">
+                        <el-col :span="3">
+                            <el-form-item label="服务器" prop="loadserver">
                             <el-select v-model="form.loadserver"  placeholder="请选择" @click.native="gethost()">
                               <el-option
                                 v-for="(item,index) in tags"
@@ -27,22 +22,35 @@
                             </el-select>
                           </el-form-item>
                         </el-col>
-                        <el-col :span="4">
-                          <el-form-item label="压测时间" prop="loop_time">
-                            <el-input id="loop_time" v-model="form.loop_time" placeholder="测试小时" />
-                          </el-form-item>
-                        </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="数据类型" prop="testdata">
-                                <el-select v-model="form.senddata" multiple placeholder="请选择" @click.native="getBase()">
-                                    <el-option
-                                            v-for="(item,index) in tags"
-                                            :key="item.remarks"
-                                            :label="item.remarks"
-                                            :value="item.remarks"
-                                          />
-                                </el-select>
-                            </el-form-item>
+                        <el-col :span="3">
+                        <el-form-item label="测试版本" prop="version">
+                          <el-input id="version" v-model="form.version" placeholder="测试版本" />
+                        </el-form-item>
+                      </el-col>
+                        <el-col :span="3">
+                              <el-form-item label="压测时间" prop="loop_time">
+                                <el-input id="loop_time" v-model="form.loop_time" placeholder="测试小时" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                            <el-form-item label="线程数" prop="loop_time">
+                                <el-input id="thread" v-model="form.thread" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                            <el-col :span="3">
+                              <el-form-item label="循环次数" prop="loop">
+                                <el-input id="loop" v-model="form.loop" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                              <el-form-item label="并发" prop="synchronizing">
+                                <el-input id="synchronizing" v-model="form.synchronizing" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                            <el-form-item label="dicom发送" prop="loadserver">
+                                <el-switch v-model="form.switch" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
                         </el-col>
                         <el-col :span="4">
                             <el-form-item>
@@ -51,6 +59,12 @@
                         </el-col>
                     </el-row>
                 </el-form>
+                    <el-row>
+                            <el-checkbox-group v-model="form.testdata" size="small">
+                              <el-checkbox-button v-for="(item,index) in dibase" :label="item.remarks" :key="item.remarks">{{item.remarks}}</el-checkbox-button>
+                            </el-checkbox-group>
+                    </el-row>
+
                 <aside>
                     <a href="http://192.168.2.38:9000/" target="_blank">测试结果
                     </a>
@@ -233,17 +247,20 @@
     import {
         getstressversion,getstressresult, getHost,getbase,stressTool
     } from '@/router/api'
-
+  export default {
     // import ElRow from "element-ui/packages/row/src/row";
-    export default {
         // components: {ElRow},
         data() {
             return {
+                cities: ['lung','swi','svd'],
                 form: {
                     version: '',
                     loadserver: '192.168.1.208',
                     loop_time: '',
-                    testdata: 'ALL'
+                    thread:4,
+                    synchronizing:0,
+                    testdata:['Lung','Brain','SWI','SVD','Tumor','Heart','CT_Hematoma','CTA','CTP'],
+                    switch:false
                 },
                 rules: {
                     server: [
@@ -288,8 +305,6 @@
                     version: '2.10.0RC9',
                     server: '192.168.1.208'
                 },
-
-
                 // 新增界面数据
                 addForm: {
                     diseases: '',
@@ -303,6 +318,7 @@
         mounted() {
             this.getDurationlist()
             this.gethost()
+            this.getBase()
         },
         methods: {
             // 执行压测
@@ -314,9 +330,11 @@
                             version: this.form.version,
                             loadserver: this.form.loadserver,
                             loop_time: this.form.loop_time,
-                            testdata: this.form.senddata,
-                            duration: this.form.duration,
-                            keyword: this.form.keyword
+                            thread:this.form.thread,
+                            testdata: this.form.testdata,
+                            switch: this.form.switch,
+                            loop: this.form.loop,
+                            synchronizing:this.form.synchronizing
                         }
                         const headers = {
                             'Content-Type': 'application/json'
@@ -325,10 +343,11 @@
                             console.log(this.form.testtype)
                             const {msg, code, data} = _data
                             if (code === '0') {
-                                self.total = data.total
-                                self.list = data.data
-                                var json = JSON.stringify(self.list)
-                                this.tags = JSON.parse(json)
+                                 self.$message({
+                                  message: '修改成功',
+                                  center: true,
+                                  type: 'success'
+                                })
                             } else {
                                 self.$message.error({
                                     message: msg,
@@ -364,7 +383,7 @@
             getBase() {
                 this.listLoading = true
                 const self = this
-                const params = {selecttype:"dicom"}
+                const params = {selecttype:"dicom",status:1}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
                     self.listLoading = false
@@ -373,7 +392,7 @@
                         self.total = data.total
                         self.list = data.data
                         var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
+                        this.dibase = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -382,6 +401,7 @@
                     }
                 })
             },
+
             // 获取host数据列表
             gethost() {
                 this.listLoading = true

@@ -231,14 +231,14 @@ export const getVersion = (headers, params) => {
 }
 // 删除压测数据
 export const delstressdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/delete_stressdata`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/tool/del_stressdata`, params, headers).then(res => res.data)
 }
 // 修改压测数据
 export const updatestressdata = (headers, params) => {
   return axios.post(`${test}/api/tool/update_stressdata`, params, headers).then(res => res.data)
 }
 // 新增压测数据
-export const addstressdat = (headers, params) => {
+export const addstressdata = (headers, params) => {
   return axios.post(`${test}/api/tool/add_stressdata`, params, headers).then(res => res.data)
 }
 // 压测版本

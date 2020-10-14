@@ -113,6 +113,8 @@ urlpatterns = [
     url(r'tool/stressresult', stressResult.as_view()),
     url(r'tool/stresssave', stressResultsave.as_view()),
     url(r'tool/stressdata', stressData.as_view()),
+    url(r'tool/add_stressdata', addstressdata.as_view()),
+    url(r'tool/del_stressdata', delstressdata.as_view()),
     url(r'tool/delete_patients', delete_patients.as_view()),
     url(r'tool/durationData', durationData.as_view()),
     url(r'tool/getduration', getDuration.as_view()),
