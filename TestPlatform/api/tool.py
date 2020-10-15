@@ -335,7 +335,8 @@ class stresstool(APIView):
             testdata = data['testdata']
             end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                 "%Y-%m-%d %H:%M:%S")
-            data['testdata'] = str(data["testdata"])
+            testdata=data["testdata"]
+            data['testdata'] = str(testdata)
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
             # 查找是否相同版本号的测试记录
@@ -343,11 +344,30 @@ class stresstool(APIView):
             if len(stress_version):
                 return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
             else:
+                if data['switch'] is True:
+                    for j in testdata:
+                        dicom = base_data.objects.get(remarks=j)
+                        folder = dicom.content
+                        cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Send.py '
+                               '--ip {0} --aet {1} '
+                               '--port {2} '
+                               '--keyword {3} '
+                               '--dicomfolder {4} '
+                               '--durationid {5} '
+                               '--diseases {6} '
+                               '--start {7} '
+                               '--end {8} &').format(data['loadserver'],'orthanc208', 4242,'stress', folder, 9999, j,
+                                                     end_time)
+                        logger.info(cmd)
+                        os.system(cmd)
+                        time.sleep(1)
                 stressserializer = stressrecord_Deserializer(data=data)
+
                 with transaction.atomic():
                     stressserializer.is_valid()
                     stressserializer.save()
-                stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"])
+                stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,time)
                 return JsonResponse(code="0", msg="成功")
         except Exception as e:
             logger.error(e)

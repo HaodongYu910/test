@@ -36,12 +36,11 @@ def savecsv(path,graphql_query):
     csv_writer.writerow(graphql_query)
     f.close()
 
-def stress(orthanc_ip, diseases,version,thread,loop,synchronizing):
+def stress(orthanc_ip, diseases,version,thread,loop,synchronizing,ramp,time):
     path =os.path.join(os.getcwd())
-    version = version
-    # shutil.rmtree('{0}/stress'.format(path))
-    # os.path.join(path, 'stress')
-    savecsv('{0}/stress/config.csv'.format(path), [orthanc_ip,'test','Asd@123456',thread,synchronizing,loop])
+    shutil.rmtree('{0}/stress'.format(path))
+    os.mkdir(path + './stress')
+    savecsv('{0}/stress/config.csv'.format(path), [orthanc_ip,'test','Asd@123456',thread,synchronizing,loop,ramp,time,version])
     # 循环生成压测数据
     for i in diseases:
         stressdata = stress_data.objects.filter(diseases=i)
@@ -68,7 +67,7 @@ def stress(orthanc_ip, diseases,version,thread,loop,synchronizing):
                 savecsv('{0}/stress/{1}.csv'.format(path,str(i)), [graphql_query])
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H:%M:%S")
-        cmd = 'jmeter -n -t {0}/stress.jmx -l {1}/logs/{2}.jtl'.format(path,path,start_time)
+        cmd = 'jmeter -n -t {0}/load.jmx -l {1}/logs/{2}.jtl -j {3}/logs/jmeter{4}.log'.format(path,path,start_time,path,start_time)
         logger.info(cmd)
         os.system(cmd)
     except Exception as e:
