@@ -115,6 +115,8 @@ class addstressdata(APIView):
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
             data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
+            if data['diseases'] =='Lung':
+                data['automatic'] ='1'
             stress_data = stress_data_Deserializer(data=data)
 
             with transaction.atomic():

@@ -86,21 +86,8 @@ def getcsv():
 
 
 if __name__ == '__main__':
-    patientid='0950028'
-    orthanc_ip='192.168.1.208'
-    vote=''
-    # Series = connect_to_postgres(orthanc_ip,
-    #                                  "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
-    #                                      patientid)).to_dict(orient='records')
-    # pseries_classifier = connect_to_postgres(orthanc_ip,
-    #                                              "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
-    #                                                  uid)).to_dict(orient='records')
-    #
-    # pseries=pseries_classifier[0]['pseries']
-    # for key in pseries:
-    #     for i in Series:
-    #         if str(i['SeriesInstanceUID']) in str(pseries[key]):
-    #             vote= vote+'{0}: \\"{1}\\",'.format(str(key),str(i['SeriesInstanceUID']))
-    # vote="{"+vote+"}"
-    print(vote)
+    import pandas as pd
+    import shutil
+    shutil.rmtree('D:\workspace\Biomind_Test_Platform\stress')
+
 

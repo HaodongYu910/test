@@ -6,7 +6,8 @@ from TestPlatform.common.regexUtil import *
 from TestPlatform.models import stress_detail_record, stress_data
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
-
+import os
+import shutil
 from .PerformanceResult import savecheck, lung
 
 logger = logging.getLogger(__name__)
@@ -29,24 +30,22 @@ def updateStressData(uid,orthanc_ip):
                 vote = vote + '{0}: \\"{1}\\",'.format(str(key), str(i['SeriesInstanceUID']))
     vote = "{" + vote + "}"
     return vote
+def savecsv(path,graphql_query):
+    f = open('{0}'.format(path), 'a', encoding='utf-8', newline="")
+    csv_writer = csv.writer(f)
+    csv_writer.writerow(graphql_query)
+    f.close()
 
 def stress(orthanc_ip, diseases,version,thread,loop,synchronizing):
     path =os.path.join(os.getcwd())
     version = version
-    f = open('{0}/stress/config.csv'.format(path), 'w', encoding='utf-8', newline="")
-    csv_writer = csv.writer(f)
-    # 构建列表头
-    csv_writer.writerow(['sever','username','password','thread','synchronizing',
-                         'loop'])
-    csv_writer.writerow([orthanc_ip,'test','Asd@123456',thread,synchronizing,loop])
+    # shutil.rmtree('{0}/stress'.format(path))
+    # os.path.join(path, 'stress')
+    savecsv('{0}/stress/config.csv'.format(path), [orthanc_ip,'test','Asd@123456',thread,synchronizing,loop])
     # 循环生成压测数据
     for i in diseases:
         stressdata = stress_data.objects.filter(diseases=i)
-        f = open('{0}/stress/{1}.csv'.format(path,str(i)), 'w', encoding='utf-8', newline="")
-        # 基于文件对象构建 csv写入对象
-        csv_writer = csv.writer(f)
-        # 构建列表头
-        csv_writer.writerow([i, "", ''])
+
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                         "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \
@@ -57,12 +56,19 @@ def stress(orthanc_ip, diseases,version,thread,loop,synchronizing):
                                                        " puser_id:\\\"biomind\\\" " \
                                                        "pseries_classifier:" + str(k.vote) + "})" \
             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-            csv_writer.writerow([graphql_query, ""])
-            # 5. 关闭文件
-        f.close()
+            if i=="Lung" and k.automatic =='1.25':
+                savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
+            elif i=="Lung" and k.automatic =='1.5':
+                savecsv('{0}/stress/{1}2.csv'.format(path, str(i)), [graphql_query])
+            elif i=="Lung" and k.automatic =='5':
+                savecsv('{0}/stress/{1}3.csv'.format(path, str(i)), [graphql_query])
+            elif i=="Lung" and k.automatic =='10':
+                savecsv('{0}/stress/{1}4.csv'.format(path, str(i)), [graphql_query])
+            else:
+                savecsv('{0}/stress/{1}.csv'.format(path,str(i)), [graphql_query])
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H:%M:%S")
-        cmd = 'jmeter -n -t {0}/stress/centos.jmx -l {1}/logs/{2}.jtl'.format(path,path,start_time)
+        cmd = 'jmeter -n -t {0}/stress.jmx -l {1}/logs/{2}.jtl'.format(path,path,start_time)
         logger.info(cmd)
         os.system(cmd)
     except Exception as e:
