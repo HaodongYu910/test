@@ -340,11 +340,10 @@
                             'Content-Type': 'application/json'
                         }
                         stressTool(headers, params).then(_data => {
-                            console.log(this.form.testtype)
-                            const {msg, code, data} = _data
+                            const {msg, code } = _data
                             if (code === '0') {
                                  self.$message({
-                                  message: '修改成功',
+                                  message: '成功',
                                   center: true,
                                   type: 'success'
                                 })

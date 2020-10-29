@@ -79,6 +79,11 @@ export default new Router({
                     meta: { title: '性能工具' }
                 },
                 {
+                    path: '/stressreport',
+                    component: resolve => require(['../components/tool/stress/stress_result.vue'], resolve),
+                    meta: { title: '性能报告' }
+                },
+                {
                     path: '/data',
                     component: resolve => require(['../components/tool/testdata.vue'], resolve),
                     meta: { title: '测试数据' }

@@ -74,9 +74,8 @@ def get_tc_perf():
 
 
 # 链接InfluxDB时序数据库
-def connect_to_influx(username, password, database, task_type, task_content):
-    client = InfluxDBClient(host='10.100.201.111', port='8086', username=username, password=password,
-                            database=database)
+def connect_to_influx(server,database, task_type, task_content):
+    client = InfluxDBClient(host=server, port='8086',database=database)
     if task_type == 'insert':
         result = client.write_points(task_content)
     elif task_type == 'query':

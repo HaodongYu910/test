@@ -38,7 +38,7 @@ CONFIG = {
     'dicomfolder': '/files/',
     'durationid': '1',
     'diseases': 'all',
-    'end': 1
+    'end': ''
 }
 
 
@@ -287,7 +287,7 @@ def prepare_config(argv):
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
-    log_file = '{0}/{1}Send.log'.format(log_path, CONFIG["keyword"])
+    log_file = '{0}/{1}.log'.format(log_path, CONFIG["keyword"])
     logging.basicConfig(filename=log_file, filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)

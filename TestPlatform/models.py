@@ -916,7 +916,9 @@ class duration(models.Model):
     dicom = models.CharField(max_length=100, blank=True, null=True, verbose_name="dicom数据")
     sendcount = models.IntegerField(blank=True, null=True, verbose_name="共计发送")
     end_time = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束时间")
-    timer = models.CharField(max_length=20, blank=True, null=True, verbose_name="定时器")
+    sleepcount = models.CharField(max_length=20, blank=True, null=True, verbose_name="睡眠张数")
+    sleeptime = models.CharField(max_length=20, blank=True, null=True, verbose_name="睡眠时间")
+    series = models.CharField(max_length=5, blank=True, null=True, verbose_name="series")
     sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=False, verbose_name='状态')
     dds = models.CharField(max_length=20, blank=True, null=True,  verbose_name='dds 服务')
@@ -930,6 +932,23 @@ class duration(models.Model):
         verbose_name = "持续化配置"
         verbose_name_plural = "持续化配置"
         db_table = 'duration'
+
+
+class image(models.Model):
+    """
+          imagecount
+        """
+    id = models.AutoField(primary_key=True)
+    study_uid = models.CharField(max_length=100, blank=True, null=True, verbose_name="study_uid")
+
+
+    def __unicode__(self):
+        return self.study_uid
+
+    class Meta:
+        verbose_name = "image"
+        verbose_name_plural = "image"
+        db_table = 'image'
 
 class pid(models.Model):
     """

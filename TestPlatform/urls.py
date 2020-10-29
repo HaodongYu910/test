@@ -1,17 +1,18 @@
 from django.conf.urls import url
 from rest_framework import routers
-from TestPlatform.api import ApiDoc, automationCase as Case, member, dynamic, user, VisitorRecord
 
-from TestPlatform.api import automationReport as Report
-from TestPlatform.api.global_parameter import HostTotal, AddHost, UpdateHost, DelHost, DisableHost, EnableHost
-from TestPlatform.api.projectList import *
-from TestPlatform.api.projectTitle import ProjectInfo
-from TestPlatform.api.Jiradata import *
-from TestPlatform.api.Sendmail import *
-from TestPlatform.api.basedata import *
-from TestPlatform.api.test_report import *
-from TestPlatform.api.tool import *
-from TestPlatform.api.user_permission import *
+from .api import ApiDoc, automationCase as Case, member, dynamic, user, VisitorRecord
+from .api import automationReport as Report
+from .api.projectList import *
+from .api.global_parameter import *
+from .api.projectTitle import ProjectInfo
+from .api.Jiradata import *
+from .api.Sendmail import *
+from .api.basedata import *
+from .api.test_report import *
+from .api.tool import *
+from .api.user_permission import *
+from .api.report import reportfigure
 # Routers provide an easy way of automatically determining the URL conf.
 # 注册
 router = routers.DefaultRouter()
@@ -111,6 +112,7 @@ urlpatterns = [
     url(r'tool/stressversion', stressversion.as_view()),
     url(r'tool/stresstool', stresstool.as_view()),
     url(r'tool/stressresult', stressResult.as_view()),
+    url(r'tool/stressfigure', reportfigure.as_view()),
     url(r'tool/stresssave', stressResultsave.as_view()),
     url(r'tool/stressdata', stressData.as_view()),
     url(r'tool/add_stressdata', addstressdata.as_view()),

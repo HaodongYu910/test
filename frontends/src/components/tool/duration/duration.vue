@@ -133,9 +133,14 @@
                             <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="定时器" min-width="10%">
+                    <el-table-column label="延时发送" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.timer }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="延时张数" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.sleepcount }} 秒 </span>
                         </template>
                     </el-table-column>
                     <el-table-column label="DDS" min-width="12%">
@@ -204,11 +209,21 @@
                                     <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="12">
-                                <el-form-item label="定时器" prop="timer">
-                                    <el-input id="timer" v-model="editForm.timer" placeholder="30 09 * * *  表示每天9：30执行"/>
+                            <el-col :span="4">
+                                <el-form-item label="延时时间" prop="sleeptime">
+                                    <el-input id="sleeptime" v-model="editForm.sleeptime" placeholder="秒"/>
                                 </el-form-item>
                             </el-col>
+                            <el-col :span="4">
+                                <el-form-item label="延时数量" prop="sleepcount">
+                                    <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="3">
+                            <el-form-item label="series" prop="series">
+                                <el-switch v-model="editForm.series" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                        </el-col>
                             <el-col :span="4">
                                 <el-form-item label="" prop="keyword">
                                     <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
@@ -268,12 +283,22 @@
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="10">
-                                    <el-form-item label="定时器" prop="timer">
-                                        <el-input id="timer" v-model="addForm.timer" placeholder="30 09 * * *  表示每天9：30执行"/>
+                                    <el-form-item label="延时时间" prop="sleeptime">
+                                        <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
                                     </el-form-item>
                                 </el-col>
+                                <el-col :span="10">
+                                    <el-form-item label="延时数量" prop="sleepcount">
+                                        <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="3">
+                                    <el-form-item label="series" prop="series">
+                                        <el-switch v-model="addForm.series" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                                        </el-form-item>
+                                </el-col>
                                 <el-col :span="6">
-                                    <el-form-item label="" prop="timer">
+                                    <el-form-item label="" prop="dds">
                                         <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
                                     </el-form-item>
                                 </el-col>
@@ -633,7 +658,10 @@
                     dicom: null,
                     dds:null,
                     sendstatus: false,
-                    status: false
+                    status: false,
+                    sleepcount:null,
+                    sleeptime:0,
+                    series:false
                 }
             },
             // 编辑
@@ -650,7 +678,9 @@
                                 keyword: this.editForm.keyword,
                                 dicom: this.editForm.senddata,
                                 sendcount:this.editForm.sendcount,
-                                timer: this.editForm.timer,
+                                sleepcount: this.editForm.sleepcount,
+                                sleeptime:this.editForm.sleeptime,
+                                series:this.editForm.series
                             }
                             const header = {
                                 'Content-Type': 'application/json',
@@ -699,8 +729,10 @@
                                 keyword: this.addForm.keyword,
                                 dicom: this.addForm.senddata,
                                 sendcount:this.addForm.sendcount,
-                                timer: this.addForm.timer,
                                 dds:this.addForm.dds,
+                                sleepcount: this.addForm.sleepcount,
+                                sleeptime:this.addForm.sleeptime,
+                                series:this.addForm.series,
                                 sendstatus: false,
                                 status: false
                             })

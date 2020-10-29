@@ -78,6 +78,10 @@
                             {
                                 index: 'stress',
                                 title: '性能工具'
+                            },
+                             {
+                                index: 'stressreport',
+                                title: '图表结果'
                             }
                         ]
                     },

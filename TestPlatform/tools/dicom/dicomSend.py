@@ -39,7 +39,11 @@ CONFIG = {
     'durationid': '1',
     'diseases': 'all',
     'start': 0,
-    'end': 1
+    'end': 1,
+    'sleepcount':9999,
+    'sleeptime':1,
+    'Seriesinstanceuid':'1',
+    'Series':'0'
 }
 
 
@@ -126,27 +130,27 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
-    global uid
+def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,Seriesinstanceuid):
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
+            sqlDB('INSERT INTO image values(%s,%s)',[None,study_uid])
         else:
-            study_info = {
+            study_infos[study_uid] = {
                 "imagecount": 1
             }
-            study_infos[study_uid] = study_info
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, 1, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
                    studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
-            if int(len(study_infos)) == 1:
-                uid = study_uid
-            else:
-                sqlDB('update duration_record set imagecount = %s where studyinstanceuid = %s ;',
-                      [study_infos[uid]["imagecount"], uid])
-                uid = study_uid
+        study_infos["count"] =study_infos["count"] + 1
+        if study_infos["count"] == int(CONFIG.get('sleeptimecount', '')):
+            time.sleep(CONFIG.get('sleeptime', ''))
+            study_infos["count"] = 0
+        elif CONFIG.get('Seriesinstanceuid', '')!= Seriesinstanceuid and CONFIG.get('Series', '') =='1':
+            time.sleep(int(CONFIG.get('sleeptime', '')))
+            CONFIG["Seriesinstanceuid"]  = Seriesinstanceuid
     except Exception as e:
         logging.error('errormsg: failed to update sql [{0}]'.format(e))
 
@@ -176,6 +180,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             study_uid = ds.StudyInstanceUID
             study_old_uid = ds.StudyInstanceUID
+            Seriesinstanceuid=ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -236,13 +241,13 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
         try:
             sync_send_file(full_fn_fake)
-            logging.info('msg: send file to [{0}]'.format(new_study_uid))
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber,
-                study_old_uid=study_old_uid
+                study_old_uid=study_old_uid,
+                Seriesinstanceuid=Seriesinstanceuid
             )
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
@@ -254,7 +259,7 @@ def prepare_config(argv):
     try:
         opts, args = getopt.getopt(argv, "h",
                                    ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
-                                    "start=", "end="])
+                                    "start=", "end=","sleepcount=", "sleeptime=","Series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
@@ -279,7 +284,12 @@ def prepare_config(argv):
                 CONFIG["start"] = arg
             elif opt in ("--end"):
                 CONFIG["end"] = arg
-
+            elif opt in ("--sleepcount"):
+                CONFIG["sleepcount"] = arg
+            elif opt in ("--sleeptime"):
+                CONFIG["sleeptime"] = arg
+            elif opt in ("--Series"):
+                CONFIG["Series"] = arg
 
     except Exception as e:
         logging.error("error: failed to get args", e)
@@ -317,7 +327,7 @@ if __name__ == '__main__':
                                           str(start))
         study_fakeinfos = {}
         study_infos = {}
-
+        study_infos["count"]=0
         fake_folder(
             folder=src_folder,
             folder_fake=folder_fake,

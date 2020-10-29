@@ -104,10 +104,6 @@ class addstressdata(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             orthanc_ip='192.168.1.208'
             StudyUID = connect_to_postgres(orthanc_ip,
                                          "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
@@ -161,10 +157,6 @@ class updatestressdata(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
             data['dicom'] = ','.join(data['dicom'])
             keyword = duration.objects.filter(keyword=data["keyword"])
@@ -219,7 +211,7 @@ class delstressdata(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-class stressResult(APIView):
+class reportfigure(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -249,21 +241,12 @@ class stressResult(APIView):
             return result
 
         try:
-            prediction = stress_result.objects.filter(version=data['version'], type='prediction')
-            job = stress_result.objects.filter(version=data['version'], type='job')
-            lung = stress_result.objects.filter(version=data['version'], type='lung')
-
-            predictionobj = stress_result.objects.filter(version=data['checkversion'], type='prediction')
-            jobobj = stress_result.objects.filter(version=data['checkversion'], type='job')
-            lungobj = stress_result.objects.filter(version=data['checkversion'], type='lung')
-
-            predictionresult = dataCheck(prediction, predictionobj)
-            jobresult = dataCheck(job, jobobj)
-            lungresult = dataCheck(lung, lungobj)
-
-            return JsonResponse(data={"predictionresult": predictionresult,
-                                      "jobresult": jobresult,
-                                      "lungresult": lungresult
+            data= [['Brain', 'CT_Hematoma', 'SVD', 'SWI', 'Tumor', 'CTA', 'CTP', 'Lung', 'Lung1', 'Lung2', 'Lung3', 'Lung4',
+              'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery'],['1', '2', '3', '4', '2', '1', '0', '1', '9', '7', '6', '1',
+              '5', '6', '7', '2', '1'],['1', '2', '3', '4', '2', '1', '0', '1', '9', '7', '6', '1',
+              '5', '6', '7', '2', '1']]
+            return JsonResponse(data={"figure_list": data,
+                                  "solution_state": data
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -793,7 +776,7 @@ class EnableDuration(APIView):
                        '--diseases {6} '
                        '--start {7} '
                        '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
-                                             start, end,obj.sleepcount,obj.sleeptime,obj.series)
+                                             start, end)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)

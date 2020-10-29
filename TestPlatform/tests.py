@@ -83,11 +83,13 @@ def getcsv():
     csv_pd = pd.read_csv("C:\\Users\\yinhang\\Desktop\\stress\\lung2.csv")
     csv = csv_pd.to_dict(orient='records')
     return csv
-
-
-if __name__ == '__main__':
-    import pandas as pd
-    import shutil
-    shutil.rmtree('D:\workspace\Biomind_Test_Platform\stress')
-
+#
+#
+# if __name__ == '__main__':
+    # import pandas as pd
+    # from influxdb import InfluxDBClient
+    # client = InfluxDBClient(host='192.168.2.38', port='8086',database='Jmeter_DB')
+    # result = client.query("SELECT  last(\"pct90.0\") FROM \"jmeter\"  WHERE (\"application\" =~ /^Brain$/) AND time >= 1602784800000ms and time <= 1602835199000ms  AND \"transaction\" != 'all'  GROUP BY \"transaction\", time(30s) fill(null)")
+    #
+    # print(result)
 

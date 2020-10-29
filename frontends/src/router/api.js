@@ -2,8 +2,8 @@ import axios from 'axios';
 
 
 
-export const test = 'http://127.0.0.1:8000';
-//export const test = 'http://192.168.2.38:9000';
+//export const test = 'http://127.0.0.1:8000';
+export const test = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -252,6 +252,10 @@ export const getstressdata = (headers, params) => {
 // 压测结果
 export const getstressresult = (headers, params) => {
   return axios.post(`${test}/api/tool/stressresult`,params, headers ).then(res => res.data)
+}
+// 压测report
+export const getreportfigure = (headers, params) => {
+  return axios.post(`${test}/api/tool/stressfigure`,params, headers ).then(res => res.data)
 }
 // 删除patient数据
 export const delete_patients = (headers, params) => {

@@ -124,13 +124,15 @@ def dataCheck(datadict1,datadict2):
                 b = j['slicenumber']
             if a == b:
                 for x in ['avg','single','median','min','max','coef','rate']:
-                    if i[x] is None:i[x] = '0'
-                    if j[x] is None:j[x] = '0'
-                    if i[x] > j[x]:
-                        i[x] = str(i[x]) + " （ +" + str(
+                    if i[x] is None:i[x] = 0.0
+                    if j[x] is None:j[x] = 0.0
+                    if float(i[x]) > float(j[x]):
+                        i[x] = str(i[x]) + "(+" + str(
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"
-                    elif i[x] <j[x]:
-                        i[x] = str(i[x]) + " ( " + str(
+                    elif float(i[x]) == float(j[x]):
+                        i[x] = str(i[x])
+                    else:
+                        i[x] = str(i[x]) + " (" + str(
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"
     return dict1
 
@@ -151,4 +153,20 @@ def savecheck(sqltable, checkdate,server,version):
         with transaction.atomic():
             stressserializer.is_valid()
             stressserializer.save()
+    return True
+
+
+def jmetersave(server,version):
+    task_content =""
+    result = connect_to_influx('192.168.2.38','Jmeter_DB', 'query', task_content)
+    _num1 = len(result)
+    _dict1 = result.to_dict(orient='records')
+    for i in _dict1:
+        print(i)
+        # i["version"]=version
+        # i["type"]=sqltable
+        # stressserializer = stress_result_Deserializer(data=i)
+        # with transaction.atomic():
+        #     stressserializer.is_valid()
+        #     stressserializer.save()
     return True
