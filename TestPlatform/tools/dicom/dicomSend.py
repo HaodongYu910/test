@@ -144,15 +144,15 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,S
                   [None, patientid, accessionnumber, study_uid, 1, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
                    studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
-        study_infos["count"] =study_infos["count"] + 1
-        if study_infos["count"] == int(CONFIG.get('sleeptimecount', '')):
-            time.sleep(CONFIG.get('sleeptime', ''))
+        study_infos["count"] =int(study_infos["count"]) + 1
+        if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
+            time.sleep(int(CONFIG.get('sleeptime', '')))
             study_infos["count"] = 0
         elif CONFIG.get('Seriesinstanceuid', '')!= Seriesinstanceuid and CONFIG.get('Series', '') =='1':
             time.sleep(int(CONFIG.get('sleeptime', '')))
-            CONFIG["Seriesinstanceuid"]  = Seriesinstanceuid
+            CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
     except Exception as e:
-        logging.error('errormsg: failed to update sql [{0}]'.format(e))
+        logging.error('errormsg: failed to sql [{0}]'.format(e))
 
 
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):

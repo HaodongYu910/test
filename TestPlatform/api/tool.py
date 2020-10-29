@@ -104,10 +104,6 @@ class addstressdata(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             orthanc_ip='192.168.1.208'
             StudyUID = connect_to_postgres(orthanc_ip,
                                          "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
@@ -161,10 +157,6 @@ class updatestressdata(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
             data['dicom'] = ','.join(data['dicom'])
             keyword = duration.objects.filter(keyword=data["keyword"])
@@ -203,7 +195,7 @@ class delstressdata(APIView):
 
     def post(self, request):
         """
-        删除项目
+        删除
         :param request:
         :return:
         """
@@ -609,6 +601,10 @@ class add_duration(APIView):
         if result:
             return result
         try:
+            if data['series'] is True:
+                data['series'] = '1'
+            else:
+                data['series'] = '0'
             data['dicom'] = ','.join(data['dicom'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
@@ -652,6 +648,10 @@ class update_duration(APIView):
         if result:
             return result
         try:
+            if data['series'] is True:
+                data['series'] = '1'
+            else:
+                data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
             data['dicom'] = ','.join(data['dicom'])
             keyword = duration.objects.filter(keyword=data["keyword"])
@@ -792,8 +792,11 @@ class EnableDuration(APIView):
                        '--durationid {5} '
                        '--diseases {6} '
                        '--start {7} '
-                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
-                                             start, end,obj.sleepcount,obj.sleeptime,obj.series)
+                       '--end {8}'
+                       '--sleepcount {9} '
+                       '--sleeptime {10} '
+                       '--series {11} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
+                                             start, end, obj.sleepcount, obj.sleeptime, obj.series)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
