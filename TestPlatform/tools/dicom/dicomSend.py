@@ -131,19 +131,25 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
 
 
 def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,Seriesinstanceuid):
+    global uid
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
-            sqlDB('INSERT INTO image values(%s,%s)',[None,study_uid])
         else:
             study_infos[study_uid] = {
                 "imagecount": 1
             }
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                  [None, patientid, accessionnumber, study_uid, 1, None,
+                  [None, patientid, accessionnumber, study_uid,'', None,
                    None, None, CONFIG.get('server', {}).get('ip'),
                    studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
+            if int(len(study_infos)) == 1:
+                uid = study_uid
+            else:
+                sqlDB('INSERT INTO image values(%s,%s,%s)',[None,uid,study_infos[uid]["imagecount"]])
+                del study_infos[uid]
+                uid = study_uid
         study_infos["count"] =int(study_infos["count"]) + 1
         if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
             time.sleep(int(CONFIG.get('sleeptime', '')))

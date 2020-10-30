@@ -940,7 +940,7 @@ class image(models.Model):
         """
     id = models.AutoField(primary_key=True)
     study_uid = models.CharField(max_length=100, blank=True, null=True, verbose_name="study_uid")
-
+    imagecount = models.CharField(max_length=10, blank=True, null=True, verbose_name="imagecount")
 
     def __unicode__(self):
         return self.study_uid
