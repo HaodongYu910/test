@@ -791,11 +791,12 @@ class EnableDuration(APIView):
                        '--durationid {5} '
                        '--diseases {6} '
                        '--start {7} '
-                       '--end {8} '
-                       '--sleepcount {9} '
-                       '--sleeptime {10} '
-                       '--series {11} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
+                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
                                              start, end, sleepcount, sleeptime, obj.series)
+
+                       # '--sleepcount {9} '
+                       # '--sleeptime {10} '
+                       # '--series {11} &'
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)

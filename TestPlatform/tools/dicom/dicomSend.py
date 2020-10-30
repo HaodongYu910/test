@@ -43,7 +43,7 @@ CONFIG = {
     'sleepcount':9999,
     'sleeptime':1,
     'Seriesinstanceuid':'1',
-    'Series':'0'
+    'series':'0'
 }
 
 
@@ -141,7 +141,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,S
                 "imagecount": 1
             }
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                  [None, patientid, accessionnumber, study_uid,'', None,
+                  [None, patientid, accessionnumber, study_uid,None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
                    studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
             if int(len(study_infos)) == 1:
@@ -154,7 +154,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,S
         if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
             time.sleep(int(CONFIG.get('sleeptime', '')))
             study_infos["count"] = 0
-        elif CONFIG.get('Seriesinstanceuid', '')!= Seriesinstanceuid and CONFIG.get('Series', '') =='1':
+        if CONFIG.get('Seriesinstanceuid', '')!= Seriesinstanceuid and CONFIG.get('Series', '') =='1':
             time.sleep(int(CONFIG.get('sleeptime', '')))
             CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
     except Exception as e:
@@ -265,7 +265,7 @@ def prepare_config(argv):
     try:
         opts, args = getopt.getopt(argv, "h",
                                    ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
-                                    "start=", "end=","sleepcount=", "sleeptime=","Series="])
+                                    "start=", "end=","sleepcount=", "sleeptime=","series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
@@ -294,8 +294,8 @@ def prepare_config(argv):
                 CONFIG["sleepcount"] = arg
             elif opt in ("--sleeptime"):
                 CONFIG["sleeptime"] = arg
-            elif opt in ("--Series"):
-                CONFIG["Series"] = arg
+            elif opt in ("--series"):
+                CONFIG["series"] = arg
 
     except Exception as e:
         logging.error("error: failed to get args", e)
