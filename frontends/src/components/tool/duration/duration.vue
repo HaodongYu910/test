@@ -133,14 +133,19 @@
                             <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="延时发送" min-width="10%">
+                    <el-table-column label="延时时间" min-width="10%">
                         <template slot-scope="scope">
                             <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="延时张数" min-width="10%">
+                    <el-table-column label="延时数量" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.sleepcount }} 秒 </span>
+                            <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="series延时" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.series }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="DDS" min-width="12%">
@@ -282,12 +287,12 @@
                                         <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
                                     </el-form-item>
                                 </el-col>
-                                <el-col :span="10">
+                                <el-col :span="4">
                                     <el-form-item label="延时时间" prop="sleeptime">
                                         <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
                                     </el-form-item>
                                 </el-col>
-                                <el-col :span="10">
+                                <el-col :span="4">
                                     <el-form-item label="延时数量" prop="sleepcount">
                                         <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
                                     </el-form-item>

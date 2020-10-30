@@ -747,6 +747,8 @@ class EnableDuration(APIView):
         try:
             durationid = data["id"]
             obj = duration.objects.get(id=durationid)
+            sleepcount=  obj.sleepcount if obj.sleepcount is not None else 9999
+            sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
 
             if obj.sendcount is None and obj.end is None:
                 start = 0
@@ -778,10 +780,7 @@ class EnableDuration(APIView):
                         mincount = int(imin[0]) + int(imod[0])
                     else:
                         mincount = int(imin[0]) + int(imod[0]) + 1
-                    if int(dicom.other) == int(min):
-                        end = mincount
-                    else:
-                        end = imod[0]
+                    end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                        ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
@@ -796,7 +795,7 @@ class EnableDuration(APIView):
                        '--sleepcount {9} '
                        '--sleeptime {10} '
                        '--series {11} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
-                                             start, end, obj.sleepcount, obj.sleeptime, obj.series)
+                                             start, end, sleepcount, sleeptime, obj.series)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
