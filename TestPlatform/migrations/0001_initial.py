@@ -509,7 +509,7 @@ class Migration(migrations.Migration):
                 ('patientid', models.CharField(blank=True, max_length=50, null=True, verbose_name='patientid')),
                 ('studyinstanceuid', models.CharField(blank=True, max_length=100, null=True, verbose_name='数据uid')),
                 ('diseases', models.CharField(blank=True, max_length=20, null=True, verbose_name='预测类型')),
-                ('automatic', models.CharField(blank=True, max_length=5, null=True, verbose_name='自动或手动预测')),
+                ('slicenumber', models.CharField(blank=True, max_length=5, null=True, verbose_name='自动或手动预测')),
                 ('vote', models.CharField(blank=True, max_length=500, null=True, verbose_name='挂载')),
                 ('update_time', models.DateTimeField(auto_now=True, verbose_name='修改时间')),
                 ('create_time', models.DateTimeField(auto_now_add=True, verbose_name='创建时间')),

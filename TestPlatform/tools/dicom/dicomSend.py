@@ -57,7 +57,6 @@ def sqlDB(sql, data):
         conn.commit()
     except Exception as e:
         conn.rollback()
-        logging.error(e)
     cur.close()
     conn.close()
     return data
@@ -148,7 +147,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,S
                 uid = study_uid
             else:
                 sqlDB('INSERT INTO image values(%s,%s,%s)',[None,uid,study_infos[uid]["imagecount"]])
-                del study_infos[uid]
+                # del study_infos[uid]
                 uid = study_uid
         study_infos["count"] =int(study_infos["count"]) + 1
         if study_infos["count"] == int(CONFIG.get('sleepcount', '')):

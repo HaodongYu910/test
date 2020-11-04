@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 
 def graphql_json(data):
-    if data['automatic'] == 'F':
+    if data['slicenumber'] == 'F':
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         'block : false' \

@@ -344,7 +344,7 @@ export default {
               patientid: self.editForm.patientid,
               studyinstanceuid: self.editForm.studyinstanceuid,
               diseases: self.editForm.diseases,
-              automatic: self.editForm.automatic,
+              slicenumber: self.editForm.slicenumber,
               vote: self.editForm.vote
             }
             const header = {

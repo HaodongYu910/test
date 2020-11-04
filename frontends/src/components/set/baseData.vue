@@ -4,7 +4,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-                    <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="getbaseList"></el-input>
+                    <el-input v-model="filters.content" placeholder="名称" @keyup.enter.native="getbaseList"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getbaseList">查询</el-button>
@@ -21,7 +21,7 @@
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
 
-            <el-table-column prop="version" label="ID" min-width="6%" sortable>
+            <el-table-column prop="select_type" label="ID" min-width="6%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.id }}</span>
                 </template>
@@ -81,7 +81,7 @@
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                 <el-form-item label="项目名称">
-                    <el-input v-model="editForm.name" auto-complete="off" :disabled="true"></el-input>
+                    <el-input v-model="editForm.content" auto-complete="off" :disabled="true"></el-input>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
@@ -95,7 +95,7 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="版本号">
-                            <el-input v-model="editForm.version" :disabled="true" auto-complete="off"></el-input>
+                            <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -107,22 +107,22 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口提测时间" prop='api_date'>
-                            <el-date-picker v-model="editForm.api_date" type="datetime"
+                        <el-form-item label="接口提测时间" prop='status'>
+                            <el-date-picker v-model="editForm.status" type="datetime"
                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="APP提测时间" prop="app_date">
-                            <el-date-picker v-model="editForm.app_date" type="datetime"
+                        <el-form-item label="APP提测时间" prop="remarks">
+                            <el-date-picker v-model="editForm.remarks" type="datetime"
                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口上线时间" prop='api_online_date'>
-                            <el-date-picker v-model="editForm.api_online_date" type="datetime"
+                        <el-form-item label="接口上线时间" prop='other'>
+                            <el-date-picker v-model="editForm.other" type="datetime"
                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
@@ -215,7 +215,7 @@
         data() {
             return {
                 filters: {
-                    name: ''
+                    content: ''
                 },
                 project: [],
                 total: 0,
@@ -227,14 +227,14 @@
                 editLoading: false,
                 options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
                 editFormRules: {
-                    name: [
+                    content: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
-                    version: [
+                    select_type: [
                         {  required: true, message: '请输入版本号', trigger: 'change' },
                         {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
                     ],
@@ -245,8 +245,8 @@
                 },
                 //编辑界面数据
                 editForm: {
-                    name: '',
-                    version: '',
+                    content: '',
+                    select_type: '',
                     type: '',
                     description: ''
                 },
@@ -254,22 +254,22 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    name: [
+                    content: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
-                    version: [
+                    select_type: [
                         {  required: true, message: '请输入版本号', trigger: 'change' },
                         {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //新增界面数据
                 addForm: {
-                    name: '',
-                    version: '',
+                    content: '',
+                    select_type: '',
                     type: '',
                     description: ''
                 }
@@ -283,7 +283,7 @@
                     path:'/danger',
                     query:{
                         project_id:row.id,
-                        name:row.name
+                        content:row.content
                     }
                 });
             },
@@ -292,7 +292,7 @@
             getbaseList() {
                 this.listLoading = true;
                 let self = this;
-                let params = {page: self.page, name: self.filters.name};
+                let params = {page: self.page, content: self.filters.content};
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 getbase(headers, params).then((res) => {
                     self.listLoading = false;
@@ -399,17 +399,12 @@
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm={
-                    version:null,
-                    name:null,
+                    select_type:null,
+                    content:null,
                     status:null,
-                    start_date:null,
-                    api_date:null,
-                    app_date:null,
-                    api_online_date:null,
-                    end_date:null,
-                    type:null,
-                    projectstatus:null,
-                    description:null
+                    remarks:null,
+                    other:null,
+                    type:null
                 };
             },
             //编辑
@@ -421,17 +416,14 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: self.editForm.id,
-                                name: self.editForm.name,
+                                id: self.editForm.id,
+                                content: self.editForm.content,
                                 type: self.editForm.type,
-                                version: self.editForm.version,
+                                select_type: self.editForm.select_type,
                                 start_date: self.editForm.start_date,
-                                api_date: self.editForm.api_date,
-                                app_date: self.editForm.app_date,
-                                api_online_date: self.editForm.api_online_date,
-                                end_date: self.editForm.end_date,
-                                projectstatus: self.editForm.projectstatus,
-                                description: self.editForm.description
+                                status: self.editForm.status,
+                                remarks: self.editForm.remarks,
+                                other: self.editForm.other
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -474,16 +466,11 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                name: self.addForm.name,
+                                content: this.addForm.content,
                                 type: self.addForm.type,
-                                version: self.addForm.version,
-                                description: self.addForm.description,
-                                start_date: this.addForm.start_date,
-                                api_date: this.addForm.api_date,
-                                app_date: this.addForm.app_date,
-                                api_online_date: this.addForm.api_online_date,
-                                end_date: this.addForm.end_date,
-                                projectstatus: this.addForm.projectstatus,
+                                select_type: self.addForm.select_type,
+                                remarks: self.addForm.remarks,
+                                other: self.addForm.other
                             });
                             let header = {
                                 "Content-Type": "application/json",

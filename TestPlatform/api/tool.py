@@ -116,7 +116,7 @@ class addstressdata(APIView):
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
             data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
             if data['diseases'] =='Lung':
-                data['automatic'] ='1'
+                data['slicenumber'] ='1'
             stress_data = stress_data_Deserializer(data=data)
 
             with transaction.atomic():
@@ -348,24 +348,26 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Send.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/stress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '
                                '--dicomfolder {4} '
-                               '--durationid {5} '
-                               '--diseases {6} '
-                               '--end {7} &').format(data['loadserver'],'orthanc208', 4242,'stress', folder, 9999, j,
-                                                     end_time)
+                               '--diseases {5} '
+                               '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
+                                                     str(end_time),j)
                         logger.info(cmd)
                         os.system(cmd)
                         time.sleep(1)
+                try:
+                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
+                except Exception as e:
+                    logger.error(e)
+                    return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
                 stressserializer = stressrecord_Deserializer(data=data)
-
                 with transaction.atomic():
                     stressserializer.is_valid()
                     stressserializer.save()
-                stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,time)
                 return JsonResponse(code="0", msg="成功")
         except Exception as e:
             logger.error(e)

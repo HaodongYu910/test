@@ -57,20 +57,20 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
                                                                          " puser_id:\\\"biomind\\\" " \
                                                                          "pseries_classifier:" + str(k.vote) + "})" \
                                                                                                                " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-            if i == "Lung" and k.automatic == '1.25':
+            if i == "Lung" and k.slicenumber == '1.25':
                 savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.automatic == '1.5':
+            elif i == "Lung" and k.slicenumber == '1.5':
                 savecsv('{0}/stress/{1}2.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.automatic == '5':
+            elif i == "Lung" and k.slicenumber == '5':
                 savecsv('{0}/stress/{1}3.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.automatic == '10':
+            elif i == "Lung" and k.slicenumber == '10':
                 savecsv('{0}/stress/{1}4.csv'.format(path, str(i)), [graphql_query])
             else:
                 savecsv('{0}/stress/{1}.csv'.format(path, str(i)), [graphql_query])
     # 执行jmeter
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
-        cmd = 'nohup jmeter -n -t {0}/load.jmx -l {1}/logs/{2}.jtl -j {3}/logs/jmeter{4}.log'.format(path, path, start_time,
+        cmd = 'nohup jmeter -n -t {0}/load.jmx -l {1}/logs/{2}.jtl -j {3}/logs/jmeter{4}.log &'.format(path, path, start_time,
                                                                                                path, start_time)
         logger.info(cmd)
         os.system(cmd)

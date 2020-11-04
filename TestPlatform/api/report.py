@@ -116,7 +116,7 @@ class addstressdata(APIView):
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
             data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
             if data['diseases'] =='Lung':
-                data['automatic'] ='1'
+                data['slicenumber'] ='1'
             stress_data = stress_data_Deserializer(data=data)
 
             with transaction.atomic():
@@ -339,7 +339,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Send.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/stress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '

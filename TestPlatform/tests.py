@@ -85,11 +85,14 @@
 #     return csv
 #
 #
-# # if __name__ == '__main__':
-# #     import pandas as pd
-# #     from influxdb import InfluxDBClient
-# #     client = InfluxDBClient(host='192.168.2.38', port='8086',database='Jmeter_DB')
-# #     result = client.query("SELECT  last(\"pct90.0\") FROM \"jmeter\"  WHERE (\"application\" =~ /^Brain$/)  AND \"transaction\" != 'all'  GROUP BY \"transaction\", time(30s\") fill(null)")
-# #
-# #     print(result)
+# if __name__ == '__main__':
+#     import pandas as pd
+#     from influxdb import InfluxDBClient
+#     client = InfluxDBClient(host='192.168.2.38', port='8086',database='Jmeter_DB')
 #
+#     sql="SELECT  last(\"pct90.0\") FROM \"jmeter\"  WHERE (\"application\" =~ /^Brain$/)  AND \"transaction\" != 'all'  GROUP BY \"transaction\" fill(null)"
+#     sql1="SELECT sum(\"count\") FROM \"jmeter\" WHERE \"transaction\" =~ /^$request$/ AND \"application\" = ~ /^Brain$/ AND \"statut\" = 'all' AND $timeFilter GROUP BY time($aggregation) fill(null)"
+#     result = client.query(sql1)
+#
+#     print(result)
+

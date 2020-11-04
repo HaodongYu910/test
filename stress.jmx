@@ -27,10 +27,10 @@
       </SetupThreadGroup>
       <hashTree>
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="基础设置" enabled="true">
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/config.csv</stringProp>
+          <stringProp name="filename">./stress/config.csv</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
           <stringProp name="variableNames">sever,username,password,thread,synchroniz,loop,ramp,time,version</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
           <stringProp name="delimiter">,</stringProp>
           <boolProp name="quotedData">false</boolProp>
           <boolProp name="recycle">false</boolProp>
@@ -49,7 +49,7 @@
             <collectionProp name="Arguments.arguments">
               <elementProp name="username" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">test</stringProp>
+                <stringProp name="Argument.value">${username}</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
                 <boolProp name="HTTPArgument.use_equals">true</boolProp>
                 <stringProp name="Argument.name">username</stringProp>
@@ -174,7 +174,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/CTA.csv</stringProp>
+          <stringProp name="filename">./stress/CTA.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -402,7 +402,7 @@ ${__setProperty(Atime,${time},)};
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="coronary" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Coronary" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -420,7 +420,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/coronary.csv</stringProp>
+          <stringProp name="filename">./stress/coronary.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -702,7 +702,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/CTP.csv</stringProp>
+          <stringProp name="filename">./stress/CTP.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -949,7 +949,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Heart.csv</stringProp>
+          <stringProp name="filename">./stress/Heart.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1230,7 +1230,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="1" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Lung.csv</stringProp>
+          <stringProp name="filename">./stress/Lung.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1296,7 +1296,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="1.25" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Lung1.csv</stringProp>
+          <stringProp name="filename">./stress/Lung1.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1362,7 +1362,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="1.5" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Lung2.csv</stringProp>
+          <stringProp name="filename">./stress/Lung2.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1428,7 +1428,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="5" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Lung3.csv</stringProp>
+          <stringProp name="filename">./stress/Lung3.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1494,7 +1494,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="10" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Lung4.csv</stringProp>
+          <stringProp name="filename">./stress/Lung4.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -1557,7 +1557,7 @@ ${__setProperty(Atime,${time},)};
           </JSONPathAssertion>
           <hashTree/>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="loadimage" enabled="false">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="loadimage" enabled="true">
           <boolProp name="LoopController.continue_forever">true</boolProp>
           <stringProp name="LoopController.loops">${__Random(100,900 ,image)}</stringProp>
         </LoopController>
@@ -1758,7 +1758,7 @@ ${__setProperty(Atime,${time},)};
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="neck" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Neck" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -1776,7 +1776,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Neck.csv</stringProp>
+          <stringProp name="filename">./stress/Neck.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2041,7 +2041,7 @@ ${__setProperty(Atime,${time},)};
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="surgery" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Surgery" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -2058,7 +2058,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="术后参数" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/post_surgery.csv</stringProp>
+          <stringProp name="filename">./stress/post_surgery.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2192,7 +2192,7 @@ ${__setProperty(Atime,${time},)};
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">C:\Users\yinhang\Desktop\test.jtl</stringProp>
+          <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
@@ -2229,7 +2229,7 @@ ${__setProperty(Atime,${time},)};
               <connectTime>true</connectTime>
             </value>
           </objProp>
-          <stringProp name="filename">C:\Users\yinhang\Desktop\test.jtl</stringProp>
+          <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
         <ResultCollector guiclass="GraphVisualizer" testclass="ResultCollector" testname="图形结果" enabled="true">
@@ -2340,7 +2340,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Hematoma" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/CT_Hematoma.csv</stringProp>
+          <stringProp name="filename">./stress/CT_Hematoma.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2412,7 +2412,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="SVD" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/SVD.csv</stringProp>
+          <stringProp name="filename">./stress/SVD.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2479,7 +2479,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="swi" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/SWI.csv</stringProp>
+          <stringProp name="filename">./stress/SWI.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2546,7 +2546,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="brain" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Brain.csv</stringProp>
+          <stringProp name="filename">./stress/Brain.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2613,7 +2613,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Tumor" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/Tumor.csv</stringProp>
+          <stringProp name="filename">./stress/Tumor.csv</stringProp>
           <boolProp name="ignoreFirstLine">true</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -2680,7 +2680,7 @@ ${__setProperty(Atime,${time},)};
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="MRA" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">/home/biomind/Biomind_Test_Platform/stress/MRA.csv</stringProp>
+          <stringProp name="filename">./stress/MRA.csv</stringProp>
           <boolProp name="ignoreFirstLine">false</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>

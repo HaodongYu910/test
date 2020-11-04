@@ -54,10 +54,10 @@ def sequence(orthanc_ip,end_time, diseases, version):
                 "studyinstanceuid": k.studyinstanceuid,
                 "vote": k.vote,
                 "diseases": k.diseases,
-                "seriesinstanceuid": str(k.automatic),
-                'automatic': str(k.automatic)
+                "seriesinstanceuid": str(k.slicenumber),
+                'slicenumber': str(k.slicenumber)
             }
-            if str(k.automatic) =='T':
+            if str(k.slicenumber) =='T':
                 graphql_Interface(data, kc)
             else:
                 graphql_delreport(data, kc)

@@ -13,13 +13,13 @@ from .api.test_report import *
 from .api.tool import *
 from .api.user_permission import *
 from .api.report import reportfigure
-# Routers provide an easy way of automatically determining the URL conf.
+# Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 router = routers.DefaultRouter()
 # router.register(r'account', AccountViewSet)
 
 
-# Wire up our API using automatic URL routing.
+# Wire up our API using slicenumber URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     url(r'project/project_list', ProjectList.as_view()),

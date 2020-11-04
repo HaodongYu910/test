@@ -18,7 +18,7 @@ import subprocess as sp
 import time, datetime
 import random
 import math
-import pymysql
+
 
 log_path = '/files/logs'
 if not os.path.exists(log_path):
@@ -35,27 +35,10 @@ CONFIG = {
         'port': '4242'
     },
     'keyword': 'duration',
-    'dicomfolder': '/files/',
-    'durationid': '1',
+    'dicomfolder': '/files/TestData/all/',
     'diseases': 'all',
     'end': ''
 }
-
-
-def sqlDB(sql, data):
-    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
-                           charset="utf8");  # 连接数据库
-    cur = conn.cursor()
-    try:
-        logging.info(sql, data)
-        cur.execute(sql, data)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        logging.error(e)
-    cur.close()
-    conn.close()
-    return data
 
 
 def get_date():
@@ -125,32 +108,8 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
-    global uid
-    studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    try:
-        if study_infos.get(study_uid):
-            study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
-        else:
-            study_info = {
-                "imagecount": 1
-            }
-            study_infos[study_uid] = study_info
-            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                  [None, patientid, accessionnumber, study_uid, 1, None,
-                   None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
-            if int(len(study_infos)) == 1:
-                uid = study_uid
-            else:
-                sqlDB('update duration_record set imagecount = %s where studyinstanceuid = %s ;',
-                      [study_infos[uid]["imagecount"], uid])
-                uid = study_uid
-    except Exception as e:
-        logging.error('errormsg: failed to update sql [{0}]'.format(e))
 
-
-def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
+def fake_folder(folder, folder_fake):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
     file_names = os.listdir(folder)
@@ -163,7 +122,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         if (os.path.splitext(fn)[1] in  ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos)
+            fake_folder(full_fn, full_fn_fake)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -173,8 +132,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
 
         study_uid = ''
         try:
+            study_fakeinfos = {}
             study_uid = ds.StudyInstanceUID
             study_old_uid = ds.StudyInstanceUID
+            Seriesinstanceuid=ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -219,32 +180,12 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         ds.StudyTime = cur_time
         ds.SeriesDate = cur_date
         ds.SeriesTime = cur_time
-        # ds.ContentDate = cur_date
-        # ds.ContentTime = cur_time
-        # ds.AcquisitionDate = cur_date
-        # ds.AcquisitionTime = cur_time
-
-        #send_time = ds.StudyDate + "-" + ds.StudyTime
 
         try:
             ds.save_as(full_fn_fake)
-            new_study_uid = ds.StudyInstanceUID
-            new_patient_id = ds.PatientID
+            sync_send_file(full_fn_fake)
         except Exception as e:
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
-            continue
-        try:
-            sync_send_file(full_fn_fake)
-            logging.info('msg: send file to [{0}]'.format(new_study_uid))
-            add_image(
-                study_infos=study_infos,
-                study_uid=new_study_uid,
-                patientid=new_patient_id,
-                accessionnumber=ds.AccessionNumber,
-                study_old_uid=study_old_uid
-            )
-        except Exception as e:
-            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
             continue
 
 
@@ -252,12 +193,12 @@ def prepare_config(argv):
     global CONFIG
     try:
         opts, args = getopt.getopt(argv, "h",
-                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
-                                     "end="])
+                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "diseases=",
+                                    "end="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
-                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
+                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --diseases <diseases> --end <end>')
                 sys.exit()
             elif opt in ("--aet"):
                 CONFIG["server"]["aet"] = arg
@@ -269,28 +210,13 @@ def prepare_config(argv):
                 CONFIG["keyword"] = arg
             elif opt in ("--dicomfolder"):
                 CONFIG["dicomfolder"] = arg
-            elif opt in ("--durationid"):
-                CONFIG["durationid"] = arg
             elif opt in ("--diseases"):
                 diseases = arg
                 CONFIG["diseases"] = diseases
             elif opt in ("--end"):
                 CONFIG["end"] = arg
-
-
     except Exception as e:
         logging.error("error: failed to get args", e)
-
-    keyword = CONFIG["keyword"]
-    global log_path
-    log_path = "{0}/{1}".format(log_path, keyword)
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
-
-    log_file = '{0}/{1}.log'.format(log_path, CONFIG["keyword"])
-    logging.basicConfig(filename=log_file, filemode='a+',
-                        format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
-                        datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
     return True
 
 
@@ -299,34 +225,25 @@ if __name__ == '__main__':
     if not prepare_config(sys.argv[1:]):
         logging.info("failed to start")
         sys.exit(0)
-    # 添加 pid号
-    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')])
+
     src_folder = CONFIG.get('dicomfolder', '')
 
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
 
     start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    loop =1
+    loop = 1
     while str(start) < str(CONFIG["end"]):
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
                                           str(loop))
-        study_fakeinfos = {}
-        study_infos = {}
-
         fake_folder(
             folder=src_folder,
-            folder_fake=folder_fake,
-            study_fakeinfos=study_fakeinfos,
-            study_infos=study_infos
+            folder_fake=folder_fake
         )
-
-        del folder_fake
-        del study_infos
-        del study_fakeinfos
-        gc.collect()
-        loop=loop+1
+        loop = loop + 1
         start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        del folder_fake
+        gc.collect()
 
-    sqlDB('DELETE from pid where pid ="%s"', [ospid])
+
