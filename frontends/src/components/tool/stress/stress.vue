@@ -340,7 +340,8 @@
                             'Content-Type': 'application/json'
                         }
                         stressTool(headers, params).then(_data => {
-                            const {msg, code } = _data
+                            const {msg, code,data } = _data
+                            self.addLoading = true
                             if (code === '0') {
                                  self.$message({
                                   message: '成功',

@@ -864,7 +864,7 @@ class stress_data(models.Model):
     patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
     studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测类型")
-    slicenumber = models.CharField(max_length=5, blank=True, null=True, verbose_name="肺炎层厚")
+    slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
     vote = models.CharField(max_length=500, blank=True, null=True, verbose_name="挂载")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")

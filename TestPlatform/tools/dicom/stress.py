@@ -37,7 +37,7 @@ CONFIG = {
     'keyword': 'duration',
     'dicomfolder': '/files/TestData/all/',
     'diseases': 'all',
-    'end': ''
+    'end': '2020-11-04 11:00:01'
 }
 
 
@@ -214,7 +214,8 @@ def prepare_config(argv):
                 diseases = arg
                 CONFIG["diseases"] = diseases
             elif opt in ("--end"):
-                CONFIG["end"] = arg
+                CONFIG["end"] = (datetime.datetime.now() + datetime.timedelta(hours=int(arg))).strftime(
+                    "%Y-%m-%d %H:%M:%S")
     except Exception as e:
         logging.error("error: failed to get args", e)
     return True
@@ -241,6 +242,7 @@ if __name__ == '__main__':
             folder=src_folder,
             folder_fake=folder_fake
         )
+
         loop = loop + 1
         start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         del folder_fake

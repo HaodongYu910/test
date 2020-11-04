@@ -38,15 +38,16 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
     path = os.path.join(os.getcwd())
     shutil.rmtree('{0}/stress'.format(path))
     os.mkdir(path + '/stress')
-    savecsv('{0}/stress/config.csv'.format(path),
-            [orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, loop, ramp, time, version])
-    for k in ['Brain', 'CT_Hematoma', 'SVD', 'SWI', 'Tumor', 'CTA', 'CTP', 'Lung', 'Lung1', 'Lung2', 'Lung3', 'Lung4',
-              'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery']:
-        savecsv('{0}/stress/{1}.csv'.format(path, k), [""])
+    list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
+    for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
+        a = loop if k in diseases else 0
+        list.append(a)
+
+    savecsv('{0}/stress/config.csv'.format(path),list)
+
     # 循环生成压测数据
     for i in diseases:
         stressdata = stress_data.objects.filter(diseases=i)
-
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \
@@ -70,8 +71,8 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
     # 执行jmeter
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
-        cmd = 'nohup jmeter -n -t {0}/load.jmx -l {1}/logs/{2}.jtl -j {3}/logs/jmeter{4}.log &'.format(path, path, start_time,
-                                                                                               path, start_time)
+        cmd = 'nohup jmeter -n -t {0}/stress.jmx -l {1}/logs/{2}.jtl -j {3}/logs/jmeter{4}.log &'.format(path, path, start_time,
+                                                                                  path, start_time)
         logger.info(cmd)
         os.system(cmd)
     except Exception as e:

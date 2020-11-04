@@ -332,12 +332,7 @@ class stresstool(APIView):
             return result
 
         try:
-            end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
-                "%Y-%m-%d %H:%M:%S")
             testdata = data["testdata"]
-            data['testdata'] = str(testdata)
-            data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            data['end_date'] = end_time
             # 查找是否相同版本号的测试记录
             stress_version = stress_record.objects.filter(version=data["version"])
             if len(stress_version):
@@ -355,7 +350,7 @@ class stresstool(APIView):
                                '--dicomfolder {4} '
                                '--diseases {5} '
                                '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
-                                                     str(end_time),j)
+                                                     data['end_date'],j)
                         logger.info(cmd)
                         os.system(cmd)
                         time.sleep(1)
@@ -364,6 +359,10 @@ class stresstool(APIView):
                 except Exception as e:
                     logger.error(e)
                     return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
+                data['testdata'] = str(testdata)
+                data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
+                    "%Y-%m-%d %H:%M:%S")
                 stressserializer = stressrecord_Deserializer(data=data)
                 with transaction.atomic():
                     stressserializer.is_valid()
