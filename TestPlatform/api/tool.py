@@ -12,7 +12,7 @@ from TestPlatform.models import stress_record, stress_data, base_data, pid, Glob
 from TestPlatform.serializers import stressrecord_Deserializer, \
     stress_data_Deserializer, duration_Deserializer
 from ..tools.stress.stress import sequence
-from ..tools.stress.stresstest import stress
+from ..tools.stress.stresstest import stress,lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
@@ -57,8 +57,11 @@ class stressData(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
+        server = request.GET.get("server")
         if diseases:
             obi = stress_data.objects.filter(diseases__contains=diseases).order_by("-id")
+        elif server:
+            obi = stress_data.objects.filter(server__contains=server).order_by("-id")
         else:
             obi = stress_data.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -104,19 +107,20 @@ class addstressdata(APIView):
         if result:
             return result
         try:
-            orthanc_ip='192.168.1.208'
-            StudyUID = connect_to_postgres(orthanc_ip,
+            server=data['server']
+            StudyUID = connect_to_postgres(server,
                                          "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
                                              data['patientid'])).to_dict(orient='records')
             if len(StudyUID) >1:
                 return JsonResponse(code="999994", msg="数据重复！")
             try:
-                data['vote']=str(updateStressData(StudyUID[0]['StudyInstanceUID'], orthanc_ip))
+                data['vote']=str(updateStressData(StudyUID[0]['StudyInstanceUID'], server))
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
             data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
             if data['diseases'] =='Lung':
-                data['slicenumber'] ='1'
+                data['slicenumber'] = lungSlice(server,StudyUID[0]['StudyInstanceUID'])
+
             stress_data = stress_data_Deserializer(data=data)
 
             with transaction.atomic():
@@ -350,12 +354,12 @@ class stresstool(APIView):
                                '--dicomfolder {4} '
                                '--diseases {5} '
                                '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
-                                                     data['end_date'],j)
+                                                     data['loop_time'],j)
                         logger.info(cmd)
                         os.system(cmd)
                         time.sleep(1)
                 try:
-                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
+                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop_time"],data["synchronizing"],0,'23400')
                 except Exception as e:
                     logger.error(e)
                     return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)

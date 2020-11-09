@@ -109,7 +109,7 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
 
 
 
-def fake_folder(folder, folder_fake):
+def fake_folder(folder, folder_fake,study_fakeinfos):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
     file_names = os.listdir(folder)
@@ -122,7 +122,7 @@ def fake_folder(folder, folder_fake):
         if (os.path.splitext(fn)[1] in  ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn, full_fn_fake)
+            fake_folder(full_fn, full_fn_fake,study_fakeinfos)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -132,10 +132,7 @@ def fake_folder(folder, folder_fake):
 
         study_uid = ''
         try:
-            study_fakeinfos = {}
             study_uid = ds.StudyInstanceUID
-            study_old_uid = ds.StudyInstanceUID
-            Seriesinstanceuid=ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -234,13 +231,16 @@ if __name__ == '__main__':
 
     start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     loop = 1
+
     while str(start) < str(CONFIG["end"]):
         folder_fake = "{0}/{1}{2}".format(log_path,
                                           str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
                                           str(loop))
+        study_fakeinfos = {}
         fake_folder(
             folder=src_folder,
-            folder_fake=folder_fake
+            folder_fake=folder_fake,
+            study_fakeinfos=study_fakeinfos
         )
 
         loop = loop + 1

@@ -7,8 +7,18 @@
         <el-form-item>
           <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getdata" />
         </el-form-item>
+        <el-form-item label="服务器" prop="server">
+                  <el-select v-model="filters.server"  placeholder="请选择服务" @click.native="gethost()">
+                    <el-option v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
+                    </el-select>
+                  </el-form-item>
+
         <el-form-item>
-          <el-select v-model="filters.diseases" placeholder="请选择" @click.native="getBase()">
+          <el-select v-model="filters.diseases" placeholder="请选择病种类型" @click.native="getBase()">
             <el-option v-for="(item,index) in tags"
                              :key="item.remarks"
                              :label="item.remarks"
@@ -31,10 +41,15 @@
           highlight-current-row
           style="width: 100%;"
           @selection-change="selsChange">
-          <el-table-column type="selection" min-width="3%" />
-          <el-table-column prop="ID" label="ID" min-width="5%">
+          <el-table-column type="selection" min-width="4%" />
+          <el-table-column prop="ID" label="ID" min-width="4%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="环境" min-width="12%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.server }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="patientid" label="Patientid" min-width="10%" sortable>
@@ -52,7 +67,17 @@
               <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="挂载序列" min-width="55%">
+          <el-table-column label="slicenumber" min-width="10%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="预测张数" min-width="10%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="挂载序列" min-width="30%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.vote }}</span>
             </template>
@@ -87,6 +112,17 @@
         >
           <el-form ref="addForm" :model="addForm" label-width="80px" :rules="addFormRules">
             <el-row :gutter="24">
+              <el-col :span="10">
+                <el-form-item label="服务器" prop="server">
+                  <el-select v-model="addForm.server"  placeholder="请选择" @click.native="gethost()">
+                    <el-option v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
               <el-col :span="12">
                 <el-form-item label="patientid" prop="patientid">
                   <el-input v-model.trim="addForm.patientid" auto-complete="off" />
@@ -118,7 +154,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getbase
+  getHost,getstressdata, delstressdata, updatestressdata, addstressdata, stressTool, getbase
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -126,24 +162,9 @@ export default {
   // components: {ElRow},
   data() {
     return {
-      form: {
-        Loadserver: '192.168.1.208',
-        version: '',
-        testdata: [],
-        loop_time: 1
-      },
-      rules: {
-        Loadserver: [
-          { required: true, message: '请输入测试服务器', trigger: 'blur' }
-        ],
-        version: [
-          { required: true, message: '请输入测试版本', trigger: 'blur' }
-        ]
-      },
       filters: {
         diseases: ''
       },
-      project: [],
       total: 0,
       page: 1,
       listLoading: false,
@@ -156,27 +177,8 @@ export default {
         diseases: [
           { required: true, message: '请输入名称', trigger: 'blur' },
           { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
-        ],
-        type: [
-          { required: true, message: '请选择类型', trigger: 'blur' }
-        ],
-        version: [
-          { required: true, message: '请输入版本号', trigger: 'change' },
-          { pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）' }
-        ],
-        description: [
-          { required: false, message: '请输入描述', trigger: 'blur' },
-          { max: 1024, message: '不能超过1024个字符', trigger: 'blur' }
         ]
       },
-      // 编辑界面数据
-      editForm: {
-        diseases: '',
-        version: '',
-        type: '',
-        description: ''
-      },
-
       addFormVisible: false, // 新增界面是否显示
       addLoading: false,
       addFormRules: {
@@ -187,15 +189,37 @@ export default {
       },
       // 新增界面数据
       addForm: {
-        diseases: ''
+        diseases: '',
+        server: '192.168.1.208'
       }
 
     }
   },
   mounted() {
     this.getdata()
+    this.gethost()
   },
   methods: {
+    gethost() {
+      this.listLoading = true
+      const self = this
+      const params = {}
+      const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+      getHost(headers, params).then((res) => {
+        self.listLoading = false
+        const {msg, code, data} = res
+        if (code === '0') {
+          self.total = data.total
+          self.list = data.data
+          var json = JSON.stringify(self.list)
+          this.tags = JSON.parse(json)
+        } else {
+          self.$message.error({message: msg,
+            center: true
+          })
+        }
+      })
+    },
     // 获取getBase列表
     getBase() {
       this.listLoading = true
@@ -267,7 +291,11 @@ export default {
     getdata() {
       this.listLoading = true
       const self = this
-      const params = { page: self.page, diseases: self.filters.diseases }
+      const params = {
+        page: self.page,
+        diseases: self.filters.diseases,
+        server: self.filters.server
+      }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
       getstressdata(headers, params).then((res) => {
         self.listLoading = false
@@ -389,7 +417,8 @@ export default {
             // NProgress.start();
             const params = JSON.stringify({
               diseases: self.addForm.diseases,
-              patientid: self.addForm.patientid
+              patientid: self.addForm.patientid,
+              server: self.addForm.server
             })
             const header = {
               'Content-Type': 'application/json',

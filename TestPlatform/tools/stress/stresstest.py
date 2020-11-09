@@ -8,6 +8,28 @@ import shutil
 
 logger = logging.getLogger(__name__)
 
+
+
+def lungSlice(server,studyuid):
+    kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+    graphql_query = '{ studies(StudyInstanceUID:"' + studyuid + '"){ HanalyticsProtocols { pseries_classifier }' \
+                                                                        'Series{  SeriesInstanceUID ' \
+                                                                        'Instances{ SliceThickness } } } }'
+    graphql = GraphQLDriver('/graphql', kc)
+    results = graphql.execute_query(graphql_query)
+    if results['studies'] == []:
+        return 1
+    elif results['studies'][0]['HanalyticsProtocols'][0]['pseries_classifier'] is None:
+        return 1
+    else:
+        for i in results['studies'][0]['Series']:
+            lung = results['studies'][0]['HanalyticsProtocols'][0]['pseries_classifier']['CT_Lung']
+            Series = i['SeriesInstanceUID']
+            if lung.find(Series) >= 0:
+                SliceThickness = round(float(i['Instances'][0]['SliceThickness']), 2)
+
+    return SliceThickness
+
 # 修改数据
 def updateStressData(uid, orthanc_ip):
     vote = ''
@@ -36,18 +58,21 @@ def savecsv(path, graphql_query):
 
 def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, time):
     path = os.path.join(os.getcwd())
-    shutil.rmtree('{0}/stress'.format(path))
-    os.mkdir(path + '/stress')
-    list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
-    for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
-        a = loop if k in diseases else 0
-        list.append(a)
-
-    savecsv('{0}/stress/config.csv'.format(path),list)
+    # if not os.path.exists('{0}/stress'.format(path)):
+    #     os.mkdir(path + '/stress')
+    # else:
+    #     shutil.rmtree('{0}/stress'.format(path))
+    #     os.mkdir(path + '/stress')
+    # list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
+    # for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
+    #     a = loop if k in diseases else 0
+    #     list.append(a)
+    #
+    # savecsv('{0}/stress/config.csv'.format(path),list)
 
     # 循环生成压测数据
     for i in diseases:
-        stressdata = stress_data.objects.filter(diseases=i)
+        stressdata = stress_data.objects.filter(diseases=i,server=orthanc_ip)
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \
