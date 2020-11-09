@@ -72,7 +72,7 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
 
     # 循环生成压测数据
     for i in diseases:
-        stressdata = stress_data.objects.filter(diseases=i,server=orthanc_ip)
+        stressdata = stress_data.objects.filter(server=orthanc_ip,diseases=i)
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \
@@ -87,9 +87,9 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
                 savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
             elif i == "Lung" and k.slicenumber == '1.5':
                 savecsv('{0}/stress/{1}2.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.slicenumber == '5':
+            elif i == "Lung" and k.slicenumber == '5.0':
                 savecsv('{0}/stress/{1}3.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.slicenumber == '10':
+            elif i == "Lung" and k.slicenumber == '10.0':
                 savecsv('{0}/stress/{1}4.csv'.format(path, str(i)), [graphql_query])
             else:
                 savecsv('{0}/stress/{1}.csv'.format(path, str(i)), [graphql_query])
