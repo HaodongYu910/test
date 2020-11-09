@@ -58,17 +58,17 @@ def savecsv(path, graphql_query):
 
 def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, time):
     path = os.path.join(os.getcwd())
-    # if not os.path.exists('{0}/stress'.format(path)):
-    #     os.mkdir(path + '/stress')
-    # else:
-    #     shutil.rmtree('{0}/stress'.format(path))
-    #     os.mkdir(path + '/stress')
-    # list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
-    # for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
-    #     a = loop if k in diseases else 0
-    #     list.append(a)
-    #
-    # savecsv('{0}/stress/config.csv'.format(path),list)
+    if not os.path.exists('{0}/stress'.format(path)):
+        os.mkdir(path + '/stress')
+    else:
+        shutil.rmtree('{0}/stress'.format(path))
+        os.mkdir(path + '/stress')
+    list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
+    for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
+        a = loop if k in diseases else 0
+        list.append(a)
+
+    savecsv('{0}/stress/config.csv'.format(path),list)
 
     # 循环生成压测数据
     for i in diseases:
