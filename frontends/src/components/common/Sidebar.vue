@@ -1,6 +1,6 @@
 <template>
     <div class="sidebar">
-        <el-menu class="sidebar-el-menu" :default-active="onRoutes" :collapse="collapse" background-color="#324157"
+        <el-menu class="sidebar-el-menu" :default-active="onRoutes" :collapse="collapse" background-color="#282828"
             text-color="#bfcbd9" active-text-color="#20a0ff" unique-opened router>
             <template v-for="item in items">
                 <template v-if="item.subs">
@@ -46,34 +46,26 @@
                     {
                         icon: 'el-icon-s-platform',
                         index: 'project',
-                        title: '项目',
+                        title: '接口自动化',
                         subs: [
                             {
                                 index: 'project',
                                 title: '项目列表'
                             },
                             {
-                                index: 'host',
-                                title: 'Host配置'
-                            },
-                            {
                                 index: 'data',
-                                title: '自动化测试报告'
+                                title: '自动化报告'
                             }
                         ]
                     },
                     {
-                        icon: 'el-icon-s-help',
+                        icon: 'el-icon-odometer',
                         index: '3',
-                        title: '测试工具',
+                        title: '性能测试',
                         subs: [
                             {
                                 index: 'data',
                                 title: '测试数据'
-                            },
-                            {
-                                index: 'dicom',
-                                title: 'dicom工具'
                             },
                             {
                                 index: 'stress',
@@ -81,24 +73,52 @@
                             },
                              {
                                 index: 'stressreport',
-                                title: '图表结果'
+                                title: '性能报告'
                             }
                         ]
                     },
                     {
-                        icon: 'el-icon-message',
+                        icon: 'el-icon-loading',
                         index: '4',
+                        title: '测试工具',
+                        subs: [
+                            {
+                                index: 'base',
+                                title: '基础配置'
+                            },
+                            {
+                                index: 'dicomdata',
+                                title: 'dicom数据'
+                            },
+                            {
+                                index: 'dicom',
+                                title: 'dicom工具'
+                            }
+                        ]
+                    },
+                    {
+                        icon: 'el-icon-s-promotion',
+                        index: 'host',
+                        title: 'Host配置'
+                    },
+                    {
+                        icon: 'el-icon-message',
+                        index: '5',
                         title: '邮件管理',
                         subs: [
                             {
                                 index: 'testreport',
                                 title: '邮件配置'
+                            },
+                            {
+                                index: 'testreport',
+                                title: '邮件模板'
                             }
                         ]
                     },
                     {
                         icon: 'el-icon-s-tools',
-                        index: '5',
+                        index: '6',
                         title: '系统设置',
                         subs: [
                             {
@@ -106,12 +126,18 @@
                                 title: '用户配置'
                             },
                             {
-                                index: 'base',
-                                title: '基础配置'
-                            },
+                                index: 'mailconfig',
+                                title: '服务集成'
+                            }
+                            ,
                             {
                                 index: 'mailconfig',
-                                title: '其他配置'
+                                title: '消息设置'
+                            }
+                            ,
+                            {
+                                index: 'mailconfig',
+                                title: '测试报告模板'
                             }
                         ]
                     },

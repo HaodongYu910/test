@@ -58,10 +58,17 @@ class stressData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
         server = request.GET.get("server")
-        if diseases:
+        slicenumber = request.GET.get("slicenumber")
+        if diseases is not None and server is None and slicenumber is None:
             obi = stress_data.objects.filter(diseases__contains=diseases).order_by("-id")
-        elif server:
+        elif server is not None and diseases is None and slicenumber is None:
             obi = stress_data.objects.filter(server__contains=server).order_by("-id")
+        elif server is not None and diseases is not None and slicenumber is None:
+            obi = stress_data.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
+        elif slicenumber is not None and server is None:
+            obi = stress_data.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
+        elif slicenumber is not None and server is not None:
+            obi = stress_data.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
         else:
             obi = stress_data.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -90,8 +97,8 @@ class addstressdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["patientid"] or not data["diseases"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["server"] or not data["diseases"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 diseases, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -108,18 +115,26 @@ class addstressdata(APIView):
             return result
         try:
             server=data['server']
-            StudyUID = connect_to_postgres(server,
+            if data['studyinstanceuid'] is None:
+                StudyUID = connect_to_postgres(server,
                                          "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
                                              data['patientid'])).to_dict(orient='records')
-            if len(StudyUID) >1:
-                return JsonResponse(code="999994", msg="数据重复！")
+                if len(StudyUID) > 1:
+                    return JsonResponse(code="999994", msg="数据重复！")
+                else:
+                    data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
+            else:
+                patientid = connect_to_postgres(server,
+                                               "select \"PatientID\" from \"Study\" where \"StudyInstanceUID\" ='{0}'".format(
+                                                   data['studyinstanceuid'])).to_dict(orient='records')
+                data['patientid']=patientid[0]['PatientID']
             try:
-                data['vote']=str(updateStressData(StudyUID[0]['StudyInstanceUID'], server))
+                data['vote'],SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
-            data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
+
             if data['diseases'] =='Lung':
-                data['slicenumber'] = lungSlice(server,StudyUID[0]['StudyInstanceUID'])
+                data['imagecount'],data['slicenumber'], = lungSlice(server, SeriesInstanceUID)
 
             stress_data = stress_data_Deserializer(data=data)
 
@@ -359,7 +374,7 @@ class stresstool(APIView):
                         os.system(cmd)
                         time.sleep(1)
                 try:
-                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop_time"],data["synchronizing"],0,'23400')
+                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
                 except Exception as e:
                     logger.error(e)
                     return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)

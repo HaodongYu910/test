@@ -2,7 +2,7 @@
     <div class="header">
         <!-- 折叠按钮 -->
         <div class="collapse-btn" @click="collapseChage">
-            <i class="el-icon-menu"></i>
+            <img class="blogo" src="../../assets/img/logo.png"/>
         </div>
         <div class="logo">Biomind Test Platform</div>
         <div class="header-right">
@@ -118,12 +118,23 @@
         float: left;
         padding: 0 21px;
         cursor: pointer;
-        line-height: 70px;
+        line-height: 100px;
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
     }
     .header .logo{
         float: left;
         width:250px;
         line-height: 70px;
+    }
+    .blogo {
+        float: left;
+        width:40px;
+        line-height: 40px;
+        display: table-cell;
+        vertical-align: middle;
+        text-align: center;
     }
     .header-right{
         float: right;

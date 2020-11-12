@@ -3,32 +3,28 @@ from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
 from TestPlatform.common.regexUtil import *
 from TestPlatform.models import  stress_data
 
-import os
+import os,time
 import shutil
 
 logger = logging.getLogger(__name__)
 
 
 
-def lungSlice(server,studyuid):
+def lungSlice(server,Seriesuid):
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    graphql_query = '{ studies(StudyInstanceUID:"' + studyuid + '"){ HanalyticsProtocols { pseries_classifier }' \
-                                                                        'Series{  SeriesInstanceUID ' \
-                                                                        'Instances{ SliceThickness } } } }'
+    graphql_query='{ series(SeriesInstanceUID:"' + Seriesuid + '"){ '\
+        'NumberOfSeriesRelatedInstances Instances{ SliceThickness } } }'
     graphql = GraphQLDriver('/graphql', kc)
     results = graphql.execute_query(graphql_query)
-    if results['studies'] == []:
-        return 1
-    elif results['studies'][0]['HanalyticsProtocols'][0]['pseries_classifier'] is None:
-        return 1
+    if results['series'] == []:
+        return False
+    elif results['series'][0]['Instances'][0] is None:
+        return False
     else:
-        for i in results['studies'][0]['Series']:
-            lung = results['studies'][0]['HanalyticsProtocols'][0]['pseries_classifier']['CT_Lung']
-            Series = i['SeriesInstanceUID']
-            if lung.find(Series) >= 0:
-                SliceThickness = round(float(i['Instances'][0]['SliceThickness']), 2)
+        imagecount= results['series'][0]['NumberOfSeriesRelatedInstances']
+        SliceThickness = round(float(results['series'][0]['Instances'][0]['SliceThickness']), 2)
 
-    return SliceThickness
+    return imagecount,SliceThickness
 
 # 修改数据
 def updateStressData(uid, orthanc_ip):
@@ -45,8 +41,9 @@ def updateStressData(uid, orthanc_ip):
         for i in Series:
             if str(i['SeriesInstanceUID']) in str(pseries[key]):
                 vote = vote + '{0}: \\"{1}\\",'.format(str(key), str(i['SeriesInstanceUID']))
+                SeriesInstanceUID=str(i['SeriesInstanceUID'])
     vote = "{" + vote + "}"
-    return vote
+    return str(vote),SeriesInstanceUID
 
 
 def savecsv(path, graphql_query):
@@ -62,11 +59,12 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
         os.mkdir(path + '/stress')
     else:
         shutil.rmtree('{0}/stress'.format(path))
+
         os.mkdir(path + '/stress')
-    list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version]
-    for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
-        a = loop if k in diseases else 0
-        list.append(a)
+    list=[orthanc_ip, 'test', 'Asd@123456', thread, synchronizing, ramp, time, version,loop]
+    # for k in ['Brain',  'CTA', 'CTP', 'Lung', 'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery','Breast']:
+    #     a = loop if k in diseases else 0
+    #     list.append(a)
 
     savecsv('{0}/stress/config.csv'.format(path),list)
 
@@ -81,18 +79,23 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
                                                                          "penable_cached_results:false pconfig:{} " \
                                                                          "planguage:\\\"zh-cn\\\" " \
                                                                          " puser_id:\\\"biomind\\\" " \
-                                                                         "pseries_classifier:" + str(k.vote) + "})" \
-                                                                                                               " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-            if i == "Lung" and k.slicenumber == '1.25':
-                savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.slicenumber == '1.5':
-                savecsv('{0}/stress/{1}2.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.slicenumber == '5.0':
-                savecsv('{0}/stress/{1}3.csv'.format(path, str(i)), [graphql_query])
-            elif i == "Lung" and k.slicenumber == '10.0':
-                savecsv('{0}/stress/{1}4.csv'.format(path, str(i)), [graphql_query])
-            else:
-                savecsv('{0}/stress/{1}.csv'.format(path, str(i)), [graphql_query])
+                                                                         "pseries_classifier:" + str(k.vote) + "}" \
+                                                                                                               "routes: [[\\\"generate_series\\\",\\\"series_classifier\\\",\\\"lungct_predictor\\\"]])" \
+                                                                                                             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+
+            if i == "Lung":
+                i = str("{0}_{1}_slicenumber".format(i,str(k.slicenumber)))
+            savecsv('{0}/stress/data.csv'.format(path, str(i)), [graphql_query,i])
+            # if i == "Lung" and k.slicenumber == '1.25':
+            #     savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
+            # elif i == "Lung" and k.slicenumber == '1.5':
+            #     savecsv('{0}/stress/{1}2.csv'.format(path, str(i)), [graphql_query])
+            # elif i == "Lung" and k.slicenumber == '5.0':
+            #     savecsv('{0}/stress/{1}3.csv'.format(path, str(i)), [graphql_query])
+            # elif i == "Lung" and k.slicenumber == '10.0':
+            #     savecsv('{0}/stress/{1}4.csv'.format(path, str(i)), [graphql_query])
+            # else:
+            #     savecsv('{0}/stress/{1}.csv'.format(path, str(i)), [graphql_query])
     # 执行jmeter
     try:
         start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")

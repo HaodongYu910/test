@@ -39,7 +39,7 @@ export default new Router({
         {
             path: '/',
             component: resolve => require(['../components/common/Home.vue'], resolve),
-            meta: { title: '自述文件' },
+            meta: { title: '主页' },
             children:[
                 {
                     path: '/home',
@@ -68,6 +68,12 @@ export default new Router({
 
                 },
                 {
+                    path: '/dicomdata',
+                    component: resolve => require(['../components/tool/duration/dicomData.vue'], resolve),
+                    meta: { title: 'Dicom数据' }
+
+                },
+                {
                     path: '/durationData',
                     component: resolve => require(['../components/tool/duration/durationData.vue'], resolve),
                     meta: { title: '持续化详情' }
@@ -75,18 +81,18 @@ export default new Router({
                 },
                 {
                     path: '/stress',
-                    component: resolve => require(['../components/tool/stress/stress.vue'], resolve),
-                    meta: { title: '性能工具' }
+                    component: resolve => require(['../components/stress/stress.vue'], resolve),
+                    meta: { title: '性能测试' }
                 },
                 {
                     path: '/stressreport',
-                    component: resolve => require(['../components/tool/stress/stress_result.vue'], resolve),
+                    component: resolve => require(['../components/stress/stress_result.vue'], resolve),
                     meta: { title: '性能报告' }
                 },
                 {
                     path: '/data',
-                    component: resolve => require(['../components/tool/testdata.vue'], resolve),
-                    meta: { title: '测试数据' }
+                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
+                    meta: { title: '性能数据' }
                 },
                 {
                     //邮件配置
@@ -160,7 +166,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/set/baseData.vue'], resolve),
+                    component: resolve => require(['../components/tool/duration/baseSet.vue'], resolve),
                     meta: { title: '基础配置' }
                 },
                 {
@@ -184,6 +190,11 @@ export default new Router({
                     component: resolve => require(['../components/project/global/Globalhost.vue'], resolve),
                     meta: { title: 'Host配置' }
                 },
+                // {
+                //     path: '/Service',
+                //     component: resolve => require(['../components/settings/organization/ServiceIntegration.vue'], resolve),
+                //     meta: { title: '服务集成' }
+                // },
                 //項目詳情頁面
                 {
                     path: '/project/project=:project_id',

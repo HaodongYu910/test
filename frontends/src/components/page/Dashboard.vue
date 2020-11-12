@@ -141,7 +141,7 @@
                     ]
                 },
                 coinnessBaroption: {
-                    backgroundColor: '#2c343c',
+                    backgroundColor: '#ccc',
                     title: {
                         text: 'CoinNess-Bug解决数量状态图',
                         left: 'center',

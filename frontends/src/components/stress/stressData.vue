@@ -27,6 +27,15 @@
           </el-select>
         </el-form-item>
         <el-form-item>
+          <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
+                  <el-option key="1.0" label="1.0" value="1.0" />
+                  <el-option key="1.25" label="1.25" value="1.25" />
+                  <el-option key="1.5" label="1.5" value="1.5" />
+                  <el-option key="5.0" label="5.0" value="5.0" />
+                  <el-option key="10.0" label="10.0" value="10.0" />
+                </el-select>
+              </el-form-item>
+        <el-form-item>
           <el-button type="primary" @click="getdata">查询</el-button>
         </el-form-item>
         <el-form-item>
@@ -67,7 +76,7 @@
               <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="slicenumber" min-width="10%">
+          <el-table-column label="slicenumber" min-width="10%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
             </template>
@@ -91,7 +100,6 @@
             </template>
           </el-table-column>
         </el-table>
-
         <!--工具条-->
         <el-col :span="24" class="toolbar">
           <el-button type="danger" :disabled="this.sels.length===0" @click="batchRemove">批量删除</el-button>
@@ -126,6 +134,11 @@
               <el-col :span="12">
                 <el-form-item label="patientid" prop="patientid">
                   <el-input v-model.trim="addForm.patientid" auto-complete="off" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="studyinstanceuid" prop="studyinstanceuid">
+                  <el-input v-model.trim="addForm.studyinstanceuid" auto-complete="off" />
                 </el-form-item>
               </el-col>
                <el-col :span="12">
@@ -163,21 +176,20 @@ export default {
   data() {
     return {
       filters: {
-        diseases: ''
+        diseases: null,
+        server:'192.168.1.208',
+        slicenumber:null
       },
       total: 0,
       page: 1,
       listLoading: false,
       sels: [], // 列表选中列
 
-      editFormVisible: false, // 编辑界面是否显示
-      editLoading: false,
-      options: [{ label: 'Web', value: 'Web' }, { label: 'App', value: 'App' }],
-      editFormRules: {
-        diseases: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
-        ]
+      // 新增界面数据
+      addForm: {
+        diseases: '',
+        server: '192.168.1.208',
+        studyinstanceuid:''
       },
       addFormVisible: false, // 新增界面是否显示
       addLoading: false,
@@ -186,11 +198,6 @@ export default {
           { required: true, message: '请输入名称', trigger: 'blur' },
           { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
         ]
-      },
-      // 新增界面数据
-      addForm: {
-        diseases: '',
-        server: '192.168.1.208'
       }
 
     }
@@ -294,7 +301,8 @@ export default {
       const params = {
         page: self.page,
         diseases: self.filters.diseases,
-        server: self.filters.server
+        server: self.filters.server,
+        slicenumber:self.filters.slicenumber
       }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
       getstressdata(headers, params).then((res) => {
@@ -356,7 +364,8 @@ export default {
       this.addFormVisible = true
       this.addForm = {
         patientid: null,
-        diseases: null
+        diseases: null,
+        studyinstanceuid: null,
       }
     },
     // 编辑
@@ -418,7 +427,8 @@ export default {
             const params = JSON.stringify({
               diseases: self.addForm.diseases,
               patientid: self.addForm.patientid,
-              server: self.addForm.server
+              server: self.addForm.server,
+              studyinstanceuid:self.addForm.studyinstanceuid
             })
             const header = {
               'Content-Type': 'application/json',
