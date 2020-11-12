@@ -84,8 +84,10 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
                                                                                                              " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
 
             if i == "Lung":
-                i = str("{0}_{1}_slicenumber".format(i,str(k.slicenumber)))
-            savecsv('{0}/stress/data.csv'.format(path, str(i)), [graphql_query,i])
+                dis = str("{0}_{1}_slicenumber".format(i,str(k.slicenumber)))
+            else:
+                dis = i
+            savecsv('{0}/stress/data.csv'.format(path, str(i)), [graphql_query,dis])
             # if i == "Lung" and k.slicenumber == '1.25':
             #     savecsv('{0}/stress/{1}1.csv'.format(path, str(i)), [graphql_query])
             # elif i == "Lung" and k.slicenumber == '1.5':
