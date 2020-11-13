@@ -11,6 +11,7 @@ from .api.Sendmail import *
 from .api.basedata import *
 from .api.test_report import *
 from .api.tool import *
+from .api.stress import *
 from .api.user_permission import *
 from .api.report import reportfigure
 # Routers provide an easy way of slicenumberally determining the URL conf.
@@ -109,11 +110,15 @@ urlpatterns = [
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
-    url(r'tool/stressversion', stressversion.as_view()),
-    url(r'tool/stresstool', stresstool.as_view()),
-    url(r'tool/stressresult', stressResult.as_view()),
-    url(r'tool/stressfigure', reportfigure.as_view()),
-    url(r'tool/stresssave', stressResultsave.as_view()),
+    url(r'stress/stressversion', stressversion.as_view()),
+    url(r'stress/stresstool', stresstool.as_view()),
+    url(r'stress/stressresult', stressResult.as_view()),
+    url(r'stress/stressfigure', reportfigure.as_view()),
+    url(r'stress/stresssave', stressResultsave.as_view()),
+    url(r'stress/stressdata', stressData.as_view()),
+    url(r'stress/add_stressdata', addstressdata.as_view()),
+    url(r'stress/del_stressdata', delstressdata.as_view()),
+    url(r'stress/list', stressList.as_view()),
     url(r'tool/stressdata', stressData.as_view()),
     url(r'tool/add_stressdata', addstressdata.as_view()),
     url(r'tool/del_stressdata', delstressdata.as_view()),

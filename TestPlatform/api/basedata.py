@@ -13,10 +13,10 @@ from rest_framework.views import APIView
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.common.common import record_dynamic
-from TestPlatform.models import base_data,test_risk,Project
+from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomcount import filecount
+from TestPlatform.tools.dicom.dicomcount import filecount,file_count
 
 
 
@@ -78,7 +78,7 @@ class AddbaseData(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["content"] or not data["type"] or not data["status"]:
+            if not data["content"] or not data["type"]:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -95,6 +95,7 @@ class AddbaseData(APIView):
         if result:
             return result
 
+        data['other'] = file_count(data['content'])
         base_data_serializer = base_data_Deserializer(data=data)
 
         with transaction.atomic():

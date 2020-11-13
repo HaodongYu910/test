@@ -221,33 +221,38 @@ export const delreport = (headers, params) => {
 export const Send = (headers, params) => {
   return axios.post(`${test}/api/send`, params, headers).then(res => res.data)
 }
+// 压测数据
+export const stresslist = (headers, params) => {
+  return axios.get(`${test}/api/stress/list`, { params: params }, { headers }).then(res => res.data)
+}
+
 // 手动调用压测脚本
 export const stressTool = (headers, params) => {
-  return axios.post(`${test}/api/tool/stresstool`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/stresstool`, params, headers).then(res => res.data)
 }
 // 压测数据
 export const getVersion = (headers, params) => {
-  return axios.get(`${test}/api/tool/version`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/stress/version`, { params: params }, { headers }).then(res => res.data)
 }
 // 删除压测数据
 export const delstressdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/del_stressdata`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/del_stressdata`, params, headers).then(res => res.data)
 }
 // 修改压测数据
 export const updatestressdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/update_stressdata`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/update_stressdata`, params, headers).then(res => res.data)
 }
 // 新增压测数据
 export const addstressdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/add_stressdata`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/add_stressdata`, params, headers).then(res => res.data)
 }
 // 压测版本
 export const getstressversion = (headers, params) => {
-  return axios.get(`${test}/api/tool/stressversion`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/stress/stressversion`, { params: params }, { headers }).then(res => res.data)
 }
 //压测数据
 export const getstressdata = (headers, params) => {
-  return axios.get(`${test}/api/tool/stressdata`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/stress/stressdata`, { params: params }, { headers }).then(res => res.data)
 }
 // 压测结果
 export const getstressresult = (headers, params) => {
@@ -255,7 +260,7 @@ export const getstressresult = (headers, params) => {
 }
 // 压测report
 export const getreportfigure = (headers, params) => {
-  return axios.post(`${test}/api/tool/stressfigure`,params, headers ).then(res => res.data)
+  return axios.post(`${test}/api/stress/stressfigure`,params, headers ).then(res => res.data)
 }
 // 删除patient数据
 export const delete_patients = (headers, params) => {
@@ -322,5 +327,9 @@ export const Disablebase = (headers, params) => {
 // 删除基础数据
 export const Delbasedata = (headers, params) => {
   return axios.post(`${test}/api/base/delbasedata`, params, headers).then(res => res.data)
+}
+// 同步数据数量
+export const dicomcount = (headers, params) => {
+    return axios.get(`${test}/api/base/dicom`, { params: params }, { headers }).then(res => res.data)
 }
 

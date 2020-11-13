@@ -26,14 +26,14 @@
                     <span style="margin-left: 10px">{{ scope.row.id }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="名称" min-width="16%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.remarks }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="content" label="路径" min-width="25%">
+            <el-table-column prop="type" label="内容" min-width="25%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.content }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="分类" min-width="16%" sortable>
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="类型" min-width="16%" sortable>
@@ -41,9 +41,9 @@
                     <span style="margin-left: 10px">{{ scope.row.select_type }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="数量" min-width="16%" sortable>
+            <el-table-column label="说明" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.other }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.remarks }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
@@ -60,7 +60,7 @@
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步数量</el-button>
+                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -80,13 +80,13 @@
         <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-form-item label="文件路径">
-                    <el-input v-model="editForm.content"></el-input>
+                <el-form-item label="项目名称">
+                    <el-input v-model="editForm.content" auto-complete="off" :disabled="true"></el-input>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="分类" prop='type'>
-                            <el-select v-model="editForm.type" placeholder="请选择"  auto-complete="off" :disabled="true">
+                        <el-form-item label="类型" prop='type'>
+                            <el-select v-model="editForm.type" placeholder="请选择">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
                                            :value="item.value">
                                 </el-option>
@@ -94,13 +94,63 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="类型">
+                        <el-form-item label="版本号">
                             <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-form-item label="说明">
-                    <el-input v-model="editForm.remarks"></el-input>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="项目开始时间">
+                            <el-date-picker v-model="editForm.start_date" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="接口提测时间" prop='status'>
+                            <el-date-picker v-model="editForm.status" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="APP提测时间" prop="remarks">
+                            <el-date-picker v-model="editForm.remarks" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="接口上线时间" prop='other'>
+                            <el-date-picker v-model="editForm.other" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="发布日期" prop="end_date">
+                            <el-date-picker v-model="editForm.end_date" type="datetime"
+                                          value-format="yyyy-MM-dd HH:mm:ss"  placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="项目状态" prop='projectstatus'>
+                            <el-select v-model="editForm.projectstatus" placeholder="请选择">
+                                <el-option key="未开发" label="未开发" value="未开发"></el-option>
+                                <el-option key="开发中" label="开发中" value="开发中"></el-option>
+                                <el-option key="接口测试" label="接口测试" value="接口测试"></el-option>
+                                <el-option key="功能测试" label="功能测试" value="功能测试"></el-option>
+                                <el-option key="灰度测试" label="灰度测试" value="灰度测试"></el-option>
+                                <el-option key="已上线" label="已上线" value="已上线"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+
+                </el-row>
+
+                <el-form-item label="描述" prop='description'>
+                    <el-input type="textarea" :rows="6" v-model="editForm.description"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -114,14 +164,32 @@
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="名称" prop='remasks'>
-                            <el-input v-model.trim="addForm.remasks" auto-complete="off"></el-input>
+                    <el-col :span="20">
+                        <el-form-item label="内容" prop='content'>
+                            <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="文件路径" prop='content'>
-                            <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
+                        <el-form-item label="分类" prop='type'>
+                            <el-select v-model="addForm.type" placeholder="请选择">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                           :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="类型" prop='type'>
+                            <el-select v-model="addForm.type" placeholder="请选择">
+                                <el-option v-for="item in options" :key="item.value" :label="item.label"
+                                           :value="item.value">
+                                </el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="说明" prop='remasks'>
+                            <el-input v-model.trim="addForm.remasks" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -139,7 +207,7 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData,dicomcount
+        UpdatebaseData, addbaseData
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -157,7 +225,7 @@
 
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
-                options: [{label: "dicom", value: "dicom"}],
+                options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
                 editFormRules: {
                     content: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
@@ -201,8 +269,8 @@
                 //新增界面数据
                 addForm: {
                     content: '',
-                    select_type: 'dicom',
-                    type: 1,
+                    select_type: '',
+                    type: '',
                     description: ''
                 }
 
@@ -241,7 +309,7 @@
                 })
             },
             //删除
-            handlecount: function (index, row) {
+            handleDel: function (index, row) {
                 this.$confirm('确认删除该记录吗?', '提示', {
                     type: 'warning'
                 }).then(() => {
@@ -253,11 +321,11 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    dicomcount(header, params).then(_data => {
+                    Delbasedata(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
-                                message: '同步成功',
+                                message: '删除成功',
                                 center: true,
                                 type: 'success'
                             })
@@ -331,12 +399,12 @@
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm={
-                    select_type:'dicom',
+                    select_type:null,
                     content:null,
-                    status:true,
+                    status:null,
                     remarks:null,
                     other:null,
-                    type:1
+                    type:null
                 };
             },
             //编辑

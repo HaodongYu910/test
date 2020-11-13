@@ -85,6 +85,11 @@ export default new Router({
                     meta: { title: '性能测试' }
                 },
                 {
+                    path: '/stressHome',
+                    component: resolve => require(['../components/stress/stressHome.vue'], resolve),
+                    meta: { title: '性能测试' }
+                },
+                {
                     path: '/stressreport',
                     component: resolve => require(['../components/stress/stress_result.vue'], resolve),
                     meta: { title: '性能报告' }

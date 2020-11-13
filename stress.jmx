@@ -7,7 +7,13 @@
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
       <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-        <collectionProp name="Arguments.arguments"/>
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="synchroniz" elementType="Argument">
+            <stringProp name="Argument.name">synchroniz</stringProp>
+            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
       </elementProp>
       <stringProp name="TestPlan.user_define_classpath"></stringProp>
     </TestPlan>
@@ -166,11 +172,11 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <boolProp name="CookieManager.controlledByThreadGroup">true</boolProp>
       </CookieManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Breast" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Brain" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(ABreast,)}</stringProp>
+          <stringProp name="LoopController.loops">${__P(ABrain,)}</stringProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
@@ -180,16 +186,16 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Breast" enabled="true">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Hematoma" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/Breast.csv</stringProp>
+          <stringProp name="filename">stress/CT_Hematoma.csv</stringProp>
           <boolProp name="ignoreFirstLine">false</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
           <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">breast</stringProp>
+          <stringProp name="variableNames">hematoma</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
@@ -197,15 +203,16 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Breast" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="hematoma" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${breast}&quot;&#xd;
+	&quot;query&quot;:&quot;${hematoma}&quot;&#xd;
 	}&#xd;
+&#xd;
 &#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
@@ -246,12 +253,292 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           </JSONPathAssertion>
           <hashTree/>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="loadimage" enabled="true">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="SVD" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/SVD.csv</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">svd</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SVD" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${svd}&quot;&#xd;
+	}&#xd;
+&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="swi" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/SWI.csv</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">swi</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SWI" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${swi}&quot;&#xd;
+	}&#xd;
+&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="brain" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/Brain.csv</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">brain</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Brain" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${brain}&quot;&#xd;
+	}&#xd;
+&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Tumor" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/Tumor.csv</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.group</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">tumor</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Tumor" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${tumor}&quot;&#xd;
+	}&#xd;
+&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="MRA" enabled="false">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/MRA.csv</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">mra</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="MRA_loadimage" enabled="false">
           <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
+          <stringProp name="LoopController.loops">100</stringProp>
         </LoopController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Breast_loadimage" enabled="true">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="MRA_loadimage" enabled="true">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
@@ -282,833 +569,20 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Breast监听器" enabled="true">
-          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="influxdbMetricsSender" elementType="Argument">
-                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
-                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="influxdbUrl" elementType="Argument">
-                <stringProp name="Argument.name">influxdbUrl</stringProp>
-                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="application" elementType="Argument">
-                <stringProp name="Argument.name">application</stringProp>
-                <stringProp name="Argument.value">Breast</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="measurement" elementType="Argument">
-                <stringProp name="Argument.name">measurement</stringProp>
-                <stringProp name="Argument.value">jmeter</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="summaryOnly" elementType="Argument">
-                <stringProp name="Argument.name">summaryOnly</stringProp>
-                <stringProp name="Argument.value">false</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="samplersRegex" elementType="Argument">
-                <stringProp name="Argument.name">samplersRegex</stringProp>
-                <stringProp name="Argument.value">.*</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="percentiles" elementType="Argument">
-                <stringProp name="Argument.name">percentiles</stringProp>
-                <stringProp name="Argument.value">90;95;99</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="testTitle" elementType="Argument">
-                <stringProp name="Argument.name">testTitle</stringProp>
-                <stringProp name="Argument.value">2.15.0</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="eventTags" elementType="Argument">
-                <stringProp name="Argument.name">eventTags</stringProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
-        </BackendListener>
-        <hashTree/>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CTA" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(ACTA,)}</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration">${time}</stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-      </ThreadGroup>
-      <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/CTA.csv</stringProp>
-          <boolProp name="ignoreFirstLine">true</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">cta</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="用户参数" enabled="true">
-          <collectionProp name="UserParameters.names">
-            <stringProp name="1876599633">study_id</stringProp>
-            <stringProp name="-1954941734">study_uid</stringProp>
-            <stringProp name="115792">uid</stringProp>
-            <stringProp name="-1435721921">modalities</stringProp>
-            <stringProp name="-1348013956">predictor</stringProp>
-          </collectionProp>
-          <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="-146331598">
-              <stringProp name="335535377">e19391a2-d7adafa0-df59df05-a9115e25-b2e4f3ec</stringProp>
-              <stringProp name="-955270761">840.113619.2.416.42233201131450268962796251011403203461.22351470</stringProp>
-              <stringProp name="-2106376584">ed1ddcd5-55cc-4e98-9ee3-8037668192e7</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="67056">CTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-304341976">
-              <stringProp name="-1780466737">e3c6bf75-811cdcd4-18a19c5a-83e49b14-a4a30835</stringProp>
-              <stringProp name="-1295528773">40.113619.2.416.126627296069071647610671185223528287450.79096633</stringProp>
-              <stringProp name="-847669590">83dbdab7-a8d9-41fd-892c-7a3aa9c35eb4</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="67056">CTA</stringProp>
-            </collectionProp>
-            <collectionProp name="658263469">
-              <stringProp name="-213478192">280424f8-6acee9be-07ece956-65df1101-78d9ad27</stringProp>
-              <stringProp name="1557510325">40.113619.2.416.190274922218387255633568974860423556001.48210608</stringProp>
-              <stringProp name="-449349854">ac08473f-46f5-4859-910c-53f204ccbd06</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="67056">CTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-39788743">
-              <stringProp name="-71500900">bb134d61-79c3ef7d-d1c9e574-1b048ed3-b2fe4b0c</stringProp>
-              <stringProp name="-1508712692">40.113619.2.416.211560944339170806396717298390135969639.95025692</stringProp>
-              <stringProp name="-987263501">8e985b66-24ce-4456-bd74-7ef391e4bd80</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="67056">CTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-1518273806">
-              <stringProp name="1917765231">1800ad51-948a2a1a-ba5dbc8c-4b8bc968-f97ed85b</stringProp>
-              <stringProp name="52171654">40.113619.2.416.297723402920242770870129435910306530950.59811641</stringProp>
-              <stringProp name="-1839812245">b981adb8-17e3-451a-ac24-19e0719e00d4</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="67056">CTA</stringProp>
-            </collectionProp>
-          </collectionProp>
-          <boolProp name="UserParameters.per_iteration">false</boolProp>
-        </UserParameters>
-        <hashTree/>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="cta_Prediction" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${cta}&quot;&#xd;
-	}&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="basicVesselLoadImages" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;study_id&quot;: &quot;${study_id}&quot;,&quot;language&quot;: &quot;zh-cn&quot;,&quot;modalities&quot;: &quot;${modalities}&quot;,&quot;predictor&quot;: &quot;${predictor}&quot;,&quot;study_uid&quot;: &quot;${study_uid}&quot;,&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/3D/basicVessel/basicVesselLoadImages/</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-        </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3D_vesselClearImages" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/3D/basicVessel/vesselClearImages/</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-        </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="汇总报告" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="CTA监听器" enabled="true">
-          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="influxdbMetricsSender" elementType="Argument">
-                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
-                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="influxdbUrl" elementType="Argument">
-                <stringProp name="Argument.name">influxdbUrl</stringProp>
-                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="application" elementType="Argument">
-                <stringProp name="Argument.name">application</stringProp>
-                <stringProp name="Argument.value">CTA</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="measurement" elementType="Argument">
-                <stringProp name="Argument.name">measurement</stringProp>
-                <stringProp name="Argument.value">jmeter</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="summaryOnly" elementType="Argument">
-                <stringProp name="Argument.name">summaryOnly</stringProp>
-                <stringProp name="Argument.value">false</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="samplersRegex" elementType="Argument">
-                <stringProp name="Argument.name">samplersRegex</stringProp>
-                <stringProp name="Argument.value">.*</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="percentiles" elementType="Argument">
-                <stringProp name="Argument.name">percentiles</stringProp>
-                <stringProp name="Argument.value">90;95;99</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="testTitle" elementType="Argument">
-                <stringProp name="Argument.name">testTitle</stringProp>
-                <stringProp name="Argument.value">2.15.0</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="eventTags" elementType="Argument">
-                <stringProp name="Argument.name">eventTags</stringProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
-        </BackendListener>
-        <hashTree/>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Coronary" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(Acoronary,)}</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration">${time}</stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-        <stringProp name="TestPlan.comments">冠脉</stringProp>
-      </ThreadGroup>
-      <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/coronary.csv</stringProp>
-          <boolProp name="ignoreFirstLine">true</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">coronary</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="用户参数" enabled="true">
-          <collectionProp name="UserParameters.names">
-            <stringProp name="1876599633">study_id</stringProp>
-            <stringProp name="-1954941734">study_uid</stringProp>
-            <stringProp name="115792">uid</stringProp>
-            <stringProp name="-1435721921">modalities</stringProp>
-            <stringProp name="-1348013956">predictor</stringProp>
-          </collectionProp>
-          <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="1166534694">
-              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
-              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
-              <stringProp name="-2017175251">46ae0be0-cac1-4fa7-87bb-7ca65bebf30e</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="70322610">
-              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
-              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
-              <stringProp name="188848318">59f7413e-139d-4c9c-a5e7-0de776b1919a</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-1383551460">
-              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
-              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
-              <stringProp name="1226896940">56e46500-f994-4fb6-9377-29ee9a58e3ba</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="2003018767">
-              <stringProp name="382246822">5f78d669-03647243-ea3583b3-9ee064a9-c58bd5a1</stringProp>
-              <stringProp name="-21857996">840.113619.2.416.92305365626411527164363942329510492054.01442578</stringProp>
-              <stringProp name="-357010694">6abd534d-9ebe-46a3-8170-fd5b1e3809ba</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-897779097">
-              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
-              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
-              <stringProp name="144890269">f7399f72-513d-48d7-9c46-bf356db4390d</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-          </collectionProp>
-          <boolProp name="UserParameters.per_iteration">false</boolProp>
-        </UserParameters>
-        <hashTree/>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="coronary_Prediction" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${coronary}&quot;&#xd;
-	}&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="coronaryVessel" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&quot;study_id&quot;: &quot;${study_id}&quot;,&quot;language&quot;: &quot;zh-cn&quot;,&quot;modalities&quot;: &quot;${modalities}&quot;,&quot;predictor&quot;: &quot;${predictor}&quot;,&quot;study_uid&quot;: &quot;${study_uid}&quot;,&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/3D/coronaryVessel/coronaryVesselLoadImages/</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-        </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
-          <boolProp name="ResultCollector.error_logging">false</boolProp>
-          <objProp>
-            <name>saveConfig</name>
-            <value class="SampleSaveConfiguration">
-              <time>true</time>
-              <latency>true</latency>
-              <timestamp>true</timestamp>
-              <success>true</success>
-              <label>true</label>
-              <code>true</code>
-              <message>true</message>
-              <threadName>true</threadName>
-              <dataType>true</dataType>
-              <encoding>false</encoding>
-              <assertions>true</assertions>
-              <subresults>true</subresults>
-              <responseData>false</responseData>
-              <samplerData>false</samplerData>
-              <xml>false</xml>
-              <fieldNames>true</fieldNames>
-              <responseHeaders>false</responseHeaders>
-              <requestHeaders>false</requestHeaders>
-              <responseDataOnError>false</responseDataOnError>
-              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
-              <assertionsResultsToSave>0</assertionsResultsToSave>
-              <bytes>true</bytes>
-              <sentBytes>true</sentBytes>
-              <url>true</url>
-              <threadCounts>true</threadCounts>
-              <idleTime>true</idleTime>
-              <connectTime>true</connectTime>
-            </value>
-          </objProp>
-          <stringProp name="filename"></stringProp>
-        </ResultCollector>
-        <hashTree/>
-        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="coronary监听器" enabled="true">
-          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="influxdbMetricsSender" elementType="Argument">
-                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
-                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="influxdbUrl" elementType="Argument">
-                <stringProp name="Argument.name">influxdbUrl</stringProp>
-                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="application" elementType="Argument">
-                <stringProp name="Argument.name">application</stringProp>
-                <stringProp name="Argument.value">coronary</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="measurement" elementType="Argument">
-                <stringProp name="Argument.name">measurement</stringProp>
-                <stringProp name="Argument.value">jmeter</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="summaryOnly" elementType="Argument">
-                <stringProp name="Argument.name">summaryOnly</stringProp>
-                <stringProp name="Argument.value">false</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="samplersRegex" elementType="Argument">
-                <stringProp name="Argument.name">samplersRegex</stringProp>
-                <stringProp name="Argument.value">.*</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="percentiles" elementType="Argument">
-                <stringProp name="Argument.name">percentiles</stringProp>
-                <stringProp name="Argument.value">90;95;99</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="testTitle" elementType="Argument">
-                <stringProp name="Argument.name">testTitle</stringProp>
-                <stringProp name="Argument.value">2.15.0</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-              <elementProp name="eventTags" elementType="Argument">
-                <stringProp name="Argument.name">eventTags</stringProp>
-                <stringProp name="Argument.value"></stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
-        </BackendListener>
-        <hashTree/>
-      </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CTP" enabled="true">
-        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
-          <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(ACTP,)}</stringProp>
-        </elementProp>
-        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration">${time}</stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
-        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
-      </ThreadGroup>
-      <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="false">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/CTP.csv</stringProp>
-          <boolProp name="ignoreFirstLine">true</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.all</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">ctp</stringProp>
-        </CSVDataSet>
-        <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="false">
           <stringProp name="groupSize">${synchroniz}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="ctp_Prediction" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="MRA" enabled="false">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${ctp}&quot;&#xd;
+	&quot;query&quot;:&quot;${mra}&quot;&#xd;
 	}&#xd;
-&#xd;
 &#xd;
 </stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
@@ -1139,8 +613,17 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
         </hashTree>
-        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="false">
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1177,7 +660,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="false">
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
           <boolProp name="ResultCollector.error_logging">false</boolProp>
           <objProp>
             <name>saveConfig</name>
@@ -1214,7 +697,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="CTP监听器" enabled="false">
+        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Brain监听器" enabled="true">
           <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
             <collectionProp name="Arguments.arguments">
               <elementProp name="influxdbMetricsSender" elementType="Argument">
@@ -1229,7 +712,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
               </elementProp>
               <elementProp name="application" elementType="Argument">
                 <stringProp name="Argument.name">application</stringProp>
-                <stringProp name="Argument.value">ctp</stringProp>
+                <stringProp name="Argument.value">Brain</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="measurement" elementType="Argument">
@@ -2546,11 +2029,11 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Brain" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Breast" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(ABrain,)}</stringProp>
+          <stringProp name="LoopController.loops">${__P(ABreast,)}</stringProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
@@ -2560,582 +2043,31 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
       </ThreadGroup>
       <hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Hematoma" enabled="true">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Breast" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/CT_Hematoma.csv</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">hematoma</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Hematoma_loadimage" enabled="true">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Hematoma_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="hematoma" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${hematoma}&quot;&#xd;
-	}&#xd;
-&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="SVD" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/SVD.csv</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">svd</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="SVD_loadimage" enabled="true">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SVD_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SVD" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${svd}&quot;&#xd;
-	}&#xd;
-&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="swi" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/SWI.csv</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">swi</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="SWI_loadimage" enabled="true">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SWI_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SWI" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${swi}&quot;&#xd;
-	}&#xd;
-&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="brain" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/Brain.csv</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">brain</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="brain_loadimage" enabled="true">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="brain_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Brain" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${brain}&quot;&#xd;
-	}&#xd;
-&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Tumor" enabled="true">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/Tumor.csv</stringProp>
-          <boolProp name="ignoreFirstLine">false</boolProp>
-          <boolProp name="quotedData">true</boolProp>
-          <boolProp name="recycle">true</boolProp>
-          <stringProp name="shareMode">shareMode.group</stringProp>
-          <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">tumor</stringProp>
-        </CSVDataSet>
-        <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Tumor_loadimage" enabled="true">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Tumor_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
-        <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Tumor" enabled="true">
-          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
-          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
-            <collectionProp name="Arguments.arguments">
-              <elementProp name="" elementType="HTTPArgument">
-                <boolProp name="HTTPArgument.always_encode">false</boolProp>
-                <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${tumor}&quot;&#xd;
-	}&#xd;
-&#xd;
-&#xd;
-</stringProp>
-                <stringProp name="Argument.metadata">=</stringProp>
-              </elementProp>
-            </collectionProp>
-          </elementProp>
-          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-          <stringProp name="HTTPSampler.port"></stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
-          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
-          <stringProp name="HTTPSampler.path">/graphql</stringProp>
-          <stringProp name="HTTPSampler.method">POST</stringProp>
-          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-          <stringProp name="HTTPSampler.response_timeout"></stringProp>
-        </HTTPSamplerProxy>
-        <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-            <collectionProp name="HeaderManager.headers">
-              <elementProp name="" elementType="Header">
-                <stringProp name="Header.name">content-type</stringProp>
-                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-              </elementProp>
-            </collectionProp>
-          </HeaderManager>
-          <hashTree/>
-          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
-            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
-            <stringProp name="EXPECTED_VALUE">null</stringProp>
-            <boolProp name="JSONVALIDATION">true</boolProp>
-            <boolProp name="EXPECT_NULL">true</boolProp>
-            <boolProp name="INVERT">true</boolProp>
-            <boolProp name="ISREGEX">true</boolProp>
-          </JSONPathAssertion>
-          <hashTree/>
-        </hashTree>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="MRA" enabled="false">
-          <stringProp name="delimiter">,</stringProp>
-          <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/MRA.csv</stringProp>
+          <stringProp name="filename">stress/Breast.csv</stringProp>
           <boolProp name="ignoreFirstLine">false</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
           <stringProp name="shareMode">shareMode.all</stringProp>
           <boolProp name="stopThread">false</boolProp>
-          <stringProp name="variableNames">mra</stringProp>
+          <stringProp name="variableNames">breast</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="MRA_loadimage" enabled="false">
-          <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">100</stringProp>
-        </LoopController>
-        <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="MRA_loadimage" enabled="true">
-            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
-              <collectionProp name="Arguments.arguments"/>
-            </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
-            <stringProp name="HTTPSampler.port"></stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
-            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
-            <stringProp name="HTTPSampler.method">GET</stringProp>
-            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
-            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
-            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
-            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
-            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
-            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
-            <stringProp name="HTTPSampler.response_timeout"></stringProp>
-            <stringProp name="TestPlan.comments">loadimage</stringProp>
-          </HTTPSamplerProxy>
-          <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
-              <collectionProp name="HeaderManager.headers">
-                <elementProp name="" elementType="Header">
-                  <stringProp name="Header.name">content-type</stringProp>
-                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
-                </elementProp>
-              </collectionProp>
-            </HeaderManager>
-            <hashTree/>
-          </hashTree>
-        </hashTree>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="false">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <intProp name="groupSize">5</intProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="MRA" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Breast" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
               <elementProp name="" elementType="HTTPArgument">
                 <boolProp name="HTTPArgument.always_encode">false</boolProp>
                 <stringProp name="Argument.value">{&#xd;
-	&quot;query&quot;:&quot;${mra}&quot;&#xd;
+	&quot;query&quot;:&quot;${breast}&quot;&#xd;
 	}&#xd;
 &#xd;
 </stringProp>
@@ -3175,6 +2107,700 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <boolProp name="INVERT">true</boolProp>
             <boolProp name="ISREGEX">true</boolProp>
           </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="loadimage" enabled="true">
+          <boolProp name="LoopController.continue_forever">true</boolProp>
+          <stringProp name="LoopController.loops">10</stringProp>
+        </LoopController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Breast_loadimage" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+            <stringProp name="HTTPSampler.port"></stringProp>
+            <stringProp name="HTTPSampler.protocol">https</stringProp>
+            <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
+            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+            <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+            <stringProp name="HTTPSampler.response_timeout"></stringProp>
+            <stringProp name="TestPlan.comments">loadimage</stringProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">content-type</stringProp>
+                  <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Breast监听器" enabled="true">
+          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="influxdbMetricsSender" elementType="Argument">
+                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="influxdbUrl" elementType="Argument">
+                <stringProp name="Argument.name">influxdbUrl</stringProp>
+                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="application" elementType="Argument">
+                <stringProp name="Argument.name">application</stringProp>
+                <stringProp name="Argument.value">Breast</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="measurement" elementType="Argument">
+                <stringProp name="Argument.name">measurement</stringProp>
+                <stringProp name="Argument.value">jmeter</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="summaryOnly" elementType="Argument">
+                <stringProp name="Argument.name">summaryOnly</stringProp>
+                <stringProp name="Argument.value">false</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="samplersRegex" elementType="Argument">
+                <stringProp name="Argument.name">samplersRegex</stringProp>
+                <stringProp name="Argument.value">.*</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="percentiles" elementType="Argument">
+                <stringProp name="Argument.name">percentiles</stringProp>
+                <stringProp name="Argument.value">90;95;99</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="testTitle" elementType="Argument">
+                <stringProp name="Argument.name">testTitle</stringProp>
+                <stringProp name="Argument.value">2.15.0</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="eventTags" elementType="Argument">
+                <stringProp name="Argument.name">eventTags</stringProp>
+                <stringProp name="Argument.value"></stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+        </BackendListener>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CTA" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">${__P(ACTA,)}</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration">${time}</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/CTA.csv</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">cta</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="用户参数" enabled="true">
+          <collectionProp name="UserParameters.names">
+            <stringProp name="1876599633">study_id</stringProp>
+            <stringProp name="-1954941734">study_uid</stringProp>
+            <stringProp name="115792">uid</stringProp>
+            <stringProp name="-1435721921">modalities</stringProp>
+            <stringProp name="-1348013956">predictor</stringProp>
+          </collectionProp>
+          <collectionProp name="UserParameters.thread_values">
+            <collectionProp name="-146331598">
+              <stringProp name="335535377">e19391a2-d7adafa0-df59df05-a9115e25-b2e4f3ec</stringProp>
+              <stringProp name="-955270761">840.113619.2.416.42233201131450268962796251011403203461.22351470</stringProp>
+              <stringProp name="-2106376584">ed1ddcd5-55cc-4e98-9ee3-8037668192e7</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="67056">CTA</stringProp>
+            </collectionProp>
+            <collectionProp name="-304341976">
+              <stringProp name="-1780466737">e3c6bf75-811cdcd4-18a19c5a-83e49b14-a4a30835</stringProp>
+              <stringProp name="-1295528773">40.113619.2.416.126627296069071647610671185223528287450.79096633</stringProp>
+              <stringProp name="-847669590">83dbdab7-a8d9-41fd-892c-7a3aa9c35eb4</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="67056">CTA</stringProp>
+            </collectionProp>
+            <collectionProp name="658263469">
+              <stringProp name="-213478192">280424f8-6acee9be-07ece956-65df1101-78d9ad27</stringProp>
+              <stringProp name="1557510325">40.113619.2.416.190274922218387255633568974860423556001.48210608</stringProp>
+              <stringProp name="-449349854">ac08473f-46f5-4859-910c-53f204ccbd06</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="67056">CTA</stringProp>
+            </collectionProp>
+            <collectionProp name="-39788743">
+              <stringProp name="-71500900">bb134d61-79c3ef7d-d1c9e574-1b048ed3-b2fe4b0c</stringProp>
+              <stringProp name="-1508712692">40.113619.2.416.211560944339170806396717298390135969639.95025692</stringProp>
+              <stringProp name="-987263501">8e985b66-24ce-4456-bd74-7ef391e4bd80</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="67056">CTA</stringProp>
+            </collectionProp>
+            <collectionProp name="-1518273806">
+              <stringProp name="1917765231">1800ad51-948a2a1a-ba5dbc8c-4b8bc968-f97ed85b</stringProp>
+              <stringProp name="52171654">40.113619.2.416.297723402920242770870129435910306530950.59811641</stringProp>
+              <stringProp name="-1839812245">b981adb8-17e3-451a-ac24-19e0719e00d4</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="67056">CTA</stringProp>
+            </collectionProp>
+          </collectionProp>
+          <boolProp name="UserParameters.per_iteration">false</boolProp>
+        </UserParameters>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="cta_Prediction" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${cta}&quot;&#xd;
+	}&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="basicVesselLoadImages" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;study_id&quot;: &quot;${study_id}&quot;,&quot;language&quot;: &quot;zh-cn&quot;,&quot;modalities&quot;: &quot;${modalities}&quot;,&quot;predictor&quot;: &quot;${predictor}&quot;,&quot;study_uid&quot;: &quot;${study_uid}&quot;,&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/3D/basicVessel/basicVesselLoadImages/</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3D_vesselClearImages" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/3D/basicVessel/vesselClearImages/</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="SummaryReport" testclass="ResultCollector" testname="汇总报告" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="true">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="CTA监听器" enabled="true">
+          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="influxdbMetricsSender" elementType="Argument">
+                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="influxdbUrl" elementType="Argument">
+                <stringProp name="Argument.name">influxdbUrl</stringProp>
+                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="application" elementType="Argument">
+                <stringProp name="Argument.name">application</stringProp>
+                <stringProp name="Argument.value">CTA</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="measurement" elementType="Argument">
+                <stringProp name="Argument.name">measurement</stringProp>
+                <stringProp name="Argument.value">jmeter</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="summaryOnly" elementType="Argument">
+                <stringProp name="Argument.name">summaryOnly</stringProp>
+                <stringProp name="Argument.value">false</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="samplersRegex" elementType="Argument">
+                <stringProp name="Argument.name">samplersRegex</stringProp>
+                <stringProp name="Argument.value">.*</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="percentiles" elementType="Argument">
+                <stringProp name="Argument.name">percentiles</stringProp>
+                <stringProp name="Argument.value">90;95;99</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="testTitle" elementType="Argument">
+                <stringProp name="Argument.name">testTitle</stringProp>
+                <stringProp name="Argument.value">2.15.0</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="eventTags" elementType="Argument">
+                <stringProp name="Argument.name">eventTags</stringProp>
+                <stringProp name="Argument.value"></stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+        </BackendListener>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Coronary" enabled="true">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">${__P(Acoronary,)}</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration">${time}</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="TestPlan.comments">冠脉</stringProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="true">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/coronary.csv</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">coronary</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="用户参数" enabled="true">
+          <collectionProp name="UserParameters.names">
+            <stringProp name="1876599633">study_id</stringProp>
+            <stringProp name="-1954941734">study_uid</stringProp>
+            <stringProp name="115792">uid</stringProp>
+            <stringProp name="-1435721921">modalities</stringProp>
+            <stringProp name="-1348013956">predictor</stringProp>
+          </collectionProp>
+          <collectionProp name="UserParameters.thread_values">
+            <collectionProp name="1166534694">
+              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
+              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
+              <stringProp name="-2017175251">46ae0be0-cac1-4fa7-87bb-7ca65bebf30e</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="1673056679">COROCTA</stringProp>
+            </collectionProp>
+            <collectionProp name="70322610">
+              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
+              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
+              <stringProp name="188848318">59f7413e-139d-4c9c-a5e7-0de776b1919a</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="1673056679">COROCTA</stringProp>
+            </collectionProp>
+            <collectionProp name="-1383551460">
+              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
+              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
+              <stringProp name="1226896940">56e46500-f994-4fb6-9377-29ee9a58e3ba</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="1673056679">COROCTA</stringProp>
+            </collectionProp>
+            <collectionProp name="2003018767">
+              <stringProp name="382246822">5f78d669-03647243-ea3583b3-9ee064a9-c58bd5a1</stringProp>
+              <stringProp name="-21857996">840.113619.2.416.92305365626411527164363942329510492054.01442578</stringProp>
+              <stringProp name="-357010694">6abd534d-9ebe-46a3-8170-fd5b1e3809ba</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="1673056679">COROCTA</stringProp>
+            </collectionProp>
+            <collectionProp name="-897779097">
+              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
+              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
+              <stringProp name="144890269">f7399f72-513d-48d7-9c46-bf356db4390d</stringProp>
+              <stringProp name="2161">CT</stringProp>
+              <stringProp name="1673056679">COROCTA</stringProp>
+            </collectionProp>
+          </collectionProp>
+          <boolProp name="UserParameters.per_iteration">false</boolProp>
+        </UserParameters>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="coronary_Prediction" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${coronary}&quot;&#xd;
+	}&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="JSON断言" enabled="true">
+            <stringProp name="JSON_PATH">$.data.ai_biomind.pprediction</stringProp>
+            <stringProp name="EXPECTED_VALUE">null</stringProp>
+            <boolProp name="JSONVALIDATION">true</boolProp>
+            <boolProp name="EXPECT_NULL">true</boolProp>
+            <boolProp name="INVERT">true</boolProp>
+            <boolProp name="ISREGEX">true</boolProp>
+          </JSONPathAssertion>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="coronaryVessel" enabled="true">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&quot;study_id&quot;: &quot;${study_id}&quot;,&quot;language&quot;: &quot;zh-cn&quot;,&quot;modalities&quot;: &quot;${modalities}&quot;,&quot;predictor&quot;: &quot;${predictor}&quot;,&quot;study_uid&quot;: &quot;${study_uid}&quot;,&quot;uid&quot;: &quot;${uid}&quot;}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/3D/coronaryVessel/coronaryVesselLoadImages/</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json; charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
           <hashTree/>
         </hashTree>
         <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="true">
@@ -3251,7 +2877,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="filename"></stringProp>
         </ResultCollector>
         <hashTree/>
-        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Brain监听器" enabled="true">
+        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="coronary监听器" enabled="true">
           <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
             <collectionProp name="Arguments.arguments">
               <elementProp name="influxdbMetricsSender" elementType="Argument">
@@ -3266,7 +2892,207 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
               </elementProp>
               <elementProp name="application" elementType="Argument">
                 <stringProp name="Argument.name">application</stringProp>
-                <stringProp name="Argument.value">Brain</stringProp>
+                <stringProp name="Argument.value">coronary</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="measurement" elementType="Argument">
+                <stringProp name="Argument.name">measurement</stringProp>
+                <stringProp name="Argument.value">jmeter</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="summaryOnly" elementType="Argument">
+                <stringProp name="Argument.name">summaryOnly</stringProp>
+                <stringProp name="Argument.value">false</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="samplersRegex" elementType="Argument">
+                <stringProp name="Argument.name">samplersRegex</stringProp>
+                <stringProp name="Argument.value">.*</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="percentiles" elementType="Argument">
+                <stringProp name="Argument.name">percentiles</stringProp>
+                <stringProp name="Argument.value">90;95;99</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="testTitle" elementType="Argument">
+                <stringProp name="Argument.name">testTitle</stringProp>
+                <stringProp name="Argument.value">2.15.0</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="eventTags" elementType="Argument">
+                <stringProp name="Argument.name">eventTags</stringProp>
+                <stringProp name="Argument.value"></stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+        </BackendListener>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="CTP" enabled="false">
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller" enabled="true">
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+          <stringProp name="LoopController.loops">${__P(ACTP,)}</stringProp>
+        </elementProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.duration">${time}</stringProp>
+        <stringProp name="ThreadGroup.delay"></stringProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+      </ThreadGroup>
+      <hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="测试参数" enabled="false">
+          <stringProp name="delimiter">,</stringProp>
+          <stringProp name="fileEncoding">UTF-8</stringProp>
+          <stringProp name="filename">stress/CTP.csv</stringProp>
+          <boolProp name="ignoreFirstLine">true</boolProp>
+          <boolProp name="quotedData">true</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="variableNames">ctp</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="false">
+          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="ctp_Prediction" enabled="false">
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+	&quot;query&quot;:&quot;${ctp}&quot;&#xd;
+	}&#xd;
+&#xd;
+&#xd;
+</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+          <stringProp name="HTTPSampler.port"></stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding"></stringProp>
+          <stringProp name="HTTPSampler.path">/graphql</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+          <stringProp name="HTTPSampler.embedded_url_re"></stringProp>
+          <stringProp name="HTTPSampler.connect_timeout"></stringProp>
+          <stringProp name="HTTPSampler.response_timeout"></stringProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP信息头管理器" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json;charset=utf-8</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="Prediction Results Tree" enabled="false">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <ResultCollector guiclass="StatVisualizer" testclass="ResultCollector" testname="聚合报告" enabled="false">
+          <boolProp name="ResultCollector.error_logging">false</boolProp>
+          <objProp>
+            <name>saveConfig</name>
+            <value class="SampleSaveConfiguration">
+              <time>true</time>
+              <latency>true</latency>
+              <timestamp>true</timestamp>
+              <success>true</success>
+              <label>true</label>
+              <code>true</code>
+              <message>true</message>
+              <threadName>true</threadName>
+              <dataType>true</dataType>
+              <encoding>false</encoding>
+              <assertions>true</assertions>
+              <subresults>true</subresults>
+              <responseData>false</responseData>
+              <samplerData>false</samplerData>
+              <xml>false</xml>
+              <fieldNames>true</fieldNames>
+              <responseHeaders>false</responseHeaders>
+              <requestHeaders>false</requestHeaders>
+              <responseDataOnError>false</responseDataOnError>
+              <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+              <assertionsResultsToSave>0</assertionsResultsToSave>
+              <bytes>true</bytes>
+              <sentBytes>true</sentBytes>
+              <url>true</url>
+              <threadCounts>true</threadCounts>
+              <idleTime>true</idleTime>
+              <connectTime>true</connectTime>
+            </value>
+          </objProp>
+          <stringProp name="filename"></stringProp>
+        </ResultCollector>
+        <hashTree/>
+        <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="CTP监听器" enabled="false">
+          <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" enabled="true">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="influxdbMetricsSender" elementType="Argument">
+                <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+                <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="influxdbUrl" elementType="Argument">
+                <stringProp name="Argument.name">influxdbUrl</stringProp>
+                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+              <elementProp name="application" elementType="Argument">
+                <stringProp name="Argument.name">application</stringProp>
+                <stringProp name="Argument.value">ctp</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="measurement" elementType="Argument">

@@ -247,6 +247,7 @@
     import {
         getstressversion,getstressresult, getHost,getbase,stressTool
     } from '@/router/api'
+    import {addbaseData} from "../../router/api";
   export default {
     // import ElRow from "element-ui/packages/row/src/row";
         // components: {ElRow},
@@ -323,10 +324,11 @@
         methods: {
             // 执行压测
             stressrun(formName) {
+                let self = this;
                 this.tableData = null
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
-                        const params = {
+                        let params = JSON.stringify({
                             version: this.form.version,
                             loadserver: this.form.loadserver,
                             loop_time: this.form.loop_time,
@@ -335,41 +337,42 @@
                             switch: this.form.switch,
                             loop: this.form.loop,
                             synchronizing:this.form.synchronizing
-                        }
-                        const headers = {
-                            'Content-Type': 'application/json'
-                        }
-                        stressTool(headers, params).then(_data => {
-                            const {msg, code,data } = _data
-                            self.addLoading = true
+                        });
+                        let header = {
+                            "Content-Type": "application/json",
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        };
+                        stressTool(header, params).then(_data => {
+                            let {msg, code,data } = _data;
+                            console.log(code);
                             if (code === '0') {
-                                 self.$message({
-                                  message: '成功',
-                                  center: true,
-                                  type: 'success'
-                                })
+                                self.$message({
+                                    message: '执行成功',
+                                    center: true,
+                                    type: 'Success'
+                                });
                             } else {
                                 self.$message.error({
-                                    message: msg,
-                                    center: true
-                                })
+                                        message: msg,
+                                        center: true,
+                                    });
                             }
                         })
                     }
                 })
             },
             getversion() {
+                let self = this;
                 this.listLoading = true
-                const self = this
                 const params = {}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getstressversion(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
+                        this.total = data.total
+                        this.list = data.data
+                        var json = JSON.stringify(this.list)
                         this.versions = JSON.parse(json)
                     } else {
                         self.$message.error({
@@ -381,17 +384,17 @@
             },
             // 获取getBase列表
             getBase() {
+                let self = this;
                 this.listLoading = true
-                const self = this
                 const params = {selecttype:"dicom",status:1}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
+                        this.total = data.total
+                        this.list = data.data
+                        var json = JSON.stringify(this.list)
                         this.dibase = JSON.parse(json)
                     } else {
                         self.$message.error({
@@ -405,16 +408,16 @@
             // 获取host数据列表
             gethost() {
                 this.listLoading = true
-                const self = this
+                let self = this;
                 const params = {}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
+                        this.total = data.total
+                        this.list = data.data
+                        var json = JSON.stringify(this.list)
                         this.tags = JSON.parse(json)
                     } else {
                         self.$message.error({
@@ -427,7 +430,7 @@
             // 获取数据列表
             getDurationlist() {
                 this.listLoading = true
-                const self = this
+                let self = this;
                 const params = {
                     version: this.filters.version,
                     checkversion: this.filters.checkversion,
@@ -435,12 +438,12 @@
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getstressresult(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.prediction = data.predictionresult
-                        self.job =data.jobresult
-                        self.lung =data.lungresult
+                        this.prediction = data.predictionresult
+                        this.job =data.jobresult
+                        this.lung =data.lungresult
                     } else {
                         self.$message.error({
                             message: msg,

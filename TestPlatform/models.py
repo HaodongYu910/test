@@ -781,9 +781,17 @@ class stress_record(models.Model):
       性能测试记录表
     """
     id = models.AutoField(primary_key=True)
+    projectname = models.CharField(max_length=20, blank=True, null=True, verbose_name="项目名称")
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试版本")
     loadserver = models.CharField(max_length=40, blank=True, null=True, verbose_name="测试环境")
     testdata = models.CharField(max_length=400, blank=True, null=True, verbose_name="测试数据")
+    thread = models.CharField(max_length=4, blank=True, null=True, verbose_name="线程数")
+    synchroniz = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
+    ramp = models.CharField(max_length=4, blank=True, null=True, verbose_name="ramp up time")
+    loop_count = models.CharField(max_length=4, blank=True, null=True, verbose_name="循环次数")
+    duration = models.CharField(max_length=4, blank=True, null=True, verbose_name="持续时间")
+    start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动延时 秒")
+    dicom_send = models.CharField(max_length=4, blank=True, null=True, verbose_name="dicom 发送")
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")

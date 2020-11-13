@@ -65,7 +65,14 @@ def filecount(id):
         i.save()
 
 
-
+def file_count(folder):
+    study_infos = []
+    src_folder = folder
+    while src_folder[-1] == '/':
+        src_folder = src_folder[0:-1]
+    list=fake_folder(src_folder=src_folder,study_infos=study_infos)
+    count =len(list)
+    return count
 
 
 

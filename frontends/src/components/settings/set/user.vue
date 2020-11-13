@@ -279,7 +279,7 @@
 </template>
 
 <script>
-    import {loadTestProject,deleteTestProject,addTestProject,updateTestProject} from "../../router/api";
+    import {loadTestProject,deleteTestProject,addTestProject,updateTestProject} from "../../../router/api";
     export default {
         name: 'basetable',
         data() {

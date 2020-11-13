@@ -64,6 +64,10 @@
                         title: '性能测试',
                         subs: [
                             {
+                                index: 'stressHome',
+                                title: '性能测试'
+                            },
+                            {
                                 index: 'data',
                                 title: '测试数据'
                             },
