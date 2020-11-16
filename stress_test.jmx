@@ -5,7 +5,7 @@
       <stringProp name="TestPlan.comments"></stringProp>
       <boolProp name="TestPlan.functional_mode">false</boolProp>
       <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
       <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
         <collectionProp name="Arguments.arguments"/>
       </elementProp>
@@ -97,6 +97,7 @@ ${__setProperty(Asever,${sever},)};
 ${__setProperty(Athread,${thread},)};
 ${__setProperty(Aloop,${loop},)};
 ${__setProperty(Aversion,${version},)};
+${__setProperty(Asynchroniz,${synchroniz},)};
 ${__setProperty(Aramp,${ramp},)};
 ${__setProperty(Atime,${time},)};
 ${__setProperty(Aloop,${loop},)};
@@ -170,7 +171,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
-          <stringProp name="LoopController.loops">${__P(Aloop,)}</stringProp>
+          <stringProp name="LoopController.loops">5</stringProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
@@ -183,7 +184,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="data" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">D:/workspace/test/Biomind_Test_Platform/stress/stressdata.csv</stringProp>
+          <stringProp name="filename">stress/data.csv</stringProp>
           <boolProp name="ignoreFirstLine">false</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>
@@ -193,7 +194,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(synchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -374,7 +375,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="loadimage" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="loadimage" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -388,54 +389,6 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
       </ThreadGroup>
       <hashTree>
-        <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="COROCTA" enabled="false">
-          <collectionProp name="UserParameters.names">
-            <stringProp name="1876599633">study_id</stringProp>
-            <stringProp name="-1954941734">study_uid</stringProp>
-            <stringProp name="115792">uid</stringProp>
-            <stringProp name="-1435721921">modalities</stringProp>
-            <stringProp name="-1348013956">predictor</stringProp>
-          </collectionProp>
-          <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="1166534694">
-              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
-              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
-              <stringProp name="-2017175251">46ae0be0-cac1-4fa7-87bb-7ca65bebf30e</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="70322610">
-              <stringProp name="2133966878">eb06e82b-6d93236c-ac06be58-1a0454b2-eb21b8e6</stringProp>
-              <stringProp name="312598195">840.113619.2.416.92305365626411527164363942329510492054.35973447</stringProp>
-              <stringProp name="188848318">59f7413e-139d-4c9c-a5e7-0de776b1919a</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-1383551460">
-              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
-              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
-              <stringProp name="1226896940">56e46500-f994-4fb6-9377-29ee9a58e3ba</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-850074159">
-              <stringProp name="382246822">5f78d669-03647243-ea3583b3-9ee064a9-c58bd5a1</stringProp>
-              <stringProp name="-21857996">840.113619.2.416.92305365626411527164363942329510492054.01442578</stringProp>
-              <stringProp name="-357010694">6abd534d-9ebe-46a3-8170-fd5b1e3809ba</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-            <collectionProp name="-897779097">
-              <stringProp name="-73734090">02c54316-4f950e08-477a9f52-d8c8698d-af6d5150</stringProp>
-              <stringProp name="-1925634283">1.2.840.113619.2.294.3.3233810945.936.1383864252.934.14667784</stringProp>
-              <stringProp name="144890269">f7399f72-513d-48d7-9c46-bf356db4390d</stringProp>
-              <stringProp name="2161">CT</stringProp>
-              <stringProp name="1673056679">COROCTA</stringProp>
-            </collectionProp>
-          </collectionProp>
-          <boolProp name="UserParameters.per_iteration">false</boolProp>
-        </UserParameters>
-        <hashTree/>
         <UserParameters guiclass="UserParametersGui" testclass="UserParameters" testname="data" enabled="true">
           <collectionProp name="UserParameters.names">
             <stringProp name="1876599633">study_id</stringProp>
@@ -445,37 +398,37 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <stringProp name="-1348013956">predictor</stringProp>
           </collectionProp>
           <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="-146331598">
-              <stringProp name="335535377">e19391a2-d7adafa0-df59df05-a9115e25-b2e4f3ec</stringProp>
-              <stringProp name="-955270761">840.113619.2.416.42233201131450268962796251011403203461.22351470</stringProp>
+            <collectionProp name="807395722">
+              <stringProp name="-317985594">209cf064-7f8ce900-d57a40eb-ea867f8b-2a6b5717</stringProp>
+              <stringProp name="526384225">40.113619.2.416.297723402920242770870129435910306530950.21550061</stringProp>
               <stringProp name="-2106376584">ed1ddcd5-55cc-4e98-9ee3-8037668192e7</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-304341976">
-              <stringProp name="-1780466737">e3c6bf75-811cdcd4-18a19c5a-83e49b14-a4a30835</stringProp>
-              <stringProp name="-1295528773">40.113619.2.416.126627296069071647610671185223528287450.79096633</stringProp>
+            <collectionProp name="1401547612">
+              <stringProp name="904483892">783a7a5f-cffb3984-311ddeab-3be46d34-0d5eda15</stringProp>
+              <stringProp name="787271760">40.113619.2.416.297723402920242770870129435910306530950.26994713</stringProp>
               <stringProp name="-847669590">83dbdab7-a8d9-41fd-892c-7a3aa9c35eb4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="658263469">
-              <stringProp name="-213478192">280424f8-6acee9be-07ece956-65df1101-78d9ad27</stringProp>
-              <stringProp name="1557510325">40.113619.2.416.190274922218387255633568974860423556001.48210608</stringProp>
+            <collectionProp name="-765101641">
+              <stringProp name="980330925">54ce014c-08061ec0-b5ac6775-1cf30da8-04084290</stringProp>
+              <stringProp name="-2026085613">40.113619.2.416.297723402920242770870129435910306530950.44195724</stringProp>
               <stringProp name="-449349854">ac08473f-46f5-4859-910c-53f204ccbd06</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-39788743">
-              <stringProp name="-71500900">bb134d61-79c3ef7d-d1c9e574-1b048ed3-b2fe4b0c</stringProp>
-              <stringProp name="-1508712692">40.113619.2.416.211560944339170806396717298390135969639.95025692</stringProp>
+            <collectionProp name="-1149562977">
+              <stringProp name="-277561376">e6019008-bff56c68-53837afe-a7344c1d-334f06b2</stringProp>
+              <stringProp name="-1803998787">40.113619.2.416.190274922218387255633568974860423556001.78210081</stringProp>
               <stringProp name="-987263501">8e985b66-24ce-4456-bd74-7ef391e4bd80</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-1518273806">
-              <stringProp name="1917765231">1800ad51-948a2a1a-ba5dbc8c-4b8bc968-f97ed85b</stringProp>
-              <stringProp name="52171654">40.113619.2.416.297723402920242770870129435910306530950.59811641</stringProp>
+            <collectionProp name="188360437">
+              <stringProp name="-361096580">ba7aff72-7360c31c-dd456bec-26900b40-926d0b1f</stringProp>
+              <stringProp name="2037513963">40.113619.2.416.126627296069071647610671185223528287450.31847503</stringProp>
               <stringProp name="-1839812245">b981adb8-17e3-451a-ac24-19e0719e00d4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
@@ -484,7 +437,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <boolProp name="UserParameters.per_iteration">true</boolProp>
         </UserParameters>
         <hashTree/>
-        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="data" enabled="true">
+        <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="data" enabled="false">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
           <stringProp name="filename">D:/workspace/test/Biomind_Test_Platform/stress/stressdata.csv</stringProp>

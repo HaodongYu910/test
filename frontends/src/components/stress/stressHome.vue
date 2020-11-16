@@ -20,10 +20,10 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="name" label="版本" min-width="12%" sortable show-overflow-tooltip>
+            <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ version: '项目概况', params: {project_id: scope.row.id}}"
+                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {id: scope.row.id}}"
                                  style='text-decoration: none;color: #000000;'>
                         {{ scope.row.version }}
                     </router-link>

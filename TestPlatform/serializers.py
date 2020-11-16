@@ -728,7 +728,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = stress_record
-        fields = ('id', 'projectname', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
+        fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                   'loadserver', 'testdata', 'loop_time', 'start_date','end_date', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
@@ -749,7 +749,7 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = stress_record
-        fields = ('projectname', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
+        fields = ('projectname','version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                   'loadserver', 'testdata', 'loop_time', 'start_date','end_date')
 
 
@@ -886,4 +886,4 @@ class stress_data_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = stress_data
-        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount')
+        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor')

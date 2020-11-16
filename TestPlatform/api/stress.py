@@ -135,6 +135,25 @@ class addstressdata(APIView):
 
             if data['diseases'] =='Lung':
                 data['imagecount'],data['slicenumber'], = lungSlice(server, SeriesInstanceUID)
+                data['predictor'] ='lungct_predictor'
+            elif data['diseases'] in ['Brain','SVD','SWI','Tumor','post_surgery']:
+                data['predictor'] = 'brainmri_predictor'
+            elif data['diseases'] =='Breast':
+                data['predictor'] = 'breastmri_predictor'
+            elif data['diseases'] == 'coronary':
+                data['predictor'] = 'corocta_predictor'
+            elif data['diseases'] =='CTA':
+                data['predictor'] = 'braincta_predictor'
+            elif data['diseases'] =='CTP':
+                data['predictor'] = 'brainctp_predictor'
+            elif data['diseases'] == 'CT_Hematoma':
+                data['predictor'] = 'brainct_predictor'
+            elif data['diseases'] == 'Heart':
+                data['predictor'] = 'heartmri_predictor'
+            elif data['diseases'] == 'Neck':
+                data['predictor'] = 'archcta_predictor'
+            elif data['diseases'] == 'MRA':
+                data['predictor'] = 'brainctp_predictor'
 
             stress_data = stress_data_Deserializer(data=data)
 

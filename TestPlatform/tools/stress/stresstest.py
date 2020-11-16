@@ -67,7 +67,7 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
     #     list.append(a)
 
     savecsv('{0}/stress/config.csv'.format(path),list)
-    # "routes: [[\\\"generate_series\\\",\\\"series_classifier\\\",\\\"lungct_predictor\\\"]])" \
+
     # 循环生成压测数据
     for i in diseases:
         stressdata = stress_data.objects.filter(server=orthanc_ip,diseases=i)
@@ -80,6 +80,7 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
                                                                          "planguage:\\\"zh-cn\\\" " \
                                                                          " puser_id:\\\"biomind\\\" " \
                                                                          "pseries_classifier:" + str(k.vote) + "}" \
+                                                                                                               "routes: [[\\\"generate_series\\\",\\\"series_classifier\\\",\\\""+ str(k.predictor) +"\\\"]])" \
                                                                                                              " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
 
             if i == "Lung":
