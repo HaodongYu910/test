@@ -91,6 +91,11 @@
               <span style="margin-left: 10px">{{ scope.row.vote }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="标准诊断" min-width="30%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="操作" min-width="8px">
             <template slot-scope="scope">
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->

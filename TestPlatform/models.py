@@ -795,6 +795,7 @@ class stress_record(models.Model):
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")
+    status = models.BooleanField(default=True, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -864,30 +865,6 @@ class stress_result(models.Model):
         verbose_name_plural = "压测结果记录表"
         db_table = 'stress_result'
 
-class stress_data(models.Model):
-    """
-          测试数据表
-        """
-    id = models.AutoField(primary_key=True)
-    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
-    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
-    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测类型")
-    slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
-    imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
-    vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
-    predictor =  models.CharField(max_length=40, blank=True, null=True, verbose_name="预测类型")
-    server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
-
-    def __unicode__(self):
-        return self.studyinstanceuid
-
-    class Meta:
-        verbose_name = "测试数据表"
-        verbose_name_plural = "测试数据表"
-        db_table = 'stress_data'
-
 class duration_record(models.Model):
     """
           持续化测试记录表
@@ -944,6 +921,48 @@ class duration(models.Model):
         verbose_name_plural = "持续化配置"
         db_table = 'duration'
 
+
+class dicomdata(models.Model):
+    """
+          测试数据表
+        """
+    id = models.AutoField(primary_key=True)
+    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
+    studyinstanceuid = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测类型")
+    slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
+    imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
+    vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
+    predictor =  models.CharField(max_length=40, blank=True, null=True, verbose_name="预测类型")
+    diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
+    server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.studyinstanceuid
+
+    class Meta:
+        verbose_name = "dicom数据表"
+        verbose_name_plural = "dicom数据表"
+        db_table = 'dicomdata'
+
+class dicomroute(models.Model):
+    """
+          持续化测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    dicomid = models.CharField(max_length=10, blank=True, null=True, verbose_name="关联dicom")
+    route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dicom路径"
+        verbose_name_plural = "dicom路径"
+        db_table = 'dicomroute'
 
 class image(models.Model):
     """

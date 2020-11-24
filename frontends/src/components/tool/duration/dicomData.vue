@@ -86,6 +86,11 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
             </template>
           </el-table-column>
+          <el-table-column label="标准诊断" min-width="30%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
+            </template>
+          </el-table-column>
           <el-table-column label="挂载序列" min-width="30%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.vote }}</span>
@@ -177,7 +182,6 @@ export default {
     return {
       filters: {
         diseases: null,
-        server:'192.168.1.208',
         slicenumber:null
       },
       total: 0,

@@ -10,7 +10,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="synchroniz" elementType="Argument">
             <stringProp name="Argument.name">synchroniz</stringProp>
-            <stringProp name="Argument.value">5</stringProp>
+            <stringProp name="Argument.value">4</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -102,6 +102,7 @@
 ${__setProperty(Asever,${sever},)};
 ${__setProperty(Athread,${thread},)};
 ${__setProperty(Aloop,${loop},)};
+${__setProperty(Asynchroniz,${synchroniz},)};
 ${__setProperty(Aversion,${version},)};
 ${__setProperty(Aramp,${ramp},)};
 ${__setProperty(Atime,${time},)};
@@ -181,8 +182,8 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
         <boolProp name="ThreadGroup.scheduler">false</boolProp>
-        <stringProp name="ThreadGroup.duration">${time}</stringProp>
-        <stringProp name="ThreadGroup.delay"></stringProp>
+        <stringProp name="ThreadGroup.duration"></stringProp>
+        <stringProp name="ThreadGroup.delay">47000</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">false</boolProp>
       </ThreadGroup>
       <hashTree>
@@ -199,7 +200,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -266,7 +267,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -333,7 +334,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -400,7 +401,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -467,7 +468,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1022,10 +1023,8 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="variableNames">lung</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <RandomOrderController guiclass="RandomOrderControllerGui" testclass="RandomOrderController" testname="随机顺序控制器" enabled="true"/>
-        <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1091,7 +1090,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1157,7 +1156,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1223,7 +1222,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1289,7 +1288,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1343,7 +1342,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <hashTree/>
         </hashTree>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1746,7 +1745,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -1974,7 +1973,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </UserParameters>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>
@@ -2255,7 +2254,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </CSVDataSet>
         <hashTree/>
         <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
+          <stringProp name="groupSize">${__P(Asynchroniz,)}</stringProp>
           <longProp name="timeoutInMs">0</longProp>
         </SyncTimer>
         <hashTree/>

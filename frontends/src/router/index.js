@@ -90,6 +90,11 @@ export default new Router({
                     meta: { title: '性能测试' }
                 },
                 {
+                    path: '/stressdetail',
+                    component: resolve => require(['../components/stress/EditStressTestPlan.vue'], resolve),
+                    meta: { title: '性能详情' }
+                },
+                {
                     path: '/stressreport',
                     component: resolve => require(['../components/stress/stress_result.vue'], resolve),
                     meta: { title: '性能报告' }
@@ -158,8 +163,8 @@ export default new Router({
                 },
                 {
                     // QR code
-                    path: '/qrcode',
-                    component: resolve => require(['../components/page/qrcode.vue'], resolve),
+                    path: '/reportdemo',
+                    component: resolve => require(['../components/page/Mychart.vue'], resolve),
                     meta: { title: '版本下载' }
                 },
                 {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import stressDetail from "../components/stress/stressDetail";
 
 
 
@@ -225,7 +226,10 @@ export const Send = (headers, params) => {
 export const stresslist = (headers, params) => {
   return axios.get(`${test}/api/stress/list`, { params: params }, { headers }).then(res => res.data)
 }
-
+//压测详情
+export const StressDetail = (headers, params) => {
+  return axios.get(`${test}/api/stress/stressDetail `, { params: params }, headers).then(res => res.data)
+}
 // 手动调用压测脚本
 export const stressTool = (headers, params) => {
   return axios.post(`${test}/api/stress/stresstool`, params, headers).then(res => res.data)
@@ -256,7 +260,7 @@ export const getstressdata = (headers, params) => {
 }
 // 压测结果
 export const getstressresult = (headers, params) => {
-  return axios.post(`${test}/api/tool/stressresult`,params, headers ).then(res => res.data)
+  return axios.post(`${test}/api/stress/stressresult`,params, headers ).then(res => res.data)
 }
 // 压测report
 export const getreportfigure = (headers, params) => {

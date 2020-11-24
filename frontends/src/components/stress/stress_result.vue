@@ -4,11 +4,36 @@
         <div class="filter-container">
             <!--工具条-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
-                <aside>
-                    <a href="http://192.168.2.38:3000/d/Ss3q6hSZk/docker-and-os-metrics-test?orgId=1&refresh=5s&from=now-5m&to=now&var-host_name=192.168.2.60&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080" target="_blank">Stress Monitor
-                    </a>
-                </aside>
-
+                <el-card shadow="hover" style="width:100%;height:800px;">
+                        <el-row :gutter="50">
+                            <el-col :span="30">
+                                <el-card shadow="hover">
+                                    <div id='predictionLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                <el-card shadow="hover" style="width:100%;height:800px;">
+                        <el-row :gutter="50">
+                            <el-col :span="30">
+                                <el-card shadow="hover">
+                                    <div id='jobLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </el-card>
+                <el-card shadow="hover" style="width:100%;height:800px;">
+                        <el-row :gutter="50">
+                            <el-col :span="30">
+                                <el-card shadow="hover">
+                                    <div id='lungLine' class="myLine" style="width:750px;height:600px;margin:0 auto">
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </el-card>
                 <!--工具条-->
                 <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -44,18 +69,6 @@
                         </el-form-item>
                     </el-form>
                 </el-col>
-                <el-card shadow="hover" style="height:350px;">
-                        <el-row :gutter="20">
-                            <el-col :span="12">
-                                <el-card shadow="hover">
-                                    <div id='reportBar' class="mybar"
-                                             style="width: 250px;height: 310px;margin:0 auto;">
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </el-card>
-
                 <!--列表-->
                 <span style="margin-left: 10px">prediction time</span>
                 <el-table :data="prediction" v-loading="listLoading"
@@ -73,22 +86,22 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.min}}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min}}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
@@ -119,32 +132,32 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="avg single job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.single }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.single)">{{ scope.row.single }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median }} 秒</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }} 秒</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.min }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.coef }}</span>
+                            <span style="margin-left: 10px" >{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -159,22 +172,22 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.median }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.min }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="coef. of variation" min-width="10%">
@@ -215,115 +228,27 @@
                 sels: [], // 列表选中列
 
                 //定义表
-                reportBar: {},
-                reportLine: {},
-                coinnessBar: {},
-                coinnessLine: {},
+                predictionLine: {},
+                jobLine: {},
+                lungLine: {},
                 //定义表数据
-                reportBarData: [],
-                reportLineData: [],
-                coinnessBarData: [],
-                coinnessLineData: [],
+                predictionLineData: [],
+                jobLineData: [],
+                lungData: [],
                 twoData: [],
                 //定义表数据对应的option数据
-                reportBaroption: {
-                    backgroundColor: '#2c343c',
+                predictionLineoption: {
                     title: {
-                        text: 'Boimind-Bug解决数量状态图',
-                        left: 'center',
-                        top: 20,
-                        textStyle: {
-                            color: '#ccc'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item',
-                        formatter: "{a} <br/>{b} : {c} ({d}%)"
-                    },
-                    series: [
-                        {
-                            name: 'Bug状态',
-                            type: 'pie',
-                            radius: '55%',
-                            center: ['50%', '60%'],
-                            data: [],
-                            itemStyle: {
-                                emphasis: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                },
-                                normal: {
-                                    label: {
-                                        show: function (value) {
-                                            if (value == 0.00) return false;
-                                        }(),
-                                        formatter: '{b} : {c} ({d}%)'
-                                    },
-                                    labelLine: {
-                                        show: function (value) {
-                                            if (value == 0.00) return false;
-                                        }()
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                },
-                coinnessBaroption: {
-                    backgroundColor: '#2c343c',
-                    title: {
-                        text: 'CoinNess-Bug解决数量状态图',
-                        left: 'center',
-                        top: 20,
-                        textStyle: {
-                            color: '#ccc'
-                        }
-                    },
-                    tooltip: {
-                        trigger: 'item',
-                        formatter: "{a} <br/>{b} : {c} ({d}%)"
-                    },
-                    series: [
-                        {
-                            name: 'Bug状态',
-                            type: 'pie',
-                            radius: '55%',
-                            center: ['50%', '60%'],
-                            data: [],
-                            itemStyle: {
-                                emphasis: {
-                                    shadowBlur: 10,
-                                    shadowOffsetX: 0,
-                                    shadowColor: 'rgba(0, 0, 0, 0.5)'
-                                },
-                                normal: {
-                                    label: {
-                                        show: function (value) {
-                                            if (value == 0.00) return false;
-                                        }(),
-                                        formatter: '{b} : {c} ({d}%)'
-                                    },
-                                    labelLine: {
-                                        show: function (value) {
-                                            if (value == 0.00) return false;
-                                        }()
-                                    }
-                                }
-                            }
-                        }
-                    ]
-                },
-                reportLineoption: {
-                    title: {
-                        text: 'Boimind-创建与解决问题对比图'
+                        text: '模型预测时间对比图'
                     },
                     tooltip: {
                         trigger: 'axis',
                         padding: 25
                     },
                     legend: {
-                        data: ['创建问题', '解决问题'],
+                        data: ['aibrainct','aibrainmri','aicardiomodel','archcta',
+                          'bodypart','brainct','braincta','brainctp','brainmra',
+                          'headcta','postsurgery'],
                         padding: 25
                     },
                     toolbox: {
@@ -346,12 +271,12 @@
                     yAxis: {
                         type: 'value',
                         axisLabel: {
-                            formatter: '{value} 个'
+                            formatter: '{value} 秒'
                         }
                     },
                     series: [
                         {
-                            name: '创建问题',
+                            name: 'aibrainct',
                             type: 'line',
                             data: [],
                             markPoint: {
@@ -362,7 +287,7 @@
                             },
                         },
                         {
-                            name: '解决问题',
+                            name: 'aibrainmri',
                             type: 'line',
                             data: [],
                             markPoint: {
@@ -371,19 +296,127 @@
                                     {type: 'min', name: '最小值'}
                                 ]
                             },
-                        }
+                        },
+                        {
+                            name: 'aicardiomodel',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'archcta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'bodypart',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainct',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'braincta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainctp',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainmra',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'headcta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'lungct',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'postsurgery',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                            },
+                        },
                     ]
                 },
-                coinnessLineoption: {
+                jobLineoption: {
                     title: {
-                        text: 'CoinNess-创建与解决问题对比图'
+                        text: 'Job时间对比图'
                     },
                     tooltip: {
                         trigger: 'axis',
                         padding: 25
                     },
                     legend: {
-                        data: ['创建问题', '解决问题'],
+                        data: ['aibrainct','aibrainmri','aicardiomodel','archcta',
+                          'bodypart','brainct','braincta','brainctp','brainmra',
+                          'headcta','postsurgery'],
                         padding: 25
                     },
                     toolbox: {
@@ -406,12 +439,12 @@
                     yAxis: {
                         type: 'value',
                         axisLabel: {
-                            formatter: '{value} 个'
+                            formatter: '{value} 秒'
                         }
                     },
                     series: [
                         {
-                            name: '创建问题',
+                            name: 'aibrainct',
                             type: 'line',
                             data: [],
                             markPoint: {
@@ -422,7 +455,207 @@
                             },
                         },
                         {
-                            name: '解决问题',
+                            name: 'aibrainmri',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'aicardiomodel',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'archcta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'bodypart',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainct',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'braincta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainctp',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'brainmra',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'headcta',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'lungct',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: 'postsurgery',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                            },
+                        },
+                    ]
+                },
+                lungLineoption: {
+                    title: {
+                        text: 'Lung层厚预测时间对比图'
+                    },
+                    tooltip: {
+                        trigger: 'axis',
+                        padding: 25
+                    },
+                    legend: {
+                        data: ['1.0','1.25','1.5','5.0',
+                          '10.0'],
+                        padding: 25
+                    },
+                    toolbox: {
+                        show: true,
+                        feature: {
+                            dataZoom: {
+                                yAxisIndex: 'none'
+                            },
+                            dataView: {readOnly: true},
+                            magicType: {type: ['line', 'bar']},
+                            restore: {},
+                            saveAsImage: {}
+                        }
+                    },
+                    xAxis: {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: []
+                    },
+                    yAxis: {
+                        type: 'value',
+                        axisLabel: {
+                            formatter: '{value} 秒'
+                        }
+                    },
+                    series: [
+                        {
+                            name: '1.0',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: '1.25',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: '1.5',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: '5.0',
+                            type: 'line',
+                            data: [],
+                            markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                            },
+                        },
+                        {
+                            name: '10.0',
                             type: 'line',
                             data: [],
                             markPoint: {
@@ -438,88 +671,83 @@
         },
         components: {},
         mounted() {
-            this.drawreportBar();
-            this.drawCoinNessBar();
-            this.drawreportLine();
-            this.drawCoinNessLine();
-        },
-        computed: {
-            role() {
-                return this.name === 'admin' ? '超级管理员' : '普通用户';
-            }
+            this.drawpredictionLine();
+            this.drawjobLine();
+            this.drawlungLine();
+            this.gethost();
+            this.getBase();
         },
         created() {
             this.getreportData();
-            //'CoinNess-App-缺陷'
-            this.getCoinnessData();
             this.getData();
-
         },
         watch: {
             //观察option的变化
-            reportBaroption: {
+            predictionLineoption: {
                 handler(newVal, oldVal) {
                     if (this.reportBar) {
                         if (newVal) {
-                            this.reportBar.setOption(newVal);
+                            this.predictionLine.setOption(newVal);
                         } else {
-                            this.reportBar.setOption(oldVal);
+                            this.predictionLine.setOption(oldVal);
                         }
                     } else {
-                        this.drawreportBar();
+                        this.drawpredictionLine();
                     }
                 },
                 deep: true //对象内部属性的监听，关键。
             },
-            reportLineoption: {
-                handler(newVal, oldVal) {
-                    if (this.reportBar) {
-                        if (newVal) {
-                            this.reportLine.setOption(newVal);
-                        } else {
-                            this.reportLine.setOption(oldVal);
-                        }
-                    } else {
-                        this.drawreportLine();
-                    }
-                },
-                deep: true //对象内部属性的监听，关键。
-            },
-            coinnessBaroption: {
+            jobLineoption: {
                 handler(newVal, oldVal) {
                     if (this.coinnessBar) {
                         if (newVal) {
-                            this.coinnessBar.setOption(newVal);
+                            this.jobLine.setOption(newVal);
                         } else {
-                            this.coinnessBar.setOption(oldVal);
+                            this.jobLine.setOption(oldVal);
                         }
                     } else {
-                        this.drawCoinNessBar();
+                        this.drawjobLine();
                     }
                 },
                 deep: true //对象内部属性的监听，关键。
             },
-            coinnessLineoption: {
+            lungLineoption: {
                 handler(newVal, oldVal) {
-                    if (this.coinnessBar) {
+                    if (this.lungBar) {
                         if (newVal) {
-                            this.coinnessLine.setOption(newVal);
+                            this.lungLine.setOption(newVal);
                         } else {
-                            this.coinnessLine.setOption(oldVal);
+                            this.lungLine.setOption(oldVal);
                         }
                     } else {
-                        this.drawCoinNessLine();
+                        this.drawlungLine();
                     }
                 },
                 deep: true //对象内部属性的监听，关键。
             }
         },
-        mounted() {
-            this.getDurationlist()
-            this.gethost()
-            this.getBase()
-        },
         methods: {
+            valuestatus: function (i) {
+                if (!/-/g.test(i)) {
+                    i = 0
+                }
+                else if (!/\+/g.test(i)) {
+                    i = 1
+                }
+                else {
+                    i = 2
+                }
+                console.log(i)
+                switch (i) {
+                    case 0:
+                        return 'statuscssa';
+                    case 1:
+                        return 'statuscssb';
+                    case 2:
+                        return 'statuscssc';
+                }
+
+            },
             // 压测版本
             getversion() {
                 this.listLoading = true
@@ -542,7 +770,6 @@
                     }
                 })
             },
-
             // 获取host数据列表
             gethost() {
                 this.listLoading = true
@@ -599,44 +826,36 @@
         //     },
             getreportData() {
                 let params = {
-                    "checkversion": "BUG",
-                    "version": "Boimind"
+                    "version": "Boimind",
+                    "type":"prediction"
                 };
                 let headers = {
                     "Content-Type": "application/json"
                 };
                 getreportfigure(headers, params).then(_data => {
                     let {code, msg, data} = _data;
-                    this.reportLineData = data.figure_list;
-                    this.reportLineoption.xAxis.data = this.reportLineData[0];
-                    this.reportLineoption.series[0].data = this.reportLineData[1];
-                    this.reportLineoption.series[1].data = this.reportLineData[2];
+                    this.predictionLineData = data.predictionFigure;
+                    this.jobLineData = data.jobFigure;
+                    this.lungLineData = data.lungFigure;
+                    this.predictionLineoption.xAxis.data = this.predictionLineData[0];
+                    this.jobLineoption.xAxis.data = this.jobLineData[0];
+                    this.lungLineoption.xAxis.data = this.lungLineData[0];
 
+                    for (var i = 0;i<this.predictionLineData.length;i++)
+                        {
+                             this.predictionLineoption.series[i].data = this.predictionLineData[(i+1)];
+                             this.jobLineoption.series[i].data =this.jobLineData[i+1];
+
+                        };
+                    this.lungLineoption.series[0].data =this.lungLineData[1];
+                    this.lungLineoption.series[1].data =this.lungLineData[2];
+                    this.lungLineoption.series[2].data =this.lungLineData[3];
+                    this.lungLineoption.series[3].data =this.lungLineData[4];
+                    this.lungLineoption.series[4].data =this.lungLineData[5];
                     this.reportBarData = data.solution_state.sort(function (a, b) {
                         return a.value - b.value;
                     });
                     this.reportBaroption.series[0].data = this.reportBarData;
-
-                });
-            },
-            getCoinnessData() {
-                let params = {
-                    "checkversion": "BUG",
-                    "version": "Boimind"
-                };
-                let headers = {
-                    "Content-Type": "application/json"
-                };
-                getreportfigure(headers, params).then(_data => {
-                    let {code, msg, data} = _data;
-                    this.coinnessLineData = data.figure_list;
-                    this.coinnessLineoption.xAxis.data = this.coinnessLineData[0];
-                    this.coinnessLineoption.series[0].data = this.coinnessLineData[1];
-                    this.coinnessLineoption.series[1].data = this.coinnessLineData[2];
-                    this.coinnessBarData = data.solution_state.sort(function (a, b) {
-                        return a.value - b.value;
-                    });
-                    this.coinnessBaroption.series[0].data = this.coinnessBarData;
                 });
             },
             drawreportBar() {
@@ -653,18 +872,25 @@
                     window.onresize = coinnessBar.resize;
                 }, 200);
             },
-            drawreportLine() {
-                this.reportLine = echarts.init(document.getElementById('reportLine'));
-                this.reportLine.setOption(this.reportLineoption);
+            drawpredictionLine() {
+                this.predictionLine = echarts.init(document.getElementById('predictionLine'));
+                this.predictionLine.setOption(this.predictionLineoption);
                 setTimeout(() => {
-                    window.onresize = reportLine.resize;
+                    window.onresize = predictionLine.resize;
                 }, 200);
             },
-            drawCoinNessLine() {
-                this.coinnessLine = echarts.init(document.getElementById('coinnessLine'));
-                this.coinnessLine.setOption(this.coinnessLineoption);
+            drawjobLine() {
+                this.jobLine = echarts.init(document.getElementById('jobLine'));
+                this.jobLine.setOption(this.jobLineoption);
                 setTimeout(() => {
-                    window.onresize = coinnessLine.resize;
+                    window.onresize = jobLine.resize;
+                }, 200);
+            },
+            drawlungLine() {
+                this.lungLine = echarts.init(document.getElementById('lungLine'));
+                this.lungLine.setOption(this.lungLineoption);
+                setTimeout(() => {
+                    window.onresize = lungLine.resize;
                 }, 200);
             },
         }
@@ -782,5 +1008,13 @@
     .mgb20 {
         margin-bottom: 20px;
     }
-
+    .statuscssa{
+        color:#E61717
+    }
+    .statuscssb{
+        color:#67c23a;
+    }
+    .statuscssc{
+        color:#666666;
+    }
 </style>

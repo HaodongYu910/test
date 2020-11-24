@@ -74,7 +74,7 @@
 
 <script>
     import echarts from 'echarts';
-    import {loadFigure} from "../../router/api";
+    import {getreportfigure} from "../../router/api";
     import {loadtodo} from "../../router/api";
 
     export default {
@@ -427,7 +427,7 @@
                 let headers = {
                     "Content-Type": "application/json"
                 };
-                loadFigure(headers, params).then(_data => {
+                getreportfigure(headers, params).then(_data => {
                     let {code, msg, data} = _data;
                     this.bishijieLineData = data.figure_list;
                     this.bishijieLineoption.xAxis.data = this.bishijieLineData[0];
@@ -455,7 +455,7 @@
                 let headers = {
                     "Content-Type": "application/json"
                 };
-                loadFigure(headers, params).then(_data => {
+                getreportfigure(headers, params).then(_data => {
                     let {code, msg, data} = _data;
                     this.coinnessLineData = data.figure_list;
                     this.coinnessLineoption.xAxis.data = this.coinnessLineData[0];

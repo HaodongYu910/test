@@ -140,7 +140,7 @@
                             }
                             ,
                             {
-                                index: 'mailconfig',
+                                index: 'reportdemo',
                                 title: '测试报告模板'
                             }
                         ]

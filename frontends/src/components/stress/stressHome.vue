@@ -63,7 +63,7 @@
 
             <el-table-column label="测试状态" min-width="9%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.projectstatus }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.status }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
@@ -74,8 +74,8 @@
             </el-table-column>
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
-                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="warning" size="small" @click="showRisks(scope.$index, scope.row)">生成结果</el-button>
+                    <el-button type="warning" size="small" @click="showdetail(scope.$index, scope.row)">查看</el-button>
+                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">生成结果</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">测试报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
@@ -182,17 +182,18 @@
                 <el-form-item label="项目名称" prop="name">
                      <el-select v-model="addForm.name" placeholder="请选择" >
                             <el-option key="Boimind" label="Boimind" value="Boimind"></el-option>
-                            <el-option key="CoinNess" label="CoinNess" value="CoinNess"></el-option>
-                            <el-option key="风控" label="风控" value="风控"></el-option>
                      </el-select>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="类型" prop='type'>
-                            <el-select v-model="addForm.type" placeholder="请选择">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                           :value="item.value">
-                                </el-option>
+                        <el-form-item label="服务器" prop='server'>
+                            <el-select v-model="addForm.server"  placeholder="请选择服务器" @click.native="gethost()">
+                              <el-option
+                                v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -204,29 +205,25 @@
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="项目开始时间">
-                            <el-date-picker v-model="addForm.start_date" type="datetime"
-                                            placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
+                        <el-form-item label="压测时长" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口提测时间" prop='api_date'>
-                            <el-date-picker v-model="addForm.api_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        <el-form-item label="线程数" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="APP提测时间" prop="app_date">
-                            <el-date-picker v-model="addForm.app_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        <el-form-item label="循环次数" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口上线时间" prop='api_online_date'>
-                            <el-date-picker v-model="addForm.api_online_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        <el-form-item label="并发数" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -338,11 +335,11 @@
         },
         methods: {
             //展示风险项
-            showRisks(index,row){
+            showdetail(index,row){
              this.$router.push({
-                    path:'/danger',
+                    path:'/stressdetail',
                     query:{
-                        project_id:row.id,
+                        id:row.id,
                         name:row.name
                     }
                 });

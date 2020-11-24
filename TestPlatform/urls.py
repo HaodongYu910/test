@@ -11,9 +11,9 @@ from .api.Sendmail import *
 from .api.basedata import *
 from .api.test_report import *
 from .api.tool import *
-from .api.stress import *
+from .api.Stress import *
 from .api.user_permission import *
-from .api.report import reportfigure
+from .api.stressReport import reportfigure
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 router = routers.DefaultRouter()
@@ -112,6 +112,7 @@ urlpatterns = [
     url(r'download', down_load.as_view()),
     url(r'stress/stressversion', stressversion.as_view()),
     url(r'stress/stresstool', stresstool.as_view()),
+    url(r'stress/stressDetail', stressDetail.as_view()),
     url(r'stress/stressresult', stressResult.as_view()),
     url(r'stress/stressfigure', reportfigure.as_view()),
     url(r'stress/stresssave', stressResultsave.as_view()),

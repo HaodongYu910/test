@@ -4,7 +4,7 @@ import gc
 from TestPlatform.utils.graphql.graphql_prediction import graphql_Interface
 from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import stress_detail_record, stress_data
+from TestPlatform.models import stress_detail_record, dicomdata
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
 import datetime
@@ -43,7 +43,7 @@ def sequence(orthanc_ip,end_time, diseases, version):
     version=version
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    stressdata = stress_data.objects.filter(diseases__in=diseases)
+    stressdata = dicomdata.objects.filter(diseases__in=diseases)
 
     while start_time < end_time:
         """Execute Test sequence."""

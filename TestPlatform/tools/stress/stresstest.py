@@ -1,7 +1,7 @@
 import gc
 from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import  stress_data
+from TestPlatform.models import  dicomdata
 
 import os,time
 import shutil
@@ -70,7 +70,7 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
 
     # 循环生成压测数据
     for i in diseases:
-        stressdata = stress_data.objects.filter(server=orthanc_ip,diseases=i)
+        stressdata = dicomdata.objects.filter(server=orthanc_ip,diseases=i)
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \

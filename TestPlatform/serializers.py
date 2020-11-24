@@ -729,7 +729,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date', 'update_time', 'create_time')
+                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -749,8 +749,8 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = stress_record
-        fields = ('projectname','version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date')
+        fields = ('id','projectname','version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
+                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status')
 
 
 class stressdetail_Serializer(serializers.ModelSerializer):
@@ -879,11 +879,11 @@ class duration_Deserializer(serializers.ModelSerializer):
         model = duration
         fields = ('server','port','aet', 'keyword', 'dicom', 'end_time','sleepcount','sleeptime','series', 'sendstatus', 'status','sendcount','dds')
 
-class stress_data_Deserializer(serializers.ModelSerializer):
+class dicomdata_Deserializer(serializers.ModelSerializer):
     """
     持续化记录表反序列化
     """
 
     class Meta:
-        model = stress_data
-        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor')
+        model = dicomdata
+        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor','diagnosis','type')

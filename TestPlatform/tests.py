@@ -85,7 +85,54 @@
 #     return csv
 #
 #
-# if __name__ == '__main__':
+import  pymysql
+def sqlDB(sql, data):
+    conn = pymysql.connect(host='192.168.2.38', user='root', passwd='P@ssw0rd2o8', db='test',
+                           charset="utf8");  # 连接数据库
+    cur = conn.cursor()
+    try:
+        cur.execute(sql, data)
+        conn.commit()
+    except Exception as e:
+        conn.rollback()
+    cur.close()
+    conn.close()
+    return data
+
+if __name__ == '__main__':
+    import csv,os
+    import pandas as pd
+    # 读取csv数据
+    def getcsv(csvname):
+        # print(os.path.abspath(os.path.dirname(os.getcwd())))
+        csv_pd = pd.read_csv(csvname, dtype={'studyinstanceuid': 'str'})
+        csv = csv_pd.to_dict(orient='records')
+        return csv
+    data=getcsv('C:\\Users\\yinhang\\Desktop\\Gold.csv')
+    uid =''
+    vote =''
+    r= ''
+    ser=''
+    for i in data:
+        if uid == i['StudyUID']:
+            vote =vote+"{0}: \"{1}\",".format(i['SeriesDescription'],i['SeriesInstanceUID'])
+        else:
+            vote = "{" + vote + "}"
+            sqlDB('INSERT INTO dicomdata values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', [None,None,uid,ser,None,None,None,vote,'Gold','',r,'2020-11-21 13:27:23','2020-11-21 13:27:23'])
+            uid = i['StudyUID']
+            r = i['Restult']
+            if i['SeriesDescription'] =='CT_Lung':
+                ser ='Lung'
+            elif i['SeriesDescription'] =='HEAD NECKCTA':
+                ser ='Neck'
+            elif i['SeriesDescription'] =='CT_Brain':
+                ser ='Brain'
+            else:
+                ser = i['SeriesDescription']
+            vote = "{0}: \"{1}\",".format(i['SeriesDescription'], i['SeriesInstanceUID'])
+#     import pydicom
+#     ds = pydicom.dcmread('D:\\testDatas\\Brain\\MR000000.dcm', force=True)
+#     print(ds)
 #     import pandas as pd
 #     from influxdb import InfluxDBClient
 #     client = InfluxDBClient(host='192.168.2.38', port='8086',database='Jmeter_DB')

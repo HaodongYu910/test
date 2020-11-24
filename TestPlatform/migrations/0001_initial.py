@@ -518,7 +518,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='stress_data',
+            name='dicomdata',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('patientid', models.CharField(blank=True, max_length=50, null=True, verbose_name='patientid')),
@@ -534,7 +534,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': '测试数据表',
                 'verbose_name_plural': '测试数据表',
-                'db_table': 'stress_data',
+                'db_table': 'dicomdata',
             },
         ),
         migrations.CreateModel(

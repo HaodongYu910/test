@@ -35,16 +35,20 @@ def fake_folder(src_folder,study_infos):
 
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-        if (fn == '.DS_Store'):
+        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
+
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn,study_infos)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
             StudyInstanceUID = ds.StudyInstanceUID
+            Seriesinstanceuid = ds.SeriesInstanceUID
+            acc_number = ds.AccessionNumber
+            patientid = ds.PatientID
+            diseases = ''
             study_infos.append(StudyInstanceUID)
-
         except Exception as e:
             logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
             continue
