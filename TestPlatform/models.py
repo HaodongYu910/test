@@ -983,3 +983,22 @@ class pid(models.Model):
         verbose_name = "pid表"
         verbose_name_plural = "pid表"
         db_table = 'pid'
+
+class interface(models.Model):
+    """
+          Interface表
+        """
+    id = models.AutoField(primary_key=True)
+    interfacename = models.CharField(max_length=10, blank=True, null=True, verbose_name="接口名")
+    json = models.CharField(max_length=500, blank=True, null=True, verbose_name="json")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "Interface表"
+        verbose_name_plural = "Interface表"
+        db_table = 'interface'
