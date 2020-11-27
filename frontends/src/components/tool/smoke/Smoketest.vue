@@ -76,19 +76,19 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="预测状态" min-width="8%">
+          <el-table-column label="标准" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.aidiagnosis }}</span>
+              <span style="margin-left: 10px" :class="valuestatus(scope.row.report)" >{{ scope.row.diagnosis }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="标准诊断" min-width="10%">
+          <el-table-column label="实际" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
+              <span style="margin-left: 10px" :class="valuestatus(scope.row.report)">{{ scope.row.aidiagnosis }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="实际结果" min-width="10%">
+          <el-table-column label="结果" min-width="8%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.aidiagnosis }}</span>
+              <span style="margin-left: 10px" :class="valuestatus(scope.row.report)" >{{ scope.row.report }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="8px">
@@ -156,6 +156,14 @@ export default {
     this.gethost()
   },
   methods: {
+    valuestatus: function (a) {
+                if (a==="匹配成功") {
+                    return 'statuscssb';
+                }
+                else {
+                    return 'statuscssa';
+                }
+    },
     gethost() {
       this.listLoading = true
       const self = this
@@ -529,4 +537,13 @@ export default {
   right: 15px;
   top: 10px;
 }
+.statuscssa{
+        color:#E61717
+    }
+.statuscssb{
+        color:#67c23a;
+    }
+.statuscssc{
+        color:#666666;
+    }
 </style>
