@@ -1,13 +1,12 @@
 import gc
-from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
+from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import  dicomdata
+from TestPlatform.models import  dicom
 
 import os,time
 import shutil
 
 logger = logging.getLogger(__name__)
-
 
 
 def lungSlice(server,Seriesuid):
@@ -70,7 +69,7 @@ def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, tim
 
     # 循环生成压测数据
     for i in diseases:
-        stressdata = dicomdata.objects.filter(server=orthanc_ip,diseases=i)
+        stressdata = dicom.objects.filter(server=orthanc_ip,diseases=i)
         for k in stressdata:
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\\\"" + str(k.studyinstanceuid) + "\\\", protocols:" \

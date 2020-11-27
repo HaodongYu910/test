@@ -69,7 +69,7 @@ export default new Router({
                 },
                 {
                     path: '/dicomdata',
-                    component: resolve => require(['../components/tool/duration/dicomData.vue'], resolve),
+                    component: resolve => require(['../components/tool/dicomdata/dicomData.vue'], resolve),
                     meta: { title: 'Dicom数据' }
 
                 },
@@ -77,6 +77,12 @@ export default new Router({
                     path: '/durationData',
                     component: resolve => require(['../components/tool/duration/durationData.vue'], resolve),
                     meta: { title: '持续化详情' }
+
+                },
+                {
+                    path: '/gold',
+                    component: resolve => require(['../components/tool/smoke/Smoketest.vue'], resolve),
+                    meta: { title: '金标准测试' }
 
                 },
                 {
@@ -176,7 +182,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/tool/duration/baseSet.vue'], resolve),
+                    component: resolve => require(['../components/tool/dicomdata/baseSet.vue'], resolve),
                     meta: { title: '基础配置' }
                 },
                 {

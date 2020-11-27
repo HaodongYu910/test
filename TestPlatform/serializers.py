@@ -729,7 +729,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
+                  'loadserver', 'dicomdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -750,7 +750,7 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id','projectname','version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status')
+                  'loadserver', 'dicomdata', 'loop_time', 'start_date','end_date','status')
 
 
 class stressdetail_Serializer(serializers.ModelSerializer):
@@ -759,7 +759,7 @@ class stressdetail_Serializer(serializers.ModelSerializer):
      """
 
     class Meta:
-        model = stress_detail_record
+        model = dicom_record
         fields = ('id', 'version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
                   'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
                   'report', 'update_time', 'create_time')
@@ -781,7 +781,7 @@ class stressdetail_Deserializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = stress_detail_record
+        model = dicom_record
         fields = ('version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
                   'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
                   'report')
@@ -885,5 +885,5 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
     """
 
     class Meta:
-        model = dicomdata
+        model = dicom
         fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor','diagnosis','type')

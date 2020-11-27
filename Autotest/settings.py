@@ -260,7 +260,7 @@ WSGI_APPLICATION = 'Autotest.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'test',
+        'NAME': 'autotest',
         'USER': 'root',
         'PASSWORD': 'P@ssw0rd2o8',
         'HOST': SITE_DBURL,

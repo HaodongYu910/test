@@ -1,7 +1,7 @@
 # from TestPlatform.utils.graphql.get_graphql_result import get_graphql_result
-from ..utils.graphql.graphql_prediction import graphql_Interface
+from ..utils.graphql.graphql import graphql_Interface
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import stress_detail_record, dicomdata
+from TestPlatform.models import dicom_record, dicom
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
 import datetime
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 # 修改数据
 def update_data(data):
-    obj = stress_detail_record.objects.get(testid=data["testid"])
+    obj = dicom_record.objects.get(testid=data["testid"])
     serializer = stressdetail_Deserializer(data=data)
     with transaction.atomic():
         if serializer.is_valid():
@@ -37,7 +37,7 @@ def graphql_prediction(data, kc):
 
 def sequence(orthanc_ip,end_time, diseases, version):
     kc = use_keycloak_bmutils(orthanc_ip, "test", "Asd@123456")
-    stressdata = dicomdata.objects.filter()
+    stressdata = dicom.objects.filter()
     loop=0
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
         """Execute Test sequence."""

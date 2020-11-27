@@ -101,7 +101,7 @@ def getcsv(csvname):
     return csv
 
 #  保存csv数据
-def savecsv(data,csvname):
+def savecsv(csvname,data):
     with open(csvname, 'w') as f:
         writer = csv.writer(f)
         writer.writerows(data)

@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 class mysqlDB():
     def __init__(self):
-        self.conn = pymysql.connect(host='', user='', passwd='',db='', charset="utf8");  # 连接数据库
+        self.conn = pymysql.connect(host='192.168.2.38', user='', passwd='',db='', charset="utf8");  # 连接数据库
         self.cur = self.conn.cursor()
 
     def selectDB(self,parameter):

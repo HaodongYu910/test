@@ -14,6 +14,7 @@ from .api.tool import *
 from .api.Stress import *
 from .api.user_permission import *
 from .api.stressReport import reportfigure
+from .api.apiDicom import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 router = routers.DefaultRouter()
@@ -116,13 +117,15 @@ urlpatterns = [
     url(r'stress/stressresult', stressResult.as_view()),
     url(r'stress/stressfigure', reportfigure.as_view()),
     url(r'stress/stresssave', stressResultsave.as_view()),
-    url(r'stress/stressdata', stressData.as_view()),
-    url(r'stress/add_stressdata', addstressdata.as_view()),
-    url(r'stress/del_stressdata', delstressdata.as_view()),
     url(r'stress/list', stressList.as_view()),
-    url(r'tool/stressdata', stressData.as_view()),
-    url(r'tool/add_stressdata', addstressdata.as_view()),
-    url(r'tool/del_stressdata', delstressdata.as_view()),
+    url(r'tool/dicomData', dicomData.as_view()),
+    url(r'tool/add_dicomData', adddicomdata.as_view()),
+    url(r'tool/del_dicomData', deldicomdata.as_view()),
+    url(r'tool/dicomcsv', dicomcsv.as_view()),
+    url(r'tool/dicomSend', dicomSend.as_view()),
+    url(r'tool/somke', somke.as_view()),
+    url(r'tool/somkerecord', somkeRecord.as_view()),
+    url(r'tool/delreport', deldicomResult.as_view()),
     url(r'tool/delete_patients', delete_patients.as_view()),
     url(r'tool/durationData', durationData.as_view()),
     url(r'tool/getduration', getDuration.as_view()),

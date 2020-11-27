@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, dicomdata, base_data, pid, GlobalHost
+from TestPlatform.models import stress_record, dicom, base_data, pid, GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.stress.stress import sequence
@@ -59,9 +59,9 @@ class stressData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
         if diseases:
-            obi = dicomdata.objects.filter(diseases__contains=diseases).order_by("-id")
+            obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
         else:
-            obi = dicomdata.objects.all().order_by("-id")
+            obi = dicom.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -206,7 +206,7 @@ class delstressdata(APIView):
             return result
         try:
             for j in data["ids"]:
-                obj = dicomdata.objects.filter(id=j)
+                obj = dicom.objects.filter(id=j)
                 obj.delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -309,9 +309,9 @@ class stresstool(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, testdata, loop_time
-            if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, testdata, loop_time！")
+            # 必传参数 loadserver, dicomdata, loop_time
+            if not data["loadserver"] or not data["dicomdata"] or not data["loop_time"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicomdata, loop_time！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -330,8 +330,8 @@ class stresstool(APIView):
         try:
             end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                 "%Y-%m-%d %H:%M:%S")
-            testdata = data["testdata"]
-            data['testdata'] = str(testdata)
+            testdata = data["dicomdata"]
+            data['dicomdata'] = str(testdata)
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
             # 查找是否相同版本号的测试记录

@@ -2,12 +2,9 @@
   <div class="app-container">
     <div class="filter-container">
         <!--工具条-->
-        <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+        <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters" @submit.native.prevent>
-        <el-form-item>
-          <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getdata" />
-        </el-form-item>
-        <el-form-item label="服务器" prop="server">
+        <el-form-item label="过滤器" prop="server">
                   <el-select v-model="filters.server"  placeholder="请选择服务" @click.native="gethost()">
                     <el-option v-for="(item,index) in tags"
                                 :key="item.host"
@@ -41,6 +38,8 @@
         <el-form-item>
           <el-button type="primary" @click="handleAdd">新增</el-button>
         </el-form-item>
+        <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
+        <el-button type="danger" :disabled="this.sels.length===0" @click="batchdel">删除报告</el-button>
       </el-form>
     </el-col>
         <!--列表-->
@@ -54,11 +53,6 @@
           <el-table-column prop="ID" label="ID" min-width="4%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.id }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="环境" min-width="12%">
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.server }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="patientid" label="Patientid" min-width="10%" sortable>
@@ -86,22 +80,22 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="挂载序列" min-width="30%">
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.vote }}</span>
-            </template>
-          </el-table-column>
           <el-table-column label="标准诊断" min-width="30%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="挂载序列" min-width="30%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.vote }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" min-width="8px">
             <template slot-scope="scope">
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
     <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
-  <!--             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>-->
-              <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+               <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+<!--              <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
             </template>
           </el-table-column>
         </el-table>
@@ -172,7 +166,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getHost,getdicomdata, deldicomdata, updatedicomdata, adddicomdata, stressTool, getbase
+  getHost,getdicomdata, deldicomdata, updatedicomdata, adddicomdata, stressTool, getbase,deldicomreport,dicomcsv
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -182,7 +176,6 @@ export default {
     return {
       filters: {
         diseases: null,
-        server:'192.168.1.208',
         slicenumber:null
       },
       total: 0,
@@ -307,7 +300,8 @@ export default {
         page: self.page,
         diseases: self.filters.diseases,
         server: self.filters.server,
-        slicenumber:self.filters.slicenumber
+        slicenumber:self.filters.slicenumber,
+        type:'Gold'
       }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
       getdicomdata(headers, params).then((res) => {
@@ -315,6 +309,7 @@ export default {
         const { msg, code, data } = res
         if (code === '0') {
           self.total = data.total
+          self.page = data.page
           self.stresslist = data.data
         } else {
           self.$message.error({
@@ -505,6 +500,72 @@ export default {
           Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
         }
         deldicomdata(header, params).then(_data => {
+          const { msg, code, data } = _data
+          if (code === '0') {
+            self.$message({
+              message: '删除成功',
+              center: true,
+              type: 'success'
+            })
+          } else {
+            self.$message.error({
+              message: msg,
+              center: true
+            })
+          }
+          self.getdata()
+        })
+      })
+    },
+    // 批量生成CSV
+    batchCsv: function() {
+      const ids = this.sels.map(item => item.id)
+      const self = this
+      this.$confirm('确认生成选中记录吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.listLoading = true
+        // NProgress.start();
+        const self = this
+        const params = { ids: ids }
+        const header = {
+          'Content-Type': 'application/json',
+          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+        }
+        dicomcsv(header, params).then(_data => {
+          const { msg, code, data } = _data
+          if (code === '0') {
+            self.$message({
+              message: '生成成功',
+              center: true,
+              type: 'success'
+            })
+          } else {
+            self.$message.error({
+              message: msg,
+              center: true
+            })
+          }
+          self.getdata()
+        })
+      })
+    },
+    // 批量删除报告
+    batchDel: function() {
+      const ids = this.sels.map(item => item.id)
+      const self = this
+      this.$confirm('确认删除选中记录的报告吗？', '提示', {
+        type: 'warning'
+      }).then(() => {
+        this.listLoading = true
+        // NProgress.start();
+        const self = this
+        const params = { ids: ids }
+        const header = {
+          'Content-Type': 'application/json',
+          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+        }
+        deldicomreport(header, params).then(_data => {
           const { msg, code, data } = _data
           if (code === '0') {
             self.$message({

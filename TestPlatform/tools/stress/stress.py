@@ -1,10 +1,9 @@
 # from TestPlatform.utils.graphql.get_graphql_result import get_graphql_result
 import gc
 
-from TestPlatform.utils.graphql.graphql_prediction import graphql_Interface
-from TestPlatform.utils.graphql.graphql_del_hanalyticsreportt import *
+from TestPlatform.utils.graphql.graphql import graphql_Interface
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import stress_detail_record, dicomdata
+from TestPlatform.models import dicom_record, dicom
 from django.db import transaction
 from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
 import datetime
@@ -14,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 # 修改数据
 def update_data(data):
-    obj = stress_detail_record.objects.get(testid=data["testid"])
+    obj = dicom_record.objects.get(testid=data["testid"])
     serializer = stressdetail_Deserializer(data=data)
     with transaction.atomic():
         if serializer.is_valid():
@@ -43,7 +42,7 @@ def sequence(orthanc_ip,end_time, diseases, version):
     version=version
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    stressdata = dicomdata.objects.filter(diseases__in=diseases)
+    stressdata = dicom.objects.filter(diseases__in=diseases)
 
     while start_time < end_time:
         """Execute Test sequence."""
@@ -60,7 +59,6 @@ def sequence(orthanc_ip,end_time, diseases, version):
             if str(k.slicenumber) =='T':
                 graphql_Interface(data, kc)
             else:
-                graphql_delreport(data, kc)
                 graphql_Interface(data, kc)
             del data
         gc.collect()

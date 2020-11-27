@@ -3,8 +3,8 @@ import stressDetail from "../components/stress/stressDetail";
 
 
 
-export const test = 'http://127.0.0.1:8000';
-//export const test = 'http://192.168.2.38:9000';
+//export const test = 'http://127.0.0.1:8000';
+export const test = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -239,24 +239,32 @@ export const getVersion = (headers, params) => {
   return axios.get(`${test}/api/stress/version`, { params: params }, { headers }).then(res => res.data)
 }
 // 删除压测数据
-export const delstressdata = (headers, params) => {
-  return axios.post(`${test}/api/stress/del_stressdata`, params, headers).then(res => res.data)
+export const deldicomdata = (headers, params) => {
+  return axios.post(`${test}/api/tool/del_dicomData`, params, headers).then(res => res.data)
 }
-// 修改压测数据
-export const updatestressdata = (headers, params) => {
-  return axios.post(`${test}/api/stress/update_stressdata`, params, headers).then(res => res.data)
+// 修改dicom数据
+export const updatedicomdata = (headers, params) => {
+  return axios.post(`${test}/api/tool/update_dicomData`, params, headers).then(res => res.data)
 }
-// 新增压测数据
-export const addstressdata = (headers, params) => {
-  return axios.post(`${test}/api/stress/add_stressdata`, params, headers).then(res => res.data)
+// 新增dicom数据
+export const adddicomdata = (headers, params) => {
+  return axios.post(`${test}/api/tool/add_dicomData`, params, headers).then(res => res.data)
+}
+//dicom数据
+export const getdicomdata = (headers, params) => {
+  return axios.get(`${test}/api/tool/dicomData`, { params: params }, { headers }).then(res => res.data)
+}
+//生成CSV
+export const dicomcsv = (headers, params) => {
+  return axios.post(`${test}/api/tool/dicomcsv`, params, headers).then(res => res.data)
+}
+//删除报告
+export const deldicomreport = (headers, params) => {
+  return axios.post(`${test}/api/tool/delreport`, params, headers).then(res => res.data)
 }
 // 压测版本
 export const getstressversion = (headers, params) => {
   return axios.get(`${test}/api/stress/stressversion`, { params: params }, { headers }).then(res => res.data)
-}
-//压测数据
-export const getstressdata = (headers, params) => {
-  return axios.get(`${test}/api/stress/stressdata`, { params: params }, { headers }).then(res => res.data)
 }
 // 压测结果
 export const getstressresult = (headers, params) => {
@@ -307,6 +315,19 @@ export const getdurationverify = (headers, params) => {
 // 持续化数据验证统计
 export const durationverifydata = (headers, params) => {
       return axios.get(`${test}/api/tool/durationverifydata`, { params: params }, { headers }).then(res => res.data)
+}
+
+// 冒烟测试记录
+export const getsomkerecord = (headers, params) => {
+  return axios.get(`${test}/api/tool/somkerecord`, { params: params }, { headers }).then(res => res.data)
+}
+// 金标准冒烟测试
+export const getsomkestart = (headers, params) => {
+  return axios.post(`${test}/api/tool/somke`, params, headers).then(res => res.data)
+}
+// 获取dicom数据
+export const getdicomSend = (headers, params) => {
+  return axios.post(`${test}/api/tool/dicomSend`, params, headers).then(res => res.data)
 }
 // 获取基础数据
 export const getbase = (headers, params) => {

@@ -48,7 +48,7 @@ CONFIG = {
 
 
 def sqlDB(sql, data):
-    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
+    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='autotest',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:
@@ -146,7 +146,6 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,S
             if int(len(study_infos)) == 1:
                 uid = study_uid
             else:
-                sqlDB('INSERT INTO image values(%s,%s,%s)',[None,uid,study_infos[uid]["imagecount"]])
                 # del study_infos[uid]
                 uid = study_uid
         study_infos["count"] =int(study_infos["count"]) + 1

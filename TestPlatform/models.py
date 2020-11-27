@@ -178,7 +178,8 @@ class GlobalHost(models.Model):
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='项目')
     name = models.CharField(max_length=50, verbose_name='名称')
-    host = models.CharField(max_length=1024, verbose_name='Host地址')
+    host = models.CharField(max_length=50, verbose_name='Host地址')
+    port = models.CharField(max_length=10, verbose_name='port')
     description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
     status = models.BooleanField(default=True, verbose_name='状态')
 
@@ -808,34 +809,7 @@ class stress_record(models.Model):
         db_table = 'stress_record'
 
 
-class stress_detail_record(models.Model):
-    """
-          压测测试记录表
-        """
-    id = models.AutoField(primary_key=True)
-    version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
-    testid = models.CharField(max_length=100, blank=True, null=True, verbose_name="testid")
-    patientid = models.CharField(max_length=30, blank=True, null=True, verbose_name="id")
-    studyinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="数据uid")
-    seriesinstanceuid = models.CharField(max_length=100, blank=True, null=True, verbose_name="挂载uid")
-    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
-    duration = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测时间")
-    aistatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="预测结果")
-    diagnosis = models.CharField(max_length=100, blank=True, null=True, verbose_name="诊断结果")
-    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
-    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
-    stability = models.CharField(max_length=20, blank=True, null=True, verbose_name="")
-    report = models.TextField(max_length=3000, blank=True, null=True, verbose_name="诊断报告")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
-    def __unicode__(self):
-        return self.version
-
-    class Meta:
-        verbose_name = "压测测试记录表"
-        verbose_name_plural = "压测测试记录表"
-        db_table = 'stress_detail_record'
 
 class stress_result(models.Model):
     """
@@ -922,7 +896,7 @@ class duration(models.Model):
         db_table = 'duration'
 
 
-class dicomdata(models.Model):
+class dicom(models.Model):
     """
           测试数据表
         """
@@ -946,9 +920,9 @@ class dicomdata(models.Model):
     class Meta:
         verbose_name = "dicom数据表"
         verbose_name_plural = "dicom数据表"
-        db_table = 'dicomdata'
+        db_table = 'dicom'
 
-class dicomroute(models.Model):
+class dicom_route(models.Model):
     """
           持续化测试记录表
         """
@@ -964,21 +938,34 @@ class dicomroute(models.Model):
         verbose_name_plural = "dicom路径"
         db_table = 'dicomroute'
 
-class image(models.Model):
+class dicom_record(models.Model):
     """
-          imagecount
+          测试记录表
         """
     id = models.AutoField(primary_key=True)
-    study_uid = models.CharField(max_length=100, blank=True, null=True, verbose_name="study_uid")
-    imagecount = models.CharField(max_length=10, blank=True, null=True, verbose_name="imagecount")
+    version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
+    patientid = models.CharField(max_length=30, blank=True, null=True, verbose_name="id")
+    studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
+    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    slicenumber = models.CharField(max_length=20, blank=True, null=True, verbose_name="slicenumber")
+    aistatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="预测结果")
+    aidiagnosis = models.CharField(max_length=100, blank=True, null=True, verbose_name="ai诊断结果")
+    diagnosis = models.CharField(max_length=100, blank=True, null=True, verbose_name="诊断结果")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
+    report = models.TextField(max_length=100, blank=True, null=True, verbose_name="诊断报告")
+    type = models.TextField(max_length=10, blank=True, null=True, verbose_name="诊断报告")
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
     def __unicode__(self):
-        return self.study_uid
+        return self.version
 
     class Meta:
-        verbose_name = "image"
-        verbose_name_plural = "image"
-        db_table = 'image'
+        verbose_name = "测试记录表"
+        verbose_name_plural = "测试记录表"
+        db_table = 'dicom_record'
 
 class pid(models.Model):
     """

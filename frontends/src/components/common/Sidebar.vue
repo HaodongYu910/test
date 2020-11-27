@@ -96,7 +96,11 @@
                             },
                             {
                                 index: 'dicom',
-                                title: 'dicom工具'
+                                title: '匿名dicom'
+                            },
+                            {
+                                index: 'gold',
+                                title: 'Gold测试'
                             }
                         ]
                     },

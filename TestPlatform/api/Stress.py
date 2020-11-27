@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, dicomdata, base_data, pid, GlobalHost
+from TestPlatform.models import stress_record,dicom, base_data, pid, GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.stress.stress import sequence
@@ -352,9 +352,9 @@ class stresstool(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, testdata, loop_time
-            if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, testdata, loop_time！")
+            # 必传参数 loadserver, dicomdata, loop_time
+            if not data["loadserver"] or not data["dicomdata"] or not data["loop_time"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicomdata, loop_time！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -371,7 +371,7 @@ class stresstool(APIView):
             return result
 
         try:
-            testdata = data["testdata"]
+            testdata = data["dicomdata"]
             # 查找是否相同版本号的测试记录
             stress_version = stress_record.objects.filter(version=data["version"])
             if len(stress_version):
@@ -398,7 +398,7 @@ class stresstool(APIView):
                 except Exception as e:
                     logger.error(e)
                     return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
-                data['testdata'] = str(testdata)
+                data['dicomdata'] = str(testdata)
                 data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                     "%Y-%m-%d %H:%M:%S")
