@@ -524,37 +524,13 @@ class stressList(APIView):
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        type = request.GET.get("type")
-
-        # 判断是否有查询时间
-        if request.GET.get("startdate"):
-            startdate = request.GET.get("startdate")
-        else:
-            startdate = '2000-01-01 00:00:00'
-
-        if request.GET.get("enddate"):
-            enddate = request.GET.get("enddate")
-        else:
-            enddate = datetime.datetime.now()
+        version = request.GET.get("version")
 
         # 判断查询数据类型
-        if type == 'version':
-            version = request.GET.get("version")
-            obi = stress_record.objects.filter(version=version).order_by("-id")
-        elif type == 'Not_sent':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
-        elif type == 'sent':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
-        elif type == 'AiTrue':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__in=[1, 2], create_time__lte=enddate,
-                                                 create_time__gte=startdate).order_by("-id")
-        elif type == 'AiFalse':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 3],
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+        if version:
+            obi = stress_record.objects.filter(version=version,status=True).order_by("-id")
         else:
-            obi = stress_record.objects.filter(create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
+            obi = stress_record.objects.filter(status=True).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
