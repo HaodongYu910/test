@@ -7,9 +7,7 @@ from ..dicom.SendDicom import Send
 from ...serializers import dicomrecord_Serializer,dicomrecord_Deserializer
 from ...models import dicom_record
 from django.db import transaction
-
-import os, time,json
-import shutil
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +54,11 @@ def goldSmoke(version, server_ip, ids):
                 obj.studyinstanceuid)
             result_db = connect_to_postgres(server_ip, sql)
 
-            if len(result_db) != 1:
-                send = Send(server_ip, i, '')(server_ip, )
+            if len(result_db) == 0:
+                Send(server_ip, i, '')
+            elif len(result_db) > 1:
+                delreport(server_ip, [i])
+                Send(server_ip, i, '')
 
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\"" + str(obj.studyinstanceuid) + "\", protocols:" \

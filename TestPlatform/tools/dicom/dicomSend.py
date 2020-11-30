@@ -13,12 +13,12 @@ import os,gc
 import sys, getopt
 import pydicom
 import logging
-from tqdm import tqdm
 import subprocess as sp
 import time, datetime
 import random
 import math
 import pymysql
+import requests
 
 log_path = '/files/logs'
 if not os.path.exists(log_path):
@@ -47,6 +47,13 @@ CONFIG = {
 }
 
 
+# 链接InfluxDB时序数据库
+
+def connect_to_influx(data):
+    posturl = 'http://127.0.0.1:8086/write?db=autotest'
+    requests.post(posturl, data=data)
+
+# 链接mysql数据库
 def sqlDB(sql, data):
     conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='autotest',
                            charset="utf8");  # 连接数据库
@@ -129,32 +136,26 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     return fake_info
 
 
-def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,Seriesinstanceuid):
-    global uid
+def delayed(Seriesinstanceuid):
+    study_infos["count"] = int(study_infos["count"]) + 1
+    if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
+        time.sleep(int(CONFIG.get('sleeptime', '')))
+        study_infos["count"] = 0
+    if CONFIG.get('Seriesinstanceuid', '') != Seriesinstanceuid and CONFIG.get('Series', '') == '1':
+        time.sleep(int(CONFIG.get('sleeptime', '')))
+        CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
+
+def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
-            study_infos[study_uid]["imagecount"] = study_infos[study_uid]["imagecount"] + 1
+            data = "dicom,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
+            connect_to_influx(data)
         else:
-            study_infos[study_uid] = {
-                "imagecount": 1
-            }
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                  [None, patientid, accessionnumber, study_uid,None, None,
+                  [None, patientid, accessionnumber, study_uid,study_old_uid,None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, studytime, CONFIG.get('durationid', ''), study_old_uid, None])
-            if int(len(study_infos)) == 1:
-                uid = study_uid
-            else:
-                # del study_infos[uid]
-                uid = study_uid
-        study_infos["count"] =int(study_infos["count"]) + 1
-        if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
-            time.sleep(int(CONFIG.get('sleeptime', '')))
-            study_infos["count"] = 0
-        if CONFIG.get('Seriesinstanceuid', '')!= Seriesinstanceuid and CONFIG.get('Series', '') =='1':
-            time.sleep(int(CONFIG.get('sleeptime', '')))
-            CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
+                   studytime, CONFIG.get('durationid', ''),studytime , studytime])
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
@@ -250,9 +251,9 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber,
-                study_old_uid=study_old_uid,
-                Seriesinstanceuid=Seriesinstanceuid
+                study_old_uid=study_old_uid
             )
+            delayed(Seriesinstanceuid)
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
             continue
