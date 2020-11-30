@@ -267,9 +267,6 @@
             },
             //删除
             handlecount: function (index, row) {
-                this.$confirm('确认删除该记录吗?', '提示', {
-                    type: 'warning'
-                }).then(() => {
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
@@ -294,7 +291,6 @@
                         }
                         self.getbaseList()
                     });
-                })
             },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
