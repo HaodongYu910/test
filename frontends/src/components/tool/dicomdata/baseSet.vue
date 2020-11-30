@@ -275,6 +275,10 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
+
+
+
+
                     dicomcount(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
