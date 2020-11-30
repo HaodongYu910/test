@@ -152,6 +152,10 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
             data = "dicom,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
             connect_to_influx(data)
         else:
+            study_info = {
+                "imagecount": 1
+            }
+            study_infos[study_uid] = study_info
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid,study_old_uid,None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
