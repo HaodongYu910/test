@@ -20,20 +20,21 @@ def norm_string(str, len_norm):
     return str_dest
 
 #
-def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
-
+def fake_folder(src_folder,study_infos,diseases,type,uidInfos,folder_fake):
+    if not os.path.exists(folder_fake):
+        os.makedirs(folder_fake)
     file_names = os.listdir(src_folder)
     file_names.sort()
 
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-        full_fn_fake = os.path.join('/files/dicomTest', fn)
+        full_fn_fake = os.path.join(folder_fake, fn)
 
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
 
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn,study_infos,diseases,type,uidInfos)
+            fake_folder(full_fn,study_infos,diseases,type,uidInfos,folder_fake)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -61,7 +62,6 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
                 logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
                 continue
             data={
-                "patientname": patientname,
                 "patientid": patientid,
                 "studyinstanceuid": study_uid,
                 "diseases": diseases,
@@ -87,34 +87,29 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
             logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
             continue
 
-def fileUpdate(id):
+def fileSave(id,type):
     obj= base_data.objects.get(id=id)
     uids =dicom.objects.filter(diseases=obj.remarks)
+    folder_fake = '/files/dicomTest/{0}'.format(obj.remarks)
     uidInfos = {}
     study_infos ={}
-    for i in uids:
-        study_uid=i.studyinstanceuid
-        uidInfos[i.studyinstanceuid]=i.studyinstanceuid
-        src_folder = obj.content
+    if type =='update':
+        for i in uids:
+            study_uid=i.studyinstanceuid
+            uidInfos[i.studyinstanceuid]=i.studyinstanceuid
+            src_folder = obj.content
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
-    fake_folder(src_folder=src_folder,study_infos=study_infos,diseases=obj.remarks,type=obj.type,uidInfos=uidInfos)
+    fake_folder(
+        src_folder=src_folder,
+        study_infos=study_infos,
+        diseases=obj.remarks,
+        type=obj.type,
+        uidInfos=uidInfos,
+        folder_fake=folder_fake
+    )
     obj.other =len(study_infos)
     obj.save()
-
-
-def fileSave(id):
-    obj= base_data.objects.get(id=id)
-    study_infos = {}
-    uidInfos = {}
-    src_folder = obj.content
-    while src_folder[-1] == '/':
-        src_folder = src_folder[0:-1]
-    fake_folder(src_folder=src_folder,study_infos=study_infos,diseases=obj.remarks,type=obj.type,uidInfos=uidInfos)
-    obj.other =len(study_infos)
-    obj.save()
-
-
 
 
 

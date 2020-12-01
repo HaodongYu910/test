@@ -125,8 +125,8 @@
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="病种名称" prop='remasks'>
-                            <el-input v-model.trim="addForm.remasks" auto-complete="off"></el-input>
+                        <el-form-item label="病种名称" prop='remarks'>
+                            <el-input v-model.trim="addForm.remarks" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
@@ -430,8 +430,9 @@
                                 content: this.addForm.content,
                                 type: self.addForm.type,
                                 select_type: self.addForm.select_type,
-                                remarks: self.addForm.remarks,
-                                other: self.addForm.other
+                                remarks: this.addForm.remarks,
+                                other: self.addForm.other,
+                                status:true
                             });
                             let header = {
                                 "Content-Type": "application/json",
