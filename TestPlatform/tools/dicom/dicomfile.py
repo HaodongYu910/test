@@ -3,9 +3,7 @@
 import os
 import pydicom
 from tqdm import tqdm
-import time,datetime
-import random
-import math
+import time
 import logging
 from TestPlatform.models import base_data,dicom,dicom_route
 
@@ -20,21 +18,18 @@ def norm_string(str, len_norm):
     return str_dest
 
 #
-def fake_folder(src_folder,study_infos,diseases,type,uidInfos,folder_fake):
-    if not os.path.exists(folder_fake):
-        os.makedirs(folder_fake)
+def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
     file_names = os.listdir(src_folder)
     file_names.sort()
 
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-        full_fn_fake = os.path.join(folder_fake, fn)
 
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
 
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn,study_infos,diseases,type,uidInfos,folder_fake)
+            fake_folder(full_fn,study_infos,diseases,type,uidInfos)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -56,32 +51,33 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,folder_fake):
             except Exception as e:
                 logging.info(
                     'failed to : file[{0}], error[{1}]'.format(full_fn, e))
-            try:
-                ds.save_as(full_fn_fake)
-            except Exception as e:
-                logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
-                continue
-            data={
+
+            data = {
                 "patientid": patientid,
                 "studyinstanceuid": study_uid,
                 "diseases": diseases,
-                "type": type,
-                "status": True
+                "type": type
             }
-            route={
-                "study_uid": study_uid,
-                "route": full_fn_fake
-            }
-            dicom_route.objects.create(**route)
             try:
                 if study_infos.get(study_uid):
                     continue
                 else:
                     study_infos[study_uid]=study_uid
                     dicom.objects.create(**data)
+                    folder_fake = '/files/dicomTest/{0}/{1}'.format(diseases,patientname)
+                    if not os.path.exists(folder_fake):
+                        os.makedirs(folder_fake)
+                full_fn_fake = os.path.join(folder_fake, fn)
+                ds.save_as(full_fn_fake)
             except Exception as e:
                 logging.error('errormsg: failed to sql [{0}]'.format(e))
+                continue
 
+            route={
+                "study_uid": study_uid,
+                "route": full_fn_fake
+            }
+            dicom_route.objects.create(**route)
 
         except Exception as e:
             logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
@@ -90,9 +86,9 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,folder_fake):
 def fileSave(id,type):
     obj= base_data.objects.get(id=id)
     uids =dicom.objects.filter(diseases=obj.remarks)
-    folder_fake = '/files/dicomTest/{0}'.format(obj.remarks)
     uidInfos = {}
     study_infos ={}
+    src_folder = obj.content
     if type =='update':
         for i in uids:
             study_uid=i.studyinstanceuid
@@ -105,8 +101,7 @@ def fileSave(id,type):
         study_infos=study_infos,
         diseases=obj.remarks,
         type=obj.type,
-        uidInfos=uidInfos,
-        folder_fake=folder_fake
+        uidInfos=uidInfos
     )
     obj.other =len(study_infos)
     obj.save()
