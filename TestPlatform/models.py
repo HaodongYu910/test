@@ -765,7 +765,7 @@ class base_data(models.Model):
     remarks = models.CharField(max_length=100, blank=True, null=True, verbose_name="备注")
     other = models.CharField(max_length=10, blank=True, null=True, verbose_name="其他")
     predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="其他")
-    status = models.CharField(max_length=1, blank=True, null=True, verbose_name="0是关闭，1是启用")
+    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
