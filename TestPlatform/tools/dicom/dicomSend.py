@@ -137,7 +137,6 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
 
 
 def delayed(Seriesinstanceuid):
-    study_infos["count"] = int(study_infos["count"]) + 1
     if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
         time.sleep(int(CONFIG.get('sleeptime', '')))
         study_infos["count"] = 0
@@ -152,10 +151,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
             data = "dicom,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
             connect_to_influx(data)
         else:
-            study_info = {
-                "imagecount": 1
-            }
-            study_infos[study_uid] = study_info
+            study_infos[study_uid] = study_uid
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid,study_old_uid,None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
@@ -249,6 +245,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
         try:
+            study_infos["count"] = int(study_infos["count"]) + 1
             sync_send_file(full_fn_fake)
             add_image(
                 study_infos=study_infos,

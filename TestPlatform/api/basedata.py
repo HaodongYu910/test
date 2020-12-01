@@ -16,7 +16,7 @@ from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomcount import filecount,file_count
+from TestPlatform.tools.dicom.dicomfile import fileUpdate,fileSave
 
 
 
@@ -94,15 +94,9 @@ class AddbaseData(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-
-        data['other'] = file_count(data['content'])
-        base_data_serializer = base_data_Deserializer(data=data)
-
-        with transaction.atomic():
-            base_data_serializer.save()
-            return JsonResponse(data={
-                            "id": base_data_serializer.data.get("id")
-                        }, code="0", msg="成功")
+        basedata=base_data.objects.create(**data)
+        fileSave(basedata.id)
+        return JsonResponse(code="0", msg="成功")
 
 class UpdatebaseData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -301,5 +295,5 @@ class getDicomfile(APIView):
         :return:
         """
         id = request.GET.get("id")
-        filecount(id)
+        fileUpdate(id)
         return JsonResponse( code="0", msg="成功")

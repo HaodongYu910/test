@@ -928,8 +928,8 @@ class dicom_route(models.Model):
           持续化测试记录表
         """
     id = models.AutoField(primary_key=True)
-    dicomid = models.CharField(max_length=10, blank=True, null=True, verbose_name="关联dicom")
-    route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
+    study_uid = models.CharField(max_length=150, blank=True, null=True, verbose_name="关联dicom")
+    route = models.CharField(max_length=200, blank=True, null=True, verbose_name="路径")
 
     def __unicode__(self):
         return self.id
