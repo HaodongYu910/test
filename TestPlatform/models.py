@@ -912,6 +912,7 @@ class dicom(models.Model):
     diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -922,22 +923,6 @@ class dicom(models.Model):
         verbose_name = "dicom数据表"
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
-
-class dicom_route(models.Model):
-    """
-          持续化测试记录表
-        """
-    id = models.AutoField(primary_key=True)
-    study_uid = models.CharField(max_length=150, blank=True, null=True, verbose_name="关联dicom")
-    route = models.CharField(max_length=200, blank=True, null=True, verbose_name="路径")
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "dicom路径"
-        verbose_name_plural = "dicom路径"
-        db_table = 'dicomroute'
 
 class dicom_record(models.Model):
     """

@@ -5,7 +5,7 @@ import pydicom
 from tqdm import tqdm
 import time
 import logging
-from TestPlatform.models import base_data,dicom,dicom_route
+from TestPlatform.models import base_data,dicom
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
@@ -21,7 +21,6 @@ def norm_string(str, len_norm):
 def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
     file_names = os.listdir(src_folder)
     file_names.sort()
-
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
 
@@ -34,6 +33,7 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
         try:
             ds = pydicom.dcmread(full_fn, force=True)
             study_uid = ds.StudyInstanceUID
+            study_infos["No"]=study_infos["No"]+1
             if uidInfos.get(study_uid):
                 continue
             try:
@@ -47,16 +47,22 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
                 else:
                     ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
-
+                folder_fake = '/files/dicomTest/{0}/{1}'.format(diseases, patientname)
+                if not os.path.exists(folder_fake):
+                    os.makedirs(folder_fake)
+                full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
+                ds.save_as(full_fn_fake)
             except Exception as e:
                 logging.info(
                     'failed to : file[{0}], error[{1}]'.format(full_fn, e))
+                continue
 
             data = {
                 "patientid": patientid,
                 "studyinstanceuid": study_uid,
                 "diseases": diseases,
-                "type": type
+                "type": type,
+                "route": folder_fake
             }
             try:
                 if study_infos.get(study_uid):
@@ -64,20 +70,9 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
                 else:
                     study_infos[study_uid]=study_uid
                     dicom.objects.create(**data)
-                    folder_fake = '/files/dicomTest/{0}/{1}'.format(diseases,patientname)
-                    if not os.path.exists(folder_fake):
-                        os.makedirs(folder_fake)
-                full_fn_fake = os.path.join(folder_fake, fn)
-                ds.save_as(full_fn_fake)
             except Exception as e:
                 logging.error('errormsg: failed to sql [{0}]'.format(e))
                 continue
-
-            route={
-                "study_uid": study_uid,
-                "route": full_fn_fake
-            }
-            dicom_route.objects.create(**route)
 
         except Exception as e:
             logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
@@ -88,6 +83,7 @@ def fileSave(id,type):
     uids =dicom.objects.filter(diseases=obj.remarks)
     uidInfos = {}
     study_infos ={}
+    study_infos["No"] = 0
     src_folder = obj.content
     if type =='update':
         for i in uids:

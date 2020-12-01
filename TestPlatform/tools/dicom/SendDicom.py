@@ -11,7 +11,7 @@ import logging
 from tqdm import tqdm
 import subprocess as sp
 import threading
-from ...models import GlobalHost,dicom_route,base_data
+from ...models import GlobalHost,base_data,dicom
 
 def sync_send_file(server_ip,port,aec,file_name):
     local_aet='QA38'
@@ -57,7 +57,7 @@ def Send(server_ip,id,folder_id):
     try:
         obj = GlobalHost.objects.get(host=server_ip)
         if id:
-            routeobj =dicom_route.objects.filter(dicomid=id)
+            routeobj =dicom.objects.filter(dicomid=id)
             for i in routeobj:
                 sync_send_file(server_ip,obj.port,obj.description,i['route'])
         else:
