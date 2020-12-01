@@ -44,32 +44,31 @@ def sequence(orthanc_ip,end_time, diseases, version):
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = dicom.objects.filter(diseases__in=diseases)
 
-    while start_time < end_time:
-        """Execute Test sequence."""
-        del start_time
-        gc.collect()
-        for k in stressdata:
-            data = {
-                "studyinstanceuid": k.studyinstanceuid,
-                "vote": k.vote,
-                "diseases": k.diseases,
-                "seriesinstanceuid": str(k.slicenumber),
-                'slicenumber': str(k.slicenumber)
-            }
-            if str(k.slicenumber) =='T':
-                graphql_Interface(data, kc)
-            else:
-                graphql_Interface(data, kc)
-            del data
-        gc.collect()
-        start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    for k in stressdata:
 
-        #loop = loop + 1
-    checkdate=[start_time,end_time]
-    try:
-        savecheck('job', checkdate,server,version)
-        savecheck('prediction', checkdate,server,version)
-        lung(checkdate, server, version)
-    except Exception as e:
-        logger.error("生成版本测试结果失败error{0}".format(e))
+        graphql_query = '{ ' \
+                                    'ai_biomind(' \
+                                'block : false' \
+                                ' study_uid: "' + str(k.studyinstanceuid) + '"' \
+                                                                                  ' protocols: {' \
+                                                                                  ' penable_cached_results: false' \
+                                                                                  ' }' \
+                                                                                  '){' \
+                                                                                  '  pprediction' \
+                                                                                  '  preport' \
+                                                                                  '  pcontour' \
+                                                                                  '  pmodels' \
+                                                                                  '  pstudy_uid' \
+                                                                                  '}' \
+                                                                                  '}'
+
+        graphql_Interface(graphql_query, kc)
+
+    # try:
+    #     checkdate = [start_time, end_time]
+    #     savecheck('job', checkdate,server,version)
+    #     savecheck('prediction', checkdate,server,version)
+    #     lung(checkdate, server, version)
+    # except Exception as e:
+    #     logger.error("生成版本测试结果失败error{0}".format(e))
 
