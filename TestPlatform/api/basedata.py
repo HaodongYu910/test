@@ -16,7 +16,7 @@ from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomfile import fileUpdate,fileSave
+from TestPlatform.tools.dicom.dicomfile import fileSave
 
 
 
@@ -95,7 +95,7 @@ class AddbaseData(APIView):
         if result:
             return result
         basedata=base_data.objects.create(**data)
-        fileSave(basedata.id)
+        fileSave(basedata.id,'')
         return JsonResponse(code="0", msg="成功")
 
 class UpdatebaseData(APIView):
@@ -294,6 +294,5 @@ class getDicomfile(APIView):
         :param request:
         :return:
         """
-        id = request.GET.get("id")
-        fileUpdate(id)
+        fileSave(request.GET.get("id"),'update')
         return JsonResponse( code="0", msg="成功")
