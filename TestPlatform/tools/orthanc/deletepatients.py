@@ -23,7 +23,7 @@ def delete_patients_duration(key, server_ip,type,fuzzy):
     for oid in _dict1:
         try:
             publicid=oid["publicid"]
-            kc.delete('/orthanc/patients/{0}'.format(publicid), timeout=120)
+            kc.delete('/orthanc/studies/{0}'.format(publicid), timeout=120)
         except Exception as e:
             logger.error("failed to delete patientv [{0}]: error[{1}]".format(oid, e))
             return False

@@ -141,7 +141,18 @@
                   <el-option key="test" label="测试数据" value="test" />
                 </el-select>
               </el-form-item>
-            </el-col>
+                        </el-col>
+             <el-form-item label="模型" prop="predictor">
+                <el-select v-model="addForm.predictor" clearable placeholder="请选择类型">
+                  <el-option key="brainmri_predictor" label="MRI" value="brainmri_predictor" />
+                  <el-option key="brainct_predictor" label="brainct" value="brainct_predictor" />
+                    <el-option key="braincta_predictor" label="CTA" value="braincta_predictor" />
+                  <el-option key="lungct_predictor" label="Lung" value="lungct_predictor" />
+                    <el-option key="heartmri_predictor" label="heart" value="heartmri_predictor" />
+                  <el-option key="archcta_predictor" label="archcta" value="archcta_predictor" />
+                    <el-option key="breastmri_predictor" label="breast" value="breastmri_predictor" />
+                </el-select>
+              </el-form-item>
                 </el-row>
 
             </el-form>
@@ -432,6 +443,7 @@
                                 select_type: self.addForm.select_type,
                                 remarks: this.addForm.remarks,
                                 other: self.addForm.other,
+                                predictor:self.addForm.predictor,
                                 status:true
                             });
                             let header = {

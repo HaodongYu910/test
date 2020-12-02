@@ -55,10 +55,10 @@ def goldSmoke(version, server_ip, ids):
             result_db = connect_to_postgres(server_ip, sql)
 
             if len(result_db) == 0:
-                Send(server_ip, i, '')
+                s=Send(server_ip,obj.route)
             elif len(result_db) > 1:
                 delreport(server_ip, [i])
-                Send(server_ip, i, '')
+                s=Send(server_ip,obj.route)
 
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\"" + str(obj.studyinstanceuid) + "\", protocols:" \

@@ -18,7 +18,7 @@ def norm_string(str, len_norm):
     return str_dest
 
 #
-def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
+def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
     file_names = os.listdir(src_folder)
     file_names.sort()
     for fn in tqdm(file_names):
@@ -28,7 +28,7 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
             continue
 
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn,study_infos,diseases,type,uidInfos)
+            fake_folder(full_fn,study_infos,diseases,type,uidInfos,id)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -47,11 +47,12 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
                 else:
                     ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
-                folder_fake = '/files/dicomTest/{0}/{1}'.format(diseases, patientname)
+                folder_fake = '/files/dicomTest/{0}/{1}/{2}'.format(type,diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
                 ds.save_as(full_fn_fake)
+
             except Exception as e:
                 logging.info(
                     'failed to : file[{0}], error[{1}]'.format(full_fn, e))
@@ -62,7 +63,8 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos):
                 "studyinstanceuid": study_uid,
                 "diseases": diseases,
                 "type": type,
-                "route": folder_fake
+                "route": folder_fake,
+                "fileid":id
             }
             try:
                 if study_infos.get(study_uid):
@@ -97,9 +99,10 @@ def fileSave(id,type):
         study_infos=study_infos,
         diseases=obj.remarks,
         type=obj.type,
-        uidInfos=uidInfos
+        uidInfos=uidInfos,
+        id=id
     )
-    obj.other =len(study_infos)
+    obj.other =int(len(study_infos))-1
     obj.save()
 
 
