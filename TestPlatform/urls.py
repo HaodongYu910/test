@@ -17,6 +17,7 @@ from .api.stressReport import reportfigure
 from .api.apiDicom import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
+
 router = routers.DefaultRouter()
 # router.register(r'account', AccountViewSet)
 
@@ -137,5 +138,6 @@ urlpatterns = [
     url(r'tool/enable_duration', EnableDuration.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
+    url(r'tool/dicom_judge',judgeSendOrNot.as_view()) #判断匿名之后是否发送
 ]
 

@@ -54,6 +54,7 @@ def fake_folder(server_ip,port,ate,folder):
 
 
 def Send(server_ip,id,folder_id):
+    # 组装数据，调用sync_send_file的方法。
     try:
         obj = GlobalHost.objects.get(host=server_ip)
         if id:

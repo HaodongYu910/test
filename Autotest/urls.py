@@ -29,9 +29,11 @@ schema_view = get_schema_view(title='测试平台 API', renderer_classes=[OpenAP
 urlpatterns = [
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', schema_view, name="docs"),
-    path('admin/', admin.site.urls),
-    url(r'^$', TemplateView.as_view(template_name="index.html")),
+    path('admin/', admin.site.urls), #back login
+    url(r'^$', TemplateView.as_view(template_name="index.html")), #home api
     url(r'^api/', include(urls)),
-    path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),
+    path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]
 
+
+# hou mian shi sha jiu diao na ge

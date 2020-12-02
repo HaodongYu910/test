@@ -967,6 +967,8 @@ class dicom_record(models.Model):
         verbose_name_plural = "测试记录表"
         db_table = 'dicom_record'
 
+
+
 class pid(models.Model):
     """
           pid表
@@ -974,6 +976,24 @@ class pid(models.Model):
     id = models.AutoField(primary_key=True)
     pid = models.IntegerField(blank=True, null=True, verbose_name="进程号")
     durationid = models.CharField(max_length=5, blank=True, null=True, verbose_name="持续化id")
+
+
+    def __unicode__(self):
+        return self.pid
+
+    class Meta:
+        verbose_name = "pid表"
+        verbose_name_plural = "pid表"
+        db_table = 'pid'
+
+class yhd_test(models.Model):
+    """
+          pid表
+        """
+    id = models.AutoField(primary_key=True)
+    durationid = models.CharField(max_length=5, blank=True, null=True, verbose_name="持续化id")
+    anao_name = models.CharField(max_length=6, null=True, verbose_name="匿名化title")
+    ip = models.IntegerField(blank=True, null=True, verbose_name="发送IP地址")
 
 
     def __unicode__(self):
