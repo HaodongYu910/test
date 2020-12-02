@@ -35,11 +35,9 @@
         <el-form-item>
           <el-button type="primary" @click="getdata">查询</el-button>
         </el-form-item>
-        <el-form-item>
-          <el-button type="primary" @click="handleAdd">新增</el-button>
-        </el-form-item>
         <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
-        <el-button type="danger" :disabled="this.sels.length===0" @click="batchdel">删除报告</el-button>
+        <el-button type="primary" @click="getdetail">同步</el-button>
+        <el-button type="danger" :disabled="this.sels.length===0" @click="batchvote">同步挂载</el-button>
       </el-form>
     </el-col>
         <!--列表-->
@@ -80,22 +78,21 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="标准诊断" min-width="30%">
+          <el-table-column label="类型" min-width="10%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.type }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="标准诊断" min-width="15   %">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="挂载序列" min-width="30%">
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.vote }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column label="操作" min-width="8px">
+          <el-table-column label="操作" min-width="12px">
             <template slot-scope="scope">
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
     <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
                <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-<!--              <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
             </template>
           </el-table-column>
         </el-table>
@@ -110,6 +107,44 @@
             @current-change="handleCurrentChange"
           />
         </el-col>
+       <!--编辑界面-->
+        <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
+                   style="width: 75%; left: 12.5%">
+            <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+                <el-row :gutter="24">
+                  <el-col :span="12">
+                  <el-form-item label="标注诊断">
+                    <el-input v-model="editForm.diagnosis"></el-input>
+                </el-form-item>
+                  </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="病种">
+                            <el-input v-model="editForm.diseases" ></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+              <el-row :gutter="24">
+                  <el-col :span="12">
+                  <el-form-item label="层厚">
+                    <el-input v-model="editForm.slicenumber"></el-input>
+                </el-form-item>
+                  </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="类型">
+                            <el-input v-model="editForm.diseases" :disabled="true" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-form-item label="挂载">
+                    <el-input v-model="editForm.vote" :disabled="true" auto-complete="off"></el-input>
+                </el-form-item>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="editFormVisible = false">取消</el-button>
+                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+            </div>
+        </el-dialog>
+
         <!--新增界面-->
         <el-dialog
           title="新增"
@@ -166,7 +201,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getHost,getdicomdata, deldicomdata, updatedicomdata, adddicomdata, stressTool, getbase,deldicomreport,dicomcsv
+  dicomdetail,getHost,getdicomdata, deldicomdata, updatedicomdata, adddicomdata, stressTool, getbase,deldicomreport,dicomcsv
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -182,7 +217,26 @@ export default {
       page: 1,
       listLoading: false,
       sels: [], // 列表选中列
-
+      editFormRules: {
+        diagnosis: [
+          {required: true, message: '请输入名称', trigger: 'blur'},
+          {min: 1, max: 500, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+        ],
+        type: [
+          {required: true, message: '请选择类型', trigger: 'blur'}
+        ],
+        slicenumber: [
+          {required: false, message: '请输入', trigger: 'blur'},
+          {max: 1024, message: '不能超过1024个字符', trigger: 'blur'}
+        ]
+      },
+      //编辑界面数据
+      editForm: {
+        diseases: '',
+        slicenumber: '',
+        type: '',
+        diagnosis: ''
+      },
       // 新增界面数据
       addForm: {
         diseases: '',
@@ -382,7 +436,8 @@ export default {
               studyinstanceuid: self.editForm.studyinstanceuid,
               diseases: self.editForm.diseases,
               slicenumber: self.editForm.slicenumber,
-              vote: self.editForm.vote
+              vote: self.editForm.vote,
+              diagnosis:self.editForm.diagnosis
             }
             const header = {
               'Content-Type': 'application/json',
@@ -412,6 +467,32 @@ export default {
                 })
               }
             })
+          })
+        }
+      })
+    },
+    getdetail() {
+      this.listLoading = true
+      // const ids = this.sels.map(item => item.id)
+      const self = this
+      const params = {
+        diseases: self.filters.diseases,
+        server: self.filters.server,
+        type:self.filters.type,
+        ids:''
+      }
+      const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
+      dicomdetail(headers, params).then((res) => {
+        self.listLoading = false
+        const { msg, code, data } = res
+        if (code === '0') {
+          self.total = data.total
+          self.page = data.page
+          self.stresslist = data.data
+        } else {
+          self.$message.error({
+            message: msg,
+            center: true
           })
         }
       })

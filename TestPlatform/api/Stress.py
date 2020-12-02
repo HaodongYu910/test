@@ -146,7 +146,7 @@ class addstressdata(APIView):
                 data['predictor'] = 'braincta_predictor'
             elif data['diseases'] =='CTP':
                 data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'CT_Hematoma':
+            elif data['diseases'] == 'Hematoma':
                 data['predictor'] = 'brainct_predictor'
             elif data['diseases'] == 'Heart':
                 data['predictor'] = 'heartmri_predictor'
@@ -178,8 +178,8 @@ class updatestressdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -196,7 +196,7 @@ class updatestressdata(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -352,9 +352,9 @@ class stresstool(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, dicomdata, loop_time
+            # 必传参数 loadserver, dicom, loop_time
             if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicomdata, loop_time！")
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -382,7 +382,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Stress.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '
@@ -496,7 +496,7 @@ class getDuration(APIView):
         :param request:
         :return:
         """
-        obi = duration.objects.filter().order_by("server")
+        obi = duration.objects.all().order_by("server")
         durationdata = duration_Serializer(obi, many=True)
         du = durationdata.data
         for i in du:
@@ -582,8 +582,8 @@ class addStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["duration"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -603,7 +603,7 @@ class addStress(APIView):
                 data['series'] = '1'
             else:
                 data['series'] = '0'
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -629,8 +629,8 @@ class updateStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -651,7 +651,7 @@ class updateStress(APIView):
             else:
                 data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -781,7 +781,7 @@ class EnableStress(APIView):
                     end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '

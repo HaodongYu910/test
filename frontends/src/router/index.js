@@ -62,13 +62,13 @@ export default new Router({
                     meta: { title: '消息中心' }
                 },
                 {
-                    path: '/dicom',
+                    path: '/duration',
                     component: resolve => require(['../components/tool/duration/duration.vue'], resolve),
                     meta: { title: 'Dicom工具' }
 
                 },
                 {
-                    path: '/dicomdata',
+                    path: '/dicom',
                     component: resolve => require(['../components/tool/dicomdata/dicomData.vue'], resolve),
                     meta: { title: 'Dicom数据' }
 
@@ -183,7 +183,13 @@ export default new Router({
                     //基础配置
                     path: '/base',
                     component: resolve => require(['../components/tool/dicomdata/baseSet.vue'], resolve),
-                    meta: { title: '基础配置' }
+                    meta: { title: 'dicom文件' }
+                },
+                 {
+                    //duration 删除
+                    path: '/deldicom',
+                    component: resolve => require(['../components/tool/orthanc/deldicom.vue'], resolve),
+                    meta: { title: 'dicom删除' }
                 },
                 {
                     // 权限页面

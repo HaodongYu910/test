@@ -148,7 +148,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
     studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     try:
         if study_infos.get(study_uid):
-            data = "dicom,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
+            data = "duration,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
             connect_to_influx(data)
         else:
             study_infos[study_uid] = study_uid

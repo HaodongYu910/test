@@ -190,7 +190,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="Hematoma" enabled="true">
           <stringProp name="delimiter">,</stringProp>
           <stringProp name="fileEncoding">UTF-8</stringProp>
-          <stringProp name="filename">stress/CT_Hematoma.csv</stringProp>
+          <stringProp name="filename">stress/Hematoma.csv</stringProp>
           <boolProp name="ignoreFirstLine">false</boolProp>
           <boolProp name="quotedData">true</boolProp>
           <boolProp name="recycle">true</boolProp>

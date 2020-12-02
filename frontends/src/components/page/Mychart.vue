@@ -18,7 +18,7 @@
             return{
                 msg:'图表',
                 oneData:[],
-                reportLineData:[['Brain', 'CT_Hematoma', 'SVD', 'SWI', 'Tumor', 'CTA', 'CTP', 'Lung', 'Lung1', 'Lung2', 'Lung3', 'Lung4',
+                reportLineData:[['Brain', 'Hematoma', 'SVD', 'SWI', 'Tumor', 'CTA', 'CTP', 'Lung', 'Lung1', 'Lung2', 'Lung3', 'Lung4',
               'MRA', 'coronary', 'Heart', 'Neck', 'post_surgery'],['1', '2', '3', '4', '2', '1', '0', '1', '9', '7', '6', '1',
               '5', '6', '7', '2', '1'],['1', '2', '3', '4', '2', '1', '0', '1', '9', '7', '6', '1',
               '5', '6', '7', '2', '1']]

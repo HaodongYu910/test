@@ -1,21 +1,40 @@
 <template>
     <div class="app-container">
+<el-collapse v-model="activeNames" @change="handleChange">
+  <el-collapse-item title="服务配置 Server Config" name="1">
+    <div>
         <el-row>
-          <el-col :span="12" :offset="2">
-            <el-button :disabled="isReadOnly" type="primary" plain @click="save">保存</el-button>
-            <el-button :disabled="isReadOnly" type="primary" plain @click="saveAndRun">
-              保存并测试
-            </el-button>
-            <el-button :disabled="isReadOnly" type="warning" plain @click="cancel">取消
-            </el-button>
-
-            <ms-schedule-config :schedule="testPlan.schedule" :save="saveCronExpression" @scheduleChange="saveSchedule"
-                                :check-open="checkScheduleEdit" :test-id="testId" :custom-validate="durationValidate"/>
-          </el-col>
-        </el-row>
+            <el-col :span="5">
+                <el-form-item label="基本配置" prop="loadserver">
+                    <el-select v-model="form.loadserver"  placeholder="请选择" @click.native="gethost()">
+                        <el-option
+                                v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
+                            </el-select>
+                          </el-form-item>
+            </el-col></el-row></div>
+    <div>在界面中一致：所有的元素和结构需保持一致，比如：设计样式、图标和文本、元素的位置等。</div>
+  </el-collapse-item>
+  <el-collapse-item title="反馈 Feedback" name="2">
+    <div>控制反馈：通过界面样式和交互动效让用户可以清晰的感知自己的操作；</div>
+    <div>页面反馈：操作后，通过页面元素的变化清晰地展现当前状态。</div>
+  </el-collapse-item>
+  <el-collapse-item title="效率 Efficiency" name="3">
+    <div>简化流程：设计简洁直观的操作流程；</div>
+    <div>清晰明确：语言表达清晰且表意明确，让用户快速理解进而作出决策；</div>
+    <div>帮助用户识别：界面简单直白，让用户快速识别而非回忆，减少用户记忆负担。</div>
+  </el-collapse-item>
+  <el-collapse-item title="可控 Controllability" name="4">
+    <div>用户决策：根据场景可给予用户操作建议或安全提示，但不能代替用户进行决策；</div>
+    <div>结果可控：用户可以自由的进行操作，包括撤销、回退和终止当前操作等。</div>
+  </el-collapse-item>
+</el-collapse>
+        <div class="filter-container">
             <!--工具条-->
-
-              <el-collapse-item title="服务配置 Server Config" name="1">
+            <el-collapse-item title="服务配置 Server Config" name="1">
                 <el-form  :model="form" status-icon :rules="rules" label-width="100px">
                     <el-row>
                         <el-col :span="5">
@@ -76,100 +95,71 @@
                     </el-row>
                 </el-form>
               </el-collapse-item>
-              <el-collapse-item title="参数配置" name="3">
-                  <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
-                      <el-checkbox :indeterminate="isIndeterminate" v-model="checkAll" @change="handleCheckAllChange">全选</el-checkbox>
-                          <div style="margin: 15px 0;"></div>
-                          <el-checkbox-group v-model="form.testdata" @change="mounted">
-                            <el-checkbox v-for="(item,index) in dibase" :label="item.remarks" :key="item.remarks">{{item.remarks}}</el-checkbox>
-                          </el-checkbox-group>
-              </el-collapse-item>
-              <el-collapse-item title="jmeter 文件上传" name="4">
-                <el-upload accept=".jmx,.csv,.jar"  drag action=""
-                         :limit="fileNumLimit"
-                         multiple
-                         :show-file-list="false"
-                         :before-upload="beforeUpload"
-                         :http-request="handleUpload"
-                         :on-exceed="handleExceed"
-                         :disabled="isReadOnly"
-                         :file-list="fileList">
-                  <i class="el-icon-upload"/>
-                  <div class="el-upload__text" v-html="将文件拖到此处,或点击上传"></div>
-                  <template v-slot:tip>
-                    <div class="el-upload__tip">只能上传JMX/CSV文件</div>
-                  </template>
-                </el-upload>
+            <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
+                <aside>
+                    <a href="http://192.168.2.38:3000/d/Ss3q6hSZk/docker-and-os-metrics-test?orgId=1&refresh=5s&from=now-5m&to=now&var-host_name=192.168.2.60&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080" target="_blank">Stress Monitor
+                    </a>
+                </aside>
+                <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
+                    <el-row>
+                        <el-col :span="3">
+                            <el-form-item label="服务器" prop="loadserver">
+                            <el-select v-model="form.loadserver"  placeholder="请选择" @click.native="gethost()">
+                              <el-option
+                                v-for="(item,index) in tags"
+                                :key="item.host"
+                                :label="item.name"
+                                :value="item.host"
+                              />
+                            </el-select>
+                          </el-form-item>
+                        </el-col>
+                        <el-col :span="3">
+                        <el-form-item label="测试版本" prop="version">
+                          <el-input id="version" v-model="form.version" placeholder="测试版本" />
+                        </el-form-item>
+                      </el-col>
+                        <el-col :span="3">
+                              <el-form-item label="压测时间" prop="loop_time">
+                                <el-input id="loop_time" v-model="form.loop_time" placeholder="测试小时" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                            <el-form-item label="线程数" prop="loop_time">
+                                <el-input id="thread" v-model="form.thread" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                            <el-col :span="3">
+                              <el-form-item label="循环次数" prop="loop">
+                                <el-input id="loop" v-model="form.loop" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                              <el-form-item label="并发" prop="synchronizing">
+                                <el-input id="synchronizing" v-model="form.synchronizing" placeholder="个" />
+                              </el-form-item>
+                            </el-col>
+                        <el-col :span="3">
+                            <el-form-item label="dicom发送" prop="loadserver">
+                                <el-switch v-model="form.switch" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item>
+                                <el-button type="primary" @click="stressrun('form')">执行</el-button>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+                    <el-row>
+                            <el-checkbox-group v-model="form.testdata" size="small">
+                              <el-checkbox-button v-for="(item,index) in dibase" :label="item.remarks" :key="item.remarks">{{item.remarks}}</el-checkbox-button>
+                            </el-checkbox-group>
+                    </el-row>
 
-              <el-table class="basic-config" :data="tableData">
-                <el-table-column
-                  prop="name"
-                  :label="文件名">
-                </el-table-column>
-                <el-table-column
-                  prop="size"
-                  :label="文件大小">
-                </el-table-column>
-                <el-table-column
-                  prop="type"
-                  :label="文件类型">
-                </el-table-column>
-                <el-table-column
-                  :label="修改时间">
-                  <template v-slot:default="scope">
-                    <i class="el-icon-time"/>
-                    <span class="last-modified">{{ scope.row.updateTime | timestampFormatDate }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column
-                  :label="操作">
-                  <template v-slot:default="scope">
-                    <el-button @click="handleDownload(scope.row)" :disabled="!scope.row.id || isReadOnly" type="primary"
-                               icon="el-icon-download"
-                               size="mini" circle/>
-                    <el-button :disabled="isReadOnly" @click="handleDelete(scope.row, scope.$index)" type="danger"
-                               icon="el-icon-delete" size="mini"
-                               circle/>
-                  </template>
-                </el-table-column>
-              </el-table>
-                </el-collapse-item>
-            </el-collapse>
-                <!--工具条-->
-                <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-<!--                    <el-form :inline="true" :model="filters" @submit.native.prevent>-->
-<!--                        <el-select v-model="filters.server"  placeholder="请选择服务器" @click.native="gethost()">-->
-<!--                              <el-option-->
-<!--                                v-for="(item,index) in tags"-->
-<!--                                :key="item.host"-->
-<!--                                :label="item.name"-->
-<!--                                :value="item.host"-->
-<!--                              />-->
-<!--                            </el-select>-->
-<!--                        <el-select v-model="filters.version"  placeholder="当前版本" @click.native="getversion()">-->
-<!--                              <el-option-->
-<!--                                v-for="(item,index) in versions"-->
-<!--                                :key="item.version"-->
-<!--                                :label="item.version"-->
-<!--                                :value="item.version"-->
-<!--                              />-->
-<!--                            </el-select>-->
-<!--                        <el-select v-model="filters.checkversion"  placeholder="以前版本" @click.native="getversion()">-->
-<!--                              <el-option-->
-<!--                                v-for="(item,index) in versions"-->
-<!--                                :key="item.version"-->
-<!--                                :label="item.version"-->
-<!--                                :value="item.version"-->
-<!--                              />-->
-<!--                            </el-select>-->
-                        <el-form-item>
-                            <el-button type="primary" @click="getDurationlist">查询</el-button>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="handleAdd">生成报告</el-button>
-                        </el-form-item>
-                </el-col>
+            </el-col>
         </div>
+    </div>
 </template>
 
 <script>
@@ -192,7 +182,7 @@
                     loop_time: '1',
                     thread:4,
                     synchronizing:0,
-                    testdata:['Lung','Brain','SWI','SVD','Tumor','Heart','CT_Hematoma','CTA','CTP'],
+                    testdata:['Lung','Brain','SWI','SVD','Tumor','Heart','Hematoma','CTA','CTP'],
                     switch:false
                 },
                 rules: {
@@ -211,7 +201,7 @@
                 page: 1,
                 listLoading: false,
                 sels: [], // 列表选中列
-
+                elForm:'',
                 editFormVisible: false, // 编辑界面是否显示
                 editLoading: false,
                 options: [{label: 'Web', value: 'Web'}, {label: 'App', value: 'App'}],

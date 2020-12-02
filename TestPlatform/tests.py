@@ -118,7 +118,7 @@
 #             vote =vote+"{0}: \"{1}\",".format(i['SeriesDescription'],i['SeriesInstanceUID'])
 #         else:
 #             vote = "{" + vote + "}"
-#             sqlDB('INSERT INTO dicomdata values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', [None,None,uid,ser,None,None,vote,None,r,None,'Gold','2020-11-21 13:27:23','2020-11-21 13:27:23'])
+#             sqlDB('INSERT INTO dicom values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', [None,None,uid,ser,None,None,vote,None,r,None,'Gold','2020-11-21 13:27:23','2020-11-21 13:27:23'])
 #             uid = i['StudyUID']
 #             r = i['Restult']
 #             if i['SeriesDescription'] =='CT_Lung':

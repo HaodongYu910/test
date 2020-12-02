@@ -88,19 +88,23 @@
                         subs: [
                             {
                                 index: 'base',
-                                title: '基础配置'
-                            },
-                            {
-                                index: 'dicomdata',
-                                title: 'dicom数据'
+                                title: 'Dicom文件'
                             },
                             {
                                 index: 'dicom',
-                                title: '匿名dicom'
+                                title: 'Dicom详情'
+                            },
+                            {
+                                index: 'deldicom',
+                                title: 'Dicom删除'
+                            },
+                            {
+                                index: 'duration',
+                                title: 'Dicom发送'
                             },
                             {
                                 index: 'gold',
-                                title: 'Gold测试'
+                                title: '冒烟测试'
                             }
                         ]
                     },

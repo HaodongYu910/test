@@ -41,7 +41,7 @@ class GraphQLDriver():
 
     def pacs_query(self, dicomAE, query, timeout=120):
         '''
-            Return the result of dicom query
+            Return the result of duration query
         '''
         # TestData = re.sub("\"(\w+)\":", r'\1:', json.dumps(query))
         data = self.convert_to_graphql_syntax(query)
