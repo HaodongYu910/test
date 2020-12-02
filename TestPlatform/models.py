@@ -953,6 +953,8 @@ class dicom_record(models.Model):
         verbose_name_plural = "测试记录表"
         db_table = 'dicom_record'
 
+
+
 class pid(models.Model):
     """
           pid表
@@ -969,6 +971,7 @@ class pid(models.Model):
         verbose_name = "pid表"
         verbose_name_plural = "pid表"
         db_table = 'pid'
+
 
 class interface(models.Model):
     """
@@ -988,3 +991,4 @@ class interface(models.Model):
         verbose_name = "Interface表"
         verbose_name_plural = "Interface表"
         db_table = 'interface'
+

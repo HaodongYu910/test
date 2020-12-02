@@ -53,6 +53,7 @@ def fake_folder(server_ip,port,ate,folder):
             continue
 
 
+
 def Send(server_ip,route):
     try:
         obj = GlobalHost.objects.get(host=server_ip)

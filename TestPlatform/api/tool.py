@@ -10,6 +10,7 @@ import shutil
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import  base_data, pid, GlobalHost
 from TestPlatform.serializers import duration_Deserializer
+from ..tools.dicom import SendDicom
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
@@ -479,3 +480,35 @@ class duration_verify(APIView):
         data = verifyData(id)
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
+
+class judgeSendOrNot(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    # 判断是否需要匿名化或者存储这个匿名后的数据到一个新的folder？
+    def post(self, request):
+        data = JSONParser().parse(request)  #将传入的json数据转换为可识别的内容
+        try:
+            name = data['anao_name']
+            sendOrNot = data['sendOrNot']
+            ip = data['ip']
+            addr = data['addr']
+            UIDS = data['UIDS']
+
+            # 将匿名化后的数据入库
+            # 1.匿名化
+
+
+            # 2.入库
+
+
+            if sendOrNot == 'no':
+                # 调用存储的函数
+                return JsonResponse(code="0", msg="储存dicom文件成功")
+            else:
+                #调用发送的函数
+                #SendDicom.Send(ip,UIDS)
+                SendDicom.Send(ip,UIDS)
+                return JsonResponse(code="0", msg="开始匿名发送数据！")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
