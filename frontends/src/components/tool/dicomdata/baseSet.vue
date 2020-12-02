@@ -266,30 +266,34 @@
             },
             //删除
             handlecount: function (index, row) {
-                this.listLoading = true;
-                //NProgress.start();
-                let self = this;
-                let params = {ids: [row.id,]};
-                let header = {
-                    "Content-Type": "application/json",
-                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                };
-                dicomcount(header, params).then(_data => {
-                    let {msg, code, data} = _data;
-                    if (code === '0') {
-                        self.$message({
-                            message: '同步成功',
-                            center: true,
-                            type: 'success'
-                        })
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true,
-                        })
-                    }
-                    self.getbaseList()
-                });
+                 this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {ids: [row.id,]};
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+
+
+
+
+                    dicomcount(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '同步成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getbaseList()
+                    });
             },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
