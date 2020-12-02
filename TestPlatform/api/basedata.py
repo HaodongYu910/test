@@ -17,7 +17,7 @@ from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
 from TestPlatform.tools.dicom.dicomfile import fileSave
-
+import threading
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -95,7 +95,12 @@ class AddbaseData(APIView):
         if result:
             return result
         basedata=base_data.objects.create(**data)
-        fileSave(basedata.id,'')
+        # 创建线程
+        thread_fake_folder = threading.Thread(target=fileSave,
+                                              args=(basedata.id,''))
+        # 启动线程
+        thread_fake_folder.start()
+
         return JsonResponse(code="0", msg="成功")
 
 class UpdatebaseData(APIView):

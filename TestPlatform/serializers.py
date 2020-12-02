@@ -886,4 +886,4 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom
-        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor','diagnosis','type','route')
+        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','fileid','diagnosis','type','route')

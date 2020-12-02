@@ -5,7 +5,7 @@ from django.db.models import Sum,Min
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil
+import threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress_record, dicom, base_data, pid, GlobalHost,dicom_record
@@ -434,7 +434,10 @@ class SomkeTest(APIView):
                     obj = dicom.objects.filter(type='Gold')
                 for i in obj:
                     ids.append(i.id)
-                goldSmoke(data["version"], data["server_ip"],ids)
+                thread_fake_folder = threading.Thread(target=goldSmoke,
+                                                      args=(data["version"], data["server_ip"],ids))
+                # 启动线程
+                thread_fake_folder.start()
             except Exception as e:
                 logger.error(e)
                 return JsonResponse(msg="执行失败", code="999991", exception=e)
