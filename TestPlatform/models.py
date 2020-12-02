@@ -764,7 +764,8 @@ class base_data(models.Model):
     select_type = models.CharField(max_length=20, blank=True, null=True, verbose_name="查询类型")
     remarks = models.CharField(max_length=100, blank=True, null=True, verbose_name="备注")
     other = models.CharField(max_length=10, blank=True, null=True, verbose_name="其他")
-    status = models.CharField(max_length=1, blank=True, null=True, verbose_name="0是关闭，1是启用")
+    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="其他")
+    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -907,10 +908,11 @@ class dicom(models.Model):
     slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
     vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
-    predictor =  models.CharField(max_length=40, blank=True, null=True, verbose_name="预测类型")
+    fileid =  models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")
     diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -921,22 +923,6 @@ class dicom(models.Model):
         verbose_name = "dicom数据表"
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
-
-class dicom_route(models.Model):
-    """
-          持续化测试记录表
-        """
-    id = models.AutoField(primary_key=True)
-    dicomid = models.CharField(max_length=10, blank=True, null=True, verbose_name="关联dicom")
-    route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "dicom路径"
-        verbose_name_plural = "dicom路径"
-        db_table = 'dicomroute'
 
 class dicom_record(models.Model):
     """
@@ -986,20 +972,23 @@ class pid(models.Model):
         verbose_name_plural = "pid表"
         db_table = 'pid'
 
-class yhd_test(models.Model):
+
+class interface(models.Model):
     """
-          pid表
+          Interface表
         """
     id = models.AutoField(primary_key=True)
-    durationid = models.CharField(max_length=5, blank=True, null=True, verbose_name="持续化id")
-    anao_name = models.CharField(max_length=6, null=True, verbose_name="匿名化title")
-    ip = models.IntegerField(blank=True, null=True, verbose_name="发送IP地址")
+    interfacename = models.CharField(max_length=10, blank=True, null=True, verbose_name="接口名")
+    json = models.CharField(max_length=500, blank=True, null=True, verbose_name="json")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
 
 
     def __unicode__(self):
-        return self.pid
+        return self.id
 
     class Meta:
-        verbose_name = "pid表"
-        verbose_name_plural = "pid表"
-        db_table = 'pid'
+        verbose_name = "Interface表"
+        verbose_name_plural = "Interface表"
+        db_table = 'interface'
+

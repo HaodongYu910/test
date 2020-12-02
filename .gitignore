@@ -5,6 +5,7 @@ __pycache__/
 
 # C extensions
 *.so
+.idea
 
 # Distribution / packaging
 .Python
@@ -25,8 +26,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+<<<<<<< HEAD
 .idea
 *migration
+=======
+__pycache__
+>>>>>>> 30fa1db1fb2682153cddb7aae26ab9e3272071d3
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

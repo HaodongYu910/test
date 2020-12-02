@@ -11,7 +11,7 @@ import logging
 from tqdm import tqdm
 import subprocess as sp
 import threading
-from ...models import GlobalHost,dicom_route,base_data
+from ...models import GlobalHost,base_data,dicom
 
 def sync_send_file(server_ip,port,aec,file_name):
     local_aet='QA38'
@@ -53,21 +53,14 @@ def fake_folder(server_ip,port,ate,folder):
             continue
 
 
-def Send(server_ip,id,folder_id):
-    # 组装数据，调用sync_send_file的方法。
+
+def Send(server_ip,route):
     try:
         obj = GlobalHost.objects.get(host=server_ip)
-        if id:
-            routeobj =dicom_route.objects.filter(dicomid=id)
-            for i in routeobj:
-                sync_send_file(server_ip,obj.port,obj.description,i['route'])
-        else:
-            for j in folder_id:
-                folderobj = base_data.objects.get(id=j)
-                # 创建线程
-                thread_fake_folder = threading.Thread(target=fake_folder, args=(server_ip,obj.port,obj.description,folderobj.content))
-                # 启动线程
-                thread_fake_folder.start()
+        # 创建线程
+        thread_fake_folder = threading.Thread(target=fake_folder, args=(server_ip,obj.port,obj.description,route))
+        # 启动线程
+        thread_fake_folder.start()
     except Exception as e:
         logging.error("error: failed to send", e)
 

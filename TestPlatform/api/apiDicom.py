@@ -5,7 +5,7 @@ from django.db.models import Sum,Min
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil
+import threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress_record, dicom, base_data, pid, GlobalHost,dicom_record
@@ -65,6 +65,50 @@ class dicomData(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = dicomdata_Deserializer(obm, many=True)
+        return JsonResponse(data={"data": serialize.data,
+                                  "page": page,
+                                  "total": total
+                                  }, code="0", msg="成功")
+
+class somkeRecord(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取dicom数据列表
+        :param request:
+        :return:
+        """
+        try:
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        version = request.GET.get("version")
+        server = request.GET.get("server")
+        status = request.GET.get("status")
+        if version is not None and server is None and status is None:
+            obi = dicom_record.objects.filter(version__contains=version).order_by("-id")
+        elif server is not None and version is None and status is None:
+            obi = dicom_record.objects.filter(server__contains=server).order_by("-id")
+        elif server is not None and version is not None and status is None:
+            obi = dicom_record.objects.filter(server__contains=server,diseases__contains=version).order_by("-id")
+        elif status is not None and server is None:
+            obi = dicom_record.objects.filter(status__contains=status).order_by("-id")
+        elif status is not None and server is not None:
+            obi = dicom_record.objects.filter(server__contains=server,status__contains=status).order_by("-id")
+        else:
+            obi = dicom_record.objects.all().order_by("-id")
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        serialize = dicomrecord_Serializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -350,52 +394,7 @@ class deldicomResult(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-class somkeRecord(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        获取dicom数据列表
-        :param request:
-        :return:
-        """
-        try:
-            page_size = int(request.GET.get("page_size", 20))
-            page = int(request.GET.get("page", 1))
-        except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        version = request.GET.get("version")
-        server = request.GET.get("server")
-
-        status = request.GET.get("status")
-        if version is not None and server is None and status is None:
-            obi = dicom_record.objects.filter(version__contains=version).order_by("-id")
-        elif server is not None and version is None and status is None:
-            obi = dicom_record.objects.filter(server__contains=server).order_by("-id")
-        elif server is not None and version is not None and status is None:
-            obi = dicom_record.objects.filter(server__contains=server,diseases__contains=version).order_by("-id")
-        elif status is not None and server is None:
-            obi = dicom_record.objects.filter(status__contains=status).order_by("-id")
-        elif status is not None and server is not None:
-            obi = dicom_record.objects.filter(server__contains=server,status__contains=status).order_by("-id")
-        else:
-            obi = dicom_record.objects.all().order_by("-id")
-        paginator = Paginator(obi, page_size)  # paginator对象
-        total = paginator.num_pages  # 总页数
-        try:
-            obm = paginator.page(page)
-        except PageNotAnInteger:
-            obm = paginator.page(1)
-        except EmptyPage:
-            obm = paginator.page(paginator.num_pages)
-        serialize = dicomdata_Deserializer(obm, many=True)
-        return JsonResponse(data={"data": serialize.data,
-                                  "page": page,
-                                  "total": total
-                                  }, code="0", msg="成功")
-
-class somke(APIView):
+class SomkeTest(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -435,7 +434,10 @@ class somke(APIView):
                     obj = dicom.objects.filter(type='Gold')
                 for i in obj:
                     ids.append(i.id)
-                goldSmoke(data["version"], data["server_ip"],ids)
+                thread_fake_folder = threading.Thread(target=goldSmoke,
+                                                      args=(data["version"], data["server_ip"],ids))
+                # 启动线程
+                thread_fake_folder.start()
             except Exception as e:
                 logger.error(e)
                 return JsonResponse(msg="执行失败", code="999991", exception=e)

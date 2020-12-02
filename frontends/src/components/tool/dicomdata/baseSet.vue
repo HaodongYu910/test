@@ -48,7 +48,7 @@
             </el-table-column>
             <el-table-column label="类型" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.select_type }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="数量" min-width="16%" sortable>
@@ -70,7 +70,7 @@
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步数量</el-button>
+                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -125,8 +125,8 @@
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="名称" prop='remasks'>
-                            <el-input v-model.trim="addForm.remasks" auto-complete="off"></el-input>
+                        <el-form-item label="病种名称" prop='remarks'>
+                            <el-input v-model.trim="addForm.remarks" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
@@ -134,6 +134,25 @@
                             <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+              <el-form-item label="数据类型" prop="environment">
+                <el-select v-model="addForm.type" clearable placeholder="请选择类型">
+                  <el-option key="Gold" label="金标准" value="Gold" />
+                  <el-option key="test" label="测试数据" value="test" />
+                </el-select>
+              </el-form-item>
+                        </el-col>
+             <el-form-item label="模型" prop="predictor">
+                <el-select v-model="addForm.predictor" clearable placeholder="请选择类型">
+                  <el-option key="brainmri_predictor" label="MRI" value="brainmri_predictor" />
+                  <el-option key="brainct_predictor" label="brainct" value="brainct_predictor" />
+                    <el-option key="braincta_predictor" label="CTA" value="braincta_predictor" />
+                  <el-option key="lungct_predictor" label="Lung" value="lungct_predictor" />
+                    <el-option key="heartmri_predictor" label="heart" value="heartmri_predictor" />
+                  <el-option key="archcta_predictor" label="archcta" value="archcta_predictor" />
+                    <el-option key="breastmri_predictor" label="breast" value="breastmri_predictor" />
+                </el-select>
+              </el-form-item>
                 </el-row>
 
             </el-form>
@@ -212,7 +231,7 @@
                 addForm: {
                     content: '',
                     select_type: 'dicom',
-                    type: 1,
+                    type: 'test',
                     description: ''
                 }
 
@@ -361,7 +380,7 @@
                     status: true,
                     remarks: null,
                     other: null,
-                    type: 1
+                    type: 'test'
                 };
             },
             //编辑
@@ -426,8 +445,10 @@
                                 content: this.addForm.content,
                                 type: self.addForm.type,
                                 select_type: self.addForm.select_type,
-                                remarks: self.addForm.remarks,
-                                other: self.addForm.other
+                                remarks: this.addForm.remarks,
+                                other: self.addForm.other,
+                                predictor:self.addForm.predictor,
+                                status:true
                             });
                             let header = {
                                 "Content-Type": "application/json",
