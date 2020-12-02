@@ -4,14 +4,10 @@
 把文件夹中的所有study持续发到storescp中。
 '''
 
-import os,gc
-import sys, getopt
-import pydicom
+import os
 import logging
-from tqdm import tqdm
 import subprocess as sp
-import threading
-from ...models import GlobalHost,base_data,dicom
+from ...models import GlobalHost,dicom
 
 def sync_send_file(server_ip,port,aec,file_name):
     local_aet='QA38'
@@ -56,10 +52,7 @@ def fake_folder(server_ip,port,ate,folder):
 def Send(server_ip,route):
     try:
         obj = GlobalHost.objects.get(host=server_ip)
-        # 创建线程
-        thread_fake_folder = threading.Thread(target=fake_folder, args=(server_ip,obj.port,obj.description,route))
-        # 启动线程
-        thread_fake_folder.start()
+        fake_folder(server_ip,obj.port,obj.description,route)
     except Exception as e:
         logging.error("error: failed to send", e)
 

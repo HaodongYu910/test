@@ -135,24 +135,16 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-              <el-form-item label="数据类型" prop="environment">
-                <el-select v-model="addForm.type" clearable placeholder="请选择类型">
-                  <el-option key="Gold" label="金标准" value="Gold" />
-                  <el-option key="test" label="测试数据" value="test" />
-                </el-select>
-              </el-form-item>
-                        </el-col>
-             <el-form-item label="模型" prop="predictor">
-                <el-select v-model="addForm.predictor" clearable placeholder="请选择类型">
-                  <el-option key="brainmri_predictor" label="MRI" value="brainmri_predictor" />
-                  <el-option key="brainct_predictor" label="brainct" value="brainct_predictor" />
-                    <el-option key="braincta_predictor" label="CTA" value="braincta_predictor" />
-                  <el-option key="lungct_predictor" label="Lung" value="lungct_predictor" />
-                    <el-option key="heartmri_predictor" label="heart" value="heartmri_predictor" />
-                  <el-option key="archcta_predictor" label="archcta" value="archcta_predictor" />
-                    <el-option key="breastmri_predictor" label="breast" value="breastmri_predictor" />
-                </el-select>
-              </el-form-item>
+                        <el-form-item label="数据类型" prop="environment">
+                            <el-select v-model="addForm.type" clearable placeholder="请选择类型">
+                                <el-option key="Gold" label="金标准" value="Gold"/>
+                                <el-option key="test" label="测试数据" value="test"/>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="模型" prop='content'>
+                            <el-input v-model.trim="addForm.predictor" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
                 </el-row>
 
             </el-form>
@@ -168,7 +160,7 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount,getHost,getdicomSend
+        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -188,10 +180,6 @@
                 editLoading: false,
                 options: [{label: "dicom", value: "dicom"}],
                 editFormRules: {
-                    content: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
@@ -215,16 +203,8 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    content: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
-                    ],
-                    select_type: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //新增界面数据
@@ -239,7 +219,7 @@
         },
         mounted() {
             this.gethost();
-          },
+        },
         methods: {
             //展示server名
             gethost() {
@@ -286,30 +266,30 @@
             },
             //删除
             handlecount: function (index, row) {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {ids: [row.id,]};
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    dicomcount(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '同步成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.getbaseList()
-                    });
+                this.listLoading = true;
+                //NProgress.start();
+                let self = this;
+                let params = {ids: [row.id,]};
+                let header = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                };
+                dicomcount(header, params).then(_data => {
+                    let {msg, code, data} = _data;
+                    if (code === '0') {
+                        self.$message({
+                            message: '同步成功',
+                            center: true,
+                            type: 'success'
+                        })
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true,
+                        })
+                    }
+                    self.getbaseList()
+                });
             },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
@@ -443,8 +423,8 @@
                                 select_type: self.addForm.select_type,
                                 remarks: this.addForm.remarks,
                                 other: self.addForm.other,
-                                predictor:self.addForm.predictor,
-                                status:true
+                                predictor: self.addForm.predictor,
+                                status: true
                             });
                             let header = {
                                 "Content-Type": "application/json",
@@ -484,40 +464,40 @@
             selsChange: function (sels) {
                 this.sels = sels;
             },
-            batchSend: function() {
-              const ids = this.sels.map(item => item.id)
-              const self = this
-              this.$confirm('确认生成选中记录吗？', '提示', {
-                type: 'warning'
-              }).then(() => {
-                this.listLoading = true
-                // NProgress.start();
+            batchSend: function () {
+                const ids = this.sels.map(item => item.id)
                 const self = this
-                const params = {
-                    ids: ids ,
-                    server_ip:this.filters.server
-                }
-                const header = {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                }
-                getdicomSend(header, params).then(_data => {
-                  const { msg, code, data } = _data
-                  if (code === '0') {
-                    self.$message({
-                      message: '成功',
-                      center: true,
-                      type: 'success'
+                this.$confirm('确认生成选中记录吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    // NProgress.start();
+                    const self = this
+                    const params = {
+                        ids: ids,
+                        server_ip: this.filters.server
+                    }
+                    const header = {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    }
+                    getdicomSend(header, params).then(_data => {
+                        const {msg, code, data} = _data
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                        self.getbaseList()
                     })
-                  } else {
-                    self.$message.error({
-                      message: msg,
-                      center: true
-                    })
-                  }
-                  self.getbaseList()
                 })
-              })
             },
             //批量删除
             batchRemove: function () {

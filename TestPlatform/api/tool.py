@@ -156,8 +156,8 @@ class add_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["duration"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -177,7 +177,7 @@ class add_duration(APIView):
                 data['series'] = '1'
             else:
                 data['series'] = '0'
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -203,8 +203,8 @@ class update_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -225,7 +225,7 @@ class update_duration(APIView):
             else:
                 data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -355,7 +355,7 @@ class EnableDuration(APIView):
                     end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '

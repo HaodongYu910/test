@@ -3,8 +3,8 @@ import stressDetail from "../components/stress/stressDetail";
 
 
 
-export const test = 'http://127.0.0.1:8000';
-//export const test = 'http://192.168.2.38:9000';
+//export const test = 'http://127.0.0.1:8000';
+export const test = 'http://192.168.2.38:9000';
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -249,6 +249,11 @@ export const updatedicomdata = (headers, params) => {
 // 新增dicom数据
 export const adddicomdata = (headers, params) => {
   return axios.post(`${test}/api/tool/add_dicomData`, params, headers).then(res => res.data)
+}
+
+// 新增dicom数据
+export const dicomdetail = (headers, params) => {
+  return axios.post(`${test}/api/tool/dicomdetail`, params, headers).then(res => res.data)
 }
 //dicom数据
 export const getdicomdata = (headers, params) => {

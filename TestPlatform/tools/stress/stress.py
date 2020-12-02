@@ -7,6 +7,7 @@ from TestPlatform.models import dicom_record, dicom
 from django.db import transaction
 from TestPlatform.serializers import dicomrecord_Deserializer, dicomrecord_Serializer
 import datetime
+from  ..dicom.dicomdetail import Predictor
 from .PerformanceResult import savecheck,lung
 
 logger = logging.getLogger(__name__)
@@ -72,3 +73,13 @@ def sequence(orthanc_ip,end_time, diseases, version):
     # except Exception as e:
     #     logger.error("生成版本测试结果失败error{0}".format(e))
 
+#生成自动预测测试数据
+def stressdata(diseases,count):
+
+    for i in diseases:
+        Predictor(i)
+    obj = dicom_record.objects.get(testid=data["testid"])
+    serializer = dicomrecord_Serializer(data=data)
+    with transaction.atomic():
+        if serializer.is_valid():
+            serializer.update(instance=obj, validated_data=data)

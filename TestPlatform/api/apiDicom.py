@@ -17,11 +17,64 @@ from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
 from ..tools.stress.PerformanceResult import *
+from ..tools.dicom.dicomdetail import *
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
+class dicomDetail(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 diseases, server！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            server = data['server']
+            try:
+                if data['ids']:
+                    dicomdata = dicom.objects.filter(vote=None, id__in=data['ids'])
+                elif data['diseases']:
+                    dicomdata = dicom.objects.filter(vote=None,diseases=data['diseases'])
+                else:
+                   dicomdata=dicom.objects.filter(vote=None)
+                for i in dicomdata:
+                    try:
+                        i.vote,i.imagecount,i.slicenumber = voteData(i.studyinstanceuid,server,i.diseases)
+                        i.save()
+                    except Exception as  e :
+                        continue
+
+            except ObjectDoesNotExist:
+                return JsonResponse(code="999994", msg="数据未预测，请先预测！")
+
+
+
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
 
 class dicomData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -175,7 +228,7 @@ class adddicomdata(APIView):
                 data['predictor'] = 'braincta_predictor'
             elif data['diseases'] =='CTP':
                 data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'CT_Hematoma':
+            elif data['diseases'] == 'Hematoma':
                 data['predictor'] = 'brainct_predictor'
             elif data['diseases'] == 'Heart':
                 data['predictor'] = 'heartmri_predictor'
@@ -207,8 +260,8 @@ class updatedicomdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -225,7 +278,7 @@ class updatedicomdata(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -405,7 +458,7 @@ class SomkeTest(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, dicomdata, loop_time
+            # 必传参数 loadserver, dicom, loop_time
             if not data["server_ip"] or not data["version"] :
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 server, ids！")
 

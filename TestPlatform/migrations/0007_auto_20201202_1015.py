@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name='dicom',
+            model_name='duration',
             name='predictor',
         ),
         migrations.AddField(
-            model_name='dicom',
+            model_name='duration',
             name='fileid',
             field=models.CharField(blank=True, max_length=5, null=True, verbose_name='文件ID'),
         ),

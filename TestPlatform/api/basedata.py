@@ -17,6 +17,7 @@ from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
 from TestPlatform.tools.dicom.dicomfile import fileSave
+from ..tools.dicom.dicomdetail import Predictor
 import threading
 
 
@@ -94,6 +95,8 @@ class AddbaseData(APIView):
         result = self.parameter_check(data)
         if result:
             return result
+        if data['predictor']:
+            data['predictor']=Predictor['remarks']
         basedata=base_data.objects.create(**data)
         # 创建线程
         thread_fake_folder = threading.Thread(target=fileSave,

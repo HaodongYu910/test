@@ -56,12 +56,12 @@ def disable_job(job_name,param_dict):
     # Refer Example #1 for definition of function 'get_server_instance'
     server = get_server_instance()
     # print(server.get_build_info(job_name,48))
-    param_dict = {"ip": "192.168.1.125","aet": "ORTHANC125","keyword": "duration","dicom": "All"}
+    param_dict = {"ip": "192.168.1.125","aet": "ORTHANC125","keyword": "duration","duration": "All"}
     server.build_job(job_name, params=param_dict)
     return True
 
 # if __name__ == '__main__':
 #     # print(getBuild("Duration_test"))
 #     print(get_job_details("Duration_test",'Debug','iOS'))
-#     param_dict = {"ip": "192.168.1.125","aet": "ORTHANC125","keyword": "duration","dicom": "All"}
+#     param_dict = {"ip": "192.168.1.125","aet": "ORTHANC125","keyword": "duration","duration": "All"}
 #     print((disable_job("Duration_test",param_dict)))

@@ -14,7 +14,7 @@ class Migration(migrations.Migration):
             name='dicom_route',
         ),
         migrations.AddField(
-            model_name='dicom',
+            model_name='duration',
             name='route',
             field=models.CharField(blank=True, max_length=100, null=True, verbose_name='路径'),
         ),
