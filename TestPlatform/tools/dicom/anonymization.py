@@ -1,106 +1,96 @@
-<el-dialog title="匿名化文件夹" :visible.sync="addFormVisible" :close-on-click-modal="false"
-                       style="width: 75%; left: 12.5%">
-                <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
+# coding=utf-8
+import os
+import pydicom
+from tqdm import tqdm
+import time
+import logging
 
 
-                            <el-col :span="5">
-                                <el-form-item label="发送服务器" prop="sendserver">
-                                    <el-select v-model="addForm.sendserver" placeholder="请选择"
-                                               @click.native="gethost()">
-                                        <el-option
-                                                v-for="(item,index) in tags"
-                                                :key="item.host"
-                                                :label="item.name"
-                                                :value="item.host"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="3">
-                                <el-form-item label="端口号" prop="port">
-                                    <el-input id="port" v-model="addForm.port" placeholder=""/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="数据类型" prop="senddata">
-                                    <el-select v-model="addForm.senddata" multiple placeholder="请选择"
-                                               @click.native="getBase()">
-                                        <el-option
-                                                v-for="(item,index) in tags"
-                                                :key="item.remarks"
-                                                :label="item.remarks"
-                                                :value="item.remarks"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="3">
-                                <el-form-item label="持续时间" prop="loop_time">
-                                    <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="3">
-                                <el-form-item label="发送数量" prop="count">
-                                    <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="延时时间" prop="sleeptime">
-                                    <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="延时数量" prop="sleepcount">
-                                    <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="3">
-                                <el-form-item label="series" prop="series">
-                                    <el-switch v-model="addForm.series" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="" prop="dds">
-                                    <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="" prop="save">
-                                    <el-button type="primary" @click="addSubmit('form')">保存</el-button>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                    </el-form>
-                </el-form>
-            </el-dialog>
+logger = logging.getLogger(__name__)
+
+def norm_string(str, len_norm):
+    str_dest = str
+    while len(str_dest) > len_norm or str_dest[0] == '.':
+        str_dest = str_dest[1:]
+    return str_dest
+def onlyDoAnonymization(src_folder,study_infos,diseases,type,uidInfos,id,wPN,wPID,anonkey):
+    '''
+    src_folder:
+    study_infos
+    diseases:
+    type:
+    uidInfos:
+    id:
+    wPN:boolean值，是否匿名patient name
+    wPID:boolean值，是否匿名patient ID
+    anonkey:匿名化key值
+    '''
+    file_names = os.listdir(src_folder)
+    file_names.sort()
+    for fn in tqdm(file_names):
+        full_fn = os.path.join(src_folder, fn)
+
+        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+            continue
+
+        elif (os.path.isdir(full_fn)):
+            onlyDoAnonymization(full_fn,study_infos,diseases,type,uidInfos,id)
+            continue
+        try:
+            ds = pydicom.dcmread(full_fn, force=True)
+            study_uid = ds.StudyInstanceUID
+            study_infos["No"]=study_infos["No"]+1
+
+            if uidInfos.get(study_uid):
+                continue
+            try:
+                if wPID:
+                    ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+
+                elif not ds.PatientID:
+                    ds.PatientID = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
 
 
-<el-dialog title="匿名化文件夹" :visible.sync="addFormVisible" :close-on-click-modal="false"
-                       style="width: 75%; left: 12.5%">
-                <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="4">
-                                <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
-                                </el-form-item>
-                            </el-col>
+                if wPN:
+                    ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                    patientname = ds.PatientName
+                else:
+                    ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                    patientname = ds.PatientName
 
-                            <el-col :span="4">
-                                <el-form-item label="需要被匿名文件路径" prop="keyword">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
-                                </el-form-item>
-                            </el-col>
 
-</el-row>
-                    </el-form>
-                </el-form>
-            </el-dialog>
+
+                folder_fake = '/files/anonymization/{0}/{1}/{2}'.format(type,diseases, patientname,)
+                if not os.path.exists(folder_fake):
+                    os.makedirs(folder_fake)
+                full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
+                ds.save_as(full_fn_fake)
+
+            except Exception as e:
+                logging.info(
+                    'failed to : file[{0}], error[{1}]'.format(full_fn, e))
+                continue
+
+            # data = {
+            #     "patientid": patientid,
+            #     "studyinstanceuid": study_uid,
+            #     "diseases": diseases,
+            #     "type": type,
+            #     "route": folder_fake,
+            #     "fileid":id
+            # }
+
+            # link with database
+            # try:
+            #     if study_infos.get(study_uid):
+            #         continue
+            #     else:
+            #         study_infos[study_uid]=study_uid
+            #         dicom.objects.create(**data)
+            # except Exception as e:
+            #     logging.error('errormsg: failed to sql [{0}]'.format(e))
+            #     continue
+
+        except Exception as e:
+            logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
+            continue

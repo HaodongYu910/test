@@ -22,10 +22,12 @@
                         <el-button type="primary" @click="handleAdd">新增</el-button>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="handleAnonymization">匿名化文件夹</el-button>
+                        <el-button type="primary" @click="handleAnon">匿名化文件夹</el-button>
                     </el-form-item>
                 </el-form>
             </el-col>
+
+
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
@@ -175,6 +177,56 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
+                </el-form>
+            </el-dialog>
+
+            <!--匿名化文件夹界面-->
+            <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible":close-on-click-modal="false"
+                       style="width: 75%; left: 12.5%">
+                <el-form :model="anonForm" label-width="80px" :rules="anonFormRules" ref="anonForm">
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
+                        <el-row>
+                            <el-col :span="6">
+                                <el-form-item label="匿名名称" prop="anon-name">
+                                    <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
+                                </el-form-item>
+                            </el-col>
+
+                            <el-col :span="9">
+                                <el-form-item label="需要被匿名文件路径" prop="anon_addr">
+                                    <el-input id="anon_addr" v-model="anonForm.anon_addr" placeholder="路径"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+
+                        <el-row>
+                            <el-col :span="4">
+                                <el-form-item label="需要发送？" prop="sendOrNot">
+                                    <el-switch v-model="anonForm.sendOrNot" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+
+                            <el-col :span="5">
+                                <el-form-item label="匿名患者姓名？" prop="wPN">
+                                    <el-switch v-model="anonForm.wPN" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+
+                            <el-col :span="5">
+                                <el-form-item label="匿名患者ID？" prop="wPID">
+                                    <el-switch v-model="anonForm.wPID" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                            <el-form-item label="" prop="save">
+                                    <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
+                            </el-form-item>
+
+                        </el-row>
+
+                    </el-form>
                 </el-form>
             </el-dialog>
             <!--新增界面-->
@@ -329,6 +381,27 @@
                     loop_time: '',
                     port: '4242'
                 },
+                // 匿名化界面数据
+                anonForm: {
+                    anon_name: '',
+                    anon_addr: '',
+                    sendOrNot: '',
+                    wPN: '',
+                    wPID: '',
+                },
+                anonFormVisible: false, // 匿名化界面是否显示
+                anonLoading: false,
+                anonFormRules: {
+                    anon_name: [
+                        {required: false, message: '请输入匿名名称', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    anon_addr: [
+                        {required: true, message: '请输入待匿名文件地址', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                },
+
                 addForm: {
                     port: '4242'
                 },
@@ -620,6 +693,17 @@
                     series: false
                 }
             },
+            //显示匿名化文件夹界面
+            handleAnon: function () {
+                this.anonFormVisible = true
+                this.anonForm = {
+                    anon_name: '',
+                    anon_addr: '',
+                    sendOrNot: true,
+                    wPN: true,
+                    wPID: true
+                }
+            },
             // 编辑
             editSubmit: function () {
                 const self = this
@@ -670,6 +754,62 @@
                     }
                 })
             },
+            // 匿名
+            startAnon:function () {
+                this.$refs.addForm.validate((valid) => {
+                    if (valid) {
+                        const self = this
+                        self.addLoading = true
+                        // NProgress.start();
+                        const params = JSON.stringify({
+                            server: self.addForm.sendserver,
+                            port: self.addForm.port,
+                            loop_time: self.addForm.loop_time,
+                            keyword: this.addForm.keyword,
+                            dicom: this.addForm.senddata,
+                            sendcount: this.addForm.sendcount,
+                            dds: this.addForm.dds,
+                            sleepcount: this.addForm.sleepcount,
+                            sleeptime: this.addForm.sleeptime,
+                            series: this.addForm.series,
+                            sendstatus: false,
+                            status: false
+                        })
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        addduration(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            self.addLoading = false
+                            if (code === '0') {
+                                self.$message({
+                                    message: '添加成功',
+                                    center: true,
+                                    type: 'success'
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            } else if (code === '999997') {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            }
+                        })
+                    }
+                })
+            },
+
             // 新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {

@@ -83,50 +83,47 @@
             </el-dialog>
 
 
-<el-dialog title="匿名化文件夹" :visible.sync="addFormVisible" :close-on-click-modal="false"
+            <el-dialog title="匿名化文件夹" :visible.sync="addFormVisible" :close-on-click-modal="false"
                        style="width: 75%; left: 12.5%">
                 <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
-                            <el-col :span="4">
+                            <el-col :span="6">
                                 <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
+                                    <el-input id="anon-name" v-model="addForm.keyword" placeholder="匿名名称"/>
                                 </el-form-item>
                             </el-col>
 
-                            <el-col :span="4">
+                            <el-col :span="9">
                                 <el-form-item label="需要被匿名文件路径" prop="need_anon_addr">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
+                                    <el-input id="anon_addr" v-model="addForm.keyword" placeholder="路径"/>
                                 </el-form-item>
                             </el-col>
                         </el-row>
 
                         <el-row>
-                            <el-col :span="3">
-                                <el-form-item label="是否需要发送？" prop="series">
+                            <el-col :span="4">
+                                <el-form-item label="需要发送？" prop="sendOrNot">
                                     <el-switch v-model="addForm.series" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
 
-                            <el-col :span="3">
-                                <el-form-item label="是否需要匿名患者姓名？" prop="wPN">
+                            <el-col :span="5">
+                                <el-form-item label="匿名患者姓名？" prop="wPN">
                                     <el-switch v-model="addForm.series" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
 
-                            <el-col :span="3">
-                                <el-form-item label="是否需要匿名患者ID？" prop="wPID">
+                            <el-col :span="5">
+                                <el-form-item label="匿名患者ID？" prop="wPID">
                                     <el-switch v-model="addForm.series" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
-
 
                         </el-row>
-
-
                     </el-form>
                 </el-form>
             </el-dialog>

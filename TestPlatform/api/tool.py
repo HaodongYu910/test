@@ -491,9 +491,11 @@ class judgeSendOrNot(APIView):
         try:
             name = data['anao_name']
             sendOrNot = data['sendOrNot']
-            ip = data['ip']
+            ip = data['need_anon_addr']
             addr = data['addr']
             UIDS = data['UIDS']
+            wPN = data['wPN']
+            wPID = data['wPID']
 
             # 将匿名化后的数据入库
             # 1.匿名化
