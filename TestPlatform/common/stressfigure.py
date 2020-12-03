@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 
-from ..models import stress_record,stress_result
+from ..models import stress,stress_result
 from ..serializers import stressrecord_Deserializer
 # from TestPlatform.common.jiraData import Jiradata
 # from TestPlatform.common.excel_data import *
@@ -22,7 +22,7 @@ plt.rcParams['font.family'] = ['Times New Roman']
 #jira 数据图表
 def stressdataFigure(type,modelname):
     version = []
-    stressobj = stress_record.objects.filter(status=True).order_by("version")
+    stressobj = stress.objects.filter(status=True).order_by("version")
     # modelname = stress_result.objects.values("modelname").order_by("version").distinct("modelname")
     for i in stressobj:
         version.append(i.version)

@@ -778,7 +778,7 @@ class base_data(models.Model):
         db_table = 'base_data'
 
 
-class stress_record(models.Model):
+class stress(models.Model):
     """
       性能测试记录表
     """
@@ -807,9 +807,27 @@ class stress_record(models.Model):
     class Meta:
         verbose_name = "性能测试记录表"
         verbose_name_plural = "性能测试记录表"
+        db_table = 'stress'
+
+class stress_record(models.Model):
+    """
+      性能测试数据表
+    """
+    id = models.AutoField(primary_key=True)
+    stressid = models.CharField(max_length=5, blank=True, null=True, verbose_name="stress表ID")
+    studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="测试环境")
+    imagecount = models.CharField(max_length=400, blank=True, null=True, verbose_name="测试数据")
+    slicenumber = models.CharField(max_length=4, blank=True, null=True, verbose_name="线程数")
+    diseases = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
+    start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动延时 秒")
+
+    def __unicode__(self):
+        return self.stressid
+
+    class Meta:
+        verbose_name = "性能测试数据表"
+        verbose_name_plural = "性能测试数据表"
         db_table = 'stress_record'
-
-
 
 
 class stress_result(models.Model):
@@ -953,8 +971,6 @@ class dicom_record(models.Model):
         verbose_name_plural = "测试记录表"
         db_table = 'dicom_record'
 
-
-
 class pid(models.Model):
     """
           pid表
@@ -992,21 +1008,3 @@ class interface(models.Model):
         verbose_name_plural = "Interface表"
         db_table = 'interface'
 
-class interface(models.Model):
-    """
-          Interface表
-        """
-    id = models.AutoField(primary_key=True)
-    interfacename = models.CharField(max_length=10, blank=True, null=True, verbose_name="接口名")
-    json = models.CharField(max_length=500, blank=True, null=True, verbose_name="json")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    status = models.BooleanField(default=False, verbose_name='状态')
-
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "Interface表"
-        verbose_name_plural = "Interface表"
-        db_table = 'interface'

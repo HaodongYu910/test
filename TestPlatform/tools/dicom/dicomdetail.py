@@ -83,6 +83,9 @@ def Predictor(diseases):
         predictor = 'archcta_predictor'
     elif diseases == 'MRA':
         predictor = 'brainctp_predictor'
+    else:
+        predictor = None
+    return predictor
 
     # # 循环生成压测数据
     # for i in diseases:

@@ -360,7 +360,8 @@
                     status: true,
                     remarks: null,
                     other: null,
-                    type: 'test'
+                    type: 'test',
+                    predictor: ''
                 };
             },
             //编辑

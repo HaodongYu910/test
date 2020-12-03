@@ -7,7 +7,8 @@ from TestPlatform.models import dicom_record, dicom
 from django.db import transaction
 from TestPlatform.serializers import dicomrecord_Deserializer, dicomrecord_Serializer
 import datetime
-from  ..dicom.dicomdetail import Predictor
+from ..dicom.dicomdetail import Predictor
+from ..dicom.dicomdetail import voteData
 from .PerformanceResult import savecheck,lung
 
 logger = logging.getLogger(__name__)
@@ -74,12 +75,26 @@ def sequence(orthanc_ip,end_time, diseases, version):
     #     logger.error("生成版本测试结果失败error{0}".format(e))
 
 #生成自动预测测试数据
-def stressdata(diseases,count):
-
+def stressData(diseases,orthanc_ip,count):
+    Tdata ={}
+    lung ={}
     for i in diseases:
-        Predictor(i)
-    obj = dicom_record.objects.get(testid=data["testid"])
-    serializer = dicomrecord_Serializer(data=data)
-    with transaction.atomic():
-        if serializer.is_valid():
-            serializer.update(instance=obj, validated_data=data)
+        sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like "%{0}%"'.format(diseases)
+        results=connect_to_postgres(orthanc_ip, sql).to_dict(orient='records')
+        for j in results:
+            if i == 'Lung':
+                Tdata['Lung'] =lung
+                graphql_query,imagecount,slicenumber = voteData(i['studyuid'], orthanc_ip, diseases)
+                lung[slicenumber]=j
+            elif i in []:
+                graphql_query, imagecount, slicenumber = voteData(i['studyuid'], orthanc_ip, diseases)
+
+
+
+    # for i in diseases:
+    #     Predictor(i)
+    # obj = dicom_record.objects.get(testid=data["testid"])
+    # serializer = dicomrecord_Serializer(data=data)
+    # with transaction.atomic():
+    #     if serializer.is_valid():
+    #         serializer.update(instance=obj, validated_data=data)

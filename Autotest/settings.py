@@ -29,7 +29,7 @@ DEBUG = False
 
 #服务器
 
-SITE_DBURL = "192.168.2.38"      # 数据库 地址
+SITE_DBURL = "192.168.1.121"      # 数据库 地址
 SITE_JIRAURL = "http://jira.test.com"  #JIRA 地址
 SITE_JENKINURL = "http://127.0.0.1:8080"  #JENKINS 地址
 
@@ -260,7 +260,7 @@ WSGI_APPLICATION = 'Autotest.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'autotest',
+        'NAME': 'auto_test',
         'USER': 'root',
         'PASSWORD': 'P@ssw0rd2o8',
         'HOST': SITE_DBURL,

@@ -727,7 +727,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
      """
 
     class Meta:
-        model = stress_record
+        model = stress
         fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                   'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -747,7 +747,7 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
     性能测试记录表反序列化
     """
     class Meta:
-        model = stress_record
+        model = stress
         fields = ('id','projectname','version',  'loadserver','testdata','thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                    'loop_time', 'start_date','end_date','status')
 

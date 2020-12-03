@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, dicom, base_data, pid, GlobalHost,dicom_record
+from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost,dicom_record
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
@@ -366,9 +366,13 @@ class dicomSend(APIView):
         if result:
             return result
         try:
-            id =''
-            server_ip =data["server_ip"]
-            Send(server_ip,id,data["ids"])
+            if data['ids']:
+                obj = dicom.objects.filter(fileid__in=data['ids'])
+            else:
+                obj = dicom.objects.filter(id__in=data['id'])
+            for i in obj:
+                Send(data["server_ip"], i.route)
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -481,14 +485,16 @@ class SomkeTest(APIView):
             dicom_version = dicom_record.objects.filter(version=data["version"])
             try:
                 ids =[]
+                ides = []
                 if data['diseases']:
-                    obj = dicom.objects.filter(diseases__exact=data['diseases'],type='Gold')
+                    obj = base_data.objects.filter(remarks=data['diseases'],type='Gold')
                 else:
-                    obj = dicom.objects.filter(type='Gold')
-                for i in obj:
-                    ids.append(i.id)
+                    obj = base_data.objects.filter(type='Gold',status=True)
+                for i in obj:ids.append(i.id)
+                dicomobj = dicom.objects.filter(fileid__in=ids)
+                for j in dicomobj:ides.append(j.id)
                 thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(data["version"], data["server_ip"],ids))
+                                                      args=(data["version"], data["server_ip"],ides))
                 # 启动线程
                 thread_fake_folder.start()
             except Exception as e:
@@ -533,11 +539,11 @@ class Update_base_Data(APIView):
             return result
         #
         try:
-            obj = stress_record.objects.get(id=data["id"])
+            obj = stress.objects.get(id=data["id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称
-        pro_name = stress_record.objects.filter(content=data["content"]).exclude(id=data["id"])
+        pro_name = stress.objects.filter(content=data["content"]).exclude(id=data["id"])
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
@@ -551,6 +557,26 @@ class Update_base_Data(APIView):
                     return JsonResponse(code="999998", msg="失败")
 
 
+class Updatedata(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 service,type,showid,
+            if not data["service"] or not data["showid"] or not data["type"]:
+                return JsonResponse(code="999996", msg="必传参数有误！")
+            # 环境 类型 online，Autotest
+            if data["service"] not in ["staging", "Autotest"]:
+                return JsonResponse(code="999996", msg="service参数有误！staging，Autotest")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
 class Updatedata(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
