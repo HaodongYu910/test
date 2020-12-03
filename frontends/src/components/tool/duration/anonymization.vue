@@ -127,3 +127,110 @@
                     </el-form>
                 </el-form>
             </el-dialog>
+
+<script>
+    // 匿名
+            import {anonStart} from "../../../router/api";
+
+    startAnon:function () {
+                this.$refs.anonForm.validate((valid) => {
+                    if (valid) {
+                        const self = this
+                        self.addLoading = true
+                        // NProgress.start();
+                        const params = JSON.stringify({
+                            server: self.addForm.sendserver,
+                            port: self.addForm.port,
+                            loop_time: self.addForm.loop_time,
+                            keyword: this.addForm.keyword,
+                            dicom: this.addForm.senddata,
+                            sendcount: this.addForm.sendcount,
+                            dds: this.addForm.dds,
+                            sleepcount: this.addForm.sleepcount,
+                            sleeptime: this.addForm.sleeptime,
+                            series: this.addForm.series,
+                            sendstatus: false,
+                            status: false
+                        })
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        addduration(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            self.addLoading = false
+                            if (code === '0') {
+                                self.$message({
+                                    message: '添加成功',
+                                    center: true,
+                                    type: 'success'
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            } else if (code === '999997') {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            }
+                        })
+                    }
+                })
+            },
+// 匿名
+            startAnon:function () {
+                this.$refs.anonForm.validate((valid) => {
+                    if (valid) {
+                        const self = this
+                        self.addLoading = true
+                        // NProgress.start();
+                        const params = JSON.stringify({
+                            anon_name:self.anonForm.anon_name,
+                            anon_addr:self.anonForm.anon_addr,
+                            wPN:self.anonForm.wPN,
+                            wPID:self.anonForm.wPID
+                        })
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        anonStart(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            self.addLoading = false
+                            if (code === '0') {
+                                self.$message({
+                                    message: '启动成功',
+                                    center: true,
+                                    type: 'success'
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            } else if (code === '999997') {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                                self.$refs['addForm'].resetFields()
+                                self.addFormVisible = false
+                                self.getDurationlist()
+                            }
+                        })
+                    }
+                })
+            },
+</script>

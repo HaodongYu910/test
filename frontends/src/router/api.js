@@ -304,6 +304,11 @@ export const updateduration = (headers, params) => {
 export const delduration = (headers, params) => {
   return axios.post(`${test}/api/tool/del_duration`, params, headers).then(res => res.data)
 }
+// 启动匿名化
+export const anonStart = (headers, params) => {
+  return axios.post(`${test}/api/tool/del_duration`, params, headers).then(res => res.data)
+}
+
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {
   return axios.post(`${test}/api/tool/enable_duration`, params, headers).then(res => res.data)

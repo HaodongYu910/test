@@ -200,12 +200,6 @@
                         </el-row>
 
                         <el-row>
-                            <el-col :span="4">
-                                <el-form-item label="需要发送？" prop="sendOrNot">
-                                    <el-switch v-model="anonForm.sendOrNot" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
 
                             <el-col :span="5">
                                 <el-form-item label="匿名患者姓名？" prop="wPN">
@@ -331,6 +325,7 @@
         enable_duration,
         getbase
     } from '@/router/api'
+    import {anonStart} from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -385,7 +380,6 @@
                 anonForm: {
                     anon_name: '',
                     anon_addr: '',
-                    sendOrNot: '',
                     wPN: '',
                     wPID: '',
                 },
@@ -699,7 +693,6 @@
                 this.anonForm = {
                     anon_name: '',
                     anon_addr: '',
-                    sendOrNot: true,
                     wPN: true,
                     wPID: true
                 }
@@ -756,40 +749,32 @@
             },
             // 匿名
             startAnon:function () {
-                this.$refs.addForm.validate((valid) => {
+                this.$refs.anonForm.validate((valid) => {
                     if (valid) {
                         const self = this
                         self.addLoading = true
                         // NProgress.start();
                         const params = JSON.stringify({
-                            server: self.addForm.sendserver,
-                            port: self.addForm.port,
-                            loop_time: self.addForm.loop_time,
-                            keyword: this.addForm.keyword,
-                            dicom: this.addForm.senddata,
-                            sendcount: this.addForm.sendcount,
-                            dds: this.addForm.dds,
-                            sleepcount: this.addForm.sleepcount,
-                            sleeptime: this.addForm.sleeptime,
-                            series: this.addForm.series,
-                            sendstatus: false,
-                            status: false
+                            anon_name:self.anonForm.anon_name,
+                            anon_addr:self.anonForm.anon_addr,
+                            wPN:self.anonForm.wPN,
+                            wPID:self.anonForm.wPID
                         })
                         const header = {
                             'Content-Type': 'application/json',
                             Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                         }
-                        addduration(header, params).then(_data => {
+                        anonStart(header, params).then(_data => {
                             const {msg, code, data} = _data
                             self.addLoading = false
                             if (code === '0') {
                                 self.$message({
-                                    message: '添加成功',
+                                    message: '启动成功',
                                     center: true,
                                     type: 'success'
                                 })
-                                self.$refs['addForm'].resetFields()
-                                self.addFormVisible = false
+                                self.$refs['anonForm'].resetFields()
+                                self.anonFormVisible = false
                                 self.getDurationlist()
                             } else if (code === '999997') {
                                 self.$message.error({
@@ -801,8 +786,8 @@
                                     message: msg,
                                     center: true
                                 })
-                                self.$refs['addForm'].resetFields()
-                                self.addFormVisible = false
+                                self.$refs['anonForm'].resetFields()
+                                self.anonFormVisible = false
                                 self.getDurationlist()
                             }
                         })
