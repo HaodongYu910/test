@@ -157,7 +157,7 @@ class add_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["duration"] or not data["server"]:
+            if not data["dicom"] or not data["server"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
@@ -178,7 +178,7 @@ class add_duration(APIView):
                 data['series'] = '1'
             else:
                 data['series'] = '0'
-            data['duration'] = ','.join(data['duration'])
+            data['dicom'] = ','.join(data['dicom'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -335,7 +335,7 @@ class EnableDuration(APIView):
                 min = 10000
                 sumdicom = 0
                 for j in obj.dicom.split(","):
-                    dicom = base_data.objects.get(remarks=j)
+                    dicom = base_data.objects.get(remarks=j,type="test")
                     if dicom.other is None:
                         sumdicom = sumdicom
                     else:
@@ -344,7 +344,7 @@ class EnableDuration(APIView):
                         sumdicom = int(dicom.other) + sumdicom
 
             for i in obj.dicom.split(","):
-                dicom = base_data.objects.get(remarks=i)
+                dicom = base_data.objects.get(remarks=i,type="test")
                 folder = dicom.content
                 if sumdicom:
                     imod = divmod(int(obj.sendcount), sumdicom)
