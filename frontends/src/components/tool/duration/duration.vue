@@ -1,127 +1,209 @@
 <template>
     <div class="app-container">
         <div class="filter-container">
+
             <!--工具条-->
-                <aside>
-                    <a href="http://192.168.2.38:9000/" target="_blank">匿名发送dicom数据
-                    </a>
-                </aside>
-                <!--工具条-->
-                <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent >
-                        <el-form-item>
-                            <el-input v-model="filters.name" placeholder="名称"
-                                      @keyup.enter.native="getDurationlist"></el-input>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="getDurationlist">查询</el-button>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="handleAdd">新增</el-button>
-                        </el-form-item>
-                    </el-form>
-                </el-col>
-                <!--列表-->
-                <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
-                          @selection-change="selsChange"
-                           width="95%">
-                    <el-table-column type="selection" min-width="5%">
-                    </el-table-column>
-                    <el-table-column prop="type" label="服务器" min-width="20%">
-                        <template slot-scope="scope">
-                            <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
-                                         style='text-decoration: none;color: #000000;'>
-                                <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
-                            </router-link>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="type" label="匿名名称" min-width="12%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column prop="type" label="发送类型" min-width="25%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="预发送数量" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="实际已发送" min-width="12%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="结束时间" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="延时时间" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="延时数量" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="series延时" min-width="10%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.series }}</span>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="DDS" min-width="12%">
-                        <template slot-scope="scope">
-                            <span style="margin-left: 10px;color: #02C874;">{{ scope.row.dds }}</span>
-                        </template>
-                    </el-table-column>
+            <aside>
+                <a href="http://192.168.2.38:9000/" target="_blank">匿名发送dicom数据
+                </a>
+            </aside>
 
-                    <el-table-column prop="sendstatus" label="运行状态" min-width="10%">
-                        <template slot-scope="scope">
-                            <img v-show="scope.row.sendstatus"
-                                 style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
-                                 src="../../../assets/img/qidong.png"/>
-                            <img v-show="!scope.row.sendstatus"
-                                 style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
-                                 src="../../../assets/img/ting-zhi.png"/>
-                        </template>
-                    </el-table-column>
-                    <el-table-column label="操作" min-width="30%">
-                        <template slot-scope="scope">
-                            <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                                {{scope.row.sendstatus===false?'启用':'停用'}}
-                            </el-button>
-                            <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据
-                            </el-button>
-                            <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
-                            </el-button>
+            <!--工具条-->
+            <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
+                <el-form :inline="true" :model="filters" @submit.native.prevent >
+                    <el-form-item>
+                        <el-input v-model="filters.name" placeholder="名称"
+                                  @keyup.enter.native="getDurationlist"></el-input>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="getDurationlist">查询</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleAdd">新增</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleAnonymization">匿名化文件夹</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-col>
+            <!--列表-->
+            <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
+                      @selection-change="selsChange"
+                       width="95%">
+                <el-table-column type="selection" min-width="5%">
+                </el-table-column>
+                <el-table-column prop="type" label="服务器" min-width="20%">
+                    <template slot-scope="scope">
+                        <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
+                                     style='text-decoration: none;color: #000000;'>
+                            <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
+                        </router-link>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="type" label="匿名名称" min-width="12%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="type" label="发送类型" min-width="25%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="预发送数量" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="实际已发送" min-width="12%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="结束时间" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="延时时间" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="延时数量" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="series延时" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.series }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="DDS" min-width="12%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px;color: #02C874;">{{ scope.row.dds }}</span>
+                    </template>
+                </el-table-column>
+
+                <el-table-column prop="sendstatus" label="运行状态" min-width="10%">
+                    <template slot-scope="scope">
+                        <img v-show="scope.row.sendstatus"
+                             style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/qidong.png"/>
+                        <img v-show="!scope.row.sendstatus"
+                             style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/ting-zhi.png"/>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" min-width="30%">
+                    <template slot-scope="scope">
+                        <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                            {{scope.row.sendstatus===false?'启用':'停用'}}
+                        </el-button>
+                        <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据
+                        </el-button>
+                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
+                        </el-button>
 
 
-                        </template>
-                    </el-table-column>
-                </el-table>
+                    </template>
+                </el-table-column>
+            </el-table>
 
-                <!--工具条-->
-                <el-col :span="24" class="toolbar">
-                    <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">删除</el-button>
-                    <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20"
-                                   :page-count="total" style="float:right;">
-                    </el-pagination>
-                </el-col>
+            <!--工具条-->
+            <el-col :span="24" class="toolbar">
+                <el-button type="danger" @click="batchRemove" :disabled="this.sels.length===0">删除</el-button>
+                <el-pagination layout="prev, pager, next" @current-change="handleCurrentChange" :page-size="20"
+                               :page-count="total" style="float:right;">
+                </el-pagination>
+            </el-col>
 
-                <!--编辑界面-->
-                <el-dialog title="修改" :visible.sync="editFormVisible" :close-on-click-modal="false"
-                           style="width: 75%; left: 12.5%">
-                    <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+            <!--编辑界面-->
+            <el-dialog title="修改" :visible.sync="editFormVisible" :close-on-click-modal="false"
+                       style="width: 75%; left: 12.5%">
+                <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
+                    <el-row>
+                        <el-col :span="8">
+                            <el-form-item label="数据类型" prop="senddata">
+                                <el-select v-model="editForm.senddata" multiple placeholder="请选择"
+                                           @click.native="getBase()">
+                                    <el-option
+                                            v-for="(item,index) in tags"
+                                            :key="item.remarks"
+                                            :label="item.remarks"
+                                            :value="item.remarks"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item label="匿名名称" prop="keyword">
+                                <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item label="发送数据" prop="keyword">
+                                <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="6">
+                            <el-form-item label="持续时间" prop="loop_time">
+                                <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item label="延时时间" prop="sleeptime">
+                                <el-input id="sleeptime" v-model="editForm.sleeptime" placeholder="秒"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item label="延时数量" prop="sleepcount">
+                                <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="3">
+                            <el-form-item label="series" prop="series">
+                                <el-switch v-model="editForm.series" active-color="#13ce66"
+                                           inactive-color="#ff4949"></el-switch>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="4">
+                            <el-form-item label="" prop="keyword">
+                                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
+                                </el-button>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                </el-form>
+            </el-dialog>
+            <!--新增界面-->
+            <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
+                       style="width: 75%; left: 12.5%">
+                <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
-                            <el-col :span="8">
+                            <el-col :span="5">
+                                <el-form-item label="发送服务器" prop="sendserver">
+                                    <el-select v-model="addForm.sendserver" placeholder="请选择"
+                                               @click.native="gethost()">
+                                        <el-option
+                                                v-for="(item,index) in tags"
+                                                :key="item.host"
+                                                :label="item.name"
+                                                :value="item.host"
+                                        />
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="3">
+                                <el-form-item label="端口号" prop="port">
+                                    <el-input id="port" v-model="addForm.port" placeholder=""/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="6">
                                 <el-form-item label="数据类型" prop="senddata">
-                                    <el-select v-model="editForm.senddata" multiple placeholder="请选择"
+                                    <el-select v-model="addForm.senddata" multiple placeholder="请选择"
                                                @click.native="getBase()">
                                         <el-option
                                                 v-for="(item,index) in tags"
@@ -132,129 +214,51 @@
                                     </el-select>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="6">
+                            <el-col :span="4">
                                 <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
+                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="发送数据" prop="keyword">
-                                    <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
+                            <el-col :span="3">
                                 <el-form-item label="持续时间" prop="loop_time">
-                                    <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
+                                    <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="3">
+                                <el-form-item label="发送数量" prop="count">
+                                    <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="4">
                                 <el-form-item label="延时时间" prop="sleeptime">
-                                    <el-input id="sleeptime" v-model="editForm.sleeptime" placeholder="秒"/>
+                                    <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="4">
                                 <el-form-item label="延时数量" prop="sleepcount">
-                                    <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
+                                    <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="3">
                                 <el-form-item label="series" prop="series">
-                                    <el-switch v-model="editForm.series" active-color="#13ce66"
+                                    <el-switch v-model="addForm.series" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
+                            <el-col :span="6">
+                                <el-form-item label="" prop="dds">
+                                    <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
+                                </el-form-item>
+                            </el-col>
                             <el-col :span="4">
-                                <el-form-item label="" prop="keyword">
-                                    <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
-                                    </el-button>
+                                <el-form-item label="" prop="save">
+                                    <el-button type="primary" @click="addSubmit('form')">保存</el-button>
                                 </el-form-item>
                             </el-col>
                         </el-row>
                     </el-form>
-                </el-dialog>
-                <!--新增界面-->
-                <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
-                           style="width: 75%; left: 12.5%">
-                    <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                        <el-form :inline="true" :model="filters" @submit.native.prevent>
-                            <el-row>
-                                <el-col :span="5">
-                                    <el-form-item label="发送服务器" prop="sendserver">
-                                        <el-select v-model="addForm.sendserver" placeholder="请选择"
-                                                   @click.native="gethost()">
-                                            <el-option
-                                                    v-for="(item,index) in tags"
-                                                    :key="item.host"
-                                                    :label="item.name"
-                                                    :value="item.host"
-                                            />
-                                        </el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="3">
-                                    <el-form-item label="端口号" prop="port">
-                                        <el-input id="port" v-model="addForm.port" placeholder=""/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="6">
-                                    <el-form-item label="数据类型" prop="senddata">
-                                        <el-select v-model="addForm.senddata" multiple placeholder="请选择"
-                                                   @click.native="getBase()">
-                                            <el-option
-                                                    v-for="(item,index) in tags"
-                                                    :key="item.remarks"
-                                                    :label="item.remarks"
-                                                    :value="item.remarks"
-                                            />
-                                        </el-select>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="匿名名称" prop="keyword">
-                                        <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="3">
-                                    <el-form-item label="持续时间" prop="loop_time">
-                                        <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="3">
-                                    <el-form-item label="发送数量" prop="count">
-                                        <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="延时时间" prop="sleeptime">
-                                        <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="延时数量" prop="sleepcount">
-                                        <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="3">
-                                    <el-form-item label="series" prop="series">
-                                        <el-switch v-model="addForm.series" active-color="#13ce66"
-                                                   inactive-color="#ff4949"></el-switch>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="6">
-                                    <el-form-item label="" prop="dds">
-                                        <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-form-item label="" prop="save">
-                                        <el-button type="primary" @click="addSubmit('form')">保存</el-button>
-                                    </el-form-item>
-                                </el-col>
-                            </el-row>
-                        </el-form>
-                    </el-form>
-                </el-dialog>
-            </el-col>
+                </el-form>
+            </el-dialog>
         </div>
     </div>
 </template>
