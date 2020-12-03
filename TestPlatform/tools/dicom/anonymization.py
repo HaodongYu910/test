@@ -47,7 +47,7 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,type,uidInfos,id,wPN,wPI
 
 
 
-                folder_fake = '/files/dicomTest/{0}/{1}/{2}'.format(type,diseases, patientname,)
+                folder_fake = '/files/anonymization/{0}/{1}/{2}'.format(type,diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
