@@ -1,33 +1,40 @@
 # coding=utf-8
 
 from ...common.regexUtil import *
+from ...models import dicom
 import logging
 logger = logging.getLogger(__name__)
 
 def delete_patients_duration(key, server_ip,type,fuzzy):
-    if fuzzy is False:
+    if fuzzy is True:
         fuzzy='like'
         key = key+'%'
     else:
         fuzzy ='='
     data={}
-    sql="select r.publicid from resources r join \"Study\" s on r.publicid = s.publicid  where s.\"{0}\" {1} '{2}'".format(type,fuzzy,key)
-
-
+    if type =='error':
+        sql = "select publicid FROM \"Study\"  where \"StudyInstanceUID\" in (select \"StudyInstanceUID\" FROM \"Study\"  GROUP BY \"StudyInstanceUID\" HAVING count(\"StudyInstanceUID\")>1)"
+    elif type =='gold':
+        sqldata =dicom.objects.filter(type='Gold')
+        strsql ="'"
+        for i in sqldata:
+            strsql = strsql + str(i.studyinstanceuid)+"','"
+        sql = "select publicid FROM \"Study\"  where \"StudyInstanceUID\" in ({0})".format(strsql[:-2])
+    else:
+        sql="select r.publicid from resources r join \"Study\" s on r.publicid = s.publicid  where s.\"{0}\" {1} '{2}'".format(type,fuzzy,key)
     try:
         result_1 = connect_to_postgres(server_ip,sql)
         _dict1 = result_1.to_dict(orient='records')
         kc = use_keycloak_bmutils(server_ip, 'test', 'Asd@123456')
     except Exception as e:
         logger.error("failed to find patirents: error[{0}]".format(e))
-        return False,e
-
+        return False
 
     for oid in _dict1:
         try:
             publicid=oid["publicid"]
-            kc.delete('/orthanc/patients/{0}'.format(publicid), timeout=120)
+            kc.delete('/orthanc/studies/{0}'.format(publicid), timeout=120)
         except Exception as e:
             logger.error("failed to delete patientv [{0}]: error[{1}]".format(oid, e))
-            return False, e
-    return data
+            return False
+    return _dict1

@@ -260,7 +260,7 @@
                     loop_time: '',
                     thread:4,
                     synchronizing:0,
-                    testdata:['Lung','Brain','SWI','SVD','Tumor','Heart','CT_Hematoma','CTA','CTP'],
+                    testdata:['Lung','Brain','SWI','SVD','Tumor','Heart','Hematoma','CTA','CTP'],
                     switch:false
                 },
                 rules: {

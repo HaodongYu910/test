@@ -370,7 +370,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='dicom',
+            name='duration',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('patientid', models.CharField(blank=True, max_length=50, null=True, verbose_name='patientid')),
@@ -389,7 +389,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'dicom数据表',
                 'verbose_name_plural': 'dicom数据表',
-                'db_table': 'dicom',
+                'db_table': 'duration',
             },
         ),
         migrations.CreateModel(
@@ -439,7 +439,7 @@ class Migration(migrations.Migration):
                 ('port', models.CharField(blank=True, max_length=5, null=True, verbose_name='服务器端口号')),
                 ('aet', models.CharField(blank=True, max_length=10, null=True, verbose_name='aet')),
                 ('keyword', models.CharField(blank=True, max_length=20, null=True, verbose_name='匿名名称')),
-                ('dicom', models.CharField(blank=True, max_length=100, null=True, verbose_name='dicom数据')),
+                ('duration', models.CharField(blank=True, max_length=100, null=True, verbose_name='dicom数据')),
                 ('sendcount', models.IntegerField(blank=True, null=True, verbose_name='共计发送')),
                 ('end_time', models.CharField(blank=True, max_length=20, null=True, verbose_name='结束时间')),
                 ('sleepcount', models.CharField(blank=True, max_length=20, null=True, verbose_name='睡眠张数')),
@@ -574,14 +574,14 @@ class Migration(migrations.Migration):
                 ('projectname', models.CharField(blank=True, max_length=20, null=True, verbose_name='项目名称')),
                 ('version', models.CharField(blank=True, max_length=20, null=True, verbose_name='测试版本')),
                 ('loadserver', models.CharField(blank=True, max_length=40, null=True, verbose_name='测试环境')),
-                ('dicomdata', models.CharField(blank=True, max_length=400, null=True, verbose_name='测试数据')),
+                ('dicom', models.CharField(blank=True, max_length=400, null=True, verbose_name='测试数据')),
                 ('thread', models.CharField(blank=True, max_length=4, null=True, verbose_name='线程数')),
                 ('synchroniz', models.CharField(blank=True, max_length=4, null=True, verbose_name='并发vu')),
                 ('ramp', models.CharField(blank=True, max_length=4, null=True, verbose_name='ramp up time')),
                 ('loop_count', models.CharField(blank=True, max_length=4, null=True, verbose_name='循环次数')),
                 ('duration', models.CharField(blank=True, max_length=4, null=True, verbose_name='持续时间')),
                 ('start_delay', models.CharField(blank=True, max_length=4, null=True, verbose_name='启动延时 秒')),
-                ('dicom_send', models.CharField(blank=True, max_length=4, null=True, verbose_name='dicom 发送')),
+                ('dicom_send', models.CharField(blank=True, max_length=4, null=True, verbose_name='duration 发送')),
                 ('start_date', models.CharField(blank=True, max_length=20, null=True, verbose_name='压测开始时间')),
                 ('end_date', models.CharField(blank=True, max_length=20, null=True, verbose_name='压测结束时间')),
                 ('loop_time', models.CharField(blank=True, max_length=10, null=True, verbose_name='执行时间')),

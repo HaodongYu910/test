@@ -17,6 +17,7 @@ from .api.stressReport import reportfigure
 from .api.apiDicom import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
+
 router = routers.DefaultRouter()
 # router.register(r'account', AccountViewSet)
 
@@ -108,7 +109,7 @@ urlpatterns = [
     url(r'base/disablebase', Disablebase.as_view()),
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
-    url(r'base/dicom', getDicomfile.as_view()),
+    url(r'base/duration', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
     url(r'stress/stressversion', stressversion.as_view()),
@@ -119,12 +120,13 @@ urlpatterns = [
     url(r'stress/stresssave', stressResultsave.as_view()),
     url(r'stress/list', stressList.as_view()),
     url(r'tool/dicomData', dicomData.as_view()),
+    url(r'tool/dicomdetail', dicomDetail.as_view()),
     url(r'tool/add_dicomData', adddicomdata.as_view()),
     url(r'tool/del_dicomData', deldicomdata.as_view()),
     url(r'tool/dicomcsv', dicomcsv.as_view()),
     url(r'tool/dicomSend', dicomSend.as_view()),
-    url(r'tool/somke', somke.as_view()),
     url(r'tool/somkerecord', somkeRecord.as_view()),
+    url(r'tool/somke', SomkeTest.as_view()),
     url(r'tool/delreport', deldicomResult.as_view()),
     url(r'tool/delete_patients', delete_patients.as_view()),
     url(r'tool/durationData', durationData.as_view()),
@@ -137,5 +139,6 @@ urlpatterns = [
     url(r'tool/enable_duration', EnableDuration.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
+    url(r'tool/dicom_judge',judgeSendOrNot.as_view()) #判断匿名之后是否发送
 ]
 

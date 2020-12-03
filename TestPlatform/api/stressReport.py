@@ -89,7 +89,7 @@ class addstressdata(APIView):
         try:
             # 必传参数 key, server_ip , type
             if not data["patientid"] or not data["diseases"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -141,8 +141,8 @@ class updatestressdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -159,7 +159,7 @@ class updatestressdata(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -309,9 +309,9 @@ class stresstool(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, dicomdata, loop_time
-            if not data["loadserver"] or not data["dicomdata"] or not data["loop_time"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicomdata, loop_time！")
+            # 必传参数 loadserver, dicom, loop_time
+            if not data["loadserver"] or not data["dicom"] or not data["loop_time"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -330,8 +330,8 @@ class stresstool(APIView):
         try:
             end_time = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                 "%Y-%m-%d %H:%M:%S")
-            testdata = data["dicomdata"]
-            data['dicomdata'] = str(testdata)
+            testdata = data["dicom"]
+            data['dicom'] = str(testdata)
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
             # 查找是否相同版本号的测试记录
@@ -344,7 +344,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Stress.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '
@@ -580,8 +580,8 @@ class add_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["duration"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -597,7 +597,7 @@ class add_duration(APIView):
         if result:
             return result
         try:
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -623,8 +623,8 @@ class update_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -641,7 +641,7 @@ class update_duration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -772,7 +772,7 @@ class EnableDuration(APIView):
                         end = imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '

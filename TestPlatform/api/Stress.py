@@ -60,17 +60,17 @@ class stressData(APIView):
         server = request.GET.get("server")
         slicenumber = request.GET.get("slicenumber")
         if diseases is not None and server is None and slicenumber is None:
-            obi = dicomdata.objects.filter(diseases__contains=diseases).order_by("-id")
+            obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
         elif server is not None and diseases is None and slicenumber is None:
-            obi = dicomdata.objects.filter(server__contains=server).order_by("-id")
+            obi = dicom.objects.filter(server__contains=server).order_by("-id")
         elif server is not None and diseases is not None and slicenumber is None:
-            obi = dicomdata.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
+            obi = dicom.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
         elif slicenumber is not None and server is None:
-            obi = dicomdata.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
+            obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
         elif slicenumber is not None and server is not None:
-            obi = dicomdata.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
+            obi = dicom.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
         else:
-            obi = dicomdata.objects.all().order_by("-id")
+            obi = dicom.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -146,7 +146,7 @@ class addstressdata(APIView):
                 data['predictor'] = 'braincta_predictor'
             elif data['diseases'] =='CTP':
                 data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'CT_Hematoma':
+            elif data['diseases'] == 'Hematoma':
                 data['predictor'] = 'brainct_predictor'
             elif data['diseases'] == 'Heart':
                 data['predictor'] = 'heartmri_predictor'
@@ -178,8 +178,8 @@ class updatestressdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -196,7 +196,7 @@ class updatestressdata(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -243,7 +243,7 @@ class delstressdata(APIView):
             return result
         try:
             for j in data["ids"]:
-                obj = dicomdata.objects.filter(id=j)
+                obj = dicom.objects.filter(id=j)
                 obj.delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -352,9 +352,9 @@ class stresstool(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, dicomdata, loop_time
-            if not data["loadserver"] or not data["dicomdata"] or not data["loop_time"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicomdata, loop_time！")
+            # 必传参数 loadserver, dicom, loop_time
+            if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -371,7 +371,7 @@ class stresstool(APIView):
             return result
 
         try:
-            testdata = data["dicomdata"]
+            testdata = data["testdata"]
             # 查找是否相同版本号的测试记录
             stress_version = stress_record.objects.filter(version=data["version"])
             if len(stress_version):
@@ -382,7 +382,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/Stress.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '
@@ -398,7 +398,7 @@ class stresstool(APIView):
                 except Exception as e:
                     logger.error(e)
                     return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
-                data['dicomdata'] = str(testdata)
+                data['testdata'] = str(testdata)
                 data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
                     "%Y-%m-%d %H:%M:%S")
@@ -496,7 +496,7 @@ class getDuration(APIView):
         :param request:
         :return:
         """
-        obi = duration.objects.filter().order_by("server")
+        obi = duration.objects.all().order_by("server")
         durationdata = duration_Serializer(obi, many=True)
         du = durationdata.data
         for i in du:
@@ -524,37 +524,13 @@ class stressList(APIView):
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        type = request.GET.get("type")
-
-        # 判断是否有查询时间
-        if request.GET.get("startdate"):
-            startdate = request.GET.get("startdate")
-        else:
-            startdate = '2000-01-01 00:00:00'
-
-        if request.GET.get("enddate"):
-            enddate = request.GET.get("enddate")
-        else:
-            enddate = datetime.datetime.now()
+        version = request.GET.get("version")
 
         # 判断查询数据类型
-        if type == 'version':
-            version = request.GET.get("version")
-            obi = stress_record.objects.filter(version=version).order_by("-id")
-        elif type == 'Not_sent':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
-        elif type == 'sent':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
-        elif type == 'AiTrue':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__in=[1, 2], create_time__lte=enddate,
-                                                 create_time__gte=startdate).order_by("-id")
-        elif type == 'AiFalse':
-            obi = stress_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 3],
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+        if version:
+            obi = stress_record.objects.filter(version=version,status=True).order_by("-id")
         else:
-            obi = stress_record.objects.filter(create_time__lte=enddate,create_time__gte=startdate).order_by("-id")
+            obi = stress_record.objects.filter(status=True).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -606,8 +582,8 @@ class addStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+            if not data["duration"] or not data["server"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -627,7 +603,7 @@ class addStress(APIView):
                 data['series'] = '1'
             else:
                 data['series'] = '0'
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -653,8 +629,8 @@ class updateStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -675,7 +651,7 @@ class updateStress(APIView):
             else:
                 data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -805,7 +781,7 @@ class EnableStress(APIView):
                     end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '

@@ -16,8 +16,9 @@ from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import base_data
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomcount import filecount,file_count
-
+from TestPlatform.tools.dicom.dicomfile import fileSave
+from ..tools.dicom.dicomdetail import Predictor
+import threading
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -94,15 +95,16 @@ class AddbaseData(APIView):
         result = self.parameter_check(data)
         if result:
             return result
+        if data['predictor']:
+            data['predictor']=Predictor['remarks']
+        basedata=base_data.objects.create(**data)
+        # 创建线程
+        thread_fake_folder = threading.Thread(target=fileSave,
+                                              args=(basedata.id,''))
+        # 启动线程
+        thread_fake_folder.start()
 
-        data['other'] = file_count(data['content'])
-        base_data_serializer = base_data_Deserializer(data=data)
-
-        with transaction.atomic():
-            base_data_serializer.save()
-            return JsonResponse(data={
-                            "id": base_data_serializer.data.get("id")
-                        }, code="0", msg="成功")
+        return JsonResponse(code="0", msg="成功")
 
 class UpdatebaseData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -300,6 +302,5 @@ class getDicomfile(APIView):
         :param request:
         :return:
         """
-        id = request.GET.get("id")
-        filecount(id)
+        fileSave(request.GET.get("id"),'update')
         return JsonResponse( code="0", msg="成功")

@@ -729,7 +729,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'dicomdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
+                  'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -746,23 +746,23 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
     """
     性能测试记录表反序列化
     """
-
     class Meta:
         model = stress_record
-        fields = ('id','projectname','version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
-                  'loadserver', 'dicomdata', 'loop_time', 'start_date','end_date','status')
+        fields = ('id','projectname','version',  'loadserver','testdata','thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
+                   'loop_time', 'start_date','end_date','status')
 
 
-class stressdetail_Serializer(serializers.ModelSerializer):
+class dicomrecord_Serializer(serializers.ModelSerializer):
     """
-    性能测试数据记录表序列化
+    测试数据记录表序列化
+
      """
 
     class Meta:
         model = dicom_record
-        fields = ('id', 'version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
-                  'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
-                  'report', 'update_time', 'create_time')
+        fields = ('id', 'version',  'patientid', 'studyinstanceuid', 'slicenumber',
+                  'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
+                  'report', 'status','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -775,16 +775,16 @@ class stressdetail_Serializer(serializers.ModelSerializer):
         return obj.member_project.all().count()
 
 
-class stressdetail_Deserializer(serializers.ModelSerializer):
+class dicomrecord_Deserializer(serializers.ModelSerializer):
     """
-    性能测试数据记录表反序列化
+    测试数据记录表反序列化
     """
 
     class Meta:
         model = dicom_record
-        fields = ('version', 'testid', 'patientid', 'studyinstanceuid', 'seriesinstanceuid',
-                  'diseases', 'duration', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'stability',
-                  'report')
+        fields = ('version',  'patientid', 'studyinstanceuid', 'slicenumber',
+                  'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
+                  'report', 'status')
 
 class stress_result_Serializer(serializers.ModelSerializer):
     """
@@ -886,4 +886,4 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom
-        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','predictor','diagnosis','type')
+        fields = ('id','patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','server','imagecount','fileid','diagnosis','type','route')

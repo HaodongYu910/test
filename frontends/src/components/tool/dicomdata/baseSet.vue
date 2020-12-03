@@ -48,7 +48,7 @@
             </el-table-column>
             <el-table-column label="类型" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.select_type }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="数量" min-width="16%" sortable>
@@ -70,7 +70,7 @@
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步数量</el-button>
+                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -125,13 +125,24 @@
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="名称" prop='remasks'>
-                            <el-input v-model.trim="addForm.remasks" auto-complete="off"></el-input>
+                        <el-form-item label="病种名称" prop='remarks'>
+                            <el-input v-model.trim="addForm.remarks" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="文件路径" prop='content'>
                             <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="数据类型" prop="environment">
+                            <el-select v-model="addForm.type" clearable placeholder="请选择类型">
+                                <el-option key="Gold" label="金标准" value="Gold"/>
+                                <el-option key="test" label="测试数据" value="test"/>
+                            </el-select>
+                        </el-form-item>
+                        <el-form-item label="模型" prop='content'>
+                            <el-input v-model.trim="addForm.predictor" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -149,7 +160,7 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount,getHost,getdicomSend
+        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -169,10 +180,6 @@
                 editLoading: false,
                 options: [{label: "dicom", value: "dicom"}],
                 editFormRules: {
-                    content: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
@@ -196,23 +203,15 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    content: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
-                    ],
-                    select_type: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //新增界面数据
                 addForm: {
                     content: '',
                     select_type: 'dicom',
-                    type: 1,
+                    type: 'test',
                     description: ''
                 }
 
@@ -220,7 +219,7 @@
         },
         mounted() {
             this.gethost();
-          },
+        },
         methods: {
             //展示server名
             gethost() {
@@ -267,10 +266,7 @@
             },
             //删除
             handlecount: function (index, row) {
-                this.$confirm('确认删除该记录吗?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
+                 this.listLoading = true;
                     //NProgress.start();
                     let self = this;
                     let params = {ids: [row.id,]};
@@ -278,6 +274,10 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
+
+
+
+
                     dicomcount(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
@@ -294,7 +294,6 @@
                         }
                         self.getbaseList()
                     });
-                })
             },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
@@ -361,7 +360,7 @@
                     status: true,
                     remarks: null,
                     other: null,
-                    type: 1
+                    type: 'test'
                 };
             },
             //编辑
@@ -426,8 +425,10 @@
                                 content: this.addForm.content,
                                 type: self.addForm.type,
                                 select_type: self.addForm.select_type,
-                                remarks: self.addForm.remarks,
-                                other: self.addForm.other
+                                remarks: this.addForm.remarks,
+                                other: self.addForm.other,
+                                predictor: self.addForm.predictor,
+                                status: true
                             });
                             let header = {
                                 "Content-Type": "application/json",
@@ -467,40 +468,40 @@
             selsChange: function (sels) {
                 this.sels = sels;
             },
-            batchSend: function() {
-              const ids = this.sels.map(item => item.id)
-              const self = this
-              this.$confirm('确认生成选中记录吗？', '提示', {
-                type: 'warning'
-              }).then(() => {
-                this.listLoading = true
-                // NProgress.start();
+            batchSend: function () {
+                const ids = this.sels.map(item => item.id)
                 const self = this
-                const params = {
-                    ids: ids ,
-                    server_ip:this.filters.server
-                }
-                const header = {
-                  'Content-Type': 'application/json',
-                  Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                }
-                getdicomSend(header, params).then(_data => {
-                  const { msg, code, data } = _data
-                  if (code === '0') {
-                    self.$message({
-                      message: '成功',
-                      center: true,
-                      type: 'success'
+                this.$confirm('确认生成选中记录吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    // NProgress.start();
+                    const self = this
+                    const params = {
+                        ids: ids,
+                        server_ip: this.filters.server
+                    }
+                    const header = {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    }
+                    getdicomSend(header, params).then(_data => {
+                        const {msg, code, data} = _data
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                        self.getbaseList()
                     })
-                  } else {
-                    self.$message.error({
-                      message: msg,
-                      center: true
-                    })
-                  }
-                  self.getbaseList()
                 })
-              })
             },
             //批量删除
             batchRemove: function () {

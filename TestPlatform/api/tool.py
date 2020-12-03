@@ -10,6 +10,7 @@ import shutil
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import  base_data, pid, GlobalHost
 from TestPlatform.serializers import duration_Deserializer
+from ..tools.dicom import SendDicom
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
@@ -157,7 +158,7 @@ class add_duration(APIView):
         try:
             # 必传参数 key, server_ip , type
             if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -203,8 +204,8 @@ class update_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
+            if not data["duration"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -225,7 +226,7 @@ class update_duration(APIView):
             else:
                 data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
-            data['dicom'] = ','.join(data['dicom'])
+            data['duration'] = ','.join(data['duration'])
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -334,7 +335,7 @@ class EnableDuration(APIView):
                 min = 10000
                 sumdicom = 0
                 for j in obj.dicom.split(","):
-                    dicom = base_data.objects.get(remarks=j)
+                    dicom = base_data.objects.get(remarks=j,type="test")
                     if dicom.other is None:
                         sumdicom = sumdicom
                     else:
@@ -343,7 +344,7 @@ class EnableDuration(APIView):
                         sumdicom = int(dicom.other) + sumdicom
 
             for i in obj.dicom.split(","):
-                dicom = base_data.objects.get(remarks=i)
+                dicom = base_data.objects.get(remarks=i,type="test")
                 folder = dicom.content
                 if sumdicom:
                     imod = divmod(int(obj.sendcount), sumdicom)
@@ -355,7 +356,7 @@ class EnableDuration(APIView):
                     end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '
@@ -479,3 +480,37 @@ class duration_verify(APIView):
         data = verifyData(id)
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
+
+class judgeSendOrNot(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    # 判断是否需要匿名化或者存储这个匿名后的数据到一个新的folder？
+    def post(self, request):
+        data = JSONParser().parse(request)  #将传入的json数据转换为可识别的内容
+        try:
+            name = data['anao_name']
+            sendOrNot = data['sendOrNot']
+            ip = data['need_anon_addr']
+            addr = data['addr']
+            UIDS = data['UIDS']
+            wPN = data['wPN']
+            wPID = data['wPID']
+
+            # 将匿名化后的数据入库
+            # 1.匿名化
+
+
+            # 2.入库
+
+
+            if sendOrNot == 'no':
+                # 调用存储的函数
+                return JsonResponse(code="0", msg="储存dicom文件成功")
+            else:
+                #调用发送的函数
+                #SendDicom.Send(ip,UIDS)
+                SendDicom.Send(ip,UIDS)
+                return JsonResponse(code="0", msg="开始匿名发送数据！")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")

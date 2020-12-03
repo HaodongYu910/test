@@ -118,7 +118,7 @@
 #             vote =vote+"{0}: \"{1}\",".format(i['SeriesDescription'],i['SeriesInstanceUID'])
 #         else:
 #             vote = "{" + vote + "}"
-#             sqlDB('INSERT INTO dicomdata values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', [None,None,uid,ser,None,None,vote,None,r,None,'Gold','2020-11-21 13:27:23','2020-11-21 13:27:23'])
+#             sqlDB('INSERT INTO dicom values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)', [None,None,uid,ser,None,None,vote,None,r,None,'Gold','2020-11-21 13:27:23','2020-11-21 13:27:23'])
 #             uid = i['StudyUID']
 #             r = i['Restult']
 #             if i['SeriesDescription'] =='CT_Lung':
@@ -142,4 +142,39 @@
 # #     result = client.query(sql1)
 # #
 # #     print(result)
+
+# from .common.regexUtil import *
+# from .utils.graphql.graphql import *
+# def sequence(orthanc_ip):
+#     server=orthanc_ip
 #
+#     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+#     stressdata=[]
+#
+#     for k in stressdata:
+#
+#         graphql_query = '{ ' \
+#                                     'ai_biomind(' \
+#                                 'block : false' \
+#                                 ' study_uid: "' + str(k.studyinstanceuid) + '"' \
+#                                                                                   ' protocols: {' \
+#                                                                                   ' penable_cached_results: false' \
+#                                                                                   ' }' \
+#                                                                                   '){' \
+#                                                                                   '  pprediction' \
+#                                                                                   '  preport' \
+#                                                                                   '  pcontour' \
+#                                                                                   '  pmodels' \
+#                                                                                   '  pstudy_uid' \
+#                                                                                   '}' \
+#                                                                                   '}'
+#
+#         graphql_Interface(graphql_query, kc)
+# #
+# sequence('192.168.1.208')
+PatientID=''
+import time
+if PatientID:
+    print(1)
+else:
+    print(time.strftime("%m%d%H%M%S", time.localtime(time.time())))
