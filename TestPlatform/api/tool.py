@@ -490,10 +490,7 @@ class judgeSendOrNot(APIView):
         data = JSONParser().parse(request)  #将传入的json数据转换为可识别的内容
         try:
             name = data['anao_name']
-            sendOrNot = data['sendOrNot']
-            ip = data['need_anon_addr']
-            addr = data['addr']
-            UIDS = data['UIDS']
+            addr = data['anon_addr']
             wPN = data['wPN']
             wPID = data['wPID']
 
@@ -504,13 +501,9 @@ class judgeSendOrNot(APIView):
             # 2.入库
 
 
-            if sendOrNot == 'no':
-                # 调用存储的函数
-                return JsonResponse(code="0", msg="储存dicom文件成功")
-            else:
-                #调用发送的函数
-                #SendDicom.Send(ip,UIDS)
-                SendDicom.Send(ip,UIDS)
-                return JsonResponse(code="0", msg="开始匿名发送数据！")
+
+            # 调用存储的函数
+            return JsonResponse(code="0", msg="储存dicom文件成功")
+
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
