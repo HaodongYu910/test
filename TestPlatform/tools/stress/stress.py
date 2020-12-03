@@ -76,15 +76,17 @@ def sequence(orthanc_ip,end_time, diseases, version):
 
 #生成自动预测测试数据
 def stressData(diseases,orthanc_ip,count):
-    Tdata ={}
-    lung ={}
+    data ={}
     for i in diseases:
         sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like "%{0}%"'.format(diseases)
         results=connect_to_postgres(orthanc_ip, sql).to_dict(orient='records')
         for j in results:
-            if i == 'Lung':
-                Tdata['Lung'] =lung
-                graphql_query,imagecount,slicenumber = voteData(i['studyuid'], orthanc_ip, diseases)
+            if i in ['Lung', 'CTA', 'CTP', 'coronary']:
+                graphql_query, imagecount, slicenumber = voteData(i['studyuid'], orthanc_ip, diseases)
+                data = {
+
+                }
+
                 lung[slicenumber]=j
             elif i in []:
                 graphql_query, imagecount, slicenumber = voteData(i['studyuid'], orthanc_ip, diseases)

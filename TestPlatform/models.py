@@ -816,10 +816,10 @@ class stress_record(models.Model):
     id = models.AutoField(primary_key=True)
     stressid = models.CharField(max_length=5, blank=True, null=True, verbose_name="stress表ID")
     studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="测试环境")
-    imagecount = models.CharField(max_length=400, blank=True, null=True, verbose_name="测试数据")
-    slicenumber = models.CharField(max_length=4, blank=True, null=True, verbose_name="线程数")
-    diseases = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
-    start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动延时 秒")
+    imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
+    slicenumber = models.CharField(max_length=5, blank=True, null=True, verbose_name="层厚")
+    diseases = models.CharField(max_length=10, blank=True, null=True, verbose_name="病种")
+    graphql = models.CharField(max_length=500, blank=True, null=True, verbose_name="手动预测json")
 
     def __unicode__(self):
         return self.stressid
