@@ -5,14 +5,14 @@ from django.db.models import Sum,Min
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil
+import shutil,threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress,dicom, base_data, pid, GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
-from ..tools.stress.stress import sequence
-from ..tools.stress.stresstest import stress,lungSlice
+from ..tools.stress.stress import *
+from ..tools.stress.stresstest import stressT,lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
@@ -47,7 +47,7 @@ class stressData(APIView):
 
     def get(self, request):
         """
-        获取项目列表
+        获取性能数据
         :param request:
         :return:
         """
@@ -85,7 +85,44 @@ class stressData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-class addstressdata(APIView):
+class addStressData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 key, server_ip , type
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 id！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        send数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            stresscache(data['id'])
+            # thread_stress = threading.Thread(target=stresscache,args=(data['id']))
+            # # 启动线程
+            # thread_stress.start()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
+
+class addstress(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -279,21 +316,39 @@ class stressResult(APIView):
             return result
 
         try:
-            prediction = stress_result.objects.filter(version=data['version'], type='prediction')
-            job = stress_result.objects.filter(version=data['version'], type='job')
-            lung = stress_result.objects.filter(version=data['version'], type='lung')
+            obj = stress.objects.get(version=data['version'])
+            if obj.projectname =="晨曦":
+                prediction = stress_result.objects.filter(version=data['version'], type='prediction')
+                job = stress_result.objects.filter(version=data['version'], type='job')
+                lung_prediction = stress_result.objects.filter(version=data['version'], type='lung_prediction')
+                lung_job = stress_result.objects.filter(version=data['version'], type='lung_job')
 
-            predictionobj = stress_result.objects.filter(version=data['checkversion'], type='prediction')
-            jobobj = stress_result.objects.filter(version=data['checkversion'], type='job')
-            lungobj = stress_result.objects.filter(version=data['checkversion'], type='lung')
+                predictionb = stress_result.objects.filter(version=data['checkversion'], type='prediction')
+                jobb = stress_result.objects.filter(version=data['checkversion'], type='job')
+                lung_predictionb = stress_result.objects.filter(version=data['checkversion'], type='lung')
+                lung_jobb = stress_result.objects.filter(version=data['checkversion'], type='lung_job')
+                predictionresult = dataCheck(prediction, predictionb)
+                jobresult = dataCheck(job, jobb)
+                lungresult = dataCheck(lung_prediction, lung_predictionb)
+                lungjob = dataCheck(lung_job, lung_jobb)
+                return JsonResponse(data={"predictionresult": predictionresult,
+                                              "jobresult": jobresult,
+                                              "lungresult": lungresult,
+                                              "lungjob": lungjob
+                                              }, code="0", msg="成功")
+            elif obj.projectname =="肺炎":
+                lung_prediction = stress_result.objects.filter(version=data['version'], type='lung_prediction')
+                lung_job = stress_result.objects.filter(version=data['version'], type='lung_job')
 
-            predictionresult = dataCheck(prediction, predictionobj)
-            jobresult = dataCheck(job, jobobj)
-            lungresult = dataCheck(lung, lungobj)
+                lung_predictionb = stress_result.objects.filter(version=data['checkversion'], type='lung_prediction')
+                lung_jobb = stress_result.objects.filter(version=data['checkversion'], type='lung_job')
+                prediction = dataCheck(lung_prediction, lung_predictionb)
+                job = dataCheck(lung_job, lung_jobb)
 
-            return JsonResponse(data={"predictionresult": predictionresult,
-                                      "jobresult": jobresult,
-                                      "lungresult": lungresult
+                return JsonResponse(data={"predictionresult":prediction,
+                                      "jobresult": job,
+                                      "lungresult": prediction,
+                                      "lungjob": job
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -311,7 +366,7 @@ class stressResultsave(APIView):
         """
         try:
             # 必传参数 version
-            if not data["version"]:
+            if not data["id"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 version,checkversion！")
 
         except KeyError:
@@ -329,19 +384,22 @@ class stressResultsave(APIView):
             return result
 
         try:
-            obj = stress.objects.get(version=data['version'])
+            obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
-            # savecheck('job', checkdate, obj.loadserver, obj.version)
-            # savecheck('prediction', checkdate, obj.loadserver, obj.version)
-            lung(checkdate, obj.loadserver, obj.version)
+            if obj.projectname=='晨曦':
+                savecheck('job', checkdate, obj.loadserver, obj.version)
+                savecheck('prediction', checkdate, obj.loadserver, obj.version)
+                lung(checkdate, obj.loadserver, obj.version)
+            elif obj.projectname=='肺炎':
+                lung(checkdate, obj.loadserver, obj.version)
 
-            return JsonResponse(data={"data": ''}, code="0", msg="成功")
+            return JsonResponse( code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
 
 
 
-class stresstool(APIView):
+class stressRun(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -353,7 +411,7 @@ class stresstool(APIView):
         """
         try:
             # 必传参数 loadserver, dicom, loop_time
-            if not data["loadserver"] or not data["testdata"] or not data["loop_time"]:
+            if not data["ip"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
 
         except KeyError:
@@ -371,42 +429,43 @@ class stresstool(APIView):
             return result
 
         try:
-            testdata = data["testdata"]
-            # 查找是否相同版本号的测试记录
-            stress_version = stress.objects.filter(version=data["version"])
-            if len(stress_version):
-                return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
-            else:
-                if data['switch'] is True:
-                    for j in testdata:
-                        dicom = base_data.objects.get(remarks=j)
-                        folder = dicom.content
-                        cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
-                               '--ip {0} --aet {1} '
-                               '--port {2} '
-                               '--keyword {3} '
-                               '--dicomfolder {4} '
-                               '--diseases {5} '
-                               '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
-                                                     data['loop_time'],j)
-                        logger.info(cmd)
-                        os.system(cmd)
-                        time.sleep(1)
-                try:
-                    stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
-                except Exception as e:
-                    logger.error(e)
-                    return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
-                data['testdata'] = str(testdata)
-                data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
-                    "%Y-%m-%d %H:%M:%S")
-                stressserializer = stressrecord_Deserializer(data=data)
-                with transaction.atomic():
-                    stressserializer.is_valid()
-                    stressserializer.save()
-                return JsonResponse(code="0", msg="成功")
+            sequence(data['ip'], data['diseases'],data['count'] )
+            # testdata = data["testdata"]
+            # # 查找是否相同版本号的测试记录
+            # stress_version = stress.objects.filter(version=data["version"])
+            # if len(stress_version):
+            #     return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
+            # else:
+            #     if data['switch'] is True:
+            #         for j in testdata:
+            #             dicom = base_data.objects.get(remarks=j)
+            #             folder = dicom.content
+            #             cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+            #                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/apiStress.py '
+            #                    '--ip {0} --aet {1} '
+            #                    '--port {2} '
+            #                    '--keyword {3} '
+            #                    '--dicomfolder {4} '
+            #                    '--diseases {5} '
+            #                    '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
+            #                                          data['loop_time'],j)
+            #             logger.info(cmd)
+            #             os.system(cmd)
+            #             time.sleep(1)
+            #     try:
+            #         stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
+            #     except Exception as e:
+            #         logger.error(e)
+            #         return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
+            #     data['testdata'] = str(testdata)
+            #     data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            #     data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
+            #         "%Y-%m-%d %H:%M:%S")
+            #     stressserializer = stressrecord_Deserializer(data=data)
+            #     with transaction.atomic():
+            #         stressserializer.is_valid()
+            #         stressserializer.save()
+            return JsonResponse(code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -485,8 +544,8 @@ class Updatedata(APIView):
             return JsonResponse(code="999996", msg="参数有误！")
 
 
-# 获取 持续化数据
-class getDuration(APIView):
+# 性能测试数据
+class getStressdata(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -508,7 +567,7 @@ class getDuration(APIView):
                                   }, code="0", msg="成功")
 
 
-# 获取 持续化发送详细数据
+# 获取
 class stressList(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()

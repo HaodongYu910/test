@@ -847,6 +847,9 @@ class stress_result(models.Model):
     max = models.CharField(max_length=10, blank=True, null=True, verbose_name="最大时间")
     coef = models.CharField(max_length=10, blank=True, null=True, verbose_name="系数")
     rate = models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
+    minimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
+    maximages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
+    avgimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

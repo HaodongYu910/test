@@ -204,8 +204,8 @@ class update_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["duration"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
+            if not data["dicom"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -356,7 +356,7 @@ class EnableDuration(APIView):
                     end = mincount if int(dicom.other) == int(min) else imod[0]
 
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--keyword {3} '

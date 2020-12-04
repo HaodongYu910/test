@@ -34,6 +34,16 @@
                             </el-col>
                         </el-row>
                     </el-card>
+                <el-card shadow="hover" style="width:100%;height:800px;">
+                        <el-row :gutter="50">
+                            <el-col :span="30">
+                                <el-card shadow="hover">
+                                    <div id='lungjobLine' class="myLine" style="width:750px;height:600px;margin:0 auto">
+                                    </div>
+                                </el-card>
+                            </el-col>
+                        </el-row>
+                    </el-card>
                 <!--工具条-->
                 <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -195,9 +205,69 @@
                             <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="rate of success" min-width="8%" sortable>
+                    <el-table-column label="min images" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.rate }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="max images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="avg images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
+                        </template>
+                    </el-table-column>
+                </el-table>
+                <span style="margin-left: 10px">Lung Job time</span>
+                <el-table :data="lungjob" highlight-current-row v-loading="listLoading"
+                          @selection-change="selsChange"
+                          style="width: 100%;">
+                    <el-table-column prop="version" label="slicenumber" min-width="6%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="type" label="avg pred time /s" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="median pred time /s" min-width="10%" sortable>
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="min pred time /s" min-width="10%" sortable>
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="type" label="max pred time /s" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column prop="type" label="coef. of variation" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.coef }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="min images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="max images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="avg images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
@@ -809,6 +879,7 @@
                         self.prediction = data.predictionresult
                         self.job =data.jobresult
                         self.lung =data.lungresult
+                        self.lungjob =data.lungjob
                     } else {
                         self.$message.error({
                             message: msg,

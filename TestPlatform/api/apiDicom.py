@@ -12,7 +12,7 @@ from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost,dicom_
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
-from ..tools.stress.stresstest import stress,lungSlice
+from ..tools.stress.stresstest import lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData

@@ -11,8 +11,6 @@ from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
-from ..tools.stress.stress import sequence
-from ..tools.stress.stresstest import stress
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
@@ -248,10 +246,12 @@ class reportfigure(APIView):
             predictionData =stressdataFigure("prediction",modlename)
             jobData = stressdataFigure("job", modlename)
 
-            lungData =stressdataFigure("lung", lungname)
+            lungData =stressdataFigure("lung_prediction", lungname)
+            lungjobData = stressdataFigure("lung_job", lungname)
             return JsonResponse(data={"predictionFigure": predictionData,
                                      "jobFigure": jobData,
-                                      "lungFigure":lungData
+                                      "lungFigure":lungData,
+                                      "lungjobFigure":lungjobData
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -344,7 +344,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/apiStress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '

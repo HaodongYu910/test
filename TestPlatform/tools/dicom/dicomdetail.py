@@ -28,36 +28,33 @@ def Slice(server,Seriesuid):
 # 修改数据
 def voteData(uid,orthanc_ip,diseases):
     vote = ''
-    Series = connect_to_postgres(orthanc_ip,
-                                 "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
-                                     uid)).to_dict(orient='records')
-    pseries_classifier = connect_to_postgres(orthanc_ip,
-                                             "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
-                                                 uid)).to_dict(orient='records')
+    try:
+        Series = connect_to_postgres(orthanc_ip,
+                                     "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
+                                         uid)).to_dict(orient='records')
+        pseries_classifier = connect_to_postgres(orthanc_ip,
+                                                 "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
+                                                     uid)).to_dict(orient='records')
 
-    pseries = pseries_classifier[0]['pseries']
+        pseries = pseries_classifier[0]['pseries']
+    except Exception as e:
+        logger.info("没有此数据信息{0}".format(e))
+        return None,None,None
+
     for key in pseries:
         for i in Series:
             if str(i['SeriesInstanceUID']) in str(pseries[key]):
                 vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
                 SeriesInstanceUID=str(i['SeriesInstanceUID'])
     vote = "{"+vote+"}"
-    predictor=Predictor(diseases)
-    graphql_query = "{ ai_biomind (" \
-                                "study_uid:\"" + str(uid) + "\", protocols:" \
-                                                                         "{ pothers: " \
-                                                                         "{ disable_negative_voting:false} " \
-                                                                         "penable_cached_results:false pconfig:{} " \
-                                                                         "planguage:\"zh-cn\" " \
-                                                                         " puser_id:\"biomind\" " \
-                                                                         "pseries_classifier:" + str(vote) + "}" \
-                                                                                                               "routes: [[\"generate_series\",\"series_classifier\",\""+ str(predictor) +"\"]])" \
-                                                                                                             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-    if diseases in ['Lung', 'CTA', 'CTP', 'coronary']:
-        imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
-    else:
-        imagecount, slicenumber =None,None
-    return str(graphql_query),imagecount,slicenumber
+    try:
+        if diseases in ['Lung', 'CTA', 'CTP', 'coronary']:
+            imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
+        else:
+            imagecount, slicenumber =None,None
+    except Exception as e:
+        return None,None,None
+    return str(vote),imagecount,slicenumber
 
 
 

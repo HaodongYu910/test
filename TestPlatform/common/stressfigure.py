@@ -22,7 +22,10 @@ plt.rcParams['font.family'] = ['Times New Roman']
 #jira 数据图表
 def stressdataFigure(type,modelname):
     version = []
-    stressobj = stress.objects.filter(status=True).order_by("version")
+    if type =='lung_prediction' or type =='lung_job':
+        stressobj = stress.objects.filter(status=True).order_by("version")
+    else:
+        stressobj = stress.objects.filter(status=True, projectname='晨曦').order_by("version")
     # modelname = stress_result.objects.values("modelname").order_by("version").distinct("modelname")
     for i in stressobj:
         version.append(i.version)
@@ -31,7 +34,7 @@ def stressdataFigure(type,modelname):
         avg = []
         for j in version:
             try:
-                if type =='lung':
+                if type =='lung_prediction' or type =='lung_job' :
                     resultobj = stress_result.objects.get(type=type, slicenumber=str(k), version=j)
                 else:
                     resultobj = stress_result.objects.get(type=type, modelname=k, version=j)

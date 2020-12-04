@@ -20,7 +20,6 @@ else:
     filenames = final
 
 for file in final:
-    print(file)
     filename = file
     log_dir = os.path.join(pwd, filename)
     with open(log_dir, 'r', encoding='utf-8') as f:
