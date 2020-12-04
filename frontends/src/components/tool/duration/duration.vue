@@ -186,13 +186,18 @@
                 <el-form :model="anonForm" label-width="80px" :rules="anonFormRules" ref="anonForm">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
-                            <el-col :span="6">
+                            <el-col :span="5">
                                 <el-form-item label="匿名名称" prop="anon-name">
                                     <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
                                 </el-form-item>
                             </el-col>
+                            <el-col :span="5">
+                                <el-form-item label="disease" prop="anon-disease">
+                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="disease"/>
+                                </el-form-item>
+                            </el-col>
 
-                            <el-col :span="9">
+                            <el-col :span="8">
                                 <el-form-item label="需要被匿名文件路径" prop="anon_addr">
                                     <el-input id="anon_addr" v-model="anonForm.anon_addr" placeholder="路径"/>
                                 </el-form-item>
@@ -214,7 +219,7 @@
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
-                            <el-form-item label="" prop="save">
+                            <el-form-item label="" prop="anon_start">
                                     <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
                             </el-form-item>
 
@@ -380,6 +385,7 @@
                 anonForm: {
                     anon_name: '',
                     anon_addr: '',
+                    anon_disease:'',
                     wPN: '',
                     wPID: '',
                 },
@@ -392,6 +398,10 @@
                     ],
                     anon_addr: [
                         {required: true, message: '请输入待匿名文件地址', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    anon_disease: [
+                        {required: true, message: '请输入疾病种类', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
                 },
@@ -757,6 +767,7 @@
                         const params = JSON.stringify({
                             anon_name:self.anonForm.anon_name,
                             anon_addr:self.anonForm.anon_addr,
+                            anon_disease:self.anonForm.anon_disease,
                             wPN:self.anonForm.wPN,
                             wPID:self.anonForm.wPID
                         })
@@ -769,7 +780,7 @@
                             self.addLoading = false
                             if (code === '0') {
                                 self.$message({
-                                    message: '启动成功',
+                                    message: 'anonymization start',
                                     center: true,
                                     type: 'success'
                                 })

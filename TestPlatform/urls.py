@@ -15,6 +15,7 @@ from .api.Stress import *
 from .api.user_permission import *
 from .api.stressReport import reportfigure
 from .api.apiDicom import *
+
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -90,20 +91,20 @@ urlpatterns = [
     url(r'user/login', user.obtain_auth_token),
     url(r'user/info', userinfo.as_view()),
     url(r'user/VisitorRecord', VisitorRecord.Record.as_view()),
-    url(r'addreport',Addreport.as_view()),
-    url(r'updatereport',Updatereport.as_view()),
-    url(r'delreport',Delreport.as_view()),
-    url(r'report',loadReport.as_view()),
-    url(r'sendreport',Sendreport.as_view()),
-    url(r'risk/add',Add_test_risk.as_view()),
-    url(r'risk/update',Updatetest_risk.as_view()),
-    url(r'risk/del',DelAutotest_risk.as_view()),
+    url(r'addreport', Addreport.as_view()),
+    url(r'updatereport', Updatereport.as_view()),
+    url(r'delreport', Delreport.as_view()),
+    url(r'report', loadReport.as_view()),
+    url(r'sendreport', Sendreport.as_view()),
+    url(r'risk/add', Add_test_risk.as_view()),
+    url(r'risk/update', Updatetest_risk.as_view()),
+    url(r'risk/del', DelAutotest_risk.as_view()),
     url(r'risk/disable_risk', DisableRisk.as_view()),
     url(r'risk/enable_riskt', EnableRisk.as_view()),
-    url(r'risk',Testrisk.as_view()),
+    url(r'risk', Testrisk.as_view()),
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
-    url(r'base/getdata',getBase.as_view()),
+    url(r'base/getdata', getBase.as_view()),
     url(r'base/addData', AddbaseData.as_view()),
     url(r'base/updateData', UpdatebaseData.as_view()),
     url(r'base/disablebase', Disablebase.as_view()),
@@ -139,6 +140,5 @@ urlpatterns = [
     url(r'tool/enable_duration', EnableDuration.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
-    url(r'tool/dicom_judge',judgeSendOrNot.as_view()) #判断匿名之后是否发送
+    url(r'tool/anonymization', anonymizationAPI_2nd.as_view())  # 匿名化数据
 ]
-

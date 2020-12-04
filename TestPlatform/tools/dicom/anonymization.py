@@ -17,7 +17,7 @@ def norm_string(str, len_norm):
 def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
     '''
     src_folder: folder need be anonymization
-    study_infos: empty dictionary
+    study_infos: empty dictionary{}
     diseases: input parameter from front
     wPN:boolean值，是否匿名patient name
     wPID:boolean值，是否匿名patient ID
@@ -40,10 +40,8 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
             try:
                 if wPID:
                     ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-
                 elif not ds.PatientID:
                     ds.PatientID = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-
 
                 if wPN:
                     ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
@@ -52,14 +50,14 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
                     ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
 
-
-
-                folder_fake = '/files/anonymization/{1}/{2}'.format(diseases, patientname,)
+                # 保存文件匿名化之后的文件到121：/files/QA_FTP/testData/anonymization
+                folder_fake = '/files/QA_FTP/testData/anonymization/{1}/{2}'.format(diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
                 ds.save_as(full_fn_fake)
-
+                a = "success msg from backend"
+                return a
             except Exception as e:
                 logging.info(
                     'failed to : file[{0}], error[{1}]'.format(full_fn, e))

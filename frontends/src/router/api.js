@@ -306,7 +306,7 @@ export const delduration = (headers, params) => {
 }
 // 启动匿名化
 export const anonStart = (headers, params) => {
-  return axios.post(`${test}/api/tool/del_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/tool/anonymization`, params, headers).then(res => res.data)
 }
 
 // 修改duration发送状态
