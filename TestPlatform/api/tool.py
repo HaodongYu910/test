@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Sum,Min
+from django.db.models import Sum, Min
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -8,9 +8,10 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import  base_data, pid, GlobalHost
+from TestPlatform.models import base_data, pid, GlobalHost
 from TestPlatform.serializers import duration_Deserializer
 from ..tools.dicom import SendDicom
+from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
@@ -320,7 +321,7 @@ class EnableDuration(APIView):
         try:
             durationid = data["id"]
             obj = duration.objects.get(id=durationid)
-            sleepcount=  obj.sleepcount if obj.sleepcount is not None else 9999
+            sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
 
             if obj.sendcount is None and obj.end is None:
@@ -335,7 +336,7 @@ class EnableDuration(APIView):
                 min = 10000
                 sumdicom = 0
                 for j in obj.dicom.split(","):
-                    dicom = base_data.objects.get(remarks=j,type="test")
+                    dicom = base_data.objects.get(remarks=j, type="test")
                     if dicom.other is None:
                         sumdicom = sumdicom
                     else:
@@ -344,7 +345,7 @@ class EnableDuration(APIView):
                         sumdicom = int(dicom.other) + sumdicom
 
             for i in obj.dicom.split(","):
-                dicom = base_data.objects.get(remarks=i,type="test")
+                dicom = base_data.objects.get(remarks=i, type="test")
                 folder = dicom.content
                 if sumdicom:
                     imod = divmod(int(obj.sendcount), sumdicom)
@@ -367,9 +368,9 @@ class EnableDuration(APIView):
                        '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
                                              start, end, sleepcount, sleeptime, obj.series)
 
-                       # '--sleepcount {9} '
-                       # '--sleeptime {10} '
-                       # '--series {11} &'
+                # '--sleepcount {9} '
+                # '--sleeptime {10} '
+                # '--series {11} &'
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
@@ -465,7 +466,6 @@ class delete_patients(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-
 class duration_verify(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -481,29 +481,29 @@ class duration_verify(APIView):
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 
-class judgeSendOrNot(APIView):
+
+class anonymizationAPI_2nd(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
     # 判断是否需要匿名化或者存储这个匿名后的数据到一个新的folder？
     def post(self, request):
-        data = JSONParser().parse(request)  #将传入的json数据转换为可识别的内容
+        data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
         try:
-            name = data['anao_name']
+            name = data['anon_name']
             addr = data['anon_addr']
+            disease = data['anon_disease']
             wPN = data['wPN']
             wPID = data['wPID']
 
             # 将匿名化后的数据入库
             # 1.匿名化
+            a = onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name)
 
-
-            # 2.入库
-
-
-
-            # 调用存储的函数
-            return JsonResponse(code="0", msg="储存dicom文件成功")
-
+            if a == "msg from backend":
+                # 调用存储的函数
+                return JsonResponse(code="0", msg="匿名化启动成功")
+            else:
+                return JsonResponse(code="0", msg="匿名化启动失败")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
+            return JsonResponse(code="999995", msg="出问题了....")
