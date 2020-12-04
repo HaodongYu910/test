@@ -1,13 +1,24 @@
 # coding=utf-8
+import os
+import pydicom
+from tqdm import tqdm
+import time
+import logging
 
-def onlyDoAnonymization(src_folder,study_infos,diseases,type,uidInfos,id,wPN,wPID,anonkey):
+
+logger = logging.getLogger(__name__)
+
+def norm_string(str, len_norm):
+    str_dest = str
+    while len(str_dest) > len_norm or str_dest[0] == '.':
+        str_dest = str_dest[1:]
+    return str_dest
+
+def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
     '''
-    src_folder:
-    study_infos
-    diseases:
-    type:
-    uidInfos:
-    id:
+    src_folder: folder need be anonymization
+    study_infos: empty dictionary{}
+    diseases: input parameter from front
     wPN:boolean值，是否匿名patient name
     wPID:boolean值，是否匿名patient ID
     anonkey:匿名化key值
@@ -21,22 +32,16 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,type,uidInfos,id,wPN,wPI
             continue
 
         elif (os.path.isdir(full_fn)):
-            onlyDoAnonymization(full_fn,study_infos,diseases,type,uidInfos,id)
+            onlyDoAnonymization(full_fn,study_infos,diseases,wPN,wPID,anonkey)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
-            study_uid = ds.StudyInstanceUID
             study_infos["No"]=study_infos["No"]+1
-
-            if uidInfos.get(study_uid):
-                continue
             try:
                 if wPID:
                     ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-
                 elif not ds.PatientID:
                     ds.PatientID = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-
 
                 if wPN:
                     ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
@@ -45,14 +50,14 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,type,uidInfos,id,wPN,wPI
                     ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
 
-
-
-                folder_fake = '/files/anonymization/{0}/{1}/{2}'.format(type,diseases, patientname,)
+                # 保存文件匿名化之后的文件到121：/files/QA_FTP/testData/anonymization
+                folder_fake = '/files/QA_FTP/testData/anonymization/{1}/{2}'.format(diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
                 ds.save_as(full_fn_fake)
-
+                a = "success msg from backend"
+                return a
             except Exception as e:
                 logging.info(
                     'failed to : file[{0}], error[{1}]'.format(full_fn, e))
