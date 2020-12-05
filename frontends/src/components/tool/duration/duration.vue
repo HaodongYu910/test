@@ -10,7 +10,7 @@
 
             <!--工具条-->
             <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
-                <el-form :inline="true" :model="filters" @submit.native.prevent >
+                <el-form :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item>
                         <el-input v-model="filters.name" placeholder="名称"
                                   @keyup.enter.native="getDurationlist"></el-input>
@@ -31,7 +31,7 @@
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
-                       width="95%">
+                      width="95%">
                 <el-table-column type="selection" min-width="5%">
                 </el-table-column>
                 <el-table-column prop="type" label="服务器" min-width="20%">
@@ -126,52 +126,50 @@
                        style="width: 75%; left: 12.5%">
                 <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                     <el-row>
-                        <el-col :span="8">
-                            <el-form-item label="数据类型" prop="senddata">
-                                <el-select v-model="editForm.senddata" multiple placeholder="请选择"
-                                           @click.native="getBase()">
-                                    <el-option
-                                            v-for="(item,index) in tags"
-                                            :key="item.remarks"
-                                            :label="item.remarks"
-                                            :value="item.remarks"
-                                    />
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
+                        <el-col :span="6">
+                                <el-form-item label="数据类型" prop="senddata">
+                                    <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
+                                                 @click.native="getBase()"></el-cascader>
+                                </el-form-item>
+                            </el-col>
                         <el-col :span="6">
                             <el-form-item label="匿名名称" prop="keyword">
                                 <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="6">
-                            <el-form-item label="发送数据" prop="keyword">
+                            <el-form-item label="发送个数" prop="keyword">
                                 <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
                             </el-form-item>
                         </el-col>
+                        </el-row>
+                        <el-row>
+
                         <el-col :span="6">
                             <el-form-item label="持续时间" prop="loop_time">
                                 <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="4">
+                        <el-col :span="6">
                             <el-form-item label="延时时间" prop="sleeptime">
                                 <el-input id="sleeptime" v-model="editForm.sleeptime" placeholder="秒"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="4">
+                        <el-col :span="6">
                             <el-form-item label="延时数量" prop="sleepcount">
                                 <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="3">
+                            </el-row>
+                            <el-row>
+                        <el-col :span="6">
                             <el-form-item label="series" prop="series">
                                 <el-switch v-model="editForm.series" active-color="#13ce66"
                                            inactive-color="#ff4949"></el-switch>
                             </el-form-item>
                         </el-col>
                         <el-col :span="4">
-                            <el-form-item label="" prop="keyword">
+                            <el-form-item label="操作" prop="keyword">
                                 <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
                                 </el-button>
                             </el-form-item>
@@ -181,7 +179,7 @@
             </el-dialog>
 
             <!--匿名化文件夹界面-->
-            <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible":close-on-click-modal="false"
+            <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible" :close-on-click-modal="false"
                        style="width: 75%; left: 12.5%">
                 <el-form :model="anonForm" label-width="80px" :rules="anonFormRules" ref="anonForm">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -220,7 +218,7 @@
                                 </el-form-item>
                             </el-col>
                             <el-form-item label="" prop="anon_start">
-                                    <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
+                                <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
                             </el-form-item>
 
                         </el-row>
@@ -247,22 +245,9 @@
                                     </el-select>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="3">
+                            <el-col :span="4">
                                 <el-form-item label="端口号" prop="port">
                                     <el-input id="port" v-model="addForm.port" placeholder=""/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="数据类型" prop="senddata">
-                                    <el-select v-model="addForm.senddata" multiple placeholder="请选择"
-                                               @click.native="getBase()">
-                                        <el-option
-                                                v-for="(item,index) in tags"
-                                                :key="item.remarks"
-                                                :label="item.remarks"
-                                                :value="item.remarks"
-                                        />
-                                    </el-select>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="4">
@@ -270,16 +255,31 @@
                                     <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="3">
+                            <el-col :span="6">
+                                <el-form-item label="数据类型" prop="senddata">
+                                    <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
+                                                 @click.native="getBase()"></el-cascader>
+                                </el-form-item>
+                            </el-col>
+                            </el-row>
+                                <el-row>
+                            <el-col :span="4">
                                 <el-form-item label="持续时间" prop="loop_time">
                                     <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="3">
+                            <el-col :span="4">
                                 <el-form-item label="发送数量" prop="count">
                                     <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
                                 </el-form-item>
                             </el-col>
+                                    <el-col :span="6">
+                                <el-form-item label="是否dds" prop="dds">
+                                    <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
+                                </el-form-item>
+                            </el-col>
+                                    </el-row>
+                                    <el-row>
                             <el-col :span="4">
                                 <el-form-item label="延时时间" prop="sleeptime">
                                     <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
@@ -296,13 +296,9 @@
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="" prop="dds">
-                                    <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
-                                </el-form-item>
-                            </el-col>
+
                             <el-col :span="4">
-                                <el-form-item label="" prop="save">
+                                <el-form-item label="操作" prop="save">
                                     <el-button type="primary" @click="addSubmit('form')">保存</el-button>
                                 </el-form-item>
                             </el-col>
@@ -337,6 +333,34 @@
         // components: {ElRow},
         data() {
             return {
+                props: {multiple: true},
+                options: [{
+                    value: 'test',
+                    label: 'test',
+                    children: [{
+                        value: 1,
+                        label: 'Lung'
+                    }, {
+                        value: 1,
+                        label: 'Brain'
+                    }, {
+                        value: 13,
+                        label: 'SWI'
+                    }]
+                }, {
+                    value: 'Gold',
+                    label: 'Gold',
+                    children: [{
+                        value: 1,
+                        label: 'Lung'
+                    }, {
+                        value: 1,
+                        label: 'Brain'
+                    }, {
+                        value: 13,
+                        label: 'SWI'
+                    }]
+                }],
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -385,7 +409,7 @@
                 anonForm: {
                     anon_name: '',
                     anon_addr: '',
-                    anon_disease:'',
+                    anon_disease: '',
                     wPN: '',
                     wPID: '',
                 },
@@ -437,6 +461,7 @@
         mounted() {
             this.getDurationlist()
             this.gethost()
+            this.getBase()
             this.durationVerifyData()
         },
         methods: {
@@ -536,20 +561,48 @@
                 const params = {selecttype: "dicom"}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.total = data.total
+                            self.list = data.data
+                            var test = []
+                            var gold = []
+                            var json = JSON.stringify(self.list)
+                            this.dis = JSON.parse(json)
+                            for (var i in this.dis) {
+                                var disjson = this.dis[i]
+                                if (disjson['type'] === 'test') {
+                                    test.push({
+                                            value: disjson['id'],
+                                            label: disjson['remarks']
+                                        }
+                                    )
+                                } else {
+                                    gold.push({
+                                            value: disjson['id'],
+                                            label: disjson['remarks']
+                                        }
+                                    )
+                                }
+                                this.options = [{
+                                    value: 'test',
+                                    label: 'test',
+                                    children: test
+                                }, {
+                                    value: 'Gold',
+                                    label: 'Gold',
+                                    children: gold
+                                }]
+                            }
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
                     }
-                })
+                )
             },
             // 获取host数据列表
             gethost() {
@@ -572,7 +625,8 @@
                         })
                     }
                 })
-            },
+            }
+            ,
             // 获取数据列表
             getDurationlist() {
                 this.listLoading = true
@@ -592,7 +646,8 @@
                         })
                     }
                 })
-            },
+            }
+            ,
             // 删除
             handleDel: function (index, row) {
                 this.$confirm('确认删除该记录吗?', '提示', {
@@ -623,16 +678,19 @@
                         self.getDurationlist()
                     })
                 })
-            },
+            }
+            ,
             handleCurrentChange(val) {
                 this.page = val
                 this.handleDel()
-            },
+            }
+            ,
             // 显示编辑界面
             handleEdit: function (index, row) {
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
-            },
+            }
+            ,
             // 改变状态
             handleChangeStatus: function (index, row) {
                 let self = this;
@@ -679,7 +737,8 @@
                         }
                     });
                 }
-            },
+            }
+            ,
             // 显示新增界面
             handleAdd: function () {
                 this.addFormVisible = true
@@ -696,7 +755,8 @@
                     sleeptime: 0,
                     series: false
                 }
-            },
+            }
+            ,
             //显示匿名化文件夹界面
             handleAnon: function () {
                 this.anonFormVisible = true
@@ -706,7 +766,8 @@
                     wPN: true,
                     wPID: true
                 }
-            },
+            }
+            ,
             // 编辑
             editSubmit: function () {
                 const self = this
@@ -756,20 +817,21 @@
                         })
                     }
                 })
-            },
+            }
+            ,
             // 匿名
-            startAnon:function () {
+            startAnon: function () {
                 this.$refs.anonForm.validate((valid) => {
                     if (valid) {
                         const self = this
                         self.addLoading = true
                         // NProgress.start();
                         const params = JSON.stringify({
-                            anon_name:self.anonForm.anon_name,
-                            anon_addr:self.anonForm.anon_addr,
-                            anon_disease:self.anonForm.anon_disease,
-                            wPN:self.anonForm.wPN,
-                            wPID:self.anonForm.wPID
+                            anon_name: self.anonForm.anon_name,
+                            anon_addr: self.anonForm.anon_addr,
+                            anon_disease: self.anonForm.anon_disease,
+                            wPN: self.anonForm.wPN,
+                            wPID: self.anonForm.wPID
                         })
                         const header = {
                             'Content-Type': 'application/json',
@@ -804,7 +866,8 @@
                         })
                     }
                 })
-            },
+            }
+            ,
 
             // 新增
             addSubmit: function () {
@@ -862,10 +925,12 @@
                         })
                     }
                 })
-            },
+            }
+            ,
             selsChange: function (sels) {
                 this.sels = sels
-            },
+            }
+            ,
             cancelEdit(row) {
                 row.title = row.originalTitle
                 row.edit = false
@@ -873,7 +938,8 @@
                     message: 'The title has been restored to the original value',
                     type: 'warning'
                 })
-            },
+            }
+            ,
             confirmEdit(row) {
                 row.edit = false
                 row.originalTitle = row.title
@@ -881,7 +947,8 @@
                     message: 'The title has been edited',
                     type: 'success'
                 })
-            },
+            }
+            ,
             // 批量删除
             batchRemove: function () {
                 const ids = this.sels.map(item => item.id)

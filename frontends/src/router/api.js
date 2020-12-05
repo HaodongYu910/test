@@ -4,11 +4,8 @@ import stressDetail from "../components/stress/stressDetail";
 
 
 export const test = 'http://127.0.0.1:8000';
-<<<<<<< HEAD
+
 // export const test = 'http://192.168.1.121:9000';
-=======
-// export const test = 'http://192.168.2.38:9000';
->>>>>>> 2761a90209670b4046dfb71c1b34606bbf2f06d9
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -241,6 +238,10 @@ export const stressTool = (headers, params) => {
 // 压测数据
 export const getVersion = (headers, params) => {
   return axios.get(`${test}/api/stress/version`, { params: params }, { headers }).then(res => res.data)
+}
+// 生成压测结果
+export const stresssave = (headers, params) => {
+  return axios.post(`${test}/api/stress/stresssave`, params, headers).then(res => res.data)
 }
 // 删除压测数据
 export const deldicomdata = (headers, params) => {

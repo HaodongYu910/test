@@ -30,13 +30,9 @@ class getDuration(APIView):
         :param request:
         :return:
         """
+        # ','.join(data['dicom'])
         obi = duration.objects.filter().order_by("server")
         durationdata = duration_Serializer(obi, many=True)
-        du = durationdata.data
-        for i in du:
-            obj = duration_record.objects.filter(duration_id=i["id"],
-                                                 create_time__gte=i["update_time"])
-            i['send'] = str(obj.count())
 
         return JsonResponse(data={"data": durationdata.data
                                   }, code="0", msg="成功")
@@ -157,15 +153,9 @@ class add_duration(APIView):
         :return:
         """
         try:
-<<<<<<< HEAD
-            # 必传参数 dicom, server_ip
-            if not data["dicom"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
-=======
             # 必传参数 key, server_ip , type
             if not data["dicom"] or not data["server"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
->>>>>>> 2761a90209670b4046dfb71c1b34606bbf2f06d9
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误,必传参数 dicom, server！")
@@ -185,7 +175,13 @@ class add_duration(APIView):
                 data['series'] = '1'
             else:
                 data['series'] = '0'
-            data['dicom'] = ','.join(data['dicom'])
+            dicomdata = ''
+
+            # data['dicom'] = ','.join(data['dicom'])
+            for i in data['dicom']:
+                dicomdata = dicomdata + str(i[1]) + ','
+            data['dicom'] = dicomdata[:-1]
+
             obj = GlobalHost.objects.get(host=str(data['server']))
             data['aet'] = obj.description
             duration = duration_Deserializer(data=data)
@@ -233,7 +229,10 @@ class update_duration(APIView):
             else:
                 data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
-            data['duration'] = ','.join(data['duration'])
+            dicomdata=''
+            for i in data['dicom']:
+                dicomdata = dicomdata + str(i[1]) + ','
+            data['dicom'] = dicomdata[:-1]
             keyword = duration.objects.filter(keyword=data["keyword"])
             if len(keyword):
                 return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
@@ -342,25 +341,14 @@ class EnableDuration(APIView):
                 min = 10000
                 sumdicom = 0
                 for j in obj.dicom.split(","):
-<<<<<<< HEAD
-                    dicom = base_data.objects.get(remarks=j,type='test')
-=======
-                    dicom = base_data.objects.get(remarks=j, type="test")
->>>>>>> 2761a90209670b4046dfb71c1b34606bbf2f06d9
-                    if dicom.other is None:
-                        sumdicom = sumdicom
-                    else:
-                        if min > int(dicom.other):
-                            min = int(dicom.other)
-                        sumdicom = int(dicom.other) + sumdicom
+                    dicom = base_data.objects.get(id=j)
+                    if min > int(dicom.other):
+                        min = int(dicom.other)
+                    sumdicom = int(dicom.other) + sumdicom
 
             for i in obj.dicom.split(","):
-<<<<<<< HEAD
-                dicom = base_data.objects.get(remarks=i,type='test')
-=======
-                dicom = base_data.objects.get(remarks=i, type="test")
->>>>>>> 2761a90209670b4046dfb71c1b34606bbf2f06d9
-                folder = dicom.content
+                base = base_data.objects.get(id=i)
+                folder = base.content
                 if sumdicom:
                     imod = divmod(int(obj.sendcount), sumdicom)
                     imin = divmod(int(imod[1]), min)
@@ -379,7 +367,7 @@ class EnableDuration(APIView):
                        '--durationid {5} '
                        '--diseases {6} '
                        '--start {7} '
-                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
+                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, base.remarks,
                                              start, end, sleepcount, sleeptime, obj.series)
 
                 # '--sleepcount {9} '
