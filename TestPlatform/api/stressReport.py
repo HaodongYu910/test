@@ -8,11 +8,9 @@ from rest_framework.views import APIView
 import shutil
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress_record, dicom, base_data, pid, GlobalHost
+from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost
 from TestPlatform.serializers import stressrecord_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
-from ..tools.stress.stress import sequence
-from ..tools.stress.stresstest import stress
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
@@ -33,7 +31,7 @@ class stressversion(APIView):
         :return:
         """
         server = request.GET.get("server", '192.168.1.208')
-        obi = stress_record.objects.filter(loadserver__contains=server).order_by("-id")
+        obi = stress.objects.filter(loadserver__contains=server).order_by("-id")
         serialize = stressrecord_Deserializer(obi, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}
@@ -248,10 +246,12 @@ class reportfigure(APIView):
             predictionData =stressdataFigure("prediction",modlename)
             jobData = stressdataFigure("job", modlename)
 
-            lungData =stressdataFigure("lung", lungname)
+            lungData =stressdataFigure("lung_prediction", lungname)
+            lungjobData = stressdataFigure("lung_job", lungname)
             return JsonResponse(data={"predictionFigure": predictionData,
                                      "jobFigure": jobData,
-                                      "lungFigure":lungData
+                                      "lungFigure":lungData,
+                                      "lungjobFigure":lungjobData
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -287,7 +287,7 @@ class stressResultsave(APIView):
             return result
 
         try:
-            obj = stress_record.objects.get(version=data['version'])
+            obj = stress.objects.get(version=data['version'])
             checkdate = [obj.start_date, obj.end_date]
             # savecheck('job', checkdate, obj.loadserver, obj.version)
             # savecheck('prediction', checkdate, obj.loadserver, obj.version)
@@ -335,7 +335,7 @@ class stresstool(APIView):
             data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             data['end_date'] = end_time
             # 查找是否相同版本号的测试记录
-            stress_version = stress_record.objects.filter(version=data["version"])
+            stress_version = stress.objects.filter(version=data["version"])
             if len(stress_version):
                 return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
             else:
@@ -344,7 +344,7 @@ class stresstool(APIView):
                         dicom = base_data.objects.get(remarks=j)
                         folder = dicom.content
                         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/Stress.py '
+                               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/apiStress.py '
                                '--ip {0} --aet {1} '
                                '--port {2} '
                                '--keyword {3} '
@@ -401,11 +401,11 @@ class Update_base_Data(APIView):
             return result
         #
         try:
-            obj = stress_record.objects.get(id=data["id"])
+            obj = stress.objects.get(id=data["id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称
-        pro_name = stress_record.objects.filter(content=data["content"]).exclude(id=data["id"])
+        pro_name = stress.objects.filter(content=data["content"]).exclude(id=data["id"])
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
