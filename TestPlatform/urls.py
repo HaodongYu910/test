@@ -11,7 +11,7 @@ from .api.Sendmail import *
 from .api.basedata import *
 from .api.test_report import *
 from .api.tool import *
-from .api.Stress import *
+from .api.apiStress import *
 from .api.user_permission import *
 from .api.stressReport import reportfigure
 from .api.apiDicom import *
@@ -110,16 +110,17 @@ urlpatterns = [
     url(r'base/disablebase', Disablebase.as_view()),
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
-    url(r'base/duration', getDicomfile.as_view()),
+    url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
     url(r'stress/stressversion', stressversion.as_view()),
-    url(r'stress/stresstool', stresstool.as_view()),
+    url(r'stress/stresstool', stressRun.as_view()),
     url(r'stress/stressDetail', stressDetail.as_view()),
     url(r'stress/stressresult', stressResult.as_view()),
     url(r'stress/stressfigure', reportfigure.as_view()),
     url(r'stress/stresssave', stressResultsave.as_view()),
     url(r'stress/list', stressList.as_view()),
+    url(r'stress/xxx', addStressData.as_view()),
     url(r'tool/dicomData', dicomData.as_view()),
     url(r'tool/dicomdetail', dicomDetail.as_view()),
     url(r'tool/add_dicomData', adddicomdata.as_view()),

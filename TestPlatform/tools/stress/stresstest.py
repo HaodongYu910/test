@@ -52,7 +52,7 @@ def savecsv(path, graphql_query):
     f.close()
 
 
-def stress(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, time):
+def stressT(orthanc_ip, diseases, version, thread, loop, synchronizing, ramp, time):
     path = os.path.join(os.getcwd())
     if not os.path.exists('{0}/stress'.format(path)):
         os.mkdir(path + '/stress')

@@ -727,7 +727,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
      """
 
     class Meta:
-        model = stress_record
+        model = stress
         fields = ('id','projectname', 'version', 'thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                   'loadserver', 'testdata', 'loop_time', 'start_date','end_date','status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -747,7 +747,7 @@ class stressrecord_Deserializer(serializers.ModelSerializer):
     性能测试记录表反序列化
     """
     class Meta:
-        model = stress_record
+        model = stress
         fields = ('id','projectname','version',  'loadserver','testdata','thread', 'synchroniz', 'ramp','loop_count', 'duration', 'start_delay', 'dicom_send',
                    'loop_time', 'start_date','end_date','status')
 
@@ -794,7 +794,7 @@ class stress_result_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress_result
         fields = ('id', 'version', 'modelname', 'type','slicenumber',  'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate','update_time', 'create_time')
+                  'single', 'median', 'min', 'max', 'coef', 'rate','minimages','maximages','avgimages','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -815,7 +815,7 @@ class stress_result_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress_result
         fields = ('version', 'modelname', 'type','slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate')
+                  'single', 'median', 'min', 'max', 'coef', 'rate','minimages','maximages','avgimages')
 
 class duration_record_Serializer(serializers.ModelSerializer):
     """

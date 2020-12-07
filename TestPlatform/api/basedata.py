@@ -95,8 +95,9 @@ class AddbaseData(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        if data['predictor']:
-            data['predictor']=Predictor['remarks']
+        if not data['predictor']:
+            data['predictor']=Predictor(data['remarks'])
+        print(data['predictor'])
         basedata=base_data.objects.create(**data)
         # 创建线程
         thread_fake_folder = threading.Thread(target=fileSave,

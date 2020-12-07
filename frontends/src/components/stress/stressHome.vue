@@ -20,6 +20,11 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
+            <el-table-column prop="version" label="项目" min-width="12%" sortable>
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.projectname }}</span>
+                </template>
+            </el-table-column>
             <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
@@ -61,11 +66,7 @@
                 </template>
             </el-table-column>
 
-            <el-table-column label="测试状态" min-width="9%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.status }}</span>
-                </template>
-            </el-table-column>
+
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" src="../../assets/img/icon-yes.svg"/>
@@ -75,7 +76,7 @@
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="showdetail(scope.$index, scope.row)">查看</el-button>
-                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">生成结果</el-button>
+                    <el-button size="small" @click="handleSave(scope.$index, scope.row)">生成结果</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">测试报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
@@ -264,7 +265,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delProject, disableProject, enableProject,
-        updateProject, addProject
+        updateProject, addProject,stresssave
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -367,6 +368,37 @@
                             center: true,
                         })
                     }
+                })
+            },
+            //删除
+            handleSave: function (index, row) {
+                this.$confirm('确认测试完成了吗?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {id: row.id};
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stresssave(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
                 })
             },
             //删除
