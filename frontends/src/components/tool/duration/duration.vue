@@ -558,7 +558,10 @@
             getBase() {
                 this.listLoading = true
                 const self = this
-                const params = {selecttype: "dicom"}
+                const params = {
+                    selecttype: "dicom",
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
                         self.listLoading = false
@@ -572,6 +575,7 @@
                             this.dis = JSON.parse(json)
                             for (var i in this.dis) {
                                 var disjson = this.dis[i]
+                                console.log(disjson)
                                 if (disjson['type'] === 'test') {
                                     test.push({
                                             value: disjson['id'],
@@ -594,6 +598,7 @@
                                     label: 'Gold',
                                     children: gold
                                 }]
+                                console.log(this.options)
                             }
                         } else {
                             self.$message.error({

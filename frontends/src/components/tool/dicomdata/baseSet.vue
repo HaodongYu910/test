@@ -264,20 +264,16 @@
                     }
                 })
             },
-            //删除
+            //同步
             handlecount: function (index, row) {
                  this.listLoading = true;
                     //NProgress.start();
                     let self = this;
-                    let params = {ids: [row.id,]};
+                    let params = {id: row.id};
                     let header = {
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-
-
-
-
                     dicomcount(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {

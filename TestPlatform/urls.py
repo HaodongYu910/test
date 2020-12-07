@@ -110,7 +110,7 @@ urlpatterns = [
     url(r'base/disablebase', Disablebase.as_view()),
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
-    url(r'base/duration', getDicomfile.as_view()),
+    url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
     url(r'stress/stressversion', stressversion.as_view()),

@@ -32,9 +32,17 @@ class getDuration(APIView):
         """
         # ','.join(data['dicom'])
         obi = duration.objects.filter().order_by("server")
-        durationdata = duration_Serializer(obi, many=True)
+        dataSerializer = duration_Serializer(obi, many=True)
 
-        return JsonResponse(data={"data": durationdata.data
+        dicomdata=''
+        for i in dataSerializer.data:
+            for j in i["dicom"].split(","):
+                obj = base_data.objects.get(id=j)
+                dicomdata = dicomdata + obj.remarks +","
+            i["dicom"] = dicomdata
+
+
+        return JsonResponse(data={"data": dataSerializer.data
                                   }, code="0", msg="成功")
 
 
