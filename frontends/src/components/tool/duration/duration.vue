@@ -701,7 +701,8 @@
             handleAnon: function () {
                 this.anonFormVisible = true
                 this.anonForm = {
-                    anon_name: '',
+                    ll
+            : '',
                     anon_addr: '',
                     wPN: true,
                     wPID: true
