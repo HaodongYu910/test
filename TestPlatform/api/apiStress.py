@@ -122,7 +122,7 @@ class addStressData(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-class addstress(APIView):
+class addstressData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -202,8 +202,8 @@ class addstress(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-# 修改duration
-class updatestressdata(APIView):
+# 修改压力测试
+class updateStress(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -247,45 +247,8 @@ class updatestressdata(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-# 删除dicom 数据
-class delstressdata(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
 
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["ids"], list):
-                return JsonResponse(code="999996", msg="参数有误！")
-            for i in data["ids"]:
-                if not isinstance(i, int):
-                    return JsonResponse(code="999996", msg="参数有误！")
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        删除
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        try:
-            for j in data["ids"]:
-                obj = dicom.objects.filter(id=j)
-                obj.delete()
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
-
+# 压测结果返回接口
 class stressResult(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -353,7 +316,7 @@ class stressResult(APIView):
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
 
-
+# 保存压力测试预测性能结果
 class stressResultsave(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -398,7 +361,7 @@ class stressResultsave(APIView):
             return JsonResponse(msg="失败", code="999991", exception=e)
 
 
-
+# 预测压力测试运行
 class stressRun(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -427,7 +390,6 @@ class stressRun(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-
         try:
             sequence(data['ip'], data['diseases'],data['count'] )
             # testdata = data["testdata"]

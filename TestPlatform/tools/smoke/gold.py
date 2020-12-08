@@ -1,7 +1,7 @@
 import gc
 from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import dicom
+from TestPlatform.models import dicom,base_data
 from ...utils.graphql.graphql import *
 from ..dicom.SendDicom import Send
 from ...serializers import dicomrecord_Serializer,dicomrecord_Deserializer
@@ -40,6 +40,7 @@ def goldSmoke(version, server_ip, ids):
     for i in ids:
         try:
             obj = dicom.objects.get(id=i)
+            ojk = base_data.objects.get(id=obj.fileid)
             data = {
                 "version": version,
                 "patientid": obj.patientid,
@@ -56,7 +57,7 @@ def goldSmoke(version, server_ip, ids):
 
             if len(result_db) == 0:
                 s=Send(server_ip,obj.route)
-            elif len(result_db) > 1:
+            elif len(result_db) > 2:
                 delreport(server_ip, [i])
                 s=Send(server_ip,obj.route)
 
@@ -68,8 +69,7 @@ def goldSmoke(version, server_ip, ids):
                                                                            "planguage:\"zh-cn\" " \
                                                                            " puser_id:\"biomind\" " \
                                                                            "pseries_classifier:" + str(obj.vote) + "}" \
-                                                                                                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                obj.predictor) + "\"]])" \
+                                                                                                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(ojk.predictor) + "\"]])" \
                                  " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
             data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
             result = graphql_Interface(graphql_query, kc)
@@ -108,13 +108,20 @@ def checkdata(result,data):
         else:
             for i in airesult.values():
                 for j in i:
-                    aidiagnosis =str(j['classification']) + aidiagnosis
+                    if str(aidiagnosis).find(str(j['classification'])[1:-1]) >= 0:
+                        continue
+                    else:
+                        aidiagnosis =str(j['classification'])[1:-1] + aidiagnosis
             data["aidiagnosis"] = str(aidiagnosis)
             data["report"] = '匹配失败'
             dicom_record.objects.create(**data)
     except Exception as e:
         data["status"] = False
         data["report"] = '比对失败'
+        try:
+            data["aidiagnosis"] = str(result['ai_biomind']['pstatus_code'][0]['code'])
+        except Exception as e:
+            logger.error("比对失败:{0},预测结果:{1}".format(e,result['ai_biomind']['pstatus_code']))
         dicom_record.objects.create(**data)
         logger.error("比对失败:{0},预测结果:{1}".format(e,result))
 
