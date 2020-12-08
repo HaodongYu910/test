@@ -56,9 +56,6 @@ def voteData(uid,orthanc_ip,diseases):
         return None,None,None
     return str(vote),imagecount,slicenumber
 
-
-
-
 def Predictor(diseases):
     if diseases == 'Lung':
         predictor = 'lungct_predictor'
@@ -83,7 +80,9 @@ def Predictor(diseases):
     else:
         predictor = None
     return predictor
-
+def delFolder(folder):
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
     # # 循环生成压测数据
     # for i in diseases:
     #     stressdata = dicom.objects.filter(server=orthanc_ip,diseases=i)

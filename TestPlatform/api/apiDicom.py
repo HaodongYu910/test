@@ -367,11 +367,17 @@ class dicomSend(APIView):
             return result
         try:
             if data['ids']:
-                obj = dicom.objects.filter(fileid__in=data['ids'])
+                obj = base_data.objects.filter(id__in=data['ids'])
+                for i in obj:
+                    thread_Send = threading.Thread(target=Send, args=(data["server_ip"], i.content))
+                    # 启动线程
+                    thread_Send.start()
             else:
                 obj = dicom.objects.filter(id__in=data['id'])
-            for i in obj:
-                Send(data["server_ip"], i.route)
+                for i in obj:
+                    thread_Send = threading.Thread(target=Send, args=(data["server_ip"], i.route))
+                    # 启动线程
+                    thread_Send.start()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:

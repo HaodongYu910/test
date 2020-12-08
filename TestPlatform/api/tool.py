@@ -5,7 +5,7 @@ from django.db.models import Sum, Min
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil
+import shutil,threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data, pid, GlobalHost
@@ -15,11 +15,12 @@ from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
+from ..tools.dicom.dicomdetail import delFolder
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-# 获取 持续化数据
+# 获取 持续化数据列表
 class getDuration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -34,13 +35,16 @@ class getDuration(APIView):
         obi = duration.objects.filter().order_by("server")
         dataSerializer = duration_Serializer(obi, many=True)
 
-        dicomdata=''
         for i in dataSerializer.data:
+            dicomdata = ''
+            # 已发送的数据统计
+            obj = duration_record.objects.filter(duration_id=i["id"],create_time__gte = i["update_time"])
+            i['send'] = str(obj.count())
+            # dicom id 转换成病种文案
             for j in i["dicom"].split(","):
                 obj = base_data.objects.get(id=j)
                 dicomdata = dicomdata + obj.remarks +","
             i["dicom"] = dicomdata
-
 
         return JsonResponse(data={"data": dataSerializer.data
                                   }, code="0", msg="成功")
@@ -286,15 +290,17 @@ class DisableDuration(APIView):
             # 查找pid
             obj = pid.objects.filter(durationid=data["id"])
             okj = duration.objects.get(id=data["id"])
-            folder_fake = "{0}/{1}".format('/files/logs', str(okj.keyword))
+
             for i in obj:
                 cmd = 'kill -9 {0}'.format(int(i.pid))
                 logger.info(cmd)
                 os.system(cmd)
                 i.delete()
-                time.sleep(1)
-            if os.path.exists(folder_fake):
-                shutil.rmtree(folder_fake)
+
+            delfolder =threading.Thread(target=delFolder, args=("{0}/{1}".format('/files/logs', str(okj.keyword))))
+            # 启动线程
+            delfolder.start()
+
             okj.sendstatus = False
             okj.save()
 
@@ -337,12 +343,12 @@ class EnableDuration(APIView):
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
 
-            if obj.sendcount is None and obj.end is None:
+            if obj.sendcount is None and obj.endtime is None:
                 start = 0
                 end = 1
-            elif obj.sendcount is None and obj.end is not None:
+            elif obj.sendcount is None and obj.end_time is not None:
                 start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end))).strftime(
+                end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end_time))).strftime(
                     "%Y-%m-%d %H:%M:%S")
             else:
                 start = 0
