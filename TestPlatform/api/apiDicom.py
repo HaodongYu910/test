@@ -9,7 +9,7 @@ import threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost,dicom_record
-from TestPlatform.serializers import stressrecord_Deserializer, \
+from TestPlatform.serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
 from ..tools.stress.stresstest import lungSlice
@@ -248,7 +248,7 @@ class adddicomdata(APIView):
 
 
 # 修改duration
-class updatedicomdata(APIView):
+class dicomUpdate(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -260,8 +260,8 @@ class updatedicomdata(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["duration"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 id！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -277,17 +277,12 @@ class updatedicomdata(APIView):
         if result:
             return result
         try:
-            obj = duration.objects.get(id=data["id"])
-            data['duration'] = ','.join(data['duration'])
-            keyword = duration.objects.filter(keyword=data["keyword"])
-            if len(keyword):
-                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
-            else:
-                serializer = duration_Deserializer(data=data)
-                with transaction.atomic():
-                    if serializer.is_valid():
-                        # 修改数据
-                        serializer.update(instance=obj, validated_data=data)
+            obj = dicom.objects.get(id=data["id"])
+            serializer = dicomdata_Deserializer(data=data)
+            with transaction.atomic():
+                if serializer.is_valid():
+                    # 修改数据
+                    serializer.update(instance=obj, validated_data=data)
                 return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -553,7 +548,7 @@ class Update_base_Data(APIView):
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
-            serializer = stressrecord_Deserializer(data=data)
+            serializer = stress_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据

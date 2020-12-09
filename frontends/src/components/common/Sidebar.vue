@@ -68,12 +68,8 @@
                                 title: '性能测试'
                             },
                             {
-                                index: 'data',
-                                title: '测试数据'
-                            },
-                            {
-                                index: 'stress',
-                                title: '性能工具'
+                                index: 'stressreport',
+                                title: '性能图表'
                             },
                              {
                                 index: 'stressreport',

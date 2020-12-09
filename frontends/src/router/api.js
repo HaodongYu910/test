@@ -3,6 +3,7 @@ import stressDetail from "../components/stress/stressDetail";
 
 
 
+
 //export const test = 'http://127.0.0.1:8000';
 
 export const test = 'http://192.168.1.121:9000';
@@ -223,9 +224,21 @@ export const delreport = (headers, params) => {
 export const Send = (headers, params) => {
   return axios.post(`${test}/api/send`, params, headers).then(res => res.data)
 }
-// 压测数据
+// 压测列表
 export const stresslist = (headers, params) => {
   return axios.get(`${test}/api/stress/list`, { params: params }, { headers }).then(res => res.data)
+}
+// 新增压测
+export const addStress = (headers, params) => {
+  return axios.post(`${test}/api/stress/add`, params, headers).then(res => res.data)
+}
+// 修改压测
+export const updateStress = (headers, params) => {
+  return axios.post(`${test}/api/stress/update`, params, headers).then(res => res.data)
+}
+// 修改压测
+export const delStress = (headers, params) => {
+   return axios.post(`${test}/api/stress/del`, params, headers).then(res => res.data)
 }
 //压测详情
 export const StressDetail = (headers, params) => {
@@ -249,7 +262,7 @@ export const deldicomdata = (headers, params) => {
 }
 // 修改dicom数据
 export const updatedicomdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/update_dicomData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/update`, params, headers).then(res => res.data)
 }
 // 新增dicom数据
 export const adddicomdata = (headers, params) => {

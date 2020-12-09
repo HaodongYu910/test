@@ -13,7 +13,19 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item>
-                    <el-input v-model="filters.content" placeholder="名称" @keyup.enter.native="getbaseList"></el-input>
+                    <el-select v-model="filters.type" placeholder="类型">
+                        <el-option key="test" label="test" value="test"/>
+                        <el-option key="Gold" label="Gold" value="Gold"/>
+                    </el-select>
+                </el-form-item>
+                <el-form-item>
+                    <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getbaseList()">
+                        <el-option v-for="(item,index) in project"
+                                   :key="item.remarks"
+                                   :label="item.remarks"
+                                   :value="item.remarks"
+                        />
+                    </el-select>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getbaseList">查询</el-button>
@@ -44,6 +56,11 @@
             <el-table-column prop="content" label="路径" min-width="25%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.content }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column label="模型" min-width="16%" sortable>
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.predictor }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="类型" min-width="16%" sortable>
@@ -108,6 +125,11 @@
                             <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="类型">
+                            <el-input v-model="editForm.predictor" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
                 </el-row>
                 <el-form-item label="说明">
                     <el-input v-model="editForm.remarks"></el-input>
@@ -168,7 +190,10 @@
         data() {
             return {
                 filters: {
-                    content: ''
+                    type: '',
+                    remarks: '',
+                    selecttype:'dicom',
+                    status:true
                 },
                 project: [],
                 total: 0,
@@ -248,7 +273,11 @@
             getbaseList() {
                 this.listLoading = true;
                 let self = this;
-                let params = {page: self.page, content: self.filters.content};
+                let params = {
+                    page: self.page,
+                    remarks: self.filters.remarks,
+                    type:self.filters.type
+                };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 getbase(headers, params).then((res) => {
                     self.listLoading = false;
@@ -266,30 +295,30 @@
             },
             //同步
             handlecount: function (index, row) {
-                 this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {id: row.id};
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    dicomcount(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '同步成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.getbaseList()
-                    });
+                this.listLoading = true;
+                //NProgress.start();
+                let self = this;
+                let params = {id: row.id};
+                let header = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                };
+                dicomcount(header, params).then(_data => {
+                    let {msg, code, data} = _data;
+                    if (code === '0') {
+                        self.$message({
+                            message: '同步成功',
+                            center: true,
+                            type: 'success'
+                        })
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true,
+                        })
+                    }
+                    self.getbaseList()
+                });
             },
             // 改变项目状态
             handleChangeStatus: function (index, row) {

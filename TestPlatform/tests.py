@@ -133,3 +133,6 @@
 #                 ser = i['SeriesDescription']
 #             vote = "{0}: \"{1}\",".format(i['SeriesDescription'], i['SeriesInstanceUID'])
 #
+
+
+print('%.2f' % 192.2321332432)

@@ -5,72 +5,58 @@
             <!--工具条-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
                 <el-card shadow="hover" style="width:100%;height:800px;">
-                        <el-row :gutter="50">
-                            <el-col :span="30">
-                                <el-card shadow="hover">
-                                    <div id='predictionLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </el-card>
-                <el-card shadow="hover" style="width:100%;height:800px;">
-                        <el-row :gutter="50">
-                            <el-col :span="30">
-                                <el-card shadow="hover">
-                                    <div id='jobLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </el-card>
-                <el-card shadow="hover" style="width:100%;height:800px;">
-                        <el-row :gutter="50">
-                            <el-col :span="30">
-                                <el-card shadow="hover">
-                                    <div id='lungLine' class="myLine" style="width:750px;height:600px;margin:0 auto">
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </el-card>
-                <el-card shadow="hover" style="width:100%;height:800px;">
-                        <el-row :gutter="50">
-                            <el-col :span="30">
-                                <el-card shadow="hover">
-                                    <div id='lungjobLine' class="myLine" style="width:750px;height:600px;margin:0 auto">
-                                    </div>
-                                </el-card>
-                            </el-col>
-                        </el-row>
-                    </el-card>
+                    <el-row :gutter="50">
+                        <el-col :span="30">
+                            <el-card shadow="hover">
+                                <div id='predictionLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </el-card>
+                <el-card shadow="hover" style="width:100%;height:100%;">
+                    <el-row :gutter="50">
+                    <el-col :span="30">
+                        <el-card shadow="hover">
+                            <div id='jobLine' class="myLine" style="width:1500px;height:600px;margin:0 auto">
+                            </div>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="30">
+                        <el-card shadow="hover">
+                            <div id='lungLine' class="myLine" style="width:750px;height:600px;margin:0 auto">
+                            </div>
+                        </el-card>
+                    </el-col>
+                    </el-row>
+                </el-card>
                 <!--工具条-->
                 <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-select v-model="filters.server"  placeholder="请选择服务器" @click.native="gethost()">
-                              <el-option
-                                v-for="(item,index) in tags"
-                                :key="item.host"
-                                :label="item.name"
-                                :value="item.host"
-                              />
-                            </el-select>
-                        <el-select v-model="filters.version"  placeholder="当前版本" @click.native="getversion()">
-                              <el-option
-                                v-for="(item,index) in versions"
-                                :key="item.version"
-                                :label="item.version"
-                                :value="item.version"
-                              />
-                            </el-select>
-                        <el-select v-model="filters.checkversion"  placeholder="以前版本" @click.native="getversion()">
-                              <el-option
-                                v-for="(item,index) in versions"
-                                :key="item.version"
-                                :label="item.version"
-                                :value="item.version"
-                              />
-                            </el-select>
+                        <el-select v-model="filters.server" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-option
+                                    v-for="(item,index) in tags"
+                                    :key="item.host"
+                                    :label="item.name"
+                                    :value="item.host"
+                            />
+                        </el-select>
+                        <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
+                            <el-option
+                                    v-for="(item,index) in versions"
+                                    :key="item.version"
+                                    :label="item.version"
+                                    :value="item.version"
+                            />
+                        </el-select>
+                        <el-select v-model="filters.checkversion" placeholder="以前版本" @click.native="getversion()">
+                            <el-option
+                                    v-for="(item,index) in versions"
+                                    :key="item.version"
+                                    :label="item.version"
+                                    :value="item.version"
+                            />
+                        </el-select>
                         <el-form-item>
                             <el-button type="primary" @click="getDurationlist">查询</el-button>
                         </el-form-item>
@@ -96,7 +82,8 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
@@ -106,12 +93,14 @@
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min}}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.min)">{{ scope.row.min}}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="status" label="coef. of variation" min-width="10%">
@@ -119,13 +108,27 @@
                             <span style="margin-left: 10px">{{ scope.row.coef }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column label="rate of success" min-width="8%" sortable>
+                    <el-table-column label="min images" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px">{{ scope.row.rate }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="max images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="avg images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
-
+                <el-table-column label="rate of success" min-width="8%" sortable>
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.rate }}</span>
+                    </template>
+                </el-table-column>
                 <span style="margin-left: 10px">job time</span>
                 <el-table :data="job" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
@@ -142,7 +145,8 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="avg single job time /s" min-width="10%">
@@ -152,25 +156,43 @@
                     </el-table-column>
                     <el-table-column label="median job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }} 秒</span>
+                            <span style="margin-left: 10px" :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="min job time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max job time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
-                    <el-table-column prop="status" label="coef. of variation" min-width="10%">
+                    <el-table-column label="min images" min-width="8%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" >{{ scope.row.coef }}</span>
+                            <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="max images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                        </template>
+                    </el-table-column>
+                    <el-table-column label="avg images" min-width="8%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
                         </template>
                     </el-table-column>
                 </el-table>
+                <el-table-column prop="status" label="coef. of variation" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.coef }}</span>
+                    </template>
+                </el-table-column>
+
                 <span style="margin-left: 10px">Lung prediction time</span>
                 <el-table :data="lung" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
@@ -182,7 +204,8 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
@@ -192,12 +215,14 @@
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="coef. of variation" min-width="10%">
@@ -232,7 +257,8 @@
                     </el-table-column>
                     <el-table-column prop="type" label="avg pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column label="median pred time /s" min-width="10%" sortable>
@@ -242,12 +268,14 @@
                     </el-table-column>
                     <el-table-column label="min pred time /s" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="max pred time /s" min-width="10%">
                         <template slot-scope="scope">
-                            <span style="margin-left: 10px" :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                            <span style="margin-left: 10px"
+                                  :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
                         </template>
                     </el-table-column>
                     <el-table-column prop="type" label="coef. of variation" min-width="10%">
@@ -280,11 +308,12 @@
     // import NProgress from 'nprogress'
 
     import {
-        getstressversion,getstressresult, getHost,getreportfigure
+        getstressversion, getstressresult, getHost, getreportfigure
     } from '@/router/api';
     import echarts from "echarts";
-  export default {
-    // import ElRow from "element-ui/packages/row/src/row";
+
+    export default {
+        // import ElRow from "element-ui/packages/row/src/row";
         // components: {ElRow},
         data() {
             return {
@@ -316,9 +345,9 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['aibrainct','aibrainmri','aicardiomodel','archcta',
-                          'bodypart','brainct','braincta','brainctp','brainmra',
-                          'headcta','postsurgery'],
+                        data: ['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
+                            'brainctp', 'brainmra',
+                            'headcta', 'postsurgery'],
                         padding: 25
                     },
                     toolbox: {
@@ -390,39 +419,6 @@
                             },
                         },
                         {
-                            name: 'bodypart',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'braincta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
                             name: 'brainctp',
                             type: 'line',
                             data: [],
@@ -471,6 +467,10 @@
                             type: 'line',
                             data: [],
                             markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
                             },
                         },
                     ]
@@ -484,9 +484,9 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['aibrainct','aibrainmri','aicardiomodel','archcta',
-                          'bodypart','brainct','braincta','brainctp','brainmra',
-                          'headcta','postsurgery'],
+                        data: ['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
+                            'brainctp', 'brainmra',
+                            'headcta', 'postsurgery'],
                         padding: 25
                     },
                     toolbox: {
@@ -558,39 +558,6 @@
                             },
                         },
                         {
-                            name: 'bodypart',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'braincta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
                             name: 'brainctp',
                             type: 'line',
                             data: [],
@@ -638,22 +605,21 @@
                             name: 'postsurgery',
                             type: 'line',
                             data: [],
-                            markPoint: {
-                            },
+                            markPoint: {},
                         },
                     ]
                 },
                 lungLineoption: {
                     title: {
-                        text: 'Lung层厚预测时间对比图'
+                        text: 'Lung 模型预测时间对比'
                     },
                     tooltip: {
                         trigger: 'axis',
                         padding: 25
                     },
                     legend: {
-                        data: ['1.0','1.25','1.5','5.0',
-                          '10.0'],
+                        data: ['1.0', '1.25', '1.5', '5.0',
+                            '10.0'],
                         padding: 25
                     },
                     toolbox: {
@@ -800,11 +766,9 @@
             valuestatus: function (i) {
                 if (!/-/g.test(i)) {
                     i = 0
-                }
-                else if (!/\+/g.test(i)) {
+                } else if (!/\+/g.test(i)) {
                     i = 1
-                }
-                else {
+                } else {
                     i = 2
                 }
                 console.log(i)
@@ -877,9 +841,9 @@
                     const {msg, code, data} = res
                     if (code === '0') {
                         self.prediction = data.predictionresult
-                        self.job =data.jobresult
-                        self.lung =data.lungresult
-                        self.lungjob =data.lungjob
+                        self.job = data.jobresult
+                        self.lung = data.lungresult
+                        self.lungjob = data.lungjob
                     } else {
                         self.$message.error({
                             message: msg,
@@ -891,14 +855,14 @@
             selsChange: function (sels) {
                 this.sels = sels
             },
-        //     //获取由路由传递过来的参数
-        //     getParams(){
-        //         this.routerParams=this.$route.query;
-        //     },
+            //     //获取由路由传递过来的参数
+            //     getParams(){
+            //         this.routerParams=this.$route.query;
+            //     },
             getreportData() {
                 let params = {
                     "version": "Boimind",
-                    "type":"prediction"
+                    "type": "prediction"
                 };
                 let headers = {
                     "Content-Type": "application/json"
@@ -912,17 +876,17 @@
                     this.jobLineoption.xAxis.data = this.jobLineData[0];
                     this.lungLineoption.xAxis.data = this.lungLineData[0];
 
-                    for (var i = 0;i<this.predictionLineData.length;i++)
-                        {
-                             this.predictionLineoption.series[i].data = this.predictionLineData[(i+1)];
-                             this.jobLineoption.series[i].data =this.jobLineData[i+1];
+                    for (var i = 0; i < this.predictionLineData.length; i++) {
+                        this.predictionLineoption.series[i].data = this.predictionLineData[(i + 1)];
+                        this.jobLineoption.series[i].data = this.jobLineData[i + 1];
 
-                        };
-                    this.lungLineoption.series[0].data =this.lungLineData[1];
-                    this.lungLineoption.series[1].data =this.lungLineData[2];
-                    this.lungLineoption.series[2].data =this.lungLineData[3];
-                    this.lungLineoption.series[3].data =this.lungLineData[4];
-                    this.lungLineoption.series[4].data =this.lungLineData[5];
+                    }
+                    ;
+                    this.lungLineoption.series[0].data = this.lungLineData[1];
+                    this.lungLineoption.series[1].data = this.lungLineData[2];
+                    this.lungLineoption.series[2].data = this.lungLineData[3];
+                    this.lungLineoption.series[3].data = this.lungLineData[4];
+                    this.lungLineoption.series[4].data = this.lungLineData[5];
                     this.reportBarData = data.solution_state.sort(function (a, b) {
                         return a.value - b.value;
                     });
@@ -979,12 +943,14 @@
         right: 15px;
         top: 10px;
     }
+
     .view-png {
-        width:15px;
-        height:15px;
-        margin-right:3px;
-        margin-bottom:5px
+        width: 15px;
+        height: 15px;
+        margin-right: 3px;
+        margin-bottom: 5px
     }
+
     .el-row {
         margin-bottom: 20px;
     }
@@ -1079,13 +1045,16 @@
     .mgb20 {
         margin-bottom: 20px;
     }
-    .statuscssa{
-        color:#E61717
+
+    .statuscssa {
+        color: #E61717
     }
-    .statuscssb{
-        color:#67c23a;
+
+    .statuscssb {
+        color: #67c23a;
     }
-    .statuscssc{
-        color:#666666;
+
+    .statuscssc {
+        color: #666666;
     }
 </style>

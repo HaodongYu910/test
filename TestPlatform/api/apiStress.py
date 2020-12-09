@@ -9,8 +9,8 @@ import shutil,threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress,dicom, base_data, pid, GlobalHost
-from TestPlatform.serializers import stressrecord_Deserializer, \
-    dicomdata_Deserializer, duration_Deserializer
+from TestPlatform.serializers import stress_Deserializer, \
+    dicomdata_Deserializer, duration_Deserializer,stress_Deserializer
 from ..tools.stress.stress import *
 from ..tools.stress.stresstest import stressT,lungSlice
 from ..tools.orthanc.deletepatients import *
@@ -33,7 +33,7 @@ class stressversion(APIView):
         """
         server = request.GET.get("server", '192.168.1.208')
         obi = stress.objects.filter(loadserver__contains=server).order_by("-id")
-        serialize = stressrecord_Deserializer(obi, many=True)
+        serialize = stress_Deserializer(obi, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}
         #     list.append(dict)
@@ -122,7 +122,7 @@ class addStressData(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-class addstressData(APIView):
+class addData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -352,7 +352,7 @@ class stressResultsave(APIView):
             if obj.projectname=='晨曦':
                 savecheck('job', checkdate, obj.loadserver, obj.version)
                 savecheck('prediction', checkdate, obj.loadserver, obj.version)
-                lung(checkdate, obj.loadserver, obj.version)
+                # lung(checkdate, obj.loadserver, obj.version)
             elif obj.projectname=='肺炎':
                 lung(checkdate, obj.loadserver, obj.version)
 
@@ -392,6 +392,7 @@ class stressRun(APIView):
             return result
         try:
             sequence(data['ip'], data['diseases'],data['count'] )
+
             # testdata = data["testdata"]
             # # 查找是否相同版本号的测试记录
             # stress_version = stress.objects.filter(version=data["version"])
@@ -423,7 +424,7 @@ class stressRun(APIView):
             #     data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             #     data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
             #         "%Y-%m-%d %H:%M:%S")
-            #     stressserializer = stressrecord_Deserializer(data=data)
+            #     stressserializer = stress_Deserializer(data=data)
             #     with transaction.atomic():
             #         stressserializer.is_valid()
             #         stressserializer.save()
@@ -474,7 +475,7 @@ class Update_base_Data(APIView):
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
-            serializer = stressrecord_Deserializer(data=data)
+            serializer = stress_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
@@ -561,7 +562,7 @@ class stressList(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = stressrecord_Deserializer(obm, many=True)
+        serialize = stress_Deserializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total,
@@ -582,7 +583,7 @@ class stressDetail(APIView):
         try:
             id = request.GET.get("id")
             obj = stress.objects.filter(id=id)
-            stressserializer = stressrecord_Deserializer(obj, many=True)
+            stressserializer = stress_Deserializer(obj, many=True)
 
             return JsonResponse(data={"data": stressserializer.data
                                           }, code="0", msg="成功")
@@ -590,7 +591,7 @@ class stressDetail(APIView):
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
 
-# 保存dicom 发送记录
+# 保存性能测试记录
 class addStress(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -603,8 +604,8 @@ class addStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["duration"] or not data["server"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
+            if not data["testdata"] or not data["loadserver"]or not data["version"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, loadserver！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -620,21 +621,15 @@ class addStress(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
-            data['duration'] = ','.join(data['duration'])
-            obj = GlobalHost.objects.get(host=str(data['server']))
-            data['aet'] = obj.description
-            duration = duration_Deserializer(data=data)
+            data["testdata"] =str(data["testdata"])
+            Stressadd = stress_Deserializer(data=data)
 
             with transaction.atomic():
-                duration.is_valid()
-                duration.save()
+                Stressadd.is_valid()
+                Stressadd.save()
             return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
+        except Exception as e:
+            return JsonResponse(code="999995", msg="{0}".format(e))
 
 
 # 修改duration

@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from TestPlatform.common.api_response import JsonResponse
 # from TestPlatform.common.common import record_dynamic
 # from TestPlatform.models import stressrecord
-# from TestPlatform.serializers import stressrecord_Serializer, stressrecord_Deserializer
+# from TestPlatform.serializers import stress_Serializer, stress_Deserializer
 # from TestPlatform.common.regexUtil import *
 # from TestPlatform.common.Loadtest import *
 
