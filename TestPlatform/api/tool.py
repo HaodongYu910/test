@@ -517,3 +517,4 @@ class anonymizationAPI_2nd(APIView):
                 return JsonResponse(code="0", msg="匿名化启动失败")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
+

@@ -50,7 +50,7 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
                     ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
 
-                # 保存文件匿名化之后的文件到121：/files/QA_FTP/testData/anonymization
+                # 保存文件匿名化之后的文件到192.168.1.121：/files/QA_FTP/testData/anonymization
                 folder_fake = '/files/QA_FTP/testData/anonymization/{1}/{2}'.format(diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)

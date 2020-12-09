@@ -105,6 +105,10 @@
                             {
                                 index: 'gold',
                                 title: '冒烟测试'
+                            },
+                            {
+                                index: 'dicommaster_record',
+                                title: 'DicomMaster Monitor'
                             }
                         ]
                     },

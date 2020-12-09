@@ -1011,3 +1011,41 @@ class interface(models.Model):
         verbose_name_plural = "Interface表"
         db_table = 'interface'
 
+class dds_host_record(models.Model):
+    """
+    dicommaster host record model class. class name is not the database name, they can be different.
+    """
+    # attributes
+    id = models.AutoField(primary_key=True)
+    dds_ip = models.CharField(max_length=30, blank=True, null=True, verbose_name="dds_ip")
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "dicommaster_host_record"
+        verbose_name_plural = "dicommaster_host_record"
+        db_table = 'DDS_host_record'    #database name
+
+class dds_data_record(models.Model):
+    """
+          dds_data_record table
+        """
+    id = models.AutoField(primary_key=True)
+    hostIP = models.CharField(max_length=30, blank=True, null=True, verbose_name="hostIP")
+    patientID = models.CharField(max_length=30, blank=True, null=True, verbose_name="patientID")
+    accesionNumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="accessionNumber")
+    studyInstanceUID = models.CharField(max_length=30, blank=True, null=True, verbose_name="studyInstanceUID")
+    pacsImageCount = models.IntegerField(blank=True, null=True, verbose_name="pacsImageCount")
+    pacsImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="pacsImageInsertionTime")
+    orthancImageCount = models.IntegerField(blank=True, null=True, verbose_name="orthancImageCount")
+    orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageInsertionTime")
+    orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dds_data_record"
+        verbose_name_plural = "dds_data_record"
+        db_table = 'DDS_data_record'
