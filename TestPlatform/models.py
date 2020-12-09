@@ -1011,7 +1011,7 @@ class interface(models.Model):
         verbose_name_plural = "Interface表"
         db_table = 'interface'
 
-class dds_host_record(models.Model):
+class dds_host(models.Model):
     """
     dicommaster host record model class. class name is not the database name, they can be different.
     """
@@ -1025,14 +1025,14 @@ class dds_host_record(models.Model):
     class Meta:
         verbose_name = "dicommaster_host_record"
         verbose_name_plural = "dicommaster_host_record"
-        db_table = 'DDS_host_record'    #database name
+        db_table = 'DDS_host'    #database name
 
-class dds_data_record(models.Model):
+class dds_data(models.Model):
     """
           dds_data_record table
         """
     id = models.AutoField(primary_key=True)
-    hostIP = models.CharField(max_length=30, blank=True, null=True, verbose_name="hostIP")
+    hostID = models.CharField(max_length=30, blank=True, null=True, verbose_name="hostID")
     patientID = models.CharField(max_length=30, blank=True, null=True, verbose_name="patientID")
     accesionNumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="accessionNumber")
     studyInstanceUID = models.CharField(max_length=30, blank=True, null=True, verbose_name="studyInstanceUID")
@@ -1048,4 +1048,4 @@ class dds_data_record(models.Model):
     class Meta:
         verbose_name = "dds_data_record"
         verbose_name_plural = "dds_data_record"
-        db_table = 'DDS_data_record'
+        db_table = 'DDS_data'
