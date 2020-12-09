@@ -507,7 +507,7 @@ class anonymizationAPI_2nd(APIView):
         data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
         try:
             name = data['anon_name']
-            addr = data['anon_addr']
+            addr = 'D:\\tesetdata\\Brain'
             disease = data['anon_disease']
             wPN = data['wPN']
             wPID = data['wPID']
@@ -516,10 +516,11 @@ class anonymizationAPI_2nd(APIView):
             # 1.匿名化
             a = onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name)
 
-            if a == "msg from backend":
+            if a == "success":
                 # 调用存储的函数
-                return JsonResponse(code="0", msg="匿名化启动成功")
+                return JsonResponse(code="0", msg="匿名化完成")
             else:
-                return JsonResponse(code="0", msg="匿名化启动失败")
+                return JsonResponse(code="999995", msg="匿名化启动失败")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
+

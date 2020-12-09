@@ -28,61 +28,61 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
 
-        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-            continue
-
-        elif (os.path.isdir(full_fn)):
+        if (os.path.isdir(full_fn)):
             onlyDoAnonymization(full_fn,study_infos,diseases,wPN,wPID,anonkey)
             continue
-        try:
-            ds = pydicom.dcmread(full_fn, force=True)
-            study_infos["No"]=study_infos["No"]+1
+        elif (os.path.splitext(fn)[1] == ".dcm"):
             try:
-                if wPID:
-                    ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-                elif not ds.PatientID:
-                    ds.PatientID = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                ds = pydicom.dcmread(full_fn, force=True)
+                study_infos["No"] = study_infos["No"]+1
+                try:
+                    if wPID:
+                        ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                    elif not wPID:
+                        continue
 
-                if wPN:
-                    ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-                    patientname = ds.PatientName
-                else:
-                    ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-                    patientname = ds.PatientName
+                    if wPN:
+                        if ds.StudyInstanceUID in study_infos.keys():
+                            ds.PatientName = study_infos[ds.StudyInstanceUID]
+                        elif ds.StudyInstanceUID not in study_infos.keys():
+                            ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                            study_infos[ds.StudyInstanceUID] = ds.PatientName
+                    elif not wPN:
+                        continue
 
-                # 保存文件匿名化之后的文件到121：/files/QA_FTP/testData/anonymization
-                folder_fake = '/files/QA_FTP/testData/anonymization/{1}/{2}'.format(diseases, patientname,)
-                if not os.path.exists(folder_fake):
-                    os.makedirs(folder_fake)
-                full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
-                ds.save_as(full_fn_fake)
-                a = "success msg from backend"
-                return a
+                    # 保存文件匿名化之后的文件到192.168.1.121：/files/QA_FTP/testData/anonymization
+                    folder_fake = 'C:\\Users\\yuhaodong\\Desktop\\111\\{0}\\{1}'.format(diseases, ds.PatientName)
+                    if not os.path.exists(folder_fake):
+                        os.makedirs(folder_fake)
+                    full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
+                    ds.save_as(full_fn_fake)
+                except Exception as e:
+                    logging.info(
+                        'failed to : file[{0}], error[{1}]'.format(full_fn, e))
+                    continue
+
+                # data = {
+                #     "patientid": patientid,
+                #     "studyinstanceuid": study_uid,
+                #     "diseases": diseases,
+                #     "type": type,
+                #     "route": folder_fake,
+                #     "fileid":id
+                # }
+
+                # link with database
+                # try:
+                #     if study_infos.get(study_uid):
+                #         continue
+                #     else:
+                #         study_infos[study_uid]=study_uid
+                #         dicom.objects.create(**data)
+                # except Exception as e:
+                #     logging.error('errormsg: failed to sql [{0}]'.format(e))
+                #     continue
+
             except Exception as e:
-                logging.info(
-                    'failed to : file[{0}], error[{1}]'.format(full_fn, e))
+                logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
                 continue
-
-            # data = {
-            #     "patientid": patientid,
-            #     "studyinstanceuid": study_uid,
-            #     "diseases": diseases,
-            #     "type": type,
-            #     "route": folder_fake,
-            #     "fileid":id
-            # }
-
-            # link with database
-            # try:
-            #     if study_infos.get(study_uid):
-            #         continue
-            #     else:
-            #         study_infos[study_uid]=study_uid
-            #         dicom.objects.create(**data)
-            # except Exception as e:
-            #     logging.error('errormsg: failed to sql [{0}]'.format(e))
-            #     continue
-
-        except Exception as e:
-            logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
-            continue
+    a = 'success'
+    return a
