@@ -17,7 +17,7 @@
           </el-form-item>
         <el-form-item>
           <el-select v-model="filters.type" placeholder="请选择类型">
-            <el-option key="AiTrue" label="预测成功" value="AiTrue"></el-option>
+            <el-option key="AiTrue" label="预测成功chenggongle!" value="AiTrue"></el-option>
             <el-option key="AiFalse" label="预测失败" value="AiFalse"></el-option>
             <el-option key="Not_sent" label="未发送" value="Not_sent"></el-option>
             <el-option key="sent" label="已发送数据" value="sent"></el-option>

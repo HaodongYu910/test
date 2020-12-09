@@ -143,5 +143,5 @@ urlpatterns = [
     url(r'tool/enable_duration', EnableDuration.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
-    url(r'tool/anonymization', anonymizationAPI_2nd.as_view())  # 匿名化数据
+    url(r'tool/anonymization', anonymizationAPI_2nd.as_view()) # 匿名化数据
 ]
