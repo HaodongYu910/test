@@ -343,7 +343,7 @@ class EnableDuration(APIView):
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
 
-            if obj.sendcount is None and obj.endtime is None:
+            if obj.sendcount is None and obj.end_time is None:
                 start = 0
                 end = 1
             elif obj.sendcount is None and obj.end_time is not None:

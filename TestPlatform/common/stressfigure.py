@@ -10,7 +10,7 @@ from io import BytesIO
 import base64
 
 from ..models import stress,stress_result
-from ..serializers import stressrecord_Deserializer
+from ..serializers import stress_Deserializer
 # from TestPlatform.common.jiraData import Jiradata
 # from TestPlatform.common.excel_data import *
 import logging

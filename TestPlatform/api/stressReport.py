@@ -9,7 +9,7 @@ import shutil
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost
-from TestPlatform.serializers import stressrecord_Deserializer, \
+from TestPlatform.serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
@@ -32,7 +32,7 @@ class stressversion(APIView):
         """
         server = request.GET.get("server", '192.168.1.208')
         obi = stress.objects.filter(loadserver__contains=server).order_by("-id")
-        serialize = stressrecord_Deserializer(obi, many=True)
+        serialize = stress_Deserializer(obi, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}
         #     list.append(dict)
@@ -239,8 +239,7 @@ class reportfigure(APIView):
         if result:
             return result
         try:
-            modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
-             'bodypart', 'brainct', 'braincta', 'brainctp', 'brainmra',
+            modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta', 'brainctp', 'brainmra',
              'headcta', 'postsurgery']
             lungname = ['1.0','1.25','1.5','5.0','10.0']
             predictionData =stressdataFigure("prediction",modlename)
@@ -356,7 +355,7 @@ class stresstool(APIView):
                         logger.info(cmd)
                         os.system(cmd)
                         time.sleep(1)
-                stressserializer = stressrecord_Deserializer(data=data)
+                stressserializer = stress_Deserializer(data=data)
 
                 with transaction.atomic():
                     stressserializer.is_valid()
@@ -409,7 +408,7 @@ class Update_base_Data(APIView):
         if len(pro_name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
-            serializer = stressrecord_Deserializer(data=data)
+            serializer = stress_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据

@@ -40,33 +40,26 @@
                     <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="type" label="类型" min-width="9%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
-                </template>
-            </el-table-column>
             <el-table-column prop="type" label="线程数" min-width="9%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.thread }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="type" label="运行规则" min-width="20%">
+            <el-table-column prop="type" label="规则" min-width="30%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="开始时间" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD ')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
             <el-table-column label="结束时间" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD ')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
-
-
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" src="../../assets/img/icon-yes.svg"/>
@@ -75,7 +68,7 @@
             </el-table-column>
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="showdetail(scope.$index, scope.row)">查看</el-button>
+                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
                     <el-button size="small" @click="handleSave(scope.$index, scope.row)">生成结果</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">测试报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
@@ -92,87 +85,114 @@
                            :page-count="total" style="float:right;">
             </el-pagination>
         </el-col>
+        <!--新增界面-->
+        <el-dialog title="查看" :visible.sync="editFormVisible" :close-on-click-modal="false"
+                   style="width: 100%; left: 5.5%">
 
-        <!--编辑界面-->
-        <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
-                   style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-form-item label="项目名称">
-                    <el-input v-model="editForm.name" auto-complete="off" :disabled="true"></el-input>
+
+                <el-form-item label="项目名称" prop="name">
+                    <el-select v-model="editForm.projectname" placeholder="请选择">
+                        <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                        <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="类型" prop='type'>
-                            <el-select v-model="editForm.type" placeholder="请选择">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                           :value="item.value">
-                                </el-option>
+                        <el-form-item label="服务器" prop='server'>
+                            <el-select v-model="editForm.loadserver" placeholder="请选择服务器" @click.native="gethost()">
+                                <el-option
+                                        v-for="(item,index) in tags"
+                                        :key="item.host"
+                                        :label="item.name"
+                                        :value="item.host"
+                                />
                             </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="版本号">
-                            <el-input v-model="editForm.version" :disabled="true" auto-complete="off"></el-input>
+                        <el-form-item label="版本" prop='version'>
+                            <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="项目开始时间">
-                            <el-date-picker v-model="editForm.start_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="接口提测时间" prop='api_date'>
-                            <el-date-picker v-model="editForm.api_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="APP提测时间" prop="app_date">
-                            <el-date-picker v-model="editForm.app_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="接口上线时间" prop='api_online_date'>
-                            <el-date-picker v-model="editForm.api_online_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="发布日期" prop="end_date">
-                            <el-date-picker v-model="editForm.end_date" type="datetime"
-                                          value-format="yyyy-MM-dd HH:mm:ss"  placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="项目状态" prop='projectstatus'>
-                            <el-select v-model="editForm.projectstatus" placeholder="请选择">
-                                <el-option key="未开发" label="未开发" value="未开发"></el-option>
-                                <el-option key="开发中" label="开发中" value="开发中"></el-option>
-                                <el-option key="接口测试" label="接口测试" value="接口测试"></el-option>
-                                <el-option key="功能测试" label="功能测试" value="功能测试"></el-option>
-                                <el-option key="灰度测试" label="灰度测试" value="灰度测试"></el-option>
-                                <el-option key="已上线" label="已上线" value="已上线"></el-option>
+                        <el-form-item label="模型" prop='testdata'>
+                            <el-select v-model="editForm.testdata" multiple placeholder="请选择">
+                                <el-option key="brainct" label="Brainct" value="brainct"></el-option>
+                                <el-option key="Brainmri" label="Brainmri" value="Brainmri"></el-option>
+                                <el-option key="aicardiomodel" label="aicardiomodel" value="aicardiomodel"></el-option>
+                                <el-option key="archcta" label="archcta" value="archcta"></el-option>
+                                <el-option key="brainctp" label="brainctp" value="brainctp"></el-option>
+                                <el-option key="breastmri" label="breastmri" value="breastmri"></el-option>
+                                <el-option key="corocta" label="corocta" value="corocta"></el-option>
+                                <el-option key="headcta" label="headcta" value="headcta"></el-option>
+                                <el-option key="lungct_v2" label="lungct_v2" value="lungct_v2"></el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="时长" prop='loop_time'>
+                            <el-input v-model.trim="editForm.loop_time" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="线程数" prop='thread'>
+                            <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5000"
+                                             label="线程数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="循环次数" prop='loop_count'>
+                            <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="并发数" prop='synchroniz'>
+                            <el-input-number v-model="editForm.synchroniz" @change="handleChange" :min="0" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="ramp" prop='ramp'>
+                            <el-input-number v-model="editForm.ramp" @change="handleChange" :min="0" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="5">
+                        <el-form-item label="dicom发送" prop="switch">
+                            <el-switch v-model="editForm.switch" active-color="#13ce66"
+                                       inactive-color="#ff4949"></el-switch>
+                        </el-form-item>
+                    </el-col>
+                    <el-row>
+                        <el-upload
+                                class="upload-demo"
+                                drag
+                                action="https://jsonplaceholder.typicode.com/posts/"
+                                multiple>
+                            <i class="el-icon-upload"></i>
+                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                            <div class="el-upload__tip" slot="tip">只能上传jmx文件</div>
+
+                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">
+                                上传到服务器
+                            </el-button>
+                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                        </el-upload>
+                    </el-row>
 
                 </el-row>
-
-                <el-form-item label="描述" prop='description'>
-                    <el-input type="textarea" :rows="6" v-model="editForm.description"></el-input>
-                </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
             </div>
         </el-dialog>
 
@@ -181,77 +201,80 @@
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-form-item label="项目名称" prop="name">
-                     <el-select v-model="addForm.name" placeholder="请选择" >
-                            <el-option key="Boimind" label="Boimind" value="Boimind"></el-option>
-                     </el-select>
+                    <el-select v-model="addForm.name" placeholder="请选择">
+                        <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                        <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                    </el-select>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.server"  placeholder="请选择服务器" @click.native="gethost()">
-                              <el-option
-                                v-for="(item,index) in tags"
-                                :key="item.host"
-                                :label="item.name"
-                                :value="item.host"
-                              />
+                            <el-select v-model="addForm.server" placeholder="请选择服务器" @click.native="gethost()">
+                                <el-option
+                                        v-for="(item,index) in tags"
+                                        :key="item.host"
+                                        :label="item.name"
+                                        :value="item.host"
+                                />
                             </el-select>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="版本号" prop='version'>
+                        <el-form-item label="版本" prop='version'>
                             <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="压测时长" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="线程数" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="循环次数" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="并发数" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="发布日期" prop="end_date">
-                            <el-date-picker v-model="addForm.end_date" type="datetime"
-                                          value-format="yyyy-MM-dd HH:mm:ss"  placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="项目状态" prop='projectstatus'>
-                            <el-select v-model="addForm.projectstatus" placeholder="请选择">
-                                <el-option key="未开发" label="未开发" value="未开发"></el-option>
-                                <el-option key="开发中" label="开发中" value="开发中"></el-option>
-                                <el-option key="接口测试" label="接口测试" value="接口测试"></el-option>
-                                <el-option key="功能测试" label="功能测试" value="功能测试"></el-option>
-                                <el-option key="灰度测试" label="灰度测试" value="灰度测试"></el-option>
-                                <el-option key="已上线" label="已上线" value="已上线"></el-option>
+                        <el-form-item label="模型" prop='testdata'>
+                            <el-select v-model="addForm.testdata" multiple placeholder="请选择">
+                                <el-option key="brainct" label="Brainct" value="brainct"></el-option>
+                                <el-option key="Brainmri" label="Brainmri" value="Brainmri"></el-option>
+                                <el-option key="aicardiomodel" label="aicardiomodel" value="aicardiomodel"></el-option>
+                                <el-option key="archcta" label="archcta" value="archcta"></el-option>
+                                <el-option key="brainctp" label="brainctp" value="brainctp"></el-option>
+                                <el-option key="breastmri" label="breastmri" value="breastmri"></el-option>
+                                <el-option key="corocta" label="corocta" value="corocta"></el-option>
+                                <el-option key="headcta" label="headcta" value="headcta"></el-option>
+                                <el-option key="lungct_v2" label="lungct_v2" value="lungct_v2"></el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
-
+                    <el-col :span="12">
+                        <el-form-item label="时长" prop='loop_time'>
+                            <el-input v-model.trim="addForm.loop_time" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
                 </el-row>
-                <el-form-item label="描述" prop='description'>
-                    <el-input type="textarea" :rows="6" v-model="addForm.description"></el-input>
-                </el-form-item>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="线程数" prop='thread'>
+                            <el-input-number v-model="addForm.thread" @change="handleChange" :min="1" :max="5000"
+                                             label="线程数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="循环次数" prop='loop_count'>
+                            <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="并发数" prop='synchroniz'>
+                            <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="ramp" prop='ramp'>
+                            <el-input-number v-model="addForm.ramp" @change="handleChange" :min="0" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
@@ -264,8 +287,8 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        stresslist, delProject, disableProject, enableProject,
-        updateProject, addProject,stresssave
+        stresslist, delStress, disableStress, enableStress,
+        updateStress, addStress, stresssave, getHost
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -293,8 +316,8 @@
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
                     version: [
-                        {  required: true, message: '请输入版本号', trigger: 'change' },
-                        {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
+                        {required: true, message: '请输入版本号', trigger: 'change'},
+                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ],
                     description: [
                         {required: false, message: '请输入描述', trigger: 'blur'},
@@ -306,7 +329,7 @@
                     name: '',
                     version: '',
                     type: '',
-                    description: ''
+                    thread: 1
                 },
 
                 addFormVisible: false,//新增界面是否显示
@@ -316,36 +339,56 @@
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
-                    type: [
-                        {required: true, message: '请选择类型', trigger: 'blur'}
+                    testdata: [
+                        {required: true, message: '请选择模型类型', trigger: 'blur'}
                     ],
                     version: [
-                        {  required: true, message: '请输入版本号', trigger: 'change' },
-                        {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
+                        {required: true, message: '请输入版本号', trigger: 'change'},
+                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //新增界面数据
                 addForm: {
-                    name: '',
+                    name: '晨曦',
+                    server: '192.168.1.208',
                     version: '',
                     type: '',
-                    description: ''
                 }
-
             }
         },
         methods: {
             //展示风险项
-            showdetail(index,row){
-             this.$router.push({
-                    path:'/stressdetail',
-                    query:{
-                        id:row.id,
-                        name:row.name
+            showdetail(index, row) {
+                this.$router.push({
+                    path: '/stressdetail',
+                    query: {
+                        id: row.id,
+                        name: row.name
                     }
                 });
             },
-
+            // 获取host数据列表
+            gethost() {
+                this.listLoading = true
+                let self = this;
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getHost(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        this.total = data.total
+                        this.list = data.data
+                        var json = JSON.stringify(this.list)
+                        this.tags = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             // 获取项目列表
             stresslistList() {
                 this.listLoading = true;
@@ -353,7 +396,7 @@
                 let params = {
                     page: self.page,
                     name: self.filters.name,
-                    type:""
+                    type: ""
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 stresslist(headers, params).then((res) => {
@@ -432,6 +475,9 @@
                     });
                 })
             },
+            handleChange(value) {
+                console.log(value);
+            },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
                 let self = this;
@@ -491,18 +537,14 @@
             //显示新增界面
             handleAdd: function () {
                 this.addFormVisible = true;
-                this.addForm={
-                    version:null,
-                    name:null,
-                    status:null,
-                    start_date:null,
-                    api_date:null,
-                    app_date:null,
-                    api_online_date:null,
-                    end_date:null,
-                    type:null,
-                    projectstatus:null,
-                    description:null
+                this.addForm = {
+                    version: null,
+                    name: "晨曦",
+                    server: '192.168.1.208',
+                    thread: 1,
+                    synchroniz: 0,
+                    ramp: 0,
+                    loop_count: 1
                 };
             },
             //编辑
@@ -567,22 +609,22 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                name: self.addForm.name,
-                                type: self.addForm.type,
+                                projectname: self.addForm.name,
+                                loadserver: self.addForm.server,
                                 version: self.addForm.version,
-                                description: self.addForm.description,
-                                start_date: this.addForm.start_date,
-                                api_date: this.addForm.api_date,
-                                app_date: this.addForm.app_date,
-                                api_online_date: this.addForm.api_online_date,
-                                end_date: this.addForm.end_date,
-                                projectstatus: this.addForm.projectstatus,
+                                testdata: self.addForm.testdata,
+                                thread: this.addForm.thread,
+                                synchroniz: this.addForm.synchroniz,
+                                ramp: this.addForm.ramp,
+                                loop_count: this.addForm.loop_count,
+                                loop_time: this.addForm.loop_time,
+                                status: true,
                             });
                             let header = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            addProject(header, params).then(_data => {
+                            addStress(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.addLoading = false;
                                 if (code === '0') {

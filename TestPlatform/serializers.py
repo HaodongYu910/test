@@ -698,7 +698,7 @@ class base_data_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = base_data
-        fields = ('id', 'content', 'type','select_type','status','remarks','other','update_time', 'create_time')
+        fields = ('id', 'content', 'type','select_type','status','predictor','remarks','other','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -721,7 +721,7 @@ class base_data_Deserializer(serializers.ModelSerializer):
         fields = ('content', 'type', 'select_type','status','remarks','other')
 
 
-class stressrecord_Serializer(serializers.ModelSerializer):
+class stress_Serializer(serializers.ModelSerializer):
     """
     性能测试记录表序列化
      """
@@ -742,7 +742,7 @@ class stressrecord_Serializer(serializers.ModelSerializer):
         return obj.member_project.all().count()
 
 
-class stressrecord_Deserializer(serializers.ModelSerializer):
+class stress_Deserializer(serializers.ModelSerializer):
     """
     性能测试记录表反序列化
     """

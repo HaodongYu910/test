@@ -55,15 +55,14 @@ def delreport(kc, studyinstanceuid):
 # 压测循环
 def sequence(orthanc_ip, diseases, count):
     server = orthanc_ip
+
     start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = stress_record.objects.filter()
+
     info = {}
     for k in stressdata:
         delreport(kc, k.studyuid)
-        info[k.slicenumber] = 0
-        if info[k.slicenumber] == int(count):
-            continue
         graphql_query = '{ ' \
                         'ai_biomind(' \
                         'block : false' \
@@ -81,7 +80,7 @@ def sequence(orthanc_ip, diseases, count):
                                                                     '}'
 
         graphql_Interface(graphql_query, kc)
-        info[k.slicenumber] = info[k.slicenumber] + 1
+        # info[k.slicenumber] = info[k.slicenumber] + 1
 
 # 生成自动预测测试数据
 def stresscache(stressid):
@@ -91,17 +90,20 @@ def stresscache(stressid):
     for i in data.split(","):
         diseases = i[1:-1]
         # 查询预测成功的数据 作为压测数据
-        sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format('lung')
+        sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format(diseases)
+        # sql = 'select DISTINCT studyinstanceuid from study_view where patientid  like  \'%Breast%\'';
+
         results = connect_to_postgres(obj.loadserver, sql).to_dict(orient='records')
 
         for j in results:
             logger.info(j['studyuid'])
-            graphql_query, imagecount, slicenumber = voteData(j['studyuid'], obj.loadserver, diseases)
+            graphql_query, imagecount, slicenumber=None,None,None
+            # graphql_query, imagecount, slicenumber = voteData(j['studyuid'], obj.loadserver, diseases)
             data = {"stressid": stressid,
                     "studyuid": j['studyuid'],
                     "imagecount": imagecount,
                     "slicenumber": slicenumber,
-                    "diseases": diseases,
+                    "diseases": 'Heart',
                     "graphql": graphql_query
                     }
             stress_record.objects.create(**data)

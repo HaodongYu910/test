@@ -48,7 +48,7 @@ def voteData(uid,orthanc_ip,diseases):
                 SeriesInstanceUID=str(i['SeriesInstanceUID'])
     vote = "{"+vote+"}"
     try:
-        if diseases in ['Lung', 'CTA', 'CTP', 'coronary']:
+        if diseases in ['brainctp', 'corocta', 'archcta', 'headcta','lungct_v2']:
             imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
         else:
             imagecount, slicenumber =None,None
