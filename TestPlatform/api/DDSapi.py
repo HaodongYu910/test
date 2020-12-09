@@ -22,7 +22,7 @@ class ddsData(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
-        hostid = int(request.GET.get("id"))
+        ddsHostID = int(request.GET.get("id"))
         datalist = {}
 
         # 判断是否有查询时间

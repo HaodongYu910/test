@@ -56,7 +56,7 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
                 ds.save_as(full_fn_fake)
-                a = "success msg from backend"
+                a = "success"
                 return a
             except Exception as e:
                 logging.info(
