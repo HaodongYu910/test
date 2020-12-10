@@ -997,8 +997,8 @@ class interface(models.Model):
           Interface表
         """
     id = models.AutoField(primary_key=True)
-    interfacename = models.CharField(max_length=10, blank=True, null=True, verbose_name="接口名")
-    json = models.CharField(max_length=500, blank=True, null=True, verbose_name="json")
+    interfacename = models.CharField(max_length=50, blank=True, null=True, verbose_name="接口名")
+    json = models.CharField(max_length=2500, blank=True, null=True, verbose_name="json")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
 
@@ -1010,6 +1010,27 @@ class interface(models.Model):
         verbose_name = "Interface表"
         verbose_name_plural = "Interface表"
         db_table = 'interface'
+
+class dictionary(models.Model):
+    """
+          dictionary 表
+        """
+    id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=50, blank=True, null=True, verbose_name="key")
+    value = models.CharField(max_length=2500, blank=True, null=True, verbose_name="value")
+    remarks = models.CharField(max_length=500, blank=True, null=True, verbose_name="说明")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dictionary表"
+        verbose_name_plural = "dictionary表"
+        db_table = 'dictionary'
+
 
 class dds_host(models.Model):
     """

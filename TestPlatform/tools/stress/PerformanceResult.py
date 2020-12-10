@@ -84,14 +84,11 @@ def resultsave(server, sql, version, type):
             stressserializer.save()
 
 # 数据比较检查
-def dataCheck(datadict1, datadict2):
-    _dict1 = stress_result_Deserializer(datadict1, many=True)
-    _dict2 = stress_result_Deserializer(datadict2, many=True)
-    dict1 = _dict1.data
-    dict2 = _dict2.data
-    for i in dict1:
-        print(i)
-        for j in dict2:
+def dataCheck(dataA, dataB):
+    dictA = stress_result_Deserializer(dataA, many=True).data
+    dictB = stress_result_Deserializer(dataB, many=True).data
+    for i in dictA:
+        for j in dictB:
             if i['slicenumber'] is None:
                 a = i['modelname']
                 b = j['modelname']
@@ -110,7 +107,10 @@ def dataCheck(datadict1, datadict2):
                     else:
                         i[x] = str(i[x]) + " (" + str(
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"
-    return dict1
+            else:
+                continue
+    return dictA
+
 
 # 预测数据保存
 def savecheck(sqltable, checkdate, server, version):

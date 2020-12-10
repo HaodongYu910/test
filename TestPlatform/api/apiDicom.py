@@ -494,10 +494,11 @@ class SomkeTest(APIView):
                 for i in obj:ids.append(i.id)
                 dicomobj = dicom.objects.filter(fileid__in=ids)
                 for j in dicomobj:ides.append(j.id)
-                thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(data["version"], data["server_ip"],ides))
-                # 启动线程
-                thread_fake_folder.start()
+                goldSmoke(data["version"], data["server_ip"],ides)
+                # thread_fake_folder = threading.Thread(target=goldSmoke,
+                #                                       args=(data["version"], data["server_ip"],ides))
+                # # 启动线程
+                # thread_fake_folder.start()
             except Exception as e:
                 logger.error(e)
                 return JsonResponse(msg="执行失败", code="999991", exception=e)

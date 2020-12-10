@@ -4,7 +4,7 @@ import stressDetail from "../components/stress/stressDetail";
 
 
 
-//export const test = 'http://127.0.0.1:8000';
+// export const test = 'http://127.0.0.1:8000';
 
 export const test = 'http://192.168.1.121:9000';
 
@@ -242,11 +242,11 @@ export const delStress = (headers, params) => {
 }
 //压测详情
 export const StressDetail = (headers, params) => {
-  return axios.get(`${test}/api/stress/stressDetail `, { params: params }, headers).then(res => res.data)
+  return axios.get(`${test}/api/stress/Detail `, { params: params }, headers).then(res => res.data)
 }
 // 手动调用压测脚本
 export const stressTool = (headers, params) => {
-  return axios.post(`${test}/api/stress/stresstool`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/tool`, params, headers).then(res => res.data)
 }
 // 压测数据
 export const getVersion = (headers, params) => {
@@ -254,7 +254,7 @@ export const getVersion = (headers, params) => {
 }
 // 生成压测结果
 export const stresssave = (headers, params) => {
-  return axios.post(`${test}/api/stress/stresssave`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/save`, params, headers).then(res => res.data)
 }
 // 删除压测数据
 export const deldicomdata = (headers, params) => {
@@ -291,11 +291,11 @@ export const getstressversion = (headers, params) => {
 }
 // 压测结果
 export const getstressresult = (headers, params) => {
-  return axios.post(`${test}/api/stress/stressresult`,params, headers ).then(res => res.data)
+  return axios.post(`${test}/api/stress/result`,params, headers ).then(res => res.data)
 }
 // 压测report
 export const getreportfigure = (headers, params) => {
-  return axios.post(`${test}/api/stress/stressfigure`,params, headers ).then(res => res.data)
+  return axios.post(`${test}/api/stress/figure`,params, headers ).then(res => res.data)
 }
 // 删除patient数据
 export const delete_patients = (headers, params) => {

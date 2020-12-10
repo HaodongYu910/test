@@ -173,9 +173,9 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <intProp name="LoopController.loops">-1</intProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">1</stringProp>
+        <stringProp name="ThreadGroup.num_threads">2</stringProp>
         <stringProp name="ThreadGroup.ramp_time">0</stringProp>
-        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration">44000</stringProp>
         <stringProp name="ThreadGroup.delay"></stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -381,9 +381,9 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <boolProp name="LoopController.continue_forever">false</boolProp>
           <intProp name="LoopController.loops">-1</intProp>
         </elementProp>
-        <stringProp name="ThreadGroup.num_threads">${__P(Athread,)}</stringProp>
+        <stringProp name="ThreadGroup.num_threads">5</stringProp>
         <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">false</boolProp>
         <stringProp name="ThreadGroup.duration">36000</stringProp>
         <stringProp name="ThreadGroup.delay">600</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -448,11 +448,6 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <boolProp name="stopThread">false</boolProp>
           <stringProp name="variableNames">Prediction,diseases</stringProp>
         </CSVDataSet>
-        <hashTree/>
-        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="false">
-          <stringProp name="groupSize">${synchroniz}</stringProp>
-          <longProp name="timeoutInMs">0</longProp>
-        </SyncTimer>
         <hashTree/>
         <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="basicVesselLoadImages" enabled="false">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
@@ -531,6 +526,11 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="LoopController.loops">10</stringProp>
         </LoopController>
         <hashTree>
+          <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+            <intProp name="groupSize">5</intProp>
+            <longProp name="timeoutInMs">0</longProp>
+          </SyncTimer>
+          <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadimage" enabled="true">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
               <collectionProp name="Arguments.arguments"/>
@@ -539,7 +539,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <stringProp name="HTTPSampler.port"></stringProp>
             <stringProp name="HTTPSampler.protocol">https</stringProp>
             <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/f5aaf501-dbb2cb2e-57d04a02-f14631f8-cfd6764d/0/high-quality</stringProp>
+            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/97a6ba1b-90e0b5e6-f4ca22af-d5294cdf-26c2649a/0/high-quality</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
