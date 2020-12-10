@@ -279,40 +279,20 @@ class stressResult(APIView):
             return result
 
         try:
-            obj = stress.objects.get(version=data['version'])
-            if obj.projectname =="晨曦":
-                prediction = stress_result.objects.filter(version=data['version'], type='prediction')
-                job = stress_result.objects.filter(version=data['version'], type='job')
-                lung_prediction = stress_result.objects.filter(version=data['version'], type='lung_prediction')
-                lung_job = stress_result.objects.filter(version=data['version'], type='lung_job')
+            prediction = stress_result.objects.filter(version=data['version'], type__in=['prediction','lung_prediction'])
+            job = stress_result.objects.filter(version=data['version'], type__in=['job','lung_job'])
 
-                predictionb = stress_result.objects.filter(version=data['checkversion'], type='prediction')
-                jobb = stress_result.objects.filter(version=data['checkversion'], type='job')
-                lung_predictionb = stress_result.objects.filter(version=data['checkversion'], type='lung')
-                lung_jobb = stress_result.objects.filter(version=data['checkversion'], type='lung_job')
-                predictionresult = dataCheck(prediction, predictionb)
-                jobresult = dataCheck(job, jobb)
-                lungresult = dataCheck(lung_prediction, lung_predictionb)
-                lungjob = dataCheck(lung_job, lung_jobb)
-                return JsonResponse(data={"predictionresult": predictionresult,
+            predictionb = stress_result.objects.filter(version=data['checkversion'], type__in=['prediction','lung_prediction'])
+            jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job','lung_job'])
+
+            predictionresult = dataCheck(prediction, predictionb)
+            jobresult = dataCheck(job, jobb)
+            diffresult = dataCheck(job,prediction)
+            return JsonResponse(data={"predictionresult": predictionresult,
                                               "jobresult": jobresult,
-                                              "lungresult": lungresult,
-                                              "lungjob": lungjob
+                                              "diffresult":diffresult
                                               }, code="0", msg="成功")
-            elif obj.projectname =="肺炎":
-                lung_prediction = stress_result.objects.filter(version=data['version'], type='lung_prediction')
-                lung_job = stress_result.objects.filter(version=data['version'], type='lung_job')
 
-                lung_predictionb = stress_result.objects.filter(version=data['checkversion'], type='lung_prediction')
-                lung_jobb = stress_result.objects.filter(version=data['checkversion'], type='lung_job')
-                prediction = dataCheck(lung_prediction, lung_predictionb)
-                job = dataCheck(lung_job, lung_jobb)
-
-                return JsonResponse(data={"predictionresult":prediction,
-                                      "jobresult": job,
-                                      "lungresult": prediction,
-                                      "lungjob": job
-                                      }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
 
@@ -552,7 +532,7 @@ class stressList(APIView):
         if version:
             obi = stress.objects.filter(version=version,status=True).order_by("-id")
         else:
-            obi = stress.objects.filter(status=True).order_by("-id")
+            obi = stress.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数

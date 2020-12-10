@@ -5,7 +5,8 @@ from TestPlatform.models import dicom,base_data
 from ...utils.graphql.graphql import *
 from ..dicom.SendDicom import Send
 from ...serializers import dicomrecord_Serializer,dicomrecord_Deserializer
-from ...models import dicom_record
+from ...models import dicom_record,dictionary
+from ...tools.orthanc.deletepatients import delete_patients_duration
 from django.db import transaction
 import os
 
@@ -58,7 +59,7 @@ def goldSmoke(version, server_ip, ids):
             if len(result_db) == 0:
                 s=Send(server_ip,obj.route)
             elif len(result_db) > 2:
-                delreport(server_ip, [i])
+                delete_patients_duration([i], server_ip,'StudyInstanceUID', False)
                 s=Send(server_ip,obj.route)
 
             graphql_query = "{ ai_biomind (" \
