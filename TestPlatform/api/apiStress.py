@@ -8,15 +8,16 @@ from rest_framework.views import APIView
 import shutil,threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress,dicom, base_data, pid, GlobalHost
+from TestPlatform.models import stress,dictionary
 from TestPlatform.serializers import stress_Deserializer, \
-    dicomdata_Deserializer, duration_Deserializer,stress_Deserializer
+    dicomdata_Deserializer, stress_Deserializer,stress_Deserializer
 from ..tools.stress.stress import *
 from ..tools.stress.stresstest import stressT,lungSlice
 from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.duration_verify import *
 from ..tools.stress.stresstest import updateStressData
 from ..tools.stress.PerformanceResult import *
+import csv, os
+import pandas as pd
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -202,52 +203,6 @@ class addData(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-# 修改压力测试
-class updateStress(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 key, server_ip , type
-            if not data["duration"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        send数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        try:
-            obj = duration.objects.get(id=data["id"])
-            data['duration'] = ','.join(data['duration'])
-            keyword = duration.objects.filter(keyword=data["keyword"])
-            if len(keyword):
-                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
-            else:
-                serializer = duration_Deserializer(data=data)
-                with transaction.atomic():
-                    if serializer.is_valid():
-                        # 修改数据
-                        serializer.update(instance=obj, validated_data=data)
-                return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
-
-
 # 压测结果返回接口
 class stressResult(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -354,7 +309,7 @@ class stressRun(APIView):
         """
         try:
             # 必传参数 loadserver, dicom, loop_time
-            if not data["ip"]:
+            if not data["id"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
 
         except KeyError:
@@ -371,44 +326,13 @@ class stressRun(APIView):
         if result:
             return result
         try:
-            sequence(data['ip'], data['diseases'],data['count'] )
-
-            # testdata = data["testdata"]
-            # # 查找是否相同版本号的测试记录
-            # stress_version = stress.objects.filter(version=data["version"])
-            # if len(stress_version):
-            #     return JsonResponse(code="999997", msg="存在相同版本号的测试记录")
-            # else:
-            #     if data['switch'] is True:
-            #         for j in testdata:
-            #             dicom = base_data.objects.get(remarks=j)
-            #             folder = dicom.content
-            #             cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-            #                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/apiStress.py '
-            #                    '--ip {0} --aet {1} '
-            #                    '--port {2} '
-            #                    '--keyword {3} '
-            #                    '--dicomfolder {4} '
-            #                    '--diseases {5} '
-            #                    '--end {6} > /home/biomind/Biomind_Test_Platform/logs/stress{7}.log 2&>1 &').format(data['loadserver'],'orthanc208', '4242','stress', folder, j,
-            #                                          data['loop_time'],j)
-            #             logger.info(cmd)
-            #             os.system(cmd)
-            #             time.sleep(1)
-            #     try:
-            #         stress(data["loadserver"], testdata,data["version"],data["thread"],data["loop"],data["synchronizing"],0,'23400')
-            #     except Exception as e:
-            #         logger.error(e)
-            #         return JsonResponse(msg="jmeter执行失败", code="999991", exception=e)
-            #     data['testdata'] = str(testdata)
-            #     data['start_date'] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            #     data['end_date'] = (datetime.datetime.now() + datetime.timedelta(hours=int(data["loop_time"]))).strftime(
-            #         "%Y-%m-%d %H:%M:%S")
-            #     stressserializer = stress_Deserializer(data=data)
-            #     with transaction.atomic():
-            #         stressserializer.is_valid()
-            #         stressserializer.save()
-            return JsonResponse(code="0", msg="成功")
+            obj = stress.objects.get(id =data['id'])
+            print(data['type'])
+            if data['type'] is True:
+                Manual(obj.loadserver, data['diseases'],data['count'] )
+            else:
+                AutoPrediction(data['ip'], data['diseases'],data['count'] )
+            return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -498,19 +422,19 @@ class getStressdata(APIView):
         :param request:
         :return:
         """
-        obi = duration.objects.all().order_by("server")
-        durationdata = duration_Serializer(obi, many=True)
-        du = durationdata.data
+        obi = stress.objects.all().order_by("server")
+        stressdata = stress_Deserializer(obi, many=True)
+        du = stressdata.data
         for i in du:
-            obj = duration_record.objects.filter(duration_id=i["id"],
+            obj = stress_record.objects.filter(stress_id=i["id"],
                                                  create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
 
-        return JsonResponse(data={"data": durationdata.data
+        return JsonResponse(data={"data": stressdata.data
                                   }, code="0", msg="成功")
 
 
-# 获取
+# 获取压测列表
 class stressList(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -543,7 +467,14 @@ class stressList(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = stress_Deserializer(obm, many=True)
-        return JsonResponse(data={"data": serialize.data,
+        for i in serialize.data:
+            model = ''
+            # id 转换成病种文案
+            for j in i["testdata"].split(","):
+                obj = dictionary.objects.get(id=j)
+                model = model + obj.value + ","
+            i["testdata"] = model
+        return JsonResponse(data={"data":serialize.data,
                                   "page": page,
                                   "total": total,
                                   "count": count
@@ -585,7 +516,7 @@ class addStress(APIView):
         try:
             # 必传参数 key, server_ip , type
             if not data["testdata"] or not data["loadserver"]or not data["version"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration, loadserver！")
+                return JsonResponse(code="999996", msg="参数有误,必传参数 stress, loadserver！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -601,7 +532,7 @@ class addStress(APIView):
         if result:
             return result
         try:
-            data["testdata"] =str(data["testdata"])
+            data["testdata"] =str(data["testdata"])[1:-1]
             Stressadd = stress_Deserializer(data=data)
 
             with transaction.atomic():
@@ -612,7 +543,7 @@ class addStress(APIView):
             return JsonResponse(code="999995", msg="{0}".format(e))
 
 
-# 修改duration
+# 修改压测信息
 class updateStress(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -625,8 +556,8 @@ class updateStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["duration"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 duration！")
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 id！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -642,22 +573,14 @@ class updateStress(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
-            obj = duration.objects.get(id=data["id"])
-            data['duration'] = ','.join(data['duration'])
-            keyword = duration.objects.filter(keyword=data["keyword"])
-            if len(keyword):
-                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
-            else:
-                serializer = duration_Deserializer(data=data)
-                with transaction.atomic():
-                    if serializer.is_valid():
-                        # 修改数据
-                        serializer.update(instance=obj, validated_data=data)
-                return JsonResponse(code="0", msg="成功")
+            data["testdata"] =str(data["testdata"])[1:-1]
+            obj = stress.objects.get(id=data["id"])
+            serializer = stress_Deserializer(data=data)
+            with transaction.atomic():
+                if serializer.is_valid():
+                    # 修改数据
+                    serializer.update(instance=obj, validated_data=data)
+            return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
@@ -681,7 +604,7 @@ class DisableStress(APIView):
 
     def post(self, request):
         """
-        禁用dicom 发送
+        禁用项目
         :param request:
         :return:
         """
@@ -689,25 +612,14 @@ class DisableStress(APIView):
         result = self.parameter_check(data)
         if result:
             return result
+        # 查找是否存在
         try:
-            # 查找pid
-            obj = pid.objects.filter(durationid=data["id"])
-            okj = duration.objects.get(id=data["id"])
-            folder_fake = "{0}/{1}".format('/files/logs', str(okj.keyword))
-            for i in obj:
-                cmd = 'kill -9 {0}'.format(int(i.pid))
-                logger.info(cmd)
-                os.system(cmd)
-                i.delete()
-                time.sleep(1)
-            if os.path.exists(folder_fake):
-                shutil.rmtree(folder_fake)
-            okj.sendstatus = False
-            okj.save()
-
+            obj = stress.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="无法正常关闭！")
+            return JsonResponse(code="999995", msg="不存在！")
 
 
 class EnableStress(APIView):
@@ -721,7 +633,7 @@ class EnableStress(APIView):
         :return:
         """
         try:
-            # 校验id类型为int
+            # 校验project_id类型为int
             if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
@@ -729,7 +641,7 @@ class EnableStress(APIView):
 
     def post(self, request):
         """
-        启用dicom 发送
+        启用项目
         :param request:
         :return:
         """
@@ -737,69 +649,16 @@ class EnableStress(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        # 查找id是否存在
+        # 查找项目是否存在
         try:
-            durationid = data["id"]
-            obj = duration.objects.get(id=durationid)
-            sleepcount=  obj.sleepcount if obj.sleepcount is not None else 9999
-            sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
-
-            if obj.sendcount is None and obj.end is None:
-                start = 0
-                end = 1
-            elif obj.sendcount is None and obj.end is not None:
-                start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end))).strftime(
-                    "%Y-%m-%d %H:%M:%S")
-            else:
-                start = 0
-                min = 10000
-                sumdicom = 0
-                for j in obj.dicom.split(","):
-                    dicom = base_data.objects.get(remarks=j)
-                    if dicom.other is None:
-                        sumdicom = sumdicom
-                    else:
-                        if min > int(dicom.other):
-                            min = int(dicom.other)
-                        sumdicom = int(dicom.other) + sumdicom
-
-            for i in obj.dicom.split(","):
-                dicom = base_data.objects.get(remarks=i)
-                folder = dicom.content
-                if sumdicom:
-                    imod = divmod(int(obj.sendcount), sumdicom)
-                    imin = divmod(int(imod[1]), min)
-                    if int(imin[1]) < (int(imin[1]) / 2):
-                        mincount = int(imin[0]) + int(imod[0])
-                    else:
-                        mincount = int(imin[0]) + int(imod[0]) + 1
-                    end = mincount if int(dicom.other) == int(min) else imod[0]
-
-                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/dicomSend.py '
-                       '--ip {0} --aet {1} '
-                       '--port {2} '
-                       '--keyword {3} '
-                       '--dicomfolder {4} '
-                       '--durationid {5} '
-                       '--diseases {6} '
-                       '--start {7} '
-                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
-                                             start, end, sleepcount, sleeptime, obj.series)
-
-                       # '--sleepcount {9} '
-                       # '--sleeptime {10} '
-                       # '--series {11} &'
-                logger.info(cmd)
-                os.system(cmd)
-                time.sleep(1)
-
-            obj.sendstatus = True
+            obj = stress.objects.get(id=data["id"])
+            obj.status = True
             obj.save()
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="运行失败！")
+            return JsonResponse(code="999995", msg="不存在！")
+
 
 
 # 删除dicom 发送记录
@@ -836,7 +695,7 @@ class delStress(APIView):
         try:
             for i in data["ids"]:
                 try:
-                    obj = duration.objects.get(id=i)
+                    obj = stress.objects.get(id=i)
                     try:
                         obj.delete()
                     except ObjectDoesNotExist:

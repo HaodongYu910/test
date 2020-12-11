@@ -3,9 +3,10 @@
   "version": "4.0.0",
   "private": true,
   "scripts": {
-    "dev": "npm run serve",
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build"
+    "dev": "vue-cli-service serve --mode development",
+    "dev-prod": "vue-cli-service serve --mode development_prod",
+    "build-dev": "vue-cli-service build  --mode production_pre",
+    "build-prod": "vue-cli-service build --mode production"
   },
   "dependencies": {
     "axios": "^0.18.0",

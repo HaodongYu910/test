@@ -36,18 +36,18 @@ def voteData(uid,orthanc_ip,diseases):
                                                  "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
                                                      uid)).to_dict(orient='records')
 
+
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))
         return None,None,None
-
-    for key in pseries:
-        for i in Series:
-            if str(i['SeriesInstanceUID']) in str(pseries[key]):
-                vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
-                SeriesInstanceUID=str(i['SeriesInstanceUID'])
-    vote = "{"+vote+"}"
     try:
+        for key in pseries:
+            for i in Series:
+                if str(i['SeriesInstanceUID']) in str(pseries[key]):
+                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
+                    SeriesInstanceUID=str(i['SeriesInstanceUID'])
+        vote = "{"+vote+"}"
         if diseases in ['brainctp', 'corocta', 'archcta', 'headcta','lungct_v2']:
             imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
         else:

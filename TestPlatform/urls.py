@@ -15,6 +15,7 @@ from .api.apiStress import *
 from .api.user_permission import *
 from .api.stressReport import reportfigure
 from .api.apiDicom import *
+from .api.apiDictionary import *
 
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
@@ -119,8 +120,12 @@ urlpatterns = [
     url(r'stress/result', stressResult.as_view()),
     url(r'stress/figure', reportfigure.as_view()),
     url(r'stress/save', stressResultsave.as_view()),
-    url(r'stress/add', addStress.as_view()),
     url(r'stress/list', stressList.as_view()),
+    url(r'stress/add', addStress.as_view()),
+    url(r'stress/update', updateStress.as_view()),
+    url(r'stress/del', delStress.as_view()),
+    url(r'stress/disable', DisableStress.as_view()),
+    url(r'stress/enable', EnableStress.as_view()),
     url(r'stress/xxx', addStressData.as_view()),
     url(r'tool/dicomData', dicomData.as_view()),
     url(r'tool/dicomdetail', dicomDetail.as_view()),
@@ -141,6 +146,11 @@ urlpatterns = [
     url(r'tool/duration_verify', duration_verify.as_view()),
     url(r'tool/disable_duration', DisableDuration.as_view()),
     url(r'tool/enable_duration', EnableDuration.as_view()),
+    url(r'dictionary/list', getDictionary.as_view()),
+    url(r'dictionary/add', AddDictionary.as_view()),
+    url(r'dictionary/update', UpdateDictionary.as_view()),
+    url(r'dictionary/disable', DisableDictionary.as_view()),
+    url(r'dictionary/enable', EnableDictionary.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()) # 匿名化数据

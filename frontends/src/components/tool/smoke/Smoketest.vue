@@ -61,12 +61,17 @@
               <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="预测时间" min-width="8%" sortable>
+          <el-table-column label="预测状态" min-width="8%" sortable>
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.time }}</span>
+              <span style="margin-left: 10px">{{ scope.row.aistatus }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="slicenumber" min-width="8%" sortable>
+          <el-table-column label="预测时间" min-width="8%" sortable>
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.time }} 秒</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="slice" min-width="8%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
             </template>
@@ -222,7 +227,10 @@ export default {
         self.listLoading = false
         const { msg, code, data } = res
         if (code === '0') {
-          self.stresslist = data.data
+          self.$message.success({
+            message: "运行中！~~~~~",
+            center: true
+          })
         } else {
           self.$message.error({
             message: msg,

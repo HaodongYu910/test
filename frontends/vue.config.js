@@ -13,20 +13,20 @@ module.exports = {
                 }
             },*/
             '/api':{
-                //http://127.0.0.1:8000
-                target:'http://39.105.135.38:8000',
+                // 测试环境
+                target:'http://127.0.0.1:8000',
                 ws:true,
                 changeOrigin:true,
                 pathRewrite:{
                     '/api':''
                 }
             },
-            '/bishijie': {
-                target: "http://39.105.135.38:8000/api",
+            '/prod': {
+                target: "http://192.168.1.121:9000",
                 ws:true,
                 changOrigin:true,
                 pathRewrite:{
-                    '^/bishijie':'/'
+                    '^/api':'/'
                 }
             },
             '/ms':{

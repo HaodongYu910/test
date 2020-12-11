@@ -129,7 +129,7 @@ class somkeRecord(APIView):
 
     def get(self, request):
         """
-        获取dicom数据列表
+        获取冒烟数据显示数据列表
         :param request:
         :return:
         """
@@ -162,6 +162,16 @@ class somkeRecord(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = dicomrecord_Serializer(obm, many=True)
+        for i in serialize.data:
+            if i["aistatus"] in [2,3]:
+                i["aistatus"] =True
+            else:
+                i["aistatus"] =False
+            # 求预测时间
+            if i['completiontime'] is not None and i['starttime'] is not None:
+                completiontime = time.strptime(str(i['completiontime']), "%Y-%m-%d %H:%M:%S")
+                starttime = time.strptime(str(i['starttime']), "%Y-%m-%d %H:%M:%S")
+                i['time'] = int(time.mktime(completiontime)) - int(time.mktime(starttime))
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -494,11 +504,11 @@ class SomkeTest(APIView):
                 for i in obj:ids.append(i.id)
                 dicomobj = dicom.objects.filter(fileid__in=ids)
                 for j in dicomobj:ides.append(j.id)
-                goldSmoke(data["version"], data["server_ip"],ides)
-                # thread_fake_folder = threading.Thread(target=goldSmoke,
-                #                                       args=(data["version"], data["server_ip"],ides))
-                # # 启动线程
-                # thread_fake_folder.start()
+                # goldSmoke(data["version"], data["server_ip"],ides)
+                thread_fake_folder = threading.Thread(target=goldSmoke,
+                                                      args=(data["version"], data["server_ip"],ides))
+                # 启动线程
+                thread_fake_folder.start()
             except Exception as e:
                 logger.error(e)
                 return JsonResponse(msg="执行失败", code="999991", exception=e)

@@ -47,15 +47,11 @@ class getBase(APIView):
         status=request.GET.get("status")
         type = request.GET.get("type")
         remarks = request.GET.get("remarks")
-        if selecttype:
-            obi = base_data.objects.filter(select_type__contains=selecttype).order_by("remarks")
-        elif status:
-            obi = base_data.objects.filter(status=status).order_by("remarks")
-        elif type:
+        if type:
             if remarks:
-                obi = base_data.objects.filter(type=type,remarks=remarks).order_by("remarks")
+                obi = base_data.objects.filter(type=type,remarks=remarks,status=status).order_by("remarks")
             else:
-                obi = base_data.objects.filter(type=type).order_by("remarks")
+                obi = base_data.objects.filter(type=type,status=status).order_by("remarks")
         else:
             obi = base_data.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象

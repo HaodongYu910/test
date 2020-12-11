@@ -66,11 +66,11 @@
                     <img v-show="!scope.row.status" src="../../assets/img/icon-no.svg"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="50px">
+            <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
-                    <el-button size="small" @click="handleSave(scope.$index, scope.row)">生成结果</el-button>
-                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">测试报告</el-button>
+                    <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行</el-button>
+                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">测试报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -85,24 +85,33 @@
                            :page-count="total" style="float:right;">
             </el-pagination>
         </el-col>
-        <!--新增界面-->
-        <el-dialog title="查看" :visible.sync="editFormVisible" :close-on-click-modal="false"
+
+        <!--详细界面-->
+        <el-dialog :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 100%; left: 5.5%">
-
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-
-                <el-form-item label="项目名称" prop="name">
-                    <el-select v-model="editForm.projectname" placeholder="请选择">
-                        <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                        <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                    </el-select>
-                </el-form-item>
+                <el-divider>基本配置</el-divider>
+                <el-row>
+                <el-col :span="12">
+                    <el-form-item label="项目" prop="name">
+                        <el-select v-model="editForm.projectname" placeholder="请选择">
+                            <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                            <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="6">
+                    <el-form-item label="版本" prop='version'>
+                        <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
+                    </el-form-item>
+                </el-col>
+                    </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
                             <el-select v-model="editForm.loadserver" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
-                                        v-for="(item,index) in tags"
+                                        v-for="(item,index) in hosts"
                                         :key="item.host"
                                         :label="item.name"
                                         :value="item.host"
@@ -110,108 +119,117 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="版本" prop='version'>
-                            <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
+                    <el-col :span="6">
+                        <el-form-item label="时间" prop='loop_time'>
+                            <el-input v-model.trim="editForm.loop_time" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="editForm.testdata" multiple placeholder="请选择">
-                                <el-option key="brainct" label="Brainct" value="brainct"></el-option>
-                                <el-option key="Brainmri" label="Brainmri" value="Brainmri"></el-option>
-                                <el-option key="aicardiomodel" label="aicardiomodel" value="aicardiomodel"></el-option>
-                                <el-option key="archcta" label="archcta" value="archcta"></el-option>
-                                <el-option key="brainctp" label="brainctp" value="brainctp"></el-option>
-                                <el-option key="breastmri" label="breastmri" value="breastmri"></el-option>
-                                <el-option key="corocta" label="corocta" value="corocta"></el-option>
-                                <el-option key="headcta" label="headcta" value="headcta"></el-option>
-                                <el-option key="lungct_v2" label="lungct_v2" value="lungct_v2"></el-option>
+                            <el-select v-model="editForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                                <el-option v-for="(item,index) in model"
+                                           :key="item.id"
+                                           :label="item.value"
+                                           :value="item.id"
+                                />
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="时长" prop='loop_time'>
-                            <el-input v-model.trim="editForm.loop_time" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
                 </el-row>
-                <el-row>
-                    <el-col :span="12">
+                <el-divider>参数配置</el-divider>
+                <el-row :gutter="24">
+                    <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5000"
                                              label="线程数"></el-input-number>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="8">
                         <el-form-item label="循环次数" prop='loop_count'>
                             <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1" :max="5000"
                                              label="循环次数"></el-input-number>
                         </el-form-item>
                     </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
+                    <el-col :span="8">
                         <el-form-item label="并发数" prop='synchroniz'>
                             <el-input-number v-model="editForm.synchroniz" @change="handleChange" :min="0" :max="5000"
                                              label="循环次数"></el-input-number>
                         </el-form-item>
                     </el-col>
+                </el-row>
+                <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="ramp" prop='ramp'>
                             <el-input-number v-model="editForm.ramp" @change="handleChange" :min="0" :max="5000"
                                              label="循环次数"></el-input-number>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="5">
-                        <el-form-item label="dicom发送" prop="switch">
+                    <el-col :span="10">
+                        <el-form-item label="dicom" prop="switch">
                             <el-switch v-model="editForm.switch" active-color="#13ce66"
                                        inactive-color="#ff4949"></el-switch>
                         </el-form-item>
                     </el-col>
-                    <el-row>
-                        <el-upload
-                                class="upload-demo"
-                                drag
-                                action="https://jsonplaceholder.typicode.com/posts/"
-                                multiple>
-                            <i class="el-icon-upload"></i>
-                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                            <div class="el-upload__tip" slot="tip">只能上传jmx文件</div>
-
-                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">
-                                上传到服务器
-                            </el-button>
-                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-                        </el-upload>
-                    </el-row>
-
                 </el-row>
+                <el-row>
+                    <el-divider>文件上传</el-divider>
+                    <el-upload
+                            class="upload-demo"
+                            drag
+                            action="/api/posts/"
+                            multiple>
+                        <i class="el-icon-upload"></i>
+                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
+
+                        <!--                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">-->
+                        <!--                                上传到服务器-->
+                        <!--                            </el-button>-->
+                    </el-upload>
+                </el-row>
+                <el-divider>-</el-divider>
+                <el-row>
+                        <el-form-item label="基准测试" prop="switch">
+                            <el-switch v-model="editForm.type" active-color="#13ce66"
+                                       inactive-color="#ff4949"></el-switch>
+                        </el-form-item>
+                    </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button @click.native="editFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
+                <el-button @click.native="editFormVisible = false">关闭</el-button>
+                <el-button type="primary" @click.native="run" :loading="editLoading">运行</el-button>
+                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">修改</el-button>
             </div>
         </el-dialog>
 
         <!--新增界面-->
-        <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
+        <el-dialog title="新增测试" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-form-item label="项目名称" prop="name">
-                    <el-select v-model="addForm.name" placeholder="请选择">
-                        <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                        <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                    </el-select>
-                </el-form-item>
+                <el-divider>基本配置</el-divider>
+                <el-row>
+                <el-col :span="12">
+                    <el-form-item label="项目" prop="name">
+                        <el-select v-model="addForm.projectname" placeholder="请选择">
+                            <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                            <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                        </el-select>
+                    </el-form-item>
+                </el-col>
+                <el-col :span="8">
+                    <el-form-item label="版本" prop='version'>
+                        <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                    </el-form-item>
+                </el-col>
+                    </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.server" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.loadserver" placeholder="请选择服务器"  @click.native="gethost()">
                                 <el-option
-                                        v-for="(item,index) in tags"
+                                        v-for="(item,index) in hosts"
                                         :key="item.host"
                                         :label="item.name"
                                         :value="item.host"
@@ -219,66 +237,80 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="版本" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                    <el-col :span="8">
+                        <el-form-item label="时间" prop='loop_time' auto-complete="off">
+                            <el-input v-model.trim="addForm.loop_time" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="addForm.testdata" multiple placeholder="请选择">
-                                <el-option key="brainct" label="Brainct" value="brainct"></el-option>
-                                <el-option key="Brainmri" label="Brainmri" value="Brainmri"></el-option>
-                                <el-option key="aicardiomodel" label="aicardiomodel" value="aicardiomodel"></el-option>
-                                <el-option key="archcta" label="archcta" value="archcta"></el-option>
-                                <el-option key="brainctp" label="brainctp" value="brainctp"></el-option>
-                                <el-option key="breastmri" label="breastmri" value="breastmri"></el-option>
-                                <el-option key="corocta" label="corocta" value="corocta"></el-option>
-                                <el-option key="headcta" label="headcta" value="headcta"></el-option>
-                                <el-option key="lungct_v2" label="lungct_v2" value="lungct_v2"></el-option>
+                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                                <el-option v-for="(item,index) in model"
+                                           :key="item.id"
+                                           :label="item.value"
+                                           :value="item.id"
+                                />
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="时长" prop='loop_time'>
-                            <el-input v-model.trim="addForm.loop_time" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
                 </el-row>
-                <el-row>
-                    <el-col :span="12">
+                <el-divider>参数配置</el-divider>
+                <el-row :gutter="24">
+                    <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="addForm.thread" @change="handleChange" :min="1" :max="5000"
                                              label="线程数"></el-input-number>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
+                    <el-col :span="8">
                         <el-form-item label="循环次数" prop='loop_count'>
                             <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1" :max="5000"
+                                             label="循环次数"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="并发数" prop='synchroniz'>
+                            <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0" :max="5000"
                                              label="循环次数"></el-input-number>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="并发数" prop='synchroniz'>
-                            <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
                         <el-form-item label="ramp" prop='ramp'>
                             <el-input-number v-model="addForm.ramp" @change="handleChange" :min="0" :max="5000"
                                              label="循环次数"></el-input-number>
                         </el-form-item>
                     </el-col>
+                    <el-col :span="10">
+                        <el-form-item label="dicom" prop="switch">
+                            <el-switch v-model="addForm.switch" active-color="#13ce66"
+                                       inactive-color="#ff4949"></el-switch>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row>
+                    <el-divider>文件上传</el-divider>
+                    <el-upload
+                            class="upload-demo"
+                            drag
+                            action="/api/posts/"
+                            multiple v-model="addForm.upload">
+                        <i class="el-icon-upload"></i>
+                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
+
+                        <!--                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">-->
+                        <!--                                上传到服务器-->
+                        <!--                            </el-button>-->
+                    </el-upload>
                 </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
+                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
             </div>
         </el-dialog>
     </section>
@@ -288,7 +320,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delStress, disableStress, enableStress,
-        updateStress, addStress, stresssave, getHost
+        updateStress, addStress, stresssave, getHost,getDictionary,stressTool
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -308,34 +340,30 @@
                 editLoading: false,
                 options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
                 editFormRules: {
-                    name: [
+                    projectname: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
-                    type: [
-                        {required: true, message: '请选择类型', trigger: 'blur'}
+                    testdata: [
+                        {required: true, message: '请选择模型', trigger: 'blur'}
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
                         {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
-                    ],
-                    description: [
-                        {required: false, message: '请输入描述', trigger: 'blur'},
-                        {max: 1024, message: '不能超过1024个字符', trigger: 'blur'}
                     ]
                 },
                 //编辑界面数据
                 editForm: {
-                    name: '',
+                    projectname: '',
                     version: '',
-                    type: '',
-                    thread: 1
+                    thread: 1,
+                    type:false
                 },
 
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    name: [
+                    projectname: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
@@ -349,8 +377,8 @@
                 },
                 //新增界面数据
                 addForm: {
-                    name: '晨曦',
-                    server: '192.168.1.208',
+                    projectname: '晨曦',
+                    loadserver: '192.168.1.208',
                     version: '',
                     type: '',
                 }
@@ -380,13 +408,72 @@
                         this.total = data.total
                         this.list = data.data
                         var json = JSON.stringify(this.list)
-                        this.tags = JSON.parse(json)
+                        this.hosts = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,
                             center: true
                         })
                     }
+                })
+            },
+            // 获取getBase列表
+            getBase() {
+                this.listLoading = true
+                const self = this
+                const params = {
+                    status: 1,
+                    type:'model'
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getDictionary(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.list = data.data
+                        var json = JSON.stringify(self.list)
+                        this.model = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
+            // 运行压力测试
+            stressRun: function (index, row) {
+                this.$confirm('确认执行测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        id: row.id,
+                        type:false
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressTool(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
                 })
             },
             // 获取项目列表
@@ -413,7 +500,7 @@
                     }
                 })
             },
-            //删除
+            //保存
             handleSave: function (index, row) {
                 this.$confirm('确认测试完成了吗?', '提示', {
                     type: 'warning'
@@ -488,7 +575,7 @@
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    disableProject(headers, params).then(_data => {
+                    disableStress(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -506,7 +593,7 @@
                         }
                     });
                 } else {
-                    enableProject(headers, params).then(_data => {
+                    enableStress(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -539,40 +626,84 @@
                 this.addFormVisible = true;
                 this.addForm = {
                     version: null,
-                    name: "晨曦",
-                    server: '192.168.1.208',
+                    projectname: "晨曦",
+                    loadserver: '192.168.1.208',
                     thread: 1,
                     synchroniz: 0,
                     ramp: 0,
                     loop_count: 1
                 };
             },
-            //编辑
-            editSubmit: function () {
+            //run 性能测试
+            run: function () {
                 let self = this;
                 this.$refs.editForm.validate((valid) => {
                     if (valid) {
-                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
+                        this.$confirm('确认执行？', '提示', {}).then(() => {
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: self.editForm.id,
-                                name: self.editForm.name,
-                                type: self.editForm.type,
-                                version: self.editForm.version,
-                                start_date: self.editForm.start_date,
-                                api_date: self.editForm.api_date,
-                                app_date: self.editForm.app_date,
-                                api_online_date: self.editForm.api_online_date,
-                                end_date: self.editForm.end_date,
-                                projectstatus: self.editForm.projectstatus,
-                                description: self.editForm.description
+                                id: self.editForm.id,
+                                type:self.editForm.type
                             };
                             let header = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            updateProject(header, params).then(_data => {
+                            stressTool(header, params).then(_data => {
+                                let {msg, code, data} = _data;
+                                self.editLoading = false;
+                                if (code === '0') {
+                                    self.$message({
+                                        message: '已执行',
+                                        center: true,
+                                        type: 'success'
+                                    });
+                                    self.$refs['editForm'].resetFields();
+                                    self.editFormVisible = false;
+                                    self.stresslistList()
+                                } else if (code === '999997') {
+                                    self.$message.error({
+                                        message: msg,
+                                        center: true,
+                                    })
+                                } else {
+                                    self.$message.error({
+                                        message: msg,
+                                        center: true,
+                                    })
+                                }
+                            });
+                        });
+                    }
+                });
+            },
+            //编辑修改
+            editSubmit: function () {
+                let self = this;
+                this.$refs.editForm.validate((valid) => {
+                    if (valid) {
+                        this.$confirm('确认保存吗？', '提示', {}).then(() => {
+                            self.editLoading = true;
+                            //NProgress.start();
+                            let params = {
+                                id: self.editForm.id,
+                                projectname: self.editForm.projectname,
+                                loadserver: self.editForm.loadserver,
+                                version: self.editForm.version,
+                                testdata: self.editForm.testdata,
+                                thread: this.editForm.thread,
+                                synchroniz: this.editForm.synchroniz,
+                                ramp: this.editForm.ramp,
+                                loop_count: this.editForm.loop_count,
+                                loop_time: this.editForm.loop_time,
+                                status: true,
+                            };
+                            let header = {
+                                "Content-Type": "application/json",
+                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                            };
+                            updateStress(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.editLoading = false;
                                 if (code === '0') {
@@ -605,12 +736,12 @@
                 this.$refs.addForm.validate((valid) => {
                     if (valid) {
                         let self = this;
-                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
+                        this.$confirm('确认保存吗？', '提示', {}).then(() => {
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                projectname: self.addForm.name,
-                                loadserver: self.addForm.server,
+                                projectname: self.addForm.projectname,
+                                loadserver: self.addForm.loadserver,
                                 version: self.addForm.version,
                                 testdata: self.addForm.testdata,
                                 thread: this.addForm.thread,
@@ -673,7 +804,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    delProject(header, params).then(_data => {
+                    delStress(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
