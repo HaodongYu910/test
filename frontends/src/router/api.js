@@ -1,12 +1,5 @@
 import axios from 'axios';
-import stressDetail from "../components/stress/stressDetail";
-
-
-
-
-// export const test = 'http://127.0.0.1:8000';
-
-export const test = 'http://192.168.1.121:9000';
+export const test = process.env.VUE_APP_MODE
 
 // 记录访客
 export const recordVisitor = params => { return axios.post(`${test}/api/user/VisitorRecord`, params).then(res => res.data) }
@@ -287,7 +280,7 @@ export const deldicomreport = (headers, params) => {
 }
 // 压测版本
 export const getstressversion = (headers, params) => {
-  return axios.get(`${test}/api/stress/stressversion`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/stress/version`, { params: params }, { headers }).then(res => res.data)
 }
 // 压测结果
 export const getstressresult = (headers, params) => {
@@ -385,4 +378,27 @@ export const Delbasedata = (headers, params) => {
 export const dicomcount = (headers, params) => {
     return axios.get(`${test}/api/base/dicom`, { params: params }, { headers }).then(res => res.data)
 }
-
+// 获取字典数据
+export const getDictionary = (headers, params) => {
+    return axios.get(`${test}/api/dictionary/list`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加基础数据
+export const addDictionary = (headers, params) => {
+  return axios.post(`${test}/api/dictionary/add`, params, headers).then(res => res.data)
+}
+// 修改基础数据
+export const UpdateDictionary = (headers, params) => {
+  return axios.post(`${test}/api/dictionary/update`, params, headers).then(res => res.data)
+}
+// 启用基础数据
+export const EnableDictionary = (headers, params) => {
+  return axios.post(`${test}/api/dictionary/enable`, params, headers).then(res => res.data)
+}
+// 禁用基础数据
+export const DisableDictionary = (headers, params) => {
+  return axios.post(`${test}/api/dictionary/disable`, params, headers).then(res => res.data)
+}
+// 删除基础数据
+export const DelDictionary = (headers, params) => {
+  return axios.post(`${test}/api/dictionary/del`, params, headers).then(res => res.data)
+}

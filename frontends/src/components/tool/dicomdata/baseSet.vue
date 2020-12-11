@@ -126,12 +126,18 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="类型">
-                            <el-input v-model="editForm.predictor" auto-complete="off"></el-input>
+                        <el-form-item label="模型" prop='predictor'>
+                            <el-select v-model="editForm.predictor" placeholder="请选择" @click.native="getDict()">
+                                <el-option v-for="(item,index) in model"
+                                           :key="item.id"
+                                           :label="item.value"
+                                           :value="item.id"
+                                />
+                            </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-form-item label="说明">
+                <el-form-item label="名称">
                     <el-input v-model="editForm.remarks"></el-input>
                 </el-form-item>
             </el-form>
@@ -156,6 +162,8 @@
                             <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
+                </el-row>
+                <el-row>
                     <el-col :span="12">
                         <el-form-item label="数据类型" prop="environment">
                             <el-select v-model="addForm.type" clearable placeholder="请选择类型">
@@ -163,12 +171,19 @@
                                 <el-option key="test" label="测试数据" value="test"/>
                             </el-select>
                         </el-form-item>
-                        <el-form-item label="模型" prop='content'>
-                            <el-input v-model.trim="addForm.predictor" auto-complete="off"></el-input>
-                        </el-form-item>
                     </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="模型" prop='predictor'>
+                                <el-select v-model="addForm.predictor" placeholder="请选择" @click.native="getDict()">
+                                    <el-option v-for="(item,index) in model"
+                                               :key="item.id"
+                                               :label="item.value"
+                                               :value="item.id"
+                                    />
+                                </el-select>
+                            </el-form-item>
+                        </el-col>
                 </el-row>
-
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
@@ -182,7 +197,7 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend
+        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -192,8 +207,8 @@
                 filters: {
                     type: '',
                     remarks: '',
-                    selecttype:'dicom',
-                    status:true
+                    selecttype: 'dicom',
+                    status: true
                 },
                 project: [],
                 total: 0,
@@ -268,15 +283,39 @@
                     }
                 })
             },
-
-            // 获取项目列表
+            // 获取字典模型
+            getDict() {
+                this.listLoading = true;
+                let self = this;
+                let params = {
+                    type: 'model',
+                    status: 1,
+                };
+                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
+                getDictionary(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.list = data.data
+                        var json = JSON.stringify(self.list)
+                        this.model = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
+            // 获取基本信息列表
             getbaseList() {
                 this.listLoading = true;
                 let self = this;
                 let params = {
                     page: self.page,
                     remarks: self.filters.remarks,
-                    type:self.filters.type
+                    type: self.filters.type
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 getbase(headers, params).then((res) => {

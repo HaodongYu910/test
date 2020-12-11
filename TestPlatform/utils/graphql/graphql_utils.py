@@ -12,7 +12,7 @@ class GraphQLDriver():
         self.graphql_url = graphql_url
         self.kc = keycloakclient
 
-    def execute_query(self, query, timeout=120):
+    def execute_query(self, query, timeout=600):
         if self.kc is not None:
             r = self.kc.post(
                 url=self.graphql_url,
@@ -39,7 +39,7 @@ class GraphQLDriver():
             return r.json()['data']
         return {}
 
-    def pacs_query(self, dicomAE, query, timeout=120):
+    def pacs_query(self, dicomAE, query, timeout=600):
         '''
             Return the result of duration query
         '''
@@ -50,7 +50,7 @@ class GraphQLDriver():
         )
         return self.execute_query(query_data, timeout)
 
-    def graphql_query(self, query, timeout=120):
+    def graphql_query(self, query, timeout=600):
         '''
             Return the result of graphql query
         '''

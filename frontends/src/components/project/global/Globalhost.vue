@@ -20,7 +20,9 @@
             </el-table-column>
             <el-table-column prop="name" label="名称" min-width="15%" sortable show-overflow-tooltip>
             </el-table-column>
-            <el-table-column prop="host" label="HOST" min-width="28%" sortable show-overflow-tooltip>
+            <el-table-column prop="host" label="HOST" min-width="20%" sortable show-overflow-tooltip>
+            </el-table-column>
+            <el-table-column prop="port" label="Port" min-width="8%" sortable show-overflow-tooltip>
             </el-table-column>
             <el-table-column prop="description" label="描述" min-width="27%" sortable show-overflow-tooltip>
             </el-table-column>
@@ -55,6 +57,9 @@
                 <el-form-item label="Host" prop='host'>
                     <el-input v-model.trim="editForm.host" auto-complete="off"></el-input>
                 </el-form-item>
+                <el-form-item label="Port" prop='Port'>
+                    <el-input v-model.trim="editForm.port" auto-complete="off"></el-input>
+                </el-form-item>
                 <el-form-item label="描述" prop='description'>
                     <el-input type="textarea" :rows="5" v-model.trim="editForm.description"></el-input>
                 </el-form-item>
@@ -73,6 +78,9 @@
                 </el-form-item>
                 <el-form-item label="Host" prop='host'>
                     <el-input v-model.trim="addForm.host" auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="Port" prop='Port'>
+                    <el-input v-model.trim="addForm.port" auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="描述" prop='description'>
                     <el-input type="textarea" :rows="5" v-model.trim="addForm.description"></el-input>
@@ -150,6 +158,7 @@
                 addForm: {
                     name: '',
                     host: '',
+                    port:'',
                     description: ''
                 }
 
@@ -308,6 +317,7 @@
                                 id: Number(self.editForm.id),
                                 name: self.editForm.name,
                                 host: host,
+                                port: self.editForm.port,
                                 description: self.editForm.description
                             };
                             let headers = {
@@ -362,6 +372,7 @@
                                 project_id: Number(this.$route.params.project_id),
                                 name: self.addForm.name,
                                 host: host,
+                                port:self.addForm.port ,
                                 description: self.addForm.description
                             };
                             let headers = {
