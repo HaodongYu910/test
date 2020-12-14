@@ -13,10 +13,13 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item>
-                    <el-select v-model="filters.type" placeholder="类型">
-                        <el-option key="test" label="test" value="test"/>
-                        <el-option key="Gold" label="Gold" value="Gold"/>
-                    </el-select>
+                    <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
+                                    <el-option v-for="(item,index) in filetype"
+                                               :key="item.value"
+                                               :label="item.remarks"
+                                               :value="item.value"
+                                    />
+                                </el-select>
                 </el-form-item>
                 <el-form-item>
                     <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getbaseList()">
@@ -70,13 +73,13 @@
             </el-table-column>
             <el-table-column label="数量" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.other }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.other }}</span>R
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
-                    <img v-show="scope.row.status" src="../../../assets/img/icon-yes.svg"/>
-                    <img v-show="!scope.row.status" src="../../../assets/img/icon-no.svg"/>
+                    <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qiyong.png"/>
+                    <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
             <el-table-column label="修改时间" min-width="16%" sortable>
@@ -166,10 +169,13 @@
                 <el-row>
                     <el-col :span="12">
                         <el-form-item label="数据类型" prop="environment">
-                            <el-select v-model="addForm.type" clearable placeholder="请选择类型">
-                                <el-option key="Gold" label="金标准" value="Gold"/>
-                                <el-option key="test" label="测试数据" value="test"/>
-                            </el-select>
+                                <el-select v-model="addForm.type" placeholder="请选择类型" @click.native="getfile()">
+                                    <el-option v-for="(item,index) in filetype"
+                                               :key="item.value"
+                                               :label="item.remarks"
+                                               :value="item.value"
+                                    />
+                                </el-select>
                         </el-form-item>
                     </el-col>
                         <el-col :span="12">
@@ -259,6 +265,7 @@
         },
         mounted() {
             this.gethost();
+            this.getfile();
         },
         methods: {
             //展示server名
@@ -300,6 +307,30 @@
                         self.list = data.data
                         var json = JSON.stringify(self.list)
                         this.model = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
+            getfile() {
+                this.listLoading = true;
+                let self = this;
+                let params = {
+                    type: 'file',
+                    status: 1,
+                };
+                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
+                getDictionary(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.list = data.data
+                        var json = JSON.stringify(self.list)
+                        this.filetype = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,

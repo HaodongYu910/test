@@ -6,13 +6,11 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import shutil,threading
-
+from ..models import interface
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import stress,dictionary
-from TestPlatform.serializers import stress_Deserializer, \
-    dicomdata_Deserializer, stress_Deserializer,stress_Deserializer
+from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer
 from ..tools.stress.stress import *
-from ..tools.stress.stresstest import stressT,lungSlice
+from ..tools.stress.stresstest import lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.stress.stresstest import updateStressData
 from ..tools.stress.PerformanceResult import *
@@ -285,9 +283,10 @@ class stressResultsave(APIView):
             obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
             if obj.projectname=='晨曦':
-                savecheck('job', checkdate, obj.loadserver, obj.version)
+
                 savecheck('prediction', checkdate, obj.loadserver, obj.version)
-                # lung(checkdate, obj.loadserver, obj.version)
+                lung(checkdate, obj.loadserver, obj.version)
+                savecheck('job', checkdate, obj.loadserver, obj.version)
             elif obj.projectname=='肺炎':
                 lung(checkdate, obj.loadserver, obj.version)
 
@@ -326,12 +325,18 @@ class stressRun(APIView):
         if result:
             return result
         try:
+
             obj = stress.objects.get(id =data['id'])
-            print(data['type'])
-            if data['type'] is True:
-                Manual(obj.loadserver, data['diseases'],data['count'] )
+            if obj.start_date is None:
+                obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                obj.save()
             else:
-                AutoPrediction(data['ip'], data['diseases'],data['count'] )
+                obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                obj.save()
+            if data['type'] is True:
+                Manual(obj.loadserver,obj.testdata,obj.loop_count)
+            else:
+                AutoPrediction(obj.loadserver,obj.testdata,obj.loop_count)
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
@@ -474,6 +479,7 @@ class stressList(APIView):
                 obj = dictionary.objects.get(id=j)
                 model = model + obj.value + ","
             i["testdata"] = model
+            i["type"] =False
         return JsonResponse(data={"data":serialize.data,
                                   "page": page,
                                   "total": total,
@@ -708,3 +714,30 @@ class delStress(APIView):
             return JsonResponse(code="999995", msg="执行失败！")
 
 
+class StressUpload(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self, request):
+        """
+        启用项目
+        :param request:
+        :return:
+        """
+        try:
+            url = '/files/stress'
+            File = request.FILES.get("file", None)
+            with open("{0}/{1}".format(url,File.name) , 'wb+') as f:
+                # 分块写入文件
+                for chunk in File.chunks():
+                    f.write(chunk)
+            data={
+                "interfacename":File.name,
+                "json":url,
+                "type":"stress",
+                "status":True
+            }
+            filedata=interface.objects.create(**data)
+            return JsonResponse(code="0", msg="成功",data=filedata.id)
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="没有需要上传的文件！")

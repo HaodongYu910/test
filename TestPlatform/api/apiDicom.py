@@ -140,17 +140,24 @@ class somkeRecord(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         version = request.GET.get("version")
         server = request.GET.get("server")
-        status = request.GET.get("status")
-        if version is not None and server is None and status is None:
-            obi = dicom_record.objects.filter(version__contains=version).order_by("-id")
-        elif server is not None and version is None and status is None:
-            obi = dicom_record.objects.filter(server__contains=server).order_by("-id")
-        elif server is not None and version is not None and status is None:
-            obi = dicom_record.objects.filter(server__contains=server,diseases__contains=version).order_by("-id")
-        elif status is not None and server is None:
-            obi = dicom_record.objects.filter(status__contains=status).order_by("-id")
-        elif status is not None and server is not None:
-            obi = dicom_record.objects.filter(server__contains=server,status__contains=status).order_by("-id")
+        if  request.GET.get("status")=='true':
+            status = 1
+        elif request.GET.get("status")=='False':
+            status = 0
+        else:
+            status = ''
+
+        diseases = request.GET.get("diseases")
+        if version != '' and server != '' and status != '':
+            obi = dicom_record.objects.filter(version__contains=version,status= status).order_by("-id")
+        elif version == '' and server != '' and status != '':
+            obi = dicom_record.objects.filter(server__contains=server,status = status).order_by("-id")
+        elif version == '' and server == '' and status != '':
+            obi = dicom_record.objects.filter(status=status).order_by("-id")
+        elif version == '' and server != '' and status == '':
+            obi = dicom_record.objects.filter(server=server).order_by("-id")
+        elif version == '' and server == '' and status != '':
+            obi = dicom_record.objects.filter(server__contains=server,status=status).order_by("-id")
         else:
             obi = dicom_record.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -163,10 +170,6 @@ class somkeRecord(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = dicomrecord_Serializer(obm, many=True)
         for i in serialize.data:
-            if i["aistatus"] in [2,3]:
-                i["aistatus"] =True
-            else:
-                i["aistatus"] =False
             # 求预测时间
             if i['completiontime'] is not None and i['starttime'] is not None:
                 completiontime = time.strptime(str(i['completiontime']), "%Y-%m-%d %H:%M:%S")

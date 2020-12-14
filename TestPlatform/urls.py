@@ -114,6 +114,7 @@ urlpatterns = [
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'download', down_load.as_view()),
+    url(r'stress/upload', StressUpload.as_view()),# 文件上传
     url(r'stress/version', stressversion.as_view()),
     url(r'stress/tool', stressRun.as_view()),
     url(r'stress/Detail', stressDetail.as_view()),

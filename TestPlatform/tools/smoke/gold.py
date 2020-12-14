@@ -111,6 +111,7 @@ def checkdata(result,data):
     try:
         airesult=result['studyView'][0]
         if airesult['aistatus'] in [2,3]:
+            data["status"] = True
             if str(airesult['diagnosis']).find(data["diagnosis"]) >= 0:
                 aidiagnosis = KeyChange(data["diagnosis"])
                 report= '匹配成功'
@@ -129,7 +130,7 @@ def checkdata(result,data):
                 report = '匹配失败'
         else:
             report ='预测失败'
-
+            data["status"] = False
         data["diagnosis"] = KeyChange(data["diagnosis"])
         data["aidiagnosis"] =aidiagnosis
         data["report"] = report

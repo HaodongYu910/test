@@ -48,8 +48,8 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
-                    <img v-show="scope.row.status" src="../../../assets/img/icon-yes.svg"/>
-                    <img v-show="!scope.row.status" src="../../../assets/img/icon-no.svg"/>
+                    <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/qiyong.png"/>
+                    <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
             <el-table-column label="修改时间" min-width="16%" sortable>

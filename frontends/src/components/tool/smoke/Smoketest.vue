@@ -25,8 +25,12 @@
             />
           </el-select>
         </el-form-item>
+        <el-select v-model="filters.status" placeholder="预测状态">
+                        <el-option key="true" label="成功" value="true"/>
+                        <el-option key="false" label="失败" value="false"/>
+                    </el-select>
         <el-form-item>
-          <el-button type="primary" @click="handleAdd">新增</el-button>
+          <el-button type="primary" @click="getdata">查询</el-button>
         </el-form-item>
         <el-form-item>
           <el-button type="warning" @click="somketest">smoke测试</el-button>
@@ -61,11 +65,16 @@
               <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="预测状态" min-width="8%" sortable>
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.aistatus }}</span>
-            </template>
-          </el-table-column>
+           <el-table-column prop="sendstatus" label="预测状态" min-width="8%">
+                    <template slot-scope="scope">
+                        <img v-show="scope.row.status"
+                             style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/qiyong.png"/>
+                        <img v-show="!scope.row.status"
+                             style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/shibai.png"/>
+                    </template>
+                </el-table-column>
           <el-table-column label="预测时间" min-width="8%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.time }} 秒</span>
@@ -132,10 +141,15 @@ export default {
     return {
       filters: {
         diseases: null,
-        slicenumber:null
+        slicenumber:null,
+        diseases:'',
+        server:'',
+        version:'',
+        status:''
       },
       total: 0,
       page: 1,
+      page_size:50,
       listLoading: false,
       sels: [], // 列表选中列
 
@@ -239,7 +253,6 @@ export default {
         }
       })
     },
-
     // 获取数据列表
     getdata() {
       this.listLoading = true
@@ -248,8 +261,9 @@ export default {
         page: self.page,
         diseases: self.filters.diseases,
         server: self.filters.server,
-        slicenumber:self.filters.slicenumber,
-        type:'Gold'
+        version:self.filters.version,
+        type:'Gold',
+        status:self.filters.status
       }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
       getsomkerecord(headers, params).then((res) => {
@@ -267,170 +281,12 @@ export default {
         }
       })
     },
-    // 删除
-    handleDel: function(index, row) {
-      this.$confirm('确认删除该记录吗?', '提示', {
-        type: 'warning'
-      }).then(() => {
-        this.listLoading = true
-        // NProgress.start();
-        const self = this
-        const params = { ids: [row.id] }
-        const header = {
-          'Content-Type': 'application/json',
-          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-        }
-        deldicomdata(header, params).then(_data => {
-          const { msg, code, data } = _data
-          if (code === '0') {
-            self.$message({
-              message: '删除成功',
-              center: true,
-              type: 'success'
-            })
-          } else {
-            self.$message.error({
-              message: msg,
-              center: true
-            })
-          }
-          self.getdata()
-        })
-      })
-    },
     handleCurrentChange(val) {
       this.page = val
       this.getdata()
     },
-    // 显示编辑界面
-    handleEdit: function(index, row) {
-      this.editFormVisible = true
-      this.editForm = Object.assign({}, row)
-    },
-    // 显示新增界面
-    handleAdd: function() {
-      this.addFormVisible = true
-      this.addForm = {
-        patientid: null,
-        diseases: null,
-        studyinstanceuid: null,
-      }
-    },
-    // 编辑
-    editSubmit: function() {
-      const self = this
-      this.$refs.editForm.validate((valid) => {
-        if (valid) {
-          this.$confirm('确认提交吗？', '提示', {}).then(() => {
-            self.editLoading = true
-            // NProgress.start();
-            const params = {
-              id: self.editForm.id,
-              patientid: self.editForm.patientid,
-              studyinstanceuid: self.editForm.studyinstanceuid,
-              diseases: self.editForm.diseases,
-              slicenumber: self.editForm.slicenumber,
-              vote: self.editForm.vote
-            }
-            const header = {
-              'Content-Type': 'application/json',
-              Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-            }
-            updatedicomdata(header, params).then(_data => {
-              const { msg, code, data } = _data
-              self.editLoading = false
-              if (code === '0') {
-                self.$message({
-                  message: '修改成功',
-                  center: true,
-                  type: 'success'
-                })
-                self.$refs['editForm'].resetFields()
-                self.editFormVisible = false
-                self.getdata()
-              } else if (code === '999997') {
-                self.$message.error({
-                  message: msg,
-                  center: true
-                })
-              } else {
-                self.$message.error({
-                  message: msg,
-                  center: true
-                })
-              }
-            })
-          })
-        }
-      })
-    },
-    // 新增
-    addSubmit: function() {
-      this.$refs.addForm.validate((valid) => {
-        if (valid) {
-          const self = this
-          this.$confirm('确认提交吗？', '提示', {}).then(() => {
-            self.addLoading = true
-            // NProgress.start();
-            const params = JSON.stringify({
-              diseases: self.addForm.diseases,
-              patientid: self.addForm.patientid,
-              server: self.addForm.server,
-              studyinstanceuid:self.addForm.studyinstanceuid
-            })
-            const header = {
-              'Content-Type': 'application/json',
-              Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-            }
-            adddicomdata(header, params).then(_data => {
-              const { msg, code, data } = _data
-              self.addLoading = false
-              if (code === '0') {
-                self.$message({
-                  message: '添加成功',
-                  center: true,
-                  type: 'success'
-                })
-                self.$refs['addForm'].resetFields()
-                self.addFormVisible = false
-                self.getdata()
-              } else if (code === '999997') {
-                self.$message.error({
-                  message: msg,
-                  center: true
-                })
-              } else {
-                self.$message.error({
-                  message: msg,
-                  center: true
-                })
-                self.$refs['addForm'].resetFields()
-                self.addFormVisible = false
-                self.getdata()
-              }
-            })
-          })
-        }
-      })
-    },
     selsChange: function(sels) {
       this.sels = sels
-    },
-    cancelEdit(row) {
-      row.title = row.originalTitle
-      row.edit = false
-      this.$message({
-        message: 'The title has been restored to the original value',
-        type: 'warning'
-      })
-    },
-    confirmEdit(row) {
-      row.edit = false
-      row.originalTitle = row.title
-      this.$message({
-        message: 'The title has been edited',
-        type: 'success'
-      })
     },
     // 批量删除
     batchRemove: function() {
@@ -452,39 +308,6 @@ export default {
           if (code === '0') {
             self.$message({
               message: '删除成功',
-              center: true,
-              type: 'success'
-            })
-          } else {
-            self.$message.error({
-              message: msg,
-              center: true
-            })
-          }
-          self.getdata()
-        })
-      })
-    },
-    // 批量生成CSV
-    batchCsv: function() {
-      const ids = this.sels.map(item => item.id)
-      const self = this
-      this.$confirm('确认生成选中记录吗？', '提示', {
-        type: 'warning'
-      }).then(() => {
-        this.listLoading = true
-        // NProgress.start();
-        const self = this
-        const params = { ids: ids }
-        const header = {
-          'Content-Type': 'application/json',
-          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-        }
-        dicomcsv(header, params).then(_data => {
-          const { msg, code, data } = _data
-          if (code === '0') {
-            self.$message({
-              message: '生成成功',
               center: true,
               type: 'success'
             })
