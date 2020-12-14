@@ -44,7 +44,7 @@ CONFIG = {
 
 
 def sqlDB(sql,data):
-    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='test',
+    conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:

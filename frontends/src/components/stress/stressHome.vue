@@ -62,8 +62,8 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
-                    <img v-show="scope.row.status" src="../../assets/img/icon-yes.svg"/>
-                    <img v-show="!scope.row.status" src="../../assets/img/icon-no.svg"/>
+                    <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/qiyong.png"/>
+                    <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
             <el-table-column label="操作" min-width="30%">
@@ -173,12 +173,17 @@
                         </el-form-item>
                     </el-col>
                 </el-row>
+                <i
+                   class="el-icon-close"
+                   @click="deleteClick(item)"
+                   style=" position: absolute;top: -8px; left: 60px; cursor: pointer;"
+                 ></i>
                 <el-row>
                     <el-divider>文件上传</el-divider>
                     <el-upload
                             class="upload-demo"
                             drag
-                            action="/api/posts/"
+                            action="/api/stress/upload"
                             multiple>
                         <i class="el-icon-upload"></i>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -296,7 +301,7 @@
                     <el-upload
                             class="upload-demo"
                             drag
-                            action="/api/posts/"
+                            action="/api/stress/upload"
                             multiple v-model="addForm.upload">
                         <i class="el-icon-upload"></i>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>

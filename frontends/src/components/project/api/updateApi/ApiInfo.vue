@@ -48,8 +48,8 @@
                     </el-table-column>
                     <el-table-column label="必填?" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <img v-show="scope.row.required" src="../../../../assets/img/icon-yes.svg"/>
-                            <img v-show="!scope.row.required" src="../../../../assets/img/icon-no.svg"/>
+                            <img v-show="scope.row.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/qiyong.png"/>
+                            <img v-show="!scope.row.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/fou.png"/>
                         </template>
                     </el-table-column>
                     <el-table-column label="详情" min-width="10%" sortable>
@@ -73,8 +73,8 @@
                             <el-col :span="7">{{parameterInfo.value}}</el-col>
                             <el-col :span="7">{{parameterInfo._type}}</el-col>
                             <el-col :span="3">
-                                <img v-show="parameterInfo.required" src="../../../../assets/img/icon-yes.svg"/>
-                                <img v-show="!parameterInfo.required" src="../../../../assets/img/icon-no.svg"/>
+                                <img v-show="parameterInfo.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/qiyong.png"/>
+                                <img v-show="!parameterInfo.required"  style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/fou.png"/>
                             </el-col>
                         </div>
                         <div style="margin-top: 70px"><el-col>输入限制:</el-col></div>
@@ -101,8 +101,8 @@
                     </el-table-column>
                     <el-table-column label="必含?" min-width="10%" sortable>
                         <template slot-scope="scope">
-                            <img v-show="scope.row.required" src="../../../../assets/img/icon-yes.svg"/>
-                            <img v-show="!scope.row.required" src="../../../../assets/img/icon-no.svg"/>
+                            <img v-show="scope.row.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/qiyong.png"/>
+                            <img v-show="!scope.row.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/fou.png"/>
                         </template>
                     </el-table-column>
                     <el-table-column label="详情" min-width="10%" sortable>
@@ -126,8 +126,8 @@
                             <el-col :span="7">{{responseInfo.value}}</el-col>
                             <el-col :span="7">{{responseInfo._type}}</el-col>
                             <el-col :span="3">
-                                <img v-show="responseInfo.required" src="../../../../assets/img/icon-yes.svg"/>
-                                <img v-show="!responseInfo.required" src="../../../../assets/img/icon-no.svg"/>
+                                <img v-show="responseInfo.required"  style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/qiyong.png"/>
+                                <img v-show="!responseInfo.required" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../../assets/img/fou.png"/>
                             </el-col>
                         </div>
                         <div style="margin-top: 70px"><el-col>说明:</el-col></div>

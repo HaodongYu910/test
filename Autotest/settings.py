@@ -31,7 +31,7 @@ DEBUG = False
 
 SITE_DBURL = "192.168.1.121"      # 数据库 地址
 SITE_JIRAURL = "http://jira.test.com"  #JIRA 地址
-SITE_JENKINURL = "http://127.0.0.1:8080"  #JENKINS 地址
+SITE_JENKINURL = "http://192.168.2.58:8080"  #JENKINS 地址
 
 #邮箱配置
 MAIL_SERVER = "smtp.exmail.qq.com"  #邮箱地址

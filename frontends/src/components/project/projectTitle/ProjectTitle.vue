@@ -43,7 +43,7 @@
         <el-row :span="24">
             <el-col :span="6" class='inline'>
                 <el-card class="box-card">
-                    <router-link :to="{name: '成员管理'}" style='text-decoration: none;color: #000000;'><h1><img src="../../../assets/img/member.png" class="member">{{memberCount}}人</h1></router-link>
+                    <router-link :to="{name: '成员管理'}" style='text-decoration: none;color: #000000;'><h1><img src="../../../assets/img/yonghuzu.png" class="member">{{memberCount}}人</h1></router-link>
                     <div>项目组成员</div>
                 </el-card>
             </el-col>

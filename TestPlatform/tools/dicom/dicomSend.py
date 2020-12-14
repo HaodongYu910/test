@@ -50,12 +50,12 @@ CONFIG = {
 # 链接InfluxDB时序数据库
 
 def connect_to_influx(data):
-    posturl = 'http://127.0.0.1:8086/write?db=autotest'
+    posturl = 'http://192.168.1.121:8086/write?db=autotest'
     requests.post(posturl, data=data)
 
 # 链接mysql数据库
 def sqlDB(sql, data):
-    conn = pymysql.connect(host='127.0.0.1', user='root', passwd='P@ssw0rd2o8', db='autotest',
+    conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='autotest',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
     try:
