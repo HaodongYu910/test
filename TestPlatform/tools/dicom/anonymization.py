@@ -27,33 +27,68 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
     file_names.sort()
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-
         if (os.path.isdir(full_fn)):
             onlyDoAnonymization(full_fn,study_infos,diseases,wPN,wPID,anonkey)
             continue
         elif (os.path.splitext(fn)[1] == ".dcm"):
             try:
+                study_infos["No"] = study_infos["No"] + 1
                 ds = pydicom.dcmread(full_fn, force=True)
-                study_infos["No"] = study_infos["No"]+1
                 try:
+                    # 判断要不要进行pid和pn的匿名化
                     if wPID:
-                        ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-                    elif not wPID:
-                        continue
-
+                        # 判断字典中UID是否存在
+                        if ds.StudyInstanceUID in study_infos.keys(): #字典有这个UID
+                            #判断pID是否有值
+                            if study_infos[ds.StudyInstanceUID]["patientID"]:
+                                ds.PatientID = study_infos[ds.StudyInstanceUID]["patientID"]
+                            elif not study_infos[ds.StudyInstanceUID]["patientID"]:
+                                ds.PatientID = norm_string("{0}_{1}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                                study_infos[ds.StudyInstanceUID]["patientID"] = ds.PatientID
+                        elif ds.StudyInstanceUID not in study_infos.keys(): #字典没有这个UID
+                            study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}
+                            ds.PatientID = norm_string("{0}_{1}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                            study_infos[ds.StudyInstanceUID]["patientID"] = ds.PatientID
                     if wPN:
-                        if ds.StudyInstanceUID in study_infos.keys():
-                            ds.PatientName = study_infos[ds.StudyInstanceUID]
-                        elif ds.StudyInstanceUID not in study_infos.keys():
+                        if ds.StudyInstanceUID in study_infos.keys(): #字典有这个UID
+                            # 判断PN是否有值
+                            if study_infos[ds.StudyInstanceUID]["patientName"]: #PN有值
+                                ds.PatientName = study_infos[ds.StudyInstanceUID]["patientName"]
+                            elif not study_infos[ds.StudyInstanceUID]["patientName"]: # PN没有值
+                                ds.PatientName = norm_string("{0}_{1}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                                study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
+                        elif ds.StudyInstanceUID not in study_infos.keys(): #字典没有这个UID
+                            study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}
                             ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
-                            study_infos[ds.StudyInstanceUID] = ds.PatientName
-                    elif not wPN:
-                        continue
+                            study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
+
+
+
+                    # if wPID:
+                    #     if ds.StudyInstanceUID in study_infos.keys():
+                    #
+                    #     elif ds.StudyInstanceUID not in study_infos.keys():
+                    #         ds.PatientID = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                    # elif not wPID:
+                    #     continue
+                    #
+                    # if wPN:
+                    #     if ds.StudyInstanceUID in study_infos.keys():
+                    #         ds.PatientName = study_infos[ds.StudyInstanceUID]
+                    #     elif ds.StudyInstanceUID not in study_infos.keys():
+                    #         ds.PatientName = norm_string("{0}_{1}".format(anonkey,time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                    #         study_infos[ds.StudyInstanceUID] = ds.PatientName
+                    # elif not wPN:
+                    #     continue
+
 
                     # 保存文件匿名化之后的文件到192.168.1.121：/files/QA_FTP/testData/anonymization
-                    folder_fake = '/files/anonymization/{0}/{1}'.format(diseases, ds.PatientName)
+                    folder_fake = '/files/QA_FTP/testData/anonymization/{0}/{1}'.format(diseases, ds.PatientName)
                     if not os.path.exists(folder_fake):
+                        logging.info('do not have this path. creating...')
                         os.makedirs(folder_fake)
+                        # record into db
+                    #study_infos["No"] = nextNumber(folder_fake)
                     full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
                     ds.save_as(full_fn_fake)
                 except Exception as e:
@@ -86,3 +121,17 @@ def onlyDoAnonymization(src_folder,study_infos,diseases,wPN,wPID,anonkey):
                 continue
     a = 'success'
     return a
+
+
+def nextNumber(addr):
+    files = os.listdir(addr)
+    if files:
+        files.sort(reverse = True)
+        tmp = files[0]
+        tmp.split('.', 0)
+        tmp = tmp[0] +1
+        str = str(tmp)
+        return str
+    elif not files:
+        tmp = 0
+        return tmp
