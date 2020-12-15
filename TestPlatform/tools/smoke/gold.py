@@ -42,7 +42,8 @@ def goldSmoke(version, server_ip, ids):
     for i in ids:
         try:
             obj = dicom.objects.get(id=i)
-            ojk = base_data.objects.get(id=obj.fileid)
+            objbase = base_data.objects.get(id=obj.fileid)
+            objdictionary =dictionary.objects.get(id=objbase.predictor)
             data = {
                 "version": version,
                 "patientid": obj.patientid,
@@ -72,7 +73,7 @@ def goldSmoke(version, server_ip, ids):
                                                                            "planguage:\"zh-cn\" " \
                                                                            " puser_id:\"biomind\" " \
                                                                            "pseries_classifier:" + str(obj.vote) + "}" \
-                                                                                                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(ojk.predictor) + "\"]])" \
+                                                                                                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(objdictionary.value) + "\"]])" \
                                  " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
             data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # 调用 手动预测接口

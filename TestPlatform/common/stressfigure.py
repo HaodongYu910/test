@@ -8,10 +8,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
-
-from ..models import stress,stress_result
+from django.db.models import Q
+from ..models import stress,stress_result,dictionary
 from ..serializers import stress_Deserializer
-# from TestPlatform.common.jiraData import Jiradata
 # from TestPlatform.common.excel_data import *
 import logging
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -20,31 +19,38 @@ plt.rcParams['font.family'] = ['Times New Roman']
 # plt.rcParams.update({'font.size': 12})
 
 #jira 数据图表
-def stressdataFigure(type,modelname):
+def stressdataFigure(type):
     version = []
+    modelname = []
     if type =='lung_prediction' or type =='lung_job':
         stressobj = stress.objects.filter(status=True).order_by("version")
+        model = stress_result.objects.values("slicenumber").order_by("slicenumber").distinct()
     else:
         stressobj = stress.objects.filter(status=True, projectname='晨曦').order_by("version")
-    # modelname = stress_result.objects.values("modelname").order_by("version").distinct("modelname")
+        model = dictionary.objects.filter(type='model')
+
     for i in stressobj:
         version.append(i.version)
     figureData = [version]
-    for k in modelname:
+    for k in model:
         avg = []
+        if type == 'lung_prediction' or type == 'lung_job':
+            modelname.append(k["slicenumber"])
+        else:
+            modelname.append(k.key)
         for j in version:
             try:
                 if type =='lung_prediction' or type =='lung_job' :
-                    resultobj = stress_result.objects.get(type=type, slicenumber=str(k), version=j)
+                    resultobj = stress_result.objects.get(type=type, slicenumber=str(k["slicenumber"]), version=j)
                 else:
-                    resultobj = stress_result.objects.get(type=type, modelname=k, version=j)
+                    resultobj = stress_result.objects.get(type=type, modelname=k.key, version=j)
                 avg.append(resultobj.avg)
             except:
                 avgvalue = '0'
                 avg.append(avgvalue)
                 continue
         figureData.append(avg)
-    return figureData
+    return figureData,modelname
 #
 # # 绘制 创建与解决问题数据
 # def dataframe(platform, sprint_version):

@@ -318,9 +318,7 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
-                            'brainctp', 'brainmra',
-                            'headcta', 'postsurgery'],
+                        data: [],
                         padding: 25
                     },
                     toolbox: {
@@ -346,107 +344,7 @@
                             formatter: '{value} 秒'
                         }
                     },
-                    series: [
-                        {
-                            name: 'aibrainct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'aibrainmri',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'aicardiomodel',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'archcta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainctp',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainmra',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'headcta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'lungct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'postsurgery',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                    ]
+                    series: []
                 },
                 jobLineoption: {
                     title: {
@@ -457,9 +355,7 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
-                            'brainctp', 'brainmra',
-                            'headcta', 'postsurgery'],
+                        data: [],
                         padding: 25
                     },
                     toolbox: {
@@ -485,102 +381,7 @@
                             formatter: '{value} 秒'
                         }
                     },
-                    series: [
-                        {
-                            name: 'aibrainct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'aibrainmri',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'aicardiomodel',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'archcta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainctp',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'brainmra',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'headcta',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'lungct',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: 'postsurgery',
-                            type: 'line',
-                            data: [],
-                            markPoint: {},
-                        },
-                    ]
+                    series: []
                 },
                 lungLineoption: {
                     title: {
@@ -591,8 +392,7 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['1.0', '1.25', '1.5', '5.0',
-                            '10.0'],
+                        data: [],
                         padding: 25
                     },
                     toolbox: {
@@ -618,63 +418,7 @@
                             formatter: '{value} 秒'
                         }
                     },
-                    series: [
-                        {
-                            name: '1.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '1.25',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '1.5',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '5.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '10.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        }
-                    ]
+                    series: []
                 },
                 lungjobLineoption: {
                     title: {
@@ -685,7 +429,7 @@
                         padding: 25
                     },
                     legend: {
-                        data: ['1.0', '1.25', '1.5', '5.0', '10.0'],
+                        data: [],
                         padding: 25
                     },
                     toolbox: {
@@ -711,63 +455,7 @@
                             formatter: '{value} 秒'
                         }
                     },
-                    series: [
-                        {
-                            name: '1.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '1.25',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '1.5',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '5.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        },
-                        {
-                            name: '10.0',
-                            type: 'line',
-                            data: [],
-                            markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
-                            },
-                        }
-                    ]
+                    series: []
                 }
             }
         },
@@ -932,28 +620,71 @@
                     this.jobLineData = data.jobFigure;
                     this.lungLineData = data.lungFigure;
                     this.lungjobLineData = data.lungjobFigure;
+                    this.predictionLineoption.legend.data = data.modlename;
+                    this.jobLineoption.legend.data = data.modlename;
+                    this.lungLineoption.legend.data = data.lungname;
+                    this.lungjobLineoption.legend.data = data.lungname;
+
                     this.predictionLineoption.xAxis.data = this.predictionLineData[0];
                     this.jobLineoption.xAxis.data = this.jobLineData[0];
                     this.lungLineoption.xAxis.data = this.lungLineData[0];
                     this.lungjobLineoption.xAxis.data = this.lungjobLineData[0];
 
                     for (var i = 0; i < this.predictionLineData.length; i++) {
-                        this.predictionLineoption.series[i].data = this.predictionLineData[(i + 1)];
-                        this.jobLineoption.series[i].data = this.jobLineData[i + 1];
-
+                        this.predictionLineoption.series.push({
+                                name: this.predictionLineoption.legend.data[i],
+                                type: 'line',
+                                data:  this.predictionLineData[(i + 1)],
+                                markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                                },
+                            }
+                            );
+                        this.jobLineoption.series.push({
+                                name: this.jobLineoption.legend.data[i],
+                                type: 'line',
+                                data:  this.jobLineData[(i + 1)],
+                                markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                                },
+                            }
+                            );
                     };
-                    // lung
-                    this.lungjobLineoption.series[0].data = this.lungjobLineData[1];
-                    this.lungjobLineoption.series[1].data = this.lungjobLineData[2];
-                    this.lungjobLineoption.series[2].data = this.lungjobLineData[3];
-                    this.lungjobLineoption.series[3].data = this.lungjobLineData[4];
-                    this.lungjobLineoption.series[4].data = this.lungjobLineData[5];
-                    this.lungLineoption.series[0].data = this.lungLineData[1];
-                    this.lungLineoption.series[1].data = this.lungLineData[2];
-                    this.lungLineoption.series[2].data = this.lungLineData[3];
-                    this.lungLineoption.series[3].data = this.lungLineData[4];
-                    this.lungLineoption.series[4].data = this.lungLineData[5];
-                    // job lung
+                     // lung 数据j
+                    for (var j = 0; j < this.lungLineData.length; j++) {
+                        this.lungLineoption.series.push({
+                                name: this.lungLineoption.legend.data[j],
+                                type: 'line',
+                                data:  this.lungLineData[(j + 1)],
+                                markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                                },
+                            }
+                            );
+                         // job lung
+                        this.lungjobLineoption.series.push({
+                                name: this.lungjobLineoption.legend.data[j],
+                                type: 'line',
+                                data:  this.lungLineData[(j + 1)],
+                                markPoint: {
+                                data: [
+                                    {type: 'max', name: '最大值'},
+                                    {type: 'min', name: '最小值'}
+                                ]
+                                },
+                            }
+                            );
+                    };
+
 
                     console.log( this.lungjobLineoption)
                     this.reportBarData = data.solution_state.sort(function (a, b) {

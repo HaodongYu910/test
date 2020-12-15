@@ -37,16 +37,18 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
             if uidInfos.get(study_uid):
                 continue
             try:
-                if ds.PatientID:
-                    patientid = ds.PatientID
-                else:
-                    ds.PatientID = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
-                    patientid = ds.PatientID
                 if ds.PatientName:
                     patientname = ds.PatientName
                 else:
-                    ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
+                    if study_infos.get(study_uid):
+                        ds.PatientName = study_infos[study_uid]
+                    else:
+                        ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
                     patientname = ds.PatientName
+                if ds.PatientID:
+                    patientid = ds.PatientID
+                else:
+                    ds.PatientID = patientname
                 folder_fake = '/files/dicomTest/{0}/{1}/{2}'.format(type,diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
@@ -70,7 +72,7 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
                 if study_infos.get(study_uid):
                     continue
                 else:
-                    study_infos[study_uid]=study_uid
+                    study_infos[study_uid] = patientid
                     dicom.objects.create(**data)
             except Exception as e:
                 logging.error('errormsg: failed to sql [{0}]'.format(e))

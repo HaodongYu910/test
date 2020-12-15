@@ -104,7 +104,7 @@ def savecheck(sqltable, checkdate, server, version):
 # 求预测影像 平均值 最大值  最小值
 def image(server,modelname,checkdate):
     datalist=[]
-    if modelname in ['brainctp']:
+    if modelname in ['brainctp','corocta','archcta','headcta','archcta/headneck']:
         sql=dictionary.objects.get(key='predictionuid',type='sql')
         sqldata=sql.value.format(modelname,checkdate[0],checkdate[1])
         result = connect_to_postgres(server,sqldata )

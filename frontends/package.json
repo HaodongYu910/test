@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "vue-cli-service serve --mode development",
     "dev-prod": "vue-cli-service serve --mode development_prod",
-    "build-dev": "vue-cli-service build  --mode production_pre",
-    "build-prod": "vue-cli-service build --mode production"
+    "build-dev": "vue-cli-service build  --mode development",
+    "build-prod": "vue-cli-service build --mode development_prod"
   },
   "dependencies": {
     "axios": "^0.18.0",

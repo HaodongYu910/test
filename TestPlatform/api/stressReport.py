@@ -239,15 +239,18 @@ class reportfigure(APIView):
         if result:
             return result
         try:
-            modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta', 'brainctp', 'brainmra',
-             'headcta', 'postsurgery']
-            lungname = ['1.0','1.25','1.5','5.0','10.0']
-            predictionData =stressdataFigure("prediction",modlename)
-            jobData = stressdataFigure("job", modlename)
+            # modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
+            #                 'brainctp','headcta', 'postsurgery','brainmra']
+            # lungname = ['0.9','1.0','1.25','1.5','5.0','10.0']
+            predictionData,modlename =stressdataFigure("prediction")
+            jobData,modlename = stressdataFigure("job")
 
-            lungData =stressdataFigure("lung_prediction", lungname)
-            lungjobData = stressdataFigure("lung_job", lungname)
-            return JsonResponse(data={"predictionFigure": predictionData,
+            lungData,lungname =stressdataFigure("lung_prediction")
+            lungjobData,lungname = stressdataFigure("lung_job")
+
+            return JsonResponse(data={"modlename":modlename,
+                                      "lungname":lungname,
+                                      "predictionFigure": predictionData,
                                      "jobFigure": jobData,
                                       "lungFigure":lungData,
                                       "lungjobFigure":lungjobData
@@ -288,8 +291,8 @@ class stressResultsave(APIView):
         try:
             obj = stress.objects.get(version=data['version'])
             checkdate = [obj.start_date, obj.end_date]
-            # savecheck('job', checkdate, obj.loadserver, obj.version)
-            # savecheck('prediction', checkdate, obj.loadserver, obj.version)
+            savecheck('job', checkdate, obj.loadserver, obj.version)
+            savecheck('prediction', checkdate, obj.loadserver, obj.version)
             lung(checkdate, obj.loadserver, obj.version)
 
             return JsonResponse(data={"data": ''}, code="0", msg="成功")

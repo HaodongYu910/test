@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.common.common import record_dynamic
-from TestPlatform.models import base_data
+from TestPlatform.models import base_data,dictionary
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
 from TestPlatform.tools.dicom.dicomfile import fileSave
@@ -63,6 +63,9 @@ class getBase(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = base_data_Serializer(obm, many=True)
+        for i in serialize.data:
+            obd = dictionary.objects.get(id=i["predictor"])
+            i["predictor"] = obd.value
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -124,9 +127,9 @@ class UpdatebaseData(APIView):
             # 校验project_id类型为int
             if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
-            # 必传参数 content, status , type
-            if not data["content"] or not data["type"] or not data["status"]:
-                return JsonResponse(code="999996", msg="参数有误！")
+            # 必传参数 content, predictor , type
+            if not data["content"] or not data["type"] or not data["predictor"]:
+                return JsonResponse(code="999996", msg="参数有误 必传参数 content, predictor , type！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")

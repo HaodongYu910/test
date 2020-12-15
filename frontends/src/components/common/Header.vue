@@ -4,7 +4,7 @@
         <div class="collapse-btn" @click="collapseChage">
             <img class="blogo" src="../../assets/img/logo.png"/>
         </div>
-        <div class="logo">Biomind Test Platform</div>
+        <div class="logo">Biomind Test</div>
         <div class="header-right">
             <div class="header-user-con">
                 <!-- 全屏显示 -->
