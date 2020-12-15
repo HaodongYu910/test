@@ -1,12 +1,11 @@
 # Byte-compiled / optimized / DLL files
-__pycache__/
 *.py[cod]
 *$py.class
 
 # C extensions
 *.so
-.idea
-
+.idea/
+__pycache__/
 # Distribution / packaging
 .Python
 env/
@@ -26,12 +25,8 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-<<<<<<< HEAD
-.idea
+
 *migration
-=======
-__pycache__
->>>>>>> 30fa1db1fb2682153cddb7aae26ab9e3272071d3
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -44,7 +39,6 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Unit test / coverage reports
-__pycache__
 htmlcov/
 .tox/
 .coverage
@@ -54,7 +48,6 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-.idea
 # Translations
 *.mo
 *.pot
@@ -110,4 +103,3 @@ ENV/
 .mypy_cache/
 
 *.csv
-__pycache__
