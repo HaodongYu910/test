@@ -73,7 +73,7 @@
             </el-table-column>
             <el-table-column label="数量" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.other }}</span>R
+                    <span style="margin-left: 10px">{{ scope.row.other }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
@@ -472,10 +472,8 @@
                                 content: self.editForm.content,
                                 type: self.editForm.type,
                                 select_type: self.editForm.select_type,
-                                start_date: self.editForm.start_date,
-                                status: self.editForm.status,
                                 remarks: self.editForm.remarks,
-                                other: self.editForm.other
+                                predictor: self.editForm.predictor
                             };
                             let header = {
                                 "Content-Type": "application/json",
