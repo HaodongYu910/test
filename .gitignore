@@ -4,8 +4,8 @@
 
 # C extensions
 *.so
-.idea/
-__pycache__/
+*.idea
+*pycache__
 # Distribution / packaging
 .Python
 env/
