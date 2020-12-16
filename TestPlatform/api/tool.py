@@ -507,6 +507,7 @@ class anonymizationAPI_2nd(APIView):
         data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
         try:
             name = data['anon_name']
+            #addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
             addr = data['anon_addr']
             disease = data['anon_disease']
             wPN = data['wPN']
