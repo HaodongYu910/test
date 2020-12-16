@@ -1,6 +1,29 @@
 <template>
   <div class="app-container">
     <div class="filter-container">
+        <!--图表-->
+        <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
+                <el-card shadow="hover" style="width:100%;height:600px;">
+                    <el-row :gutter="50">
+                        <el-col :span="30">
+                            <el-card shadow="hover">
+                                <div ref='echarts' class="myLine" style="width:1500px;height:500px;margin:0 auto">
+                                </div>
+                            </el-card>
+                        </el-col>
+                    </el-row>
+                </el-card>
+<!--                <el-card shadow="hover" style="width:100%;height:600px;">-->
+<!--                    <el-row :gutter="50">-->
+<!--                        <el-col :span="30">-->
+<!--                            <el-card shadow="hover">-->
+<!--                                <div id='jobLine' class="myLine" style="width:1500px;height:500px;margin:0 auto">-->
+<!--                                </div>-->
+<!--                            </el-card>-->
+<!--                        </el-col>-->
+<!--                    </el-row>-->
+<!--                </el-card>-->
+        </el-col>
         <!--工具条-->
         <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
       <el-form :inline="true" :model="filters" @submit.native.prevent>
@@ -50,14 +73,19 @@
               <span style="margin-left: 10px">{{ scope.row.id }}</span>
             </template>
           </el-table-column>
+            <el-table-column prop="服务器" label="服务器" min-width="10%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.server }}</span>
+            </template>
+          </el-table-column>
           <el-table-column prop="version" label="版本" min-width="8%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.version }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="patientid" label="Patientid" min-width="10%">
+            <el-table-column prop="diseases" label="病种" min-width="8%" sortable>
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
+              <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
             </template>
           </el-table-column>
           <el-table-column prop="studyinstanceuid" label="Studyinstanceuid" min-width="25%">
@@ -110,7 +138,7 @@
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
     <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
                <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">重测</el-button>
-<!--              <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
+<!--             return <el-button type="primary" size="small" @click="handle(scope.$index, scope.row)">跳转</el-button>-->
             </template>
           </el-table-column>
         </el-table>
@@ -133,228 +161,255 @@
 import {
   getHost,getsomkerecord,getsomkestart, getbase,deldicomreport
 } from '@/router/api'
-
+import echarts from 'echarts'
 // import ElRow from "element-ui/packages/row/src/row";
 export default {
-  // components: {ElRow},
-  data() {
-    return {
-      filters: {
-        diseases: null,
-        slicenumber:null,
-        diseases:'',
-        server:'',
-        version:'',
-        status:''
-      },
-      total: 0,
-      page: 1,
-      page_size:50,
-      listLoading: false,
-      sels: [], // 列表选中列
+    // components: {ElRow},
+    data() {
+        return {
+            filters: {
+                diseases: null,
+                slicenumber: null,
+                diseases: '',
+                server: '',
+                version: '',
+                status: ''
+            },
+            total: 0,
+            page: 1,
+            page_size: 50,
+            listLoading: false,
+            sels: [], // 列表选中列
 
-      // 新增界面数据
-      addForm: {
-        diseases: '',
-        server: '192.168.1.208',
-        studyinstanceuid:''
-      },
-      addFormVisible: false, // 新增界面是否显示
-      addLoading: false,
-      addFormRules: {
-        diseases: [
-          { required: true, message: '请输入名称', trigger: 'blur' },
-          { min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur' }
-        ]
-      }
+            // 新增界面数据
+            addForm: {
+                diseases: '',
+                server: '192.168.1.208',
+                studyinstanceuid: ''
+            },
+            addFormVisible: false, // 新增界面是否显示
+            addLoading: false,
+            addFormRules: {
+                diseases: [
+                    {required: true, message: '请输入名称', trigger: 'blur'},
+                    {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                ]
+            },
+            chart: null,
+            option: {
+                title: {
+                    text: '自定义柱状图'
+                },
+                tooltip: {},
+                legend: {
+                    data: ['销量']
+                },
+                xAxis: {
+                    data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"]
+                },
+                yAxis: {},
+                series: [{
+                    name: '销量',
+                    type: 'bar',
+                    data: [30, 20, 36, 40, 50, 60],
 
-    }
-  },
-  mounted() {
-    this.getdata()
-    this.gethost()
-  },
-  methods: {
-    valuestatus: function (a) {
-                if (a==="匹配成功") {
-                    return 'statuscssb';
                 }
-                else {
-                    return 'statuscssa';
+                ],
+                color: ['#66FF99']
+            },
+            mounted() {
+                this.getdata()
+                this.gethost()
+                this.getecharts()
+            },
+            methods: {
+                valuestatus: function (a) {
+                    if (a === "匹配成功") {
+                        return 'statuscssb';
+                    } else {
+                        return 'statuscssa';
+                    }
+                },
+                getecharts() {
+                    this.chart = echarts.init(this.$refs.echarts);
+                    // 使用刚指定的配置项和数据显示图表。
+                    this.chart.setOption(this.option);
+                },
+                gethost() {
+                    this.listLoading = true
+                    const self = this
+                    const params = {}
+                    const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                    getHost(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.total = data.total
+                            self.list = data.data
+                            var json = JSON.stringify(self.list)
+                            this.tags = JSON.parse(json)
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    })
+                },
+                // 获取getBase列表
+                getBase() {
+                    this.listLoading = true
+                    const self = this
+                    const params = {
+                        selecttype: "dicom", type: "Gold",
+                        status: 1
+                    }
+                    const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                    getbase(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.total = data.total
+                            self.list = data.data
+                            var json = JSON.stringify(self.list)
+                            this.tags = JSON.parse(json)
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    })
+                },
+                somketest() {
+                    this.listLoading = true
+                    const self = this
+                    const params = {
+                        server_ip: self.filters.server,
+                        diseases: self.filters.diseases,
+                        version: self.filters.version
+                    }
+                    const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                    getsomkestart(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.$message.success({
+                                message: "运行中！~~~~~",
+                                center: true
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    })
+                },
+                // 获取数据列表
+                getdata() {
+                    this.listLoading = true
+                    const self = this
+                    const params = {
+                        page: self.page,
+                        diseases: self.filters.diseases,
+                        server: self.filters.server,
+                        version: self.filters.version,
+                        type: 'Gold',
+                        status: self.filters.status
+                    }
+                    const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                    getsomkerecord(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.total = data.total
+                            self.page = data.page
+                            self.stresslist = data.data
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    })
+                },
+                handleCurrentChange(val) {
+                    this.page = val
+                    this.getdata()
+                },
+                selsChange: function (sels) {
+                    this.sels = sels
+                },
+                // 批量删除
+                batchRemove: function () {
+                    const ids = this.sels.map(item => item.id)
+                    const self = this
+                    this.$confirm('确认删除选中记录吗？', '提示', {
+                        type: 'warning'
+                    }).then(() => {
+                        this.listLoading = true
+                        // NProgress.start();
+                        const self = this
+                        const params = {ids: ids}
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        deldicomdata(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            if (code === '0') {
+                                self.$message({
+                                    message: '删除成功',
+                                    center: true,
+                                    type: 'success'
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            }
+                            self.getdata()
+                        })
+                    })
+                },
+                // 批量删除报告
+                batchDel: function () {
+                    const ids = this.sels.map(item => item.id)
+                    const self = this
+                    this.$confirm('确认删除选中记录的报告吗？', '提示', {
+                        type: 'warning'
+                    }).then(() => {
+                        this.listLoading = true
+                        // NProgress.start();
+                        const self = this
+                        const params = {ids: ids}
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        deldicomreport(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            if (code === '0') {
+                                self.$message({
+                                    message: '删除成功',
+                                    center: true,
+                                    type: 'success'
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            }
+                            self.getdata()
+                        })
+                    })
                 }
-    },
-    gethost() {
-      this.listLoading = true
-      const self = this
-      const params = {}
-      const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-      getHost(headers, params).then((res) => {
-        self.listLoading = false
-        const {msg, code, data} = res
-        if (code === '0') {
-          self.total = data.total
-          self.list = data.data
-          var json = JSON.stringify(self.list)
-          this.tags = JSON.parse(json)
-        } else {
-          self.$message.error({message: msg,
-            center: true
-          })
+            }
         }
-      })
-    },
-    // 获取getBase列表
-    getBase() {
-      this.listLoading = true
-      const self = this
-      const params = {
-        selecttype:"dicom",
-        status:1
-      }
-      const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-      getbase(headers, params).then((res) => {
-        self.listLoading = false
-        const {msg, code, data} = res
-        if (code === '0') {
-          self.total = data.total
-          self.list = data.data
-          var json = JSON.stringify(self.list)
-          this.tags = JSON.parse(json)
-        } else {
-          self.$message.error({
-            message: msg,
-            center: true
-          })
-        }
-      })
-    },
-    somketest() {
-      this.listLoading = true
-      const self = this
-      const params = {
-        server_ip: self.filters.server,
-        diseases: self.filters.diseases,
-        version: self.filters.version
-      }
-      const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
-      getsomkestart(headers, params).then((res) => {
-        self.listLoading = false
-        const { msg, code, data } = res
-        if (code === '0') {
-          self.$message.success({
-            message: "运行中！~~~~~",
-            center: true
-          })
-        } else {
-          self.$message.error({
-            message: msg,
-            center: true
-          })
-        }
-      })
-    },
-    // 获取数据列表
-    getdata() {
-      this.listLoading = true
-      const self = this
-      const params = {
-        page: self.page,
-        diseases: self.filters.diseases,
-        server: self.filters.server,
-        version:self.filters.version,
-        type:'Gold',
-        status:self.filters.status
-      }
-      const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
-      getsomkerecord(headers, params).then((res) => {
-        self.listLoading = false
-        const { msg, code, data } = res
-        if (code === '0') {
-          self.total = data.total
-          self.page = data.page
-          self.stresslist = data.data
-        } else {
-          self.$message.error({
-            message: msg,
-            center: true
-          })
-        }
-      })
-    },
-    handleCurrentChange(val) {
-      this.page = val
-      this.getdata()
-    },
-    selsChange: function(sels) {
-      this.sels = sels
-    },
-    // 批量删除
-    batchRemove: function() {
-      const ids = this.sels.map(item => item.id)
-      const self = this
-      this.$confirm('确认删除选中记录吗？', '提示', {
-        type: 'warning'
-      }).then(() => {
-        this.listLoading = true
-        // NProgress.start();
-        const self = this
-        const params = { ids: ids }
-        const header = {
-          'Content-Type': 'application/json',
-          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-        }
-        deldicomdata(header, params).then(_data => {
-          const { msg, code, data } = _data
-          if (code === '0') {
-            self.$message({
-              message: '删除成功',
-              center: true,
-              type: 'success'
-            })
-          } else {
-            self.$message.error({
-              message: msg,
-              center: true
-            })
-          }
-          self.getdata()
-        })
-      })
-    },
-    // 批量删除报告
-    batchDel: function() {
-      const ids = this.sels.map(item => item.id)
-      const self = this
-      this.$confirm('确认删除选中记录的报告吗？', '提示', {
-        type: 'warning'
-      }).then(() => {
-        this.listLoading = true
-        // NProgress.start();
-        const self = this
-        const params = { ids: ids }
-        const header = {
-          'Content-Type': 'application/json',
-          Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-        }
-        deldicomreport(header, params).then(_data => {
-          const { msg, code, data } = _data
-          if (code === '0') {
-            self.$message({
-              message: '删除成功',
-              center: true,
-              type: 'success'
-            })
-          } else {
-            self.$message.error({
-              message: msg,
-              center: true
-            })
-          }
-          self.getdata()
-        })
-      })
     }
-  }
 }
 
 </script>
@@ -368,6 +423,12 @@ export default {
   right: 15px;
   top: 10px;
 }
+.simpleDemo {
+    width: 600px;
+    height:400px;
+    float: left;
+    margin: 0 auto;
+  }
 .statuscssa{
         color:#E61717
     }

@@ -952,6 +952,7 @@ class dicom_record(models.Model):
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
     patientid = models.CharField(max_length=30, blank=True, null=True, verbose_name="id")
+    server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
     studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
     slicenumber = models.CharField(max_length=20, blank=True, null=True, verbose_name="slicenumber")

@@ -80,9 +80,15 @@ export default new Router({
 
                 },
                 {
-                    path: '/gold',
-                    component: resolve => require(['../components/tool/smoke/Smoketest.vue'], resolve),
+                    path: '/Smoke',
+                    component: resolve => require(['../components/tool/smoke/Smoke.vue'], resolve),
                     meta: { title: '金标准测试' }
+
+                },
+                {
+                    path: '/SmokeResult',
+                    component: resolve => require(['../components/tool/smoke/Smoketest.vue'], resolve),
+                    meta: { title: '金标准结果' }
 
                 },
                 {

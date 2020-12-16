@@ -47,6 +47,7 @@ def goldSmoke(version, server_ip, ids):
             data = {
                 "version": version,
                 "patientid": obj.patientid,
+                "server":server_ip,
                 "studyinstanceuid": obj.studyinstanceuid,
                 "diseases": obj.diseases,
                 "slicenumber": obj.slicenumber,
@@ -93,7 +94,7 @@ def goldSmoke(version, server_ip, ids):
                 checkdata(result,data)
         except Exception as e:
             logger.error("error:{0}".format(e))
-            data["report"] = '手动预测失败'
+            data["report"] = '执行失败'
             data["status"] = False
             saverecord(data)
             continue
@@ -144,6 +145,8 @@ def checkdata(result,data):
 
 # 预测失败 记录
 def aiFalse(result,data):
+    data["status"] = False
+    data["report"] = '手动预测失败'
     try:
         data["aidiagnosis"] = str(result['ai_biomind']['pstatus_code'][0]['code'])
     except Exception as e:

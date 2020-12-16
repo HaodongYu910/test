@@ -44,14 +44,13 @@ class getBase(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         selecttype = request.GET.get("select_type")
-        status=request.GET.get("status")
         type = request.GET.get("type")
         remarks = request.GET.get("remarks")
         if type:
             if remarks:
-                obi = base_data.objects.filter(type=type,remarks=remarks,status=status).order_by("remarks")
+                obi = base_data.objects.filter(type=type,remarks=remarks).order_by("remarks")
             else:
-                obi = base_data.objects.filter(type=type,status=status).order_by("remarks")
+                obi = base_data.objects.filter(type=type).order_by("remarks")
         else:
             obi = base_data.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -85,7 +84,7 @@ class AddbaseData(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["content"] or not data["type"]:
+            if not data["content"] or not data["type"]  or not data['predictor']:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -101,9 +100,7 @@ class AddbaseData(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        if not data['predictor']:
-            data['predictor']=Predictor(data['remarks'])
-        print(data['predictor'])
+
         basedata=base_data.objects.create(**data)
         # 创建线程
         thread_fake_folder = threading.Thread(target=fileSave,

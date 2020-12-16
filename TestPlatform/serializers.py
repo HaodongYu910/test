@@ -766,7 +766,7 @@ class dicomrecord_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom_record
-        fields = ('id', 'version', 'patientid', 'studyinstanceuid', 'slicenumber',
+        fields = ('id', 'version','server', 'patientid', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'report', 'status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -788,7 +788,7 @@ class dicomrecord_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom_record
-        fields = ('version', 'patientid', 'studyinstanceuid', 'slicenumber',
+        fields = ('version','server', 'patientid', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'report', 'status')
 
