@@ -80,7 +80,7 @@
                     {
                         icon: 'el-icon-loading',
                         index: '4',
-                        title: '测试工具',
+                        title: 'Dicom工具',
                         subs: [
                             {
                                 index: 'base',
@@ -97,14 +97,21 @@
                             {
                                 index: 'duration',
                                 title: 'Dicom发送'
-                            },
+                            }
+                        ]
+                    },
+                    {
+                        icon: 'el-icon-s-flag',
+                        index: '5',
+                        title: '金标准验证',
+                        subs: [
                             {
-                                index: 'gold',
+                                index: 'Smoke',
                                 title: '冒烟测试'
                             },
                             {
-                                index: 'dicommaster_record',
-                                title: 'DicomMaster Monitor'
+                                index: 'SmokeResult',
+                                title: '结果数据'
                             }
                         ]
                     },
@@ -115,7 +122,7 @@
                     },
                     {
                         icon: 'el-icon-message',
-                        index: '5',
+                        index: '6',
                         title: '邮件管理',
                         subs: [
                             {
@@ -130,7 +137,7 @@
                     },
                     {
                         icon: 'el-icon-s-tools',
-                        index: '6',
+                        index: '7',
                         title: '系统设置',
                         subs: [
                             {

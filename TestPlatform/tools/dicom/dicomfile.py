@@ -41,14 +41,15 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
                     patientname = ds.PatientName
                 else:
                     if study_infos.get(study_uid):
-                        ds.PatientName = study_infos[study_uid]
+                        patientname = study_infos[study_uid]
                     else:
-                        ds.PatientName = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
-                    patientname = ds.PatientName
+                        patientname = norm_string("{0}_{1}".format(diseases,time.strftime("%m%d%H%M%S", time.localtime(time.time()))), 16)
+                    ds.PatientName = patientname
                 if ds.PatientID:
                     patientid = ds.PatientID
                 else:
-                    ds.PatientID = patientname
+                    patientid = patientname
+                    ds.PatientID = patientid
                 folder_fake = '/files/dicomTest/{0}/{1}/{2}'.format(type,diseases, patientname,)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
@@ -91,7 +92,6 @@ def fileSave(id,type):
     src_folder = obj.content
     if type =='update':
         for i in uids:
-            study_uid=i.studyinstanceuid
             uidInfos[i.studyinstanceuid]=i.studyinstanceuid
             src_folder = obj.content
     while src_folder[-1] == '/':

@@ -23,7 +23,7 @@
                 </el-form-item>
                 <el-form-item>
                     <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getbaseList()">
-                        <el-option v-for="(item,index) in project"
+                        <el-option v-for="(item,index) in baseData"
                                    :key="item.remarks"
                                    :label="item.remarks"
                                    :value="item.remarks"
@@ -41,7 +41,7 @@
         </el-col>
 
         <!--列表-->
-        <el-table :data="project" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
+        <el-table :data="baseData" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
@@ -216,7 +216,7 @@
                     selecttype: 'dicom',
                     status: true
                 },
-                project: [],
+                baseData: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -354,7 +354,7 @@
                     let {msg, code, data} = res;
                     if (code === '0') {
                         self.total = data.total;
-                        self.project = data.data
+                        self.baseData = data.data
                     } else {
                         self.$message.error({
                             message: msg,
@@ -394,7 +394,7 @@
             handleChangeStatus: function (index, row) {
                 let self = this;
                 this.listLoading = true;
-                let params = {project_id: row.id};
+                let params = {id: row.id};
                 let headers = {
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
