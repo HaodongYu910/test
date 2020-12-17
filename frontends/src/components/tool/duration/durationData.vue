@@ -5,7 +5,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
         <el-form-item>
-          <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getDurationlist" />
+          <el-input v-model="filters.patientid" placeholder="patientname" @keyup.enter.native="getDurationlist" />
         </el-form-item>
         <el-form-item label="开始时间">
           <el-date-picker v-model="filters.startdate" type="datetime"
@@ -80,7 +80,7 @@
               <span style="margin-left: 10px">{{ scope.row.id }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="patientid" label="Patientid" min-width="15%">
+          <el-table-column prop="patientid" label="PatientName" min-width="15%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
             </template>
@@ -105,7 +105,7 @@
               <span style="margin-left: 10px">{{ scope.row.imagecount_server }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="预测结果" label="预测结果" min-width="12%" sortable>
+          <el-table-column prop="预测结果" label="预测结果" min-width="8%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.aistatus }}</span>
             </template>
@@ -122,14 +122,22 @@
           </el-table-column>
           <el-table-column label="发送日期" min-width="10%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD') }}</span>
+              <span style="margin-left: 12px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD HH:MM:SS') }}</span>
             </template>
           </el-table-column>
-<!--          <el-table-column label="操作" min-width="10px">-->
-<!--            <template slot-scope="scope">-->
-<!--              <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查询结果</el-button>-->
-<!--            </template>-->
-<!--          </el-table-column>-->
+
+          <el-table-column label="操作" min-width="10px">
+              <template>
+                  <div class="container">
+                      <input type="text" v-model="message">
+                      <button type="button"
+                              v-clipboard:copy="message"
+                              v-clipboard:success="onCopy"
+                              v-clipboard:error="onError">Copy!
+                      </button>
+                  </div>
+              </template>
+          </el-table-column>
         </el-table>
       <el-footer style="margin-top:20px;">
           <el-pagination
@@ -144,6 +152,7 @@
                 ></el-pagination>
       </el-footer>
       <!--工具条-->
+
 
     </div>
   </div>
@@ -183,6 +192,14 @@
           this.getDurationlist();
           },
         methods: {
+            onCopy: function (e) {
+                alert('You just copied: ' + e.text)
+            },
+            onError: function (e) {
+                console.log(e)
+                alert('Failed to copy texts')
+            },
+
             //获取由路由传递过来的参数
             getParams(){
               this.routerParams=this.$route.query;
