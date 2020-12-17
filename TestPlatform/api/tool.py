@@ -100,6 +100,8 @@ class durationData(APIView):
         else:
             obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
+        # else:
+        #     obi = duration_record.objects.raw()
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -109,7 +111,7 @@ class durationData(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = duration_record_Deserializer(obm, many=True)
+        serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
         rdata = serialize.data
         du = duration.objects.get(id=durationid)
         if du.dds is not None:
@@ -133,6 +135,7 @@ class durationData(APIView):
                                                "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
                                                    i["studyinstanceuid"]))
                 _dict = dbresult.to_dict(orient='records')
+
             except Exception as e:
                 logger.error(e)
             if _dict == []:
@@ -144,6 +147,7 @@ class durationData(APIView):
                     i['aistatus'] = j['aistatus']
                     i['diagnosis'] = j['diagnosis']
                     i['imagecount_server'] = j['imagecount']
+
 
         return JsonResponse(data={"data": rdata,
                                   "durationresult": [datalist],
