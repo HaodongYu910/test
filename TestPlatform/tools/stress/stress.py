@@ -9,7 +9,7 @@ from TestPlatform.serializers import dicomrecord_Deserializer, dicomrecord_Seria
 import datetime
 from ..dicom.dicomdetail import Predictor
 from ..dicom.dicomdetail import voteData, Slice
-from .PerformanceResult import savecheck, lung
+from .PerformanceResult import saveResult, lung
 
 logger = logging.getLogger(__name__)
 
@@ -96,11 +96,9 @@ def AutoPrediction(orthanc_ip, diseases, count):
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     info = {}
     for i in diseases.split(","):
-        obj = dictionary.objects.get(type='model', id=i)
-        stressdata = stress_record.objects.filter(diseases__in=obj.value)
+        stressdata = stress_record.objects.filter(diseases=i )
         for k in stressdata:
-            print(info)
-            if k.diseases == 'lungct_v2':
+            if str(i) == '9':
                 if info.get(k.slicenumber):
                     if info[k.slicenumber] == count:
                         continue
@@ -141,22 +139,22 @@ def AutoPrediction(orthanc_ip, diseases, count):
 def stresscache(stressid):
     obj = stress.objects.get(id=stressid)
     # 循环病种存储 测试数据
-
-    # 查询预测成功的数据 作为压测数据
-    # sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format(i)
-    sql = 'select  DISTINCT studyuid,modelname from  prediction_metrics where modelname =\'brainctp\' ORDER BY modelname';
-
-    results = connect_to_postgres(obj.loadserver, sql).to_dict(orient='records')
-
-    for j in results:
-        logger.info(j['studyuid'])
-        # graphql_query, imagecount, slicenumber=None,None,None
-        graphql_query, imagecount, slicenumber = voteData(j['studyuid'], obj.loadserver, j['modelname'])
-        data = {"stressid": stressid,
-                "studyuid": j['studyuid'],
-                "imagecount": imagecount,
-                "slicenumber": slicenumber,
-                "diseases": j['modelname'],
-                "graphql": None
-                }
-        stress_record.objects.create(**data)
+    for i in obj.testdata.split(","):
+        dictobj = dictionary.objects.get(id =i)
+        # 查询预测成功的数据 作为压测数据
+        # sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname =\'brainctp\' ORDER BY modelname';
+        sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format(dictobj.key)
+        results = connect_to_postgres(obj.loadserver, sql).to_dict(orient='records')
+        # 循环插入数据
+        for j in results:
+            logger.info(j['studyuid'])
+            # graphql_query, imagecount, slicenumber=None,None,None
+            graphql_query, imagecount, slicenumber = voteData(j['studyuid'], obj.loadserver,int(i))
+            data = {"stressid": stressid,
+                    "studyuid": j['studyuid'],
+                    "imagecount": imagecount,
+                    "slicenumber": slicenumber,
+                    "diseases": i,
+                    "graphql": None
+                    }
+            stress_record.objects.create(**data)

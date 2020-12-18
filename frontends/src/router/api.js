@@ -233,6 +233,15 @@ export const updateStress = (headers, params) => {
 export const delStress = (headers, params) => {
    return axios.post(`${test}/api/stress/del`, params, headers).then(res => res.data)
 }
+// 启用Stress数据状态
+export const enableStress = (headers, params) => {
+  return axios.post(`${test}/api/stress/enable`, params, headers).then(res => res.data)
+}
+// 禁用Stress数据状态
+export const disableStress = (headers, params) => {
+  return axios.post(`${test}/api/stress/disable`, params, headers).then(res => res.data)
+}
+
 //压测详情
 export const StressDetail = (headers, params) => {
   return axios.get(`${test}/api/stress/Detail `, { params: params }, headers).then(res => res.data)
@@ -339,12 +348,16 @@ export const durationverifydata = (headers, params) => {
 }
 
 // 冒烟测试记录
-export const getsomkerecord = (headers, params) => {
-  return axios.get(`${test}/api/tool/somkerecord`, { params: params }, { headers }).then(res => res.data)
+export const getsmokerecord = (headers, params) => {
+  return axios.get(`${test}/api/smoke/record`, { params: params }, { headers }).then(res => res.data)
 }
 // 金标准冒烟测试
-export const getsomkestart = (headers, params) => {
-  return axios.post(`${test}/api/tool/somke`, params, headers).then(res => res.data)
+export const getsmokestart = (headers, params) => {
+  return axios.post(`${test}/api/smoke/test`, params, headers).then(res => res.data)
+}
+// 金标准图表
+export const getsmokefigure = (headers, params) => {
+  return axios.post(`${test}/api/smoke/figure`, params, headers).then(res => res.data)
 }
 // 获取dicom数据
 export const getdicomSend = (headers, params) => {

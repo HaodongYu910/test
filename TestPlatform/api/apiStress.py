@@ -283,10 +283,12 @@ class stressResultsave(APIView):
             obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
             if obj.projectname=='晨曦':
-
-                savecheck('prediction', checkdate, obj.loadserver, obj.version)
+                for j in ['prediction','job']:
+                    sql = dictionary.objects.get(key=str(j), type='sql')
+                    strsql = sql.value.format(checkdate[0], checkdate[1])
+                    saveResult(obj.loadserver, obj.version,j,checkdate,strsql,[])
                 lung(checkdate, obj.loadserver, obj.version)
-                savecheck('job', checkdate, obj.loadserver, obj.version)
+
             elif obj.projectname=='肺炎':
                 lung(checkdate, obj.loadserver, obj.version)
 

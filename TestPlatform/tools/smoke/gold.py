@@ -55,7 +55,7 @@ def goldSmoke(version, server_ip, ids):
                 "type": "Gold",
                 "status": True
             }
-            sql = 'select studyinstanceuid from study_view where studyinstanceuid = \'{0}\''.format(
+            sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
                 obj.studyinstanceuid)
             result_db = connect_to_postgres(server_ip, sql)
             # 无此数据，发送

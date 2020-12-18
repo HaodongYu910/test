@@ -33,7 +33,7 @@
           <el-button type="primary" @click="getdata">查询</el-button>
         </el-form-item>
         <el-form-item>
-          <el-button type="warning" @click="somketest">smoke测试</el-button>
+          <el-button type="warning" @click="smoketest">smoke测试</el-button>
         </el-form-item>
         <el-button type="danger" :disabled="this.sels.length===0" @click="batchdel">删除报告</el-button>
       </el-form>
@@ -136,7 +136,7 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getHost,getsomkerecord,getsomkestart, getbase,deldicomreport
+  getHost,getsmokerecord,getsmokestart, getbase,deldicomreport
 } from '@/router/api'
 
 // import ElRow from "element-ui/packages/row/src/row";
@@ -233,7 +233,7 @@ export default {
         }
       })
     },
-    somketest() {
+    smoketest() {
       this.listLoading = true
       const self = this
       const params = {
@@ -242,7 +242,7 @@ export default {
         version: self.filters.version
       }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
-      getsomkestart(headers, params).then((res) => {
+      getsmokestart(headers, params).then((res) => {
         self.listLoading = false
         const { msg, code, data } = res
         if (code === '0') {
@@ -271,7 +271,7 @@ export default {
         status:self.filters.status
       }
       const headers = { Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token')) }
-      getsomkerecord(headers, params).then((res) => {
+      getsmokerecord(headers, params).then((res) => {
         self.listLoading = false
         const { msg, code, data } = res
         if (code === '0') {

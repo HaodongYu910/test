@@ -1,7 +1,7 @@
 import gc
 from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import  dicom
+from TestPlatform.models import  dicom,dictionary
 
 import os,time
 import shutil
@@ -48,7 +48,8 @@ def voteData(uid,orthanc_ip,diseases):
                     vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
                     SeriesInstanceUID=str(i['SeriesInstanceUID'])
         vote = "{"+vote+"}"
-        if diseases in ['brainctp', 'corocta', 'archcta', 'headcta','lungct_v2','archcta/headneck']:
+
+        if diseases in[4,5,7,8,9,10]:
             imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
         else:
             imagecount, slicenumber =None,None

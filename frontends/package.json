@@ -9,6 +9,7 @@
     "build-prod": "vue-cli-service build --mode development_prod"
   },
   "dependencies": {
+    "@oldeng/v-pie": "^0.1.4",
     "axios": "^0.18.0",
     "babel-polyfill": "^6.26.0",
     "element-ui": "^2.4.11",
@@ -17,6 +18,7 @@
     "moment": "^2.24.0",
     "node-sass": "^4.12.0",
     "sass-loader": "^7.1.0",
+    "v-charts": "^1.19.0",
     "vue": "^2.5.21",
     "vue-axios": "^2.1.4",
     "vue-cropperjs": "^3.0.0",
@@ -28,7 +30,7 @@
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.2.0",
     "@vue/cli-service": "^4.4.1",
-    "echarts": "^4.2.1",
+    "echarts": "^4.9.0",
     "vue-template-compiler": "^2.5.21"
   }
 }

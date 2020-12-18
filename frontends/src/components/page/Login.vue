@@ -65,7 +65,12 @@
                                 this.$message.success("登录成功");
                                 localStorage.setItem('ms_username',this.ruleForm.username);
                                 localStorage.setItem('date_joined',JSON.stringify(data.date_joined));
-                                this.$router.push('/');
+                                // this.$router.push('/');
+                                if(this.$route.query.redirect){
+                                    this.$router.push({path: decodeURIComponent(this.$route.query.redirect)}) //跳转到原页面
+                            }else{
+                                this.$router.push('/');//正常登录流程进入的页面
+                            }
                             }
                             else{
                                 this.$message.error(msg);
