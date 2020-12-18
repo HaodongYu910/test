@@ -9,18 +9,16 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 # 肺炎结果记录
-def lung(checkdate, server, version):
+def lung(checkdate, server, version,testdata):
     dict = {}
     imagescount ={}
     # 查询sql
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-
-    dictobj = dictionary.objects.get(id=9)
-    db_query =sql.value.format(dictobj.key,checkdate[0], checkdate[1])
+    db_query =sql.value.format(checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyuid"], server, dictobj.key)
+        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,9)
         if SliceThickness is None:
             continue
         if dict.get(SliceThickness) is None:
@@ -64,22 +62,23 @@ def dataCheck(dataA, dataB):
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"
             else:
                 continue
+        obj = dictionary.objects.get(id=i['modelname'])
+        i['modelname'] = obj.key
     return dictA
 
 
 # 预测数据保存
-def saveResult(server,version,tpye,checkdate,sql,image):
+def saveResult(server,version,tpye,checkdate,sql,imagedata):
     imagelist = []
     result = connect_to_postgres(server,sql)
-    _num1 = len(result)
     dict = result.to_dict(orient='records')
     for i in dict:
         obj = dictionary.objects.get(key=i["modelname"])
         i["version"] = version
         i["type"] = tpye
         i["modelname"] = obj.id
-        if image !=[]:
-            for j in image[1:].split(","):
+        if imagedata !=[]:
+            for j in imagedata[1:].split(","):
                 imagelist.append(int(j))
             i["avgimages"], i["maximages"], i["minimages"] = str('%.2f' % np.mean(imagelist)), str(
                 np.max(imagelist)), str(np.min(imagelist))

@@ -12,10 +12,9 @@ from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost,dicom_
 from TestPlatform.serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
-from ..tools.stress.stresstest import lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
-from ..tools.stress.stresstest import updateStressData
+from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
 from ..tools.dicom.dicomdetail import *
 
@@ -171,28 +170,6 @@ class adddicomdata(APIView):
                 data['vote'],SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
-
-            if data['diseases'] =='Lung':
-                data['imagecount'],data['slicenumber'], = lungSlice(server, SeriesInstanceUID)
-                data['predictor'] ='lungct_predictor'
-            elif data['diseases'] in ['Brain','SVD','SWI','Tumor','post_surgery']:
-                data['predictor'] = 'brainmri_predictor'
-            elif data['diseases'] =='Breast':
-                data['predictor'] = 'breastmri_predictor'
-            elif data['diseases'] == 'coronary':
-                data['predictor'] = 'corocta_predictor'
-            elif data['diseases'] =='CTA':
-                data['predictor'] = 'braincta_predictor'
-            elif data['diseases'] =='CTP':
-                data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'Hematoma':
-                data['predictor'] = 'brainct_predictor'
-            elif data['diseases'] == 'Heart':
-                data['predictor'] = 'heartmri_predictor'
-            elif data['diseases'] == 'Neck':
-                data['predictor'] = 'archcta_predictor'
-            elif data['diseases'] == 'MRA':
-                data['predictor'] = 'brainctp_predictor'
 
             dicomdata = dicomdata_Deserializer(data=data)
 

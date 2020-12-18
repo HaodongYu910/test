@@ -6,16 +6,14 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import shutil,threading
-from ..models import interface
+from ..models import uploadfile
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer
 from ..tools.stress.stress import *
-from ..tools.stress.stresstest import lungSlice
 from ..tools.orthanc.deletepatients import *
-from ..tools.stress.stresstest import updateStressData
+from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
-import csv, os
-import pandas as pd
+
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -169,28 +167,6 @@ class addData(APIView):
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
 
-            if data['diseases'] =='Lung':
-                data['imagecount'],data['slicenumber'], = lungSlice(server, SeriesInstanceUID)
-                data['predictor'] ='lungct_predictor'
-            elif data['diseases'] in ['Brain','SVD','SWI','Tumor','post_surgery']:
-                data['predictor'] = 'brainmri_predictor'
-            elif data['diseases'] =='Breast':
-                data['predictor'] = 'breastmri_predictor'
-            elif data['diseases'] == 'coronary':
-                data['predictor'] = 'corocta_predictor'
-            elif data['diseases'] =='CTA':
-                data['predictor'] = 'braincta_predictor'
-            elif data['diseases'] =='CTP':
-                data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'Hematoma':
-                data['predictor'] = 'brainct_predictor'
-            elif data['diseases'] == 'Heart':
-                data['predictor'] = 'heartmri_predictor'
-            elif data['diseases'] == 'Neck':
-                data['predictor'] = 'archcta_predictor'
-            elif data['diseases'] == 'MRA':
-                data['predictor'] = 'brainctp_predictor'
-
             dicomdata = dicomdata_Deserializer(data=data)
 
             with transaction.atomic():
@@ -287,10 +263,10 @@ class stressResultsave(APIView):
                     sql = dictionary.objects.get(key=str(j), type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
                     saveResult(obj.loadserver, obj.version,j,checkdate,strsql,[])
-                lung(checkdate, obj.loadserver, obj.version)
+                lung(checkdate, obj.loadserver, obj.version,obj.testdata)
 
             elif obj.projectname=='肺炎':
-                lung(checkdate, obj.loadserver, obj.version)
+                lung(checkdate, obj.loadserver, obj.version,obj.testdata)
 
             return JsonResponse( code="0", msg="成功")
         except Exception as e:
@@ -327,7 +303,6 @@ class stressRun(APIView):
         if result:
             return result
         try:
-
             obj = stress.objects.get(id =data['id'])
             if obj.start_date is None:
                 obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -338,6 +313,8 @@ class stressRun(APIView):
             if data['type'] is True:
                 Manual(obj.loadserver,obj.testdata,obj.loop_count)
             else:
+                if obj.jmeterstatus is True:
+                    jmeterStress(data['id'])
                 AutoPrediction(obj.loadserver,obj.testdata,obj.loop_count)
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
@@ -733,13 +710,14 @@ class StressUpload(APIView):
                 # 分块写入文件
                 for chunk in File.chunks():
                     f.write(chunk)
+
             data={
-                "interfacename":File.name,
-                "json":url,
+                "filename":File.name,
+                "fileurl":url,
                 "type":"stress",
-                "status":True
+                "status":False
             }
-            filedata=interface.objects.create(**data)
-            return JsonResponse(code="0", msg="成功",data=filedata.id)
+            filedata = uploadfile.objects.create(**data)
+            return JsonResponse(code="0", msg="成功",data=filedata.filename)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="没有需要上传的文件！")

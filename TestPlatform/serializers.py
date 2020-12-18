@@ -732,7 +732,7 @@ class stress_Serializer(serializers.ModelSerializer):
         fields = (
         'id', 'projectname', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
         'dicom_send',
-        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date', 'status', 'update_time', 'create_time')
+        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date','jmeterstatus', 'status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -755,7 +755,7 @@ class stress_Deserializer(serializers.ModelSerializer):
         fields = (
         'id', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
         'duration', 'start_delay', 'dicom_send',
-        'loop_time', 'start_date', 'end_date', 'status')
+        'loop_time', 'start_date', 'end_date','jmeterstatus', 'status')
 
 
 class dicomrecord_Serializer(serializers.ModelSerializer):
@@ -937,3 +937,13 @@ class dictionary_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = dictionary
         fields = ('id', 'key', 'value', 'remarks', 'type', 'status')
+
+
+class uploadfile_Deserializer(serializers.ModelSerializer):
+    """
+    字典反序列化
+    """
+
+    class Meta:
+        model = uploadfile
+        fields = ('id', 'filename', 'fileurl', 'fileid', 'type', 'status', 'update_time', 'create_time')

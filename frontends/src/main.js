@@ -15,7 +15,6 @@ import './components/common/directives';
 import './styles/element-variables.scss'
 import './styles/index.scss' // global css
 import './assets/icons' // icon
-import './utils/http.js'
 
 import "babel-polyfill";
 import qs from 'qs';

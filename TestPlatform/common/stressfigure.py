@@ -32,18 +32,22 @@ def stressdataFigure(type):
     for i in stressobj:
         version.append(i.version)
     figureData = [version]
+
     for k in model:
         avg = []
         if type == 'lung_prediction' or type == 'lung_job':
+            if k["slicenumber"] is None:
+                continue
             modelname.append(k["slicenumber"])
         else:
-            modelname.append(k.key)
+            obj = dictionary.objects.get(id=k.id)
+            modelname.append(obj.key)
         for j in version:
             try:
                 if type =='lung_prediction' or type =='lung_job' :
                     resultobj = stress_result.objects.get(type=type, slicenumber=str(k["slicenumber"]), version=j)
                 else:
-                    resultobj = stress_result.objects.get(type=type, modelname=k.key, version=j)
+                    resultobj = stress_result.objects.get(type=type, modelname=k.id, version=j)
                 avg.append(resultobj.avg)
             except:
                 avgvalue = '0'

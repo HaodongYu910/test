@@ -297,12 +297,12 @@ class DisableDuration(APIView):
                 os.system(cmd)
                 i.delete()
 
-            delfolder =threading.Thread(target=delFolder, args=("{0}/{1}".format('/files/logs', str(okj.keyword))))
-            # 启动线程
-            delfolder.start()
-
             okj.sendstatus = False
             okj.save()
+
+            delfolder =threading.Thread(target=delFolder, args=("/files/logs/{1}".format(str(okj.keyword))))
+            # 启动线程
+            delfolder.start()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:

@@ -3,13 +3,10 @@ import gc
 
 from TestPlatform.utils.graphql.graphql import graphql_Interface
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import dicom_record, dictionary, stress_record, stress
+from TestPlatform.models import dicom_record, dictionary, stress_record, stress,uploadfile,stress
 from django.db import transaction
-from TestPlatform.serializers import dicomrecord_Deserializer, dicomrecord_Serializer
-import datetime
-from ..dicom.dicomdetail import Predictor
-from ..dicom.dicomdetail import voteData, Slice
-from .PerformanceResult import saveResult, lung
+from TestPlatform.serializers import  dicomrecord_Serializer
+from ..dicom.dicomdetail import voteData
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +53,6 @@ def delreport(kc, studyinstanceuid):
 
 def Manual(orthanc_ip, diseases, count):
     server = orthanc_ip
-    start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = stress_record.objects.filter(diseases=diseases)
     info = {}
@@ -158,3 +154,75 @@ def stresscache(stressid):
                     "graphql": None
                     }
             stress_record.objects.create(**data)
+
+
+import gc
+from TestPlatform.utils.graphql.graphql import *
+from TestPlatform.common.regexUtil import *
+from TestPlatform.models import  dicom
+
+import os,time
+import shutil
+
+logger = logging.getLogger(__name__)
+
+
+# 修改数据
+def updateStressData(uid, orthanc_ip):
+    vote = ''
+    Series = connect_to_postgres(orthanc_ip,
+                                 "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
+                                     uid)).to_dict(orient='records')
+    pseries_classifier = connect_to_postgres(orthanc_ip,
+                                             "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
+                                                 uid)).to_dict(orient='records')
+
+    pseries = pseries_classifier[0]['pseries']
+    for key in pseries:
+        for i in Series:
+            if str(i['SeriesInstanceUID']) in str(pseries[key]):
+                vote = vote + '{0}: \\"{1}\\",'.format(str(key), str(i['SeriesInstanceUID']))
+                SeriesInstanceUID=str(i['SeriesInstanceUID'])
+    vote = "{" + vote + "}"
+    return str(vote),SeriesInstanceUID
+
+
+def savecsv(path, graphql_query):
+    f = open('{0}'.format(path), 'a', encoding='utf-8', newline="")
+    csv_writer = csv.writer(f)
+    csv_writer.writerow(graphql_query)
+    f.close()
+
+
+def jmeterStress(id):
+    obj = stress.objects.get(id=id)
+    jmeterobj = uploadfile.objects.filter(fileid=id)
+    path = os.path.join(os.getcwd())
+    if not os.path.exists('{0}/stress'.format(path)):
+        os.mkdir(path + '/stress')
+    else:
+        shutil.rmtree('{0}/stress'.format(path))
+
+        os.mkdir(path + '/stress')
+    list=[obj.loadserver, 'test', 'Asd@123456', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,obj.loop_count]
+    savecsv('{0}/stress/config.csv'.format(path),list)
+
+    # 循环生成压测数据
+    for i in [4,7,8,10]:
+        obd = dictionary.objects.get(id=i)
+        sqlobj =dictionary.objects.get(type='sql',key='3d')
+        sql =sqlobj.value.format(obd.key,obj.thread)
+        stressdata = connect_to_postgres(obj.loadserver,sql)
+
+        for k in stressdata.to_dict(orient='records'):
+            savecsv('{0}/stress/data.csv'.format(path, str(i)), [k["publicid"],k["studyinstanceuid"],k["publicid"],k['modality'],obd.remarks])
+    # 执行jmeter
+    try:
+        for j in jmeterobj:
+            start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
+            cmd = 'nohup jmeter -n -t {0}/{1} -l {2}/logs/{3}.jtl -j {4}/logs/jmeter{5}.log &'.format(j.fileurl, j.filename, path,start_time,
+                                                                                      path, start_time)
+            logger.info(cmd)
+            os.system(cmd)
+    except Exception as e:
+        logger.error("执行jmeter失败{0}".format(e))

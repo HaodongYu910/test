@@ -49,7 +49,7 @@ def voteData(uid,orthanc_ip,diseases):
                     SeriesInstanceUID=str(i['SeriesInstanceUID'])
         vote = "{"+vote+"}"
 
-        if diseases in[4,5,7,8,9,10]:
+        if diseases in[4,5,7,8,9,10,12]:
             imagecount, slicenumber, = Slice(orthanc_ip, SeriesInstanceUID)
         else:
             imagecount, slicenumber =None,None
@@ -57,30 +57,7 @@ def voteData(uid,orthanc_ip,diseases):
         return None,None,None
     return str(vote),imagecount,slicenumber
 
-def Predictor(diseases):
-    if diseases == 'Lung':
-        predictor = 'lungct_predictor'
-    elif diseases in ['Brain', 'SVD', 'SWI', 'Tumor', 'post_surgery']:
-        predictor = 'brainmri_predictor'
-    elif diseases == 'Breast':
-        predictor = 'breastmri_predictor'
-    elif diseases == 'coronary':
-        predictor = 'corocta_predictor'
-    elif diseases == 'CTA':
-        predictor = 'braincta_predictor'
-    elif diseases == 'CTP':
-        predictor = 'brainctp_predictor'
-    elif diseases == 'Hematoma':
-        predictor = 'brainct_predictor'
-    elif diseases == 'Heart':
-        predictor = 'heartmri_predictor'
-    elif diseases == 'Neck':
-        predictor = 'archcta_predictor'
-    elif diseases == 'MRA':
-        predictor = 'brainctp_predictor'
-    else:
-        predictor = None
-    return predictor
+
 def delFolder(folder):
     if os.path.exists(folder):
         shutil.rmtree(folder)
