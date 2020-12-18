@@ -156,8 +156,8 @@ class todo(APIView):
         user = request.GET.get("user")
 
         try:
-            data = Jiradata().Pending(user)
-
+            # data = Jiradata().Pending(user)
+            data =[10,9,4]
             return JsonResponse(code="0", msg="Success",data={
                                   "total": data
                 })

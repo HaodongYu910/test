@@ -797,6 +797,7 @@ class stress(models.Model):
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")
+    jmeterstatus = models.BooleanField(default=True, verbose_name='jmeter状态')
     status = models.BooleanField(default=True, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
@@ -1071,3 +1072,26 @@ class dds_data(models.Model):
         verbose_name = "dds_data_record"
         verbose_name_plural = "dds_data_record"
         db_table = 'DDS_data'
+
+
+
+class uploadfile(models.Model):
+    """
+          上传文件信息表 table
+        """
+    id = models.AutoField(primary_key=True)
+    filename = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件名")
+    fileurl = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件路径")
+    fileid = models.IntegerField(blank=True, null=True, verbose_name="关联文件id")
+    type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "uploadfile"
+        verbose_name_plural = "uploadfile"
+        db_table = 'uploadfile'

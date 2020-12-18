@@ -16,8 +16,7 @@ from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import dictionary
 from TestPlatform.serializers import dictionary_Deserializer, dictionary_Serializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomfile import fileSave
-from ..tools.dicom.dicomdetail import Predictor
+
 import threading
 
 

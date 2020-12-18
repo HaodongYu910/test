@@ -9,16 +9,16 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 # 肺炎结果记录
-def lung(checkdate, server, version):
+def lung(checkdate, server, version,testdata):
     dict = {}
     imagescount ={}
-    list =[]
+    # 查询sql
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-    db_query =sql.value.format('lungct_v2',checkdate[0], checkdate[1])
+    db_query =sql.value.format(checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyuid"], server, 'lungct_v2')
+        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,9)
         if SliceThickness is None:
             continue
         if dict.get(SliceThickness) is None:
@@ -31,15 +31,10 @@ def lung(checkdate, server, version):
             else:
                 imagescount[SliceThickness] =imagescount[SliceThickness]+','+str(int(imagecount))
     for ikey in dict.keys():
-        predictionsql = dictionary.objects.get(key="lungprediction",type='sql')
-        sql_prediction = predictionsql.value.format(checkdate[0],checkdate[1],dict[ikey], ikey)
-        jobsql = dictionary.objects.get(key="lungjob",type='sql')
-        sql_job = jobsql.value.format(checkdate[0], checkdate[1],dict[ikey],ikey)
-
-        resultsave(server, sql_prediction, version, 'lung_prediction',imagescount[ikey])
-        resultsave(server, sql_job, version, 'lung_job',imagescount[ikey])
-
-
+        for j in ['lung_prediction','lung_job']:
+            sql = dictionary.objects.get(key=str(j), type='sql')
+            strsql = sql.value.format(checkdate[0], checkdate[1], dict[ikey], ikey)
+            saveResult(server, version,j, checkdate,strsql,imagescount[ikey])
 
 # 数据比较检查
 def dataCheck(dataA, dataB):
@@ -67,34 +62,28 @@ def dataCheck(dataA, dataB):
                             '%.2f' % (float(i[x]) - float(j[x]))) + ")"
             else:
                 continue
+        obj = dictionary.objects.get(id=i['modelname'])
+        i['modelname'] = obj.key
     return dictA
 
-# 保存lung 等结果 'lung_prediction'
-def resultsave(server, sql, version, type , image):
-    result = connect_to_postgres(server, sql).to_dict(orient='records')
-    imagelist =[]
-    for j in image[1:].split(","):
-        imagelist.append(int(j))
-    for i in result:
-        i["version"] = version
-        i["type"] = type
-        i["avgimages"], i["maximages"], i["minimages"] = str('%.2f' % np.mean(imagelist)),str(np.max(imagelist)),str(np.min(imagelist))
-        stressserializer = stress_result_Deserializer(data=i)
-        with transaction.atomic():
-            stressserializer.is_valid()
-            stressserializer.save()
 
 # 预测数据保存
-def savecheck(sqltable, checkdate, server, version):
-    sql =dictionary.objects.get(key=sqltable,type='sql')
-    selectsql=sql.value.format(checkdate[0],checkdate[1])
-    result = connect_to_postgres(server,selectsql)
-    _num1 = len(result)
+def saveResult(server,version,tpye,checkdate,sql,imagedata):
+    imagelist = []
+    result = connect_to_postgres(server,sql)
     dict = result.to_dict(orient='records')
     for i in dict:
+        obj = dictionary.objects.get(key=i["modelname"])
         i["version"] = version
-        i["type"] = sqltable
-        i["avgimages"], i["maximages"], i["minimages"] = image(server,i['modelname'],checkdate)
+        i["type"] = tpye
+        i["modelname"] = obj.id
+        if imagedata !=[]:
+            for j in imagedata[1:].split(","):
+                imagelist.append(int(j))
+            i["avgimages"], i["maximages"], i["minimages"] = str('%.2f' % np.mean(imagelist)), str(
+                np.max(imagelist)), str(np.min(imagelist))
+        else:
+            i["avgimages"], i["maximages"], i["minimages"] = image(server,int(obj.id),checkdate)
         stressserializer = stress_result_Deserializer(data=i)
         with transaction.atomic():
             stressserializer.is_valid()
@@ -104,11 +93,11 @@ def savecheck(sqltable, checkdate, server, version):
 # 求预测影像 平均值 最大值  最小值
 def image(server,modelname,checkdate):
     datalist=[]
-    if modelname in ['brainctp','corocta','archcta','headcta','archcta/headneck']:
-        sql=dictionary.objects.get(key='predictionuid',type='sql')
-        sqldata=sql.value.format(modelname,checkdate[0],checkdate[1])
-        result = connect_to_postgres(server,sqldata )
-        dict = result.to_dict(orient='records')
+    if modelname in [4,5,7,8,10]:
+        obj = dictionary.objects.get(id=modelname)
+        sql = dictionary.objects.get(key='predictionuid',type='sql')
+        sqldata=sql.value.format(obj.key,checkdate[0],checkdate[1])
+        dict = connect_to_postgres(server,sqldata ).to_dict(orient='records')
         for i in dict:
             vote,imagecount,slicenumber=voteData(i['studyuid'],server,modelname)
             if imagecount is None:

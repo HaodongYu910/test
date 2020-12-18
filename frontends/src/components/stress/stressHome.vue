@@ -386,6 +386,7 @@
                     loadserver: '192.168.1.208',
                     version: '',
                     type: '',
+                    jmeterstatus:false
                 }
             }
         },
@@ -703,6 +704,7 @@
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
                                 status: true,
+                                jmeterstatus:false,
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -754,6 +756,7 @@
                                 ramp: this.addForm.ramp,
                                 loop_count: this.addForm.loop_count,
                                 loop_time: this.addForm.loop_time,
+                                jmeterstatus:false,
                                 status: true,
                             });
                             let header = {

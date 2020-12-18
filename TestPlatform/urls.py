@@ -16,6 +16,7 @@ from .api.user_permission import *
 from .api.stressReport import reportfigure
 from .api.apiDicom import *
 from .api.apiDictionary import *
+from .api.apiSmoke import *
 
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
@@ -135,8 +136,6 @@ urlpatterns = [
     url(r'tool/del_dicomData', deldicomdata.as_view()),
     url(r'tool/dicomcsv', dicomcsv.as_view()),
     url(r'tool/dicomSend', dicomSend.as_view()),
-    url(r'tool/somkerecord', somkeRecord.as_view()),
-    url(r'tool/somke', SomkeTest.as_view()),
     url(r'tool/delreport', deldicomResult.as_view()),
     url(r'tool/delete_patients', delete_patients.as_view()),
     url(r'tool/durationData', durationData.as_view()),
@@ -152,6 +151,9 @@ urlpatterns = [
     url(r'dictionary/update', UpdateDictionary.as_view()),
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
+    url(r'smoke/record', smokeRecord.as_view()),
+    url(r'smoke/test', smokeTest.as_view()),
+    url(r'smoke/figure', smokefigure.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()) # 匿名化数据

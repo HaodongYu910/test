@@ -13,7 +13,7 @@ from TestPlatform.serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
-from ..tools.stress.stresstest import updateStressData
+from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 
@@ -239,9 +239,6 @@ class reportfigure(APIView):
         if result:
             return result
         try:
-            # modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
-            #                 'brainctp','headcta', 'postsurgery','brainmra']
-            # lungname = ['0.9','1.0','1.25','1.5','5.0','10.0']
             predictionData,modlename =stressdataFigure("prediction")
             jobData,modlename = stressdataFigure("job")
 

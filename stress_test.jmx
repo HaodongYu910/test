@@ -155,7 +155,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <collectionProp name="CookieManager.cookies">
           <elementProp name="kc-access" elementType="Cookie" testname="kc-access">
             <stringProp name="Cookie.value">${__P(AToken,)}</stringProp>
-            <stringProp name="Cookie.domain">192.168.1.208</stringProp>
+            <stringProp name="Cookie.domain">192.168.1.172</stringProp>
             <stringProp name="Cookie.path">/</stringProp>
             <boolProp name="Cookie.secure">false</boolProp>
             <longProp name="Cookie.expires">0</longProp>
@@ -167,7 +167,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <boolProp name="CookieManager.controlledByThreadGroup">true</boolProp>
       </CookieManager>
       <hashTree/>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Prediction" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Prediction" enabled="false">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -382,8 +382,8 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <intProp name="LoopController.loops">-1</intProp>
         </elementProp>
         <stringProp name="ThreadGroup.num_threads">5</stringProp>
-        <stringProp name="ThreadGroup.ramp_time">${__P(Aramp,)}</stringProp>
-        <boolProp name="ThreadGroup.scheduler">false</boolProp>
+        <stringProp name="ThreadGroup.ramp_time">0</stringProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.duration">36000</stringProp>
         <stringProp name="ThreadGroup.delay">600</stringProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
@@ -398,37 +398,37 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <stringProp name="-1348013956">predictor</stringProp>
           </collectionProp>
           <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="807395722">
-              <stringProp name="-317985594">209cf064-7f8ce900-d57a40eb-ea867f8b-2a6b5717</stringProp>
-              <stringProp name="526384225">40.113619.2.416.297723402920242770870129435910306530950.21550061</stringProp>
-              <stringProp name="-2106376584">ed1ddcd5-55cc-4e98-9ee3-8037668192e7</stringProp>
+            <collectionProp name="-1383105590">
+              <stringProp name="114103113">7bfd2418-dbdd81a3-41c6ce9a-9be2350a-d7b02c30</stringProp>
+              <stringProp name="131351662">40.113619.2.416.211560944339170806396717298390135969639.71321310</stringProp>
+              <stringProp name="-175563095">04b79a70-d4d9-4c0b-963f-b162335d518e</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="1401547612">
-              <stringProp name="904483892">783a7a5f-cffb3984-311ddeab-3be46d34-0d5eda15</stringProp>
-              <stringProp name="787271760">40.113619.2.416.297723402920242770870129435910306530950.26994713</stringProp>
+            <collectionProp name="-1841153993">
+              <stringProp name="-1472486141">9bfdcdcd-b326aed2-6ffc8f34-fc801c4c-15c97558</stringProp>
+              <stringProp name="1699094012">40.113619.2.416.275581089377425248906144385594830882836.85128399</stringProp>
               <stringProp name="-847669590">83dbdab7-a8d9-41fd-892c-7a3aa9c35eb4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-765101641">
-              <stringProp name="980330925">54ce014c-08061ec0-b5ac6775-1cf30da8-04084290</stringProp>
-              <stringProp name="-2026085613">40.113619.2.416.297723402920242770870129435910306530950.44195724</stringProp>
+            <collectionProp name="-195368289">
+              <stringProp name="2119087392">358a38ea-cac84f35-b35ef58b-82b30cd7-f40a88e8</stringProp>
+              <stringProp name="-917861407">24488.123.450.67.89.20011005.103155.5760.20170412000657.80673300</stringProp>
               <stringProp name="-449349854">ac08473f-46f5-4859-910c-53f204ccbd06</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-1149562977">
-              <stringProp name="-277561376">e6019008-bff56c68-53837afe-a7344c1d-334f06b2</stringProp>
-              <stringProp name="-1803998787">40.113619.2.416.190274922218387255633568974860423556001.78210081</stringProp>
+            <collectionProp name="443986490">
+              <stringProp name="1848185433">5f18069a-d42fac17-06f190f1-5a91d962-c386550c</stringProp>
+              <stringProp name="-624536215">24488.123.450.67.89.20011005.103155.5760.20170329001248.44123445</stringProp>
               <stringProp name="-987263501">8e985b66-24ce-4456-bd74-7ef391e4bd80</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="188360437">
-              <stringProp name="-361096580">ba7aff72-7360c31c-dd456bec-26900b40-926d0b1f</stringProp>
-              <stringProp name="2037513963">40.113619.2.416.126627296069071647610671185223528287450.31847503</stringProp>
+            <collectionProp name="-1144891420">
+              <stringProp name="1785035796">98b7ee46-707898d9-f24a6fed-ff1f441f-63db8c19</stringProp>
+              <stringProp name="901822070">840.113619.2.416.42233201131450268962796251011403203461.45399021</stringProp>
               <stringProp name="-1839812245">b981adb8-17e3-451a-ac24-19e0719e00d4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
@@ -449,7 +449,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           <stringProp name="variableNames">Prediction,diseases</stringProp>
         </CSVDataSet>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="basicVesselLoadImages" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="basicVesselLoadImages" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -485,7 +485,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3D_vesselClearImages" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="3D_vesselClearImages" enabled="true">
           <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
           <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
             <collectionProp name="Arguments.arguments">
@@ -521,25 +521,25 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
           </HeaderManager>
           <hashTree/>
         </hashTree>
+        <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
+          <intProp name="groupSize">5</intProp>
+          <longProp name="timeoutInMs">0</longProp>
+        </SyncTimer>
+        <hashTree/>
         <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="loadimage" enabled="true">
           <boolProp name="LoopController.continue_forever">true</boolProp>
-          <stringProp name="LoopController.loops">10</stringProp>
+          <stringProp name="LoopController.loops">100</stringProp>
         </LoopController>
         <hashTree>
-          <SyncTimer guiclass="TestBeanGUI" testclass="SyncTimer" testname="同步定时器" enabled="true">
-            <intProp name="groupSize">5</intProp>
-            <longProp name="timeoutInMs">0</longProp>
-          </SyncTimer>
-          <hashTree/>
           <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="loadimage" enabled="true">
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
-            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
+            <stringProp name="HTTPSampler.domain">https://192.168.1.172</stringProp>
             <stringProp name="HTTPSampler.port"></stringProp>
             <stringProp name="HTTPSampler.protocol">https</stringProp>
             <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/97a6ba1b-90e0b5e6-f4ca22af-d5294cdf-26c2649a/0/high-quality</stringProp>
+            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/5341c971-6b77e91d-3d2b1294-4239a528-f7298afb/0/high-quality</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
@@ -646,7 +646,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
               </elementProp>
               <elementProp name="influxdbUrl" elementType="Argument">
                 <stringProp name="Argument.name">influxdbUrl</stringProp>
-                <stringProp name="Argument.value">http://192.168.2.38:8086/write?db=Jmeter_DB</stringProp>
+                <stringProp name="Argument.value">http://192.168.1.121:8086/write?db=Jmeter_DB</stringProp>
                 <stringProp name="Argument.metadata">=</stringProp>
               </elementProp>
               <elementProp name="application" elementType="Argument">

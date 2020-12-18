@@ -12,10 +12,9 @@ from TestPlatform.models import stress, dicom, base_data, pid, GlobalHost,dicom_
 from TestPlatform.serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
-from ..tools.stress.stresstest import lungSlice
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
-from ..tools.stress.stresstest import updateStressData
+from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
 from ..tools.dicom.dicomdetail import *
 
@@ -64,7 +63,7 @@ class dicomDetail(APIView):
                     try:
                         i.vote,i.imagecount,i.slicenumber = voteData(i.studyinstanceuid,server,i.diseases)
                         i.save()
-                    except Exception as  e :
+                    except Exception as e :
                         continue
 
             except ObjectDoesNotExist:
@@ -123,62 +122,6 @@ class dicomData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-class somkeRecord(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        获取冒烟数据显示数据列表
-        :param request:
-        :return:
-        """
-        try:
-            page_size = int(request.GET.get("page_size", 20))
-            page = int(request.GET.get("page", 1))
-        except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        version = request.GET.get("version")
-        server = request.GET.get("server")
-        if  request.GET.get("status")=='true':
-            status = 1
-        elif request.GET.get("status")=='False':
-            status = 0
-        else:
-            status = ''
-
-        diseases = request.GET.get("diseases")
-        if version != '' and server != '' and status != '':
-            obi = dicom_record.objects.filter(version__contains=version,status= status).order_by("-id")
-        elif version == '' and server != '' and status != '':
-            obi = dicom_record.objects.filter(server__contains=server,status = status).order_by("-id")
-        elif version == '' and server == '' and status != '':
-            obi = dicom_record.objects.filter(status=status).order_by("-id")
-        elif version == '' and server != '' and status == '':
-            obi = dicom_record.objects.filter(server=server).order_by("-id")
-        elif version == '' and server == '' and status != '':
-            obi = dicom_record.objects.filter(server__contains=server,status=status).order_by("-id")
-        else:
-            obi = dicom_record.objects.all().order_by("-id")
-        paginator = Paginator(obi, page_size)  # paginator对象
-        total = paginator.num_pages  # 总页数
-        try:
-            obm = paginator.page(page)
-        except PageNotAnInteger:
-            obm = paginator.page(1)
-        except EmptyPage:
-            obm = paginator.page(paginator.num_pages)
-        serialize = dicomrecord_Serializer(obm, many=True)
-        for i in serialize.data:
-            # 求预测时间
-            if i['completiontime'] is not None and i['starttime'] is not None:
-                completiontime = time.strptime(str(i['completiontime']), "%Y-%m-%d %H:%M:%S")
-                starttime = time.strptime(str(i['starttime']), "%Y-%m-%d %H:%M:%S")
-                i['time'] = int(time.mktime(completiontime)) - int(time.mktime(starttime))
-        return JsonResponse(data={"data": serialize.data,
-                                  "page": page,
-                                  "total": total
-                                  }, code="0", msg="成功")
 
 class adddicomdata(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -227,28 +170,6 @@ class adddicomdata(APIView):
                 data['vote'],SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
-
-            if data['diseases'] =='Lung':
-                data['imagecount'],data['slicenumber'], = lungSlice(server, SeriesInstanceUID)
-                data['predictor'] ='lungct_predictor'
-            elif data['diseases'] in ['Brain','SVD','SWI','Tumor','post_surgery']:
-                data['predictor'] = 'brainmri_predictor'
-            elif data['diseases'] =='Breast':
-                data['predictor'] = 'breastmri_predictor'
-            elif data['diseases'] == 'coronary':
-                data['predictor'] = 'corocta_predictor'
-            elif data['diseases'] =='CTA':
-                data['predictor'] = 'braincta_predictor'
-            elif data['diseases'] =='CTP':
-                data['predictor'] = 'brainctp_predictor'
-            elif data['diseases'] == 'Hematoma':
-                data['predictor'] = 'brainct_predictor'
-            elif data['diseases'] == 'Heart':
-                data['predictor'] = 'heartmri_predictor'
-            elif data['diseases'] == 'Neck':
-                data['predictor'] = 'archcta_predictor'
-            elif data['diseases'] == 'MRA':
-                data['predictor'] = 'brainctp_predictor'
 
             dicomdata = dicomdata_Deserializer(data=data)
 
@@ -464,61 +385,6 @@ class deldicomResult(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
-
-class SomkeTest(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 loadserver, dicom, loop_time
-            if not data["server_ip"] or not data["version"] :
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 server, ids！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        执行脚本
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-
-        try:
-            # 查找是否相同版本号的测试记录
-            dicom_version = dicom_record.objects.filter(version=data["version"])
-            try:
-                ids =[]
-                ides = []
-                if data['diseases']:
-                    obj = base_data.objects.filter(remarks=data['diseases'],type='Gold')
-                else:
-                    obj = base_data.objects.filter(type='Gold',status=True)
-                for i in obj:ids.append(i.id)
-                dicomobj = dicom.objects.filter(fileid__in=ids)
-                for j in dicomobj:ides.append(j.id)
-                # goldSmoke(data["version"], data["server_ip"],ides)
-                thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(data["version"], data["server_ip"],ides))
-                # 启动线程
-                thread_fake_folder.start()
-            except Exception as e:
-                logger.error(e)
-                return JsonResponse(msg="执行失败", code="999991", exception=e)
-            return JsonResponse(code="0", msg="成功")
-        except Exception as e:
-            logger.error(e)
-            return JsonResponse(msg="失败", code="999991", exception=e)
 
 
 class Update_base_Data(APIView):
