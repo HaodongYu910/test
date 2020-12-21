@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Sum, Min
+from django.db.models import Avg
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -119,13 +119,16 @@ class durationData(APIView):
         else:
             server = du.server
         try:
-            datalist['sent'] = durationtotal(obi, server, '1,2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2,-1,1,2,3')
-            datalist['ai_true'] = durationtotal(obi, server, '1,2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2,3')
+            datalist['sent'] = durationtotal(obi, server, '\'1\',\'2')
+            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'-1\',\'1\',\'2\',\'3')
+            datalist['ai_true'] = durationtotal(obi, server, '1\',\'2')
+            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'3')
             datalist['notai'] = durationtotal(obi, server, '-1')
             datalist['all'] = obi.count()
             datalist['notsent'] = int(datalist['all']) - int(datalist['sent'])
+            avg=duration_record.objects.aggregate(Avg("time"))
+            datalist['avg'] =avg['time__avg']
+
         except ValueError:
             return JsonResponse(data={"data": datalist
                                       }, code="0", msg="测试环境数据库连接失败")

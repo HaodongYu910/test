@@ -102,12 +102,14 @@ def sync_send_file(file_name):
     ]
 
     try:
+        start_time = time.time()
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
+        end_time =  time.time()
         os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
-
+    return start_time,end_time
 
 def norm_string(str, len_norm):
     str_dest = str
@@ -145,18 +147,20 @@ def delayed(Seriesinstanceuid):
         time.sleep(int(CONFIG.get('sleeptime', '')))
         CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
 
-def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid):
-    studytime = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,start_time,end_time):
+    time = end_time - start_time
+    starttime =time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(start_time))
+    endtime =time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(end_time))
     try:
         if study_infos.get(study_uid):
-            data = "duration,studyinstanceuid={0},duration_id={1} value=1".format(study_uid,CONFIG.get('durationid', ''))
+            data = "duration,studyinstanceuid={0},duration_id={1},starttime =,endtime,time value=1".format(study_uid,CONFIG.get('durationid', ''),starttime,endtime,time)
             connect_to_influx(data)
         else:
             study_infos[study_uid] = study_uid
-            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid,study_old_uid,None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   studytime, CONFIG.get('durationid', ''),studytime , studytime])
+                   start_time, CONFIG.get('durationid', ''),starttime ,start_time,end_time,endtime,time])
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
@@ -247,13 +251,15 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
         try:
             study_infos["count"] = int(study_infos["count"]) + 1
-            sync_send_file(full_fn_fake)
+            start_time,end_time = sync_send_file(full_fn_fake)
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber,
-                study_old_uid=study_old_uid
+                study_old_uid=study_old_uid,
+                start_time = start_time,
+                end_time = end_time
             )
             delayed(Seriesinstanceuid)
         except Exception as e:

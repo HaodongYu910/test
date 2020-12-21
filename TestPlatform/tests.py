@@ -141,4 +141,7 @@
 #                     obj = dicom.objects.get(studyinstanceuid=i['StudyUID'],type='Gold')
 #                     obj.diagnosis = i['Restult']
 #                     obj.save()
+import time
+t =time.time()
 
+print()
