@@ -43,14 +43,6 @@
                 <!--工具条-->
                 <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-select v-model="filters.server" placeholder="请选择服务器" @click.native="gethost()">
-                            <el-option
-                                    v-for="(item,index) in hosts"
-                                    :key="item.host"
-                                    :label="item.name"
-                                    :value="item.host"
-                            />
-                        </el-select>
                         <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
                             <el-option
                                     v-for="(item,index) in versions"

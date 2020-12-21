@@ -9,16 +9,17 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 # 肺炎结果记录
-def lung(checkdate, server, version,testdata):
+def lung(checkdate, server, version,id):
     dict = {}
     imagescount ={}
     # 查询sql
+    dise = dictionary.objects.get(id=id)
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-    db_query =sql.value.format(checkdate[0], checkdate[1])
+    db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,9)
+        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,int(id))
         if SliceThickness is None:
             continue
         if dict.get(SliceThickness) is None:

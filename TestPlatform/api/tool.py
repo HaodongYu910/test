@@ -202,7 +202,8 @@ class add_duration(APIView):
                 duration.is_valid()
                 duration.save()
             return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
+        except Exception as e:
+            print(e)
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
