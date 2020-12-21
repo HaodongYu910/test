@@ -118,8 +118,6 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
             except Exception as e:
                 logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
                 continue
-    a = 'success'
-    return a
 
 
 # def nextNumber(addr):

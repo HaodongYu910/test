@@ -518,14 +518,10 @@ class anonymizationAPI_2nd(APIView):
             wPID = data['wPID']
 
             # 将匿名化后的数据入库
-            # 1.匿名化
-            a = onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name)
-
-            if a == "success":
-                # 调用存储的函数
-                return JsonResponse(code="0", msg="匿名化完成")
-            else:
-                return JsonResponse(code="999995", msg="匿名化启动失败")
+            # 调用后端服务，对传入的文件夹进行匿名化
+            t = threading.Thread(target=onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name))
+            t.start()
+            return JsonResponse(code="0", msg="匿名化开始")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
 
