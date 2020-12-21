@@ -28,8 +28,8 @@ class stressversion(APIView):
         :param request:
         :return:
         """
-        server = request.GET.get("server", '192.168.1.208')
-        obi = stress.objects.filter(loadserver__contains=server).order_by("-id")
+
+        obi = stress.objects.filter(status=1).order_by("-id")
         serialize = stress_Deserializer(obi, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}
@@ -263,7 +263,9 @@ class stressResultsave(APIView):
                     sql = dictionary.objects.get(key=str(j), type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
                     saveResult(obj.loadserver, obj.version,j,checkdate,strsql,[])
-                lung(checkdate, obj.loadserver, obj.version,obj.testdata)
+                for i in obj.testdata.split(","):
+                    if int(i) == 9 or i == int(12):
+                        lung(checkdate, obj.loadserver, obj.version,i)
 
             elif obj.projectname=='肺炎':
                 lung(checkdate, obj.loadserver, obj.version,obj.testdata)

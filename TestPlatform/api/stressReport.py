@@ -288,8 +288,12 @@ class stressResultsave(APIView):
         try:
             obj = stress.objects.get(version=data['version'])
             checkdate = [obj.start_date, obj.end_date]
-            savecheck('job', checkdate, obj.loadserver, obj.version)
-            savecheck('prediction', checkdate, obj.loadserver, obj.version)
+
+            for i in ['prediction','job']:
+                sql = dictionary.objects.get(key=str(i), type='sql')
+                strsql = sql.value.format(checkdate[0], checkdate[1])
+                saveResult(obj.loadserver, obj.version,i, checkdate, strsql,[])
+
             lung(checkdate, obj.loadserver, obj.version)
 
             return JsonResponse(data={"data": ''}, code="0", msg="成功")

@@ -104,6 +104,7 @@ def sync_send_file(file_name):
     try:
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
+        os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
 
