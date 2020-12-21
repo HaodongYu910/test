@@ -117,14 +117,15 @@ class durationData(APIView):
         else:
             server = du.server
         try:
-            datalist['sent'] = durationtotal(obi, server, '1,2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2,-1,1,2,3')
-            datalist['ai_true'] = durationtotal(obi, server, '1,2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2,3')
+            datalist['sent'] = durationtotal(obi, server, '\'1\',\'2')
+            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'-1\',\'1\',\'2\',\'3')
+            datalist['ai_true'] = durationtotal(obi, server, '1\',\'2')
+            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'3')
             datalist['notai'] = durationtotal(obi, server, '-1')
             datalist['all'] = obi.count()
             datalist['notsent'] = int(datalist['all']) - int(datalist['sent'])
-            datalist['avg'] = duration_record.objects.aggregate(Avg("time"))
+            avg=duration_record.objects.aggregate(Avg("time"))
+            datalist['avg'] =avg['time__avg']
 
         except ValueError:
             return JsonResponse(data={"data": datalist

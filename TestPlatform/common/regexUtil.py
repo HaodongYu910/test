@@ -113,7 +113,7 @@ def durationtotal(duration_all, server, aistatus):
     studyuid= ''
     for j in duration_all:
         studyuid = studyuid+',\''+j.studyinstanceuid+'\''
-    sql = 'SELECT count(1) FROM study_view WHERE studyinstanceuid in ({0}) and aistatus in ({1})'.format(
+    sql = 'SELECT count(1) FROM study_view WHERE studyinstanceuid in ({0}) and aistatus in (\'{1}\')'.format(
         studyuid[1:], aistatus)
     try:
         result_1 = connect_to_postgres(server, sql)
