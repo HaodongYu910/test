@@ -43,6 +43,11 @@
                 <!--工具条-->
                 <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
+                        <el-select v-model="filters.type" placeholder="类型">
+                            <el-option key="jz" label="基准测试" value="jz"/>
+                            <el-option key="hh" label="混合测试" value="hh"/>
+                            <el-option key="dy" label="单一测试" value="dy"/>
+                        </el-select>
                         <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
                             <el-option
                                     v-for="(item,index) in versions"
@@ -60,7 +65,7 @@
                             />
                         </el-select>
                         <el-form-item>
-                            <el-button type="primary" @click="getDurationlist">查询</el-button>
+                            <el-button type="primary" @click="getstresslist">查询</el-button>
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="handleAdd">生成报告</el-button>
@@ -282,7 +287,8 @@
             return {
                 filters: {
                     server:'192.168.1.208',
-                    diseases: ''
+                    diseases: '',
+                    type:"jz"
                 },
                 durationlist: [],
                 total: 0,
@@ -570,13 +576,13 @@
                 })
             },
             // 获取数据列表
-            getDurationlist() {
+            getstresslist() {
                 this.listLoading = true
                 const self = this
                 const params = {
                     version: this.filters.version,
                     checkversion: this.filters.checkversion,
-                    server: this.filters.server
+                    type: this.filters.type
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getstressresult(headers, params).then((res) => {

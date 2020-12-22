@@ -1,6 +1,6 @@
 from TestPlatform.common.regexUtil import *
 from TestPlatform.utils.graphql.graphql_utils import GraphQLDriver
-from TestPlatform.models import stress_result,stress_record,dictionary
+from TestPlatform.models import stress_job,stress_record,dictionary
 from TestPlatform.serializers import stress_result_Deserializer, stress_result_Serializer
 from django.db import transaction
 from ..dicom.dicomdetail import voteData
@@ -24,7 +24,7 @@ def lung(checkdate, server, version,id):
             continue
         if dict.get(SliceThickness) is None:
             dict[SliceThickness] = '\'' + str(u["studyuid"]) + '\''
-            imagescount[SliceThickness] =''
+            imagescount[SliceThickness] = imagecount
         else:
             dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyuid"]) + '\''
             if imagecount is None:
@@ -69,14 +69,14 @@ def dataCheck(dataA, dataB):
 
 
 # 预测数据保存
-def saveResult(server,version,tpye,checkdate,sql,imagedata):
+def saveResult(server,version,type,checkdate,sql,imagedata):
     imagelist = []
     result = connect_to_postgres(server,sql)
     dict = result.to_dict(orient='records')
     for i in dict:
         obj = dictionary.objects.get(key=i["modelname"])
         i["version"] = version
-        i["type"] = tpye
+        i["type"] = type
         i["modelname"] = obj.id
         if imagedata !=[]:
             for j in imagedata[1:].split(","):
@@ -90,6 +90,25 @@ def saveResult(server,version,tpye,checkdate,sql,imagedata):
             stressserializer.is_valid()
             stressserializer.save()
     return True
+
+
+def jobsaveResult(server,version,checkdate,sql):
+    dictobj=dictionary.objects.get(key="job_ls")
+    sql = dictobj.value.format(checkdate[0],checkdate[1])
+    result = connect_to_postgres(server, sql)
+    dict = result.to_dict(orient='records')
+    for i in dict:
+        obj = dictionary.objects.get(key="modelname")
+        sql = obj.value.format(i["studyuid"])
+        result = connect_to_postgres(server, sql)
+        modelname = result.to_dict(orient='records')[0]["modelname"]
+        dx = dictionary.objects.get(key=modelname)
+        i["modelname"] = dx.id
+        i["modelname"] =dx.id
+        i["version"] =version
+        stress_job.objects.create(**i)
+
+
 
 # 求预测影像 平均值 最大值  最小值
 def image(server,modelname,checkdate):
@@ -123,3 +142,5 @@ def jmetersave(server, version):
         #     stressserializer.is_valid()
         #     stressserializer.save()
     return True
+
+

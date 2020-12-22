@@ -287,6 +287,10 @@ export const dicomcsv = (headers, params) => {
 export const deldicomreport = (headers, params) => {
   return axios.post(`${test}/api/tool/delreport`, params, headers).then(res => res.data)
 }
+// 压测report
+export const getreportfigure = (headers, params) => {
+  return axios.post(`${test}/api/stress/figure`,params, headers ).then(res => res.data)
+}
 // 压测版本
 export const getstressversion = (headers, params) => {
   return axios.get(`${test}/api/stress/version`, { params: params }, { headers }).then(res => res.data)
@@ -294,10 +298,6 @@ export const getstressversion = (headers, params) => {
 // 压测结果
 export const getstressresult = (headers, params) => {
   return axios.post(`${test}/api/stress/result`,params, headers ).then(res => res.data)
-}
-// 压测report
-export const getreportfigure = (headers, params) => {
-  return axios.post(`${test}/api/stress/figure`,params, headers ).then(res => res.data)
 }
 // 删除patient数据
 export const delete_patients = (headers, params) => {

@@ -821,7 +821,8 @@ class stress_record(models.Model):
     slicenumber = models.CharField(max_length=5, blank=True, null=True, verbose_name="层厚")
     diseases = models.CharField(max_length=10, blank=True, null=True, verbose_name="病种")
     graphql = models.CharField(max_length=500, blank=True, null=True, verbose_name="手动预测json")
-
+    benchmarkstatus = models.BooleanField(default=False, verbose_name='是否基准')
+    status = models.BooleanField(default=False, verbose_name='状态')
     def __unicode__(self):
         return self.stressid
 
@@ -829,7 +830,29 @@ class stress_record(models.Model):
         verbose_name = "性能测试数据表"
         verbose_name_plural = "性能测试数据表"
         db_table = 'stress_record'
+class stress_job(models.Model):
+    """
+          压测job记录表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=30, blank=True, null=True, verbose_name="版本")
+    studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="uid")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
+    job_id = models.CharField(max_length=80, blank=True, null=True, verbose_name="id")
+    sec = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测时间")
+    start = models.CharField(max_length=30, blank=True, null=True, verbose_name="开始时间")
+    end = models.CharField(max_length=30, blank=True, null=True, verbose_name="结束时间")
+    modelname = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型名称")
+    images= models.CharField(max_length=30, blank=True, null=True, verbose_name="模型名称")
+    stressid = models.IntegerField(blank=True, null=True, verbose_name="stressID")
 
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "压测结果记录表"
+        verbose_name_plural = "压测结果记录表"
+        db_table = 'stress_job'
 
 class stress_result(models.Model):
     """
@@ -848,9 +871,10 @@ class stress_result(models.Model):
     max = models.CharField(max_length=10, blank=True, null=True, verbose_name="最大时间")
     coef = models.CharField(max_length=10, blank=True, null=True, verbose_name="系数")
     rate = models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
-    minimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
-    maximages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
-    avgimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="预测成功率")
+    minimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="影像张数")
+    maximages= models.TextField(max_length=10, blank=True, null=True, verbose_name="影像张数")
+    avgimages= models.TextField(max_length=10, blank=True, null=True, verbose_name="影像张数")
+    stressid = models.IntegerField(blank=True, null=True, verbose_name="stressID")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
