@@ -204,7 +204,7 @@
 
                         <el-row>
 
-                            <el-col :span="5">
+                            <el-col :span="6">
                                 <el-form-item label="匿名患者姓名？" prop="wPN">
                                     <el-switch v-model="anonForm.wPN" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
@@ -766,8 +766,6 @@
             handleAnon: function () {
                 this.anonFormVisible = true
                 this.anonForm = {
-                    ll
-            : '',
                     anon_addr: '',
                     wPN: true,
                     wPID: true

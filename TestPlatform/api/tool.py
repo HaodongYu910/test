@@ -100,6 +100,8 @@ class durationData(APIView):
         else:
             obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
+        # else:
+        #     obi = duration_record.objects.raw()
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -109,7 +111,7 @@ class durationData(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = duration_record_Deserializer(obm, many=True)
+        serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
         rdata = serialize.data
         du = duration.objects.get(id=durationid)
         if du.dds is not None:
@@ -136,6 +138,7 @@ class durationData(APIView):
                                                "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
                                                    i["studyinstanceuid"]))
                 _dict = dbresult.to_dict(orient='records')
+
             except Exception as e:
                 logger.error(e)
             if _dict == []:
@@ -147,6 +150,7 @@ class durationData(APIView):
                     i['aistatus'] = j['aistatus']
                     i['diagnosis'] = j['diagnosis']
                     i['imagecount_server'] = j['imagecount']
+
 
         return JsonResponse(data={"data": rdata,
                                   "durationresult": [datalist],
@@ -597,20 +601,17 @@ class anonymizationAPI_2nd(APIView):
         data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
         try:
             name = data['anon_name']
+            #addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
             addr = data['anon_addr']
             disease = data['anon_disease']
             wPN = data['wPN']
             wPID = data['wPID']
 
             # 将匿名化后的数据入库
-            # 1.匿名化
-            a = onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name)
-
-            if a == "success":
-                # 调用存储的函数
-                return JsonResponse(code="0", msg="匿名化完成")
-            else:
-                return JsonResponse(code="999995", msg="匿名化启动失败")
+            # 调用后端服务，对传入的文件夹进行匿名化
+            t = threading.Thread(target=onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name))
+            t.start()
+            return JsonResponse(code="0", msg="匿名化开始")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
 
