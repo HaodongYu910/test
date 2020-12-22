@@ -190,8 +190,8 @@
                                 </el-form-item>
                             </el-col>
                             <el-col :span="5">
-                                <el-form-item label="disease" prop="anon-disease">
-                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="disease"/>
+                                <el-form-item label="匿名后文件夹名" prop="anon-disease">
+                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
                                 </el-form-item>
                             </el-col>
 
@@ -405,7 +405,7 @@
                     loop_time: '',
                     port: '4242'
                 },
-                // 匿名化界面数据
+                // 匿名化界面初始数据
                 anonForm: {
                     anon_name: '',
                     anon_addr: '',
