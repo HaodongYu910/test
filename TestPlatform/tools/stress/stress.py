@@ -1,12 +1,9 @@
-# from TestPlatform.utils.graphql.get_graphql_result import get_graphql_result
-import gc
-
-from TestPlatform.utils.graphql.graphql import graphql_Interface
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import dicom_record, dictionary, stress_record, stress,uploadfile,stress
+from TestPlatform.models import dicom_record, dictionary, stress_record, stress_job,uploadfile,stress
 from django.db import transaction
-from TestPlatform.serializers import  dicomrecord_Serializer
+from TestPlatform.serializers import dicomrecord_Serializer
 from ..dicom.dicomdetail import voteData
+from ..stress.PerformanceResult import saveResult
 
 logger = logging.getLogger(__name__)
 
@@ -51,65 +48,60 @@ def delreport(kc, studyinstanceuid):
 
 # 手动预测
 
-def Manual(orthanc_ip, diseases, count):
+def Manual(orthanc_ip,version,id):
     server = orthanc_ip
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    stressdata = stress_record.objects.filter(diseases=diseases)
-    info = {}
-    i = 0
-    for k in stressdata:
-        if info.get(k.diseases):
-            if i == count:
+    stressdata = stress_record.objects.filter(benchmarkstatus=True,status=True)
+    try:
+        startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        for k in stressdata:
+            starttime = time.time()
+            obj = dictionary.objects.get(id=k.diseases)
+            graphql_query = "{ ai_biomind (" \
+                            "study_uid:\"" + str(k.studyuid) + "\", protocols:" \
+                                                                         "{ pothers: " \
+                                                                         "{ disable_negative_voting:false} " \
+                                                                         "penable_cached_results:false pconfig:{} " \
+                                                                         "planguage:\"zh-cn\" " \
+                                                                         " puser_id:\"biomind\" " \
+                                                                         "pseries_classifier:" + str(k.graphql) + "}" \
+                                                                         "routes: [[\"generate_series\",\"series_classifier\",\"" + str(obj.value) + "\"]])" \
+                                       " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+            try:
+                graphql_Interface(graphql_query, kc)
+            except Exception as e:
+                logger.error("执行预测失败：{0}".format(k.studyuid))
                 continue
-            else:
-                i = i + 1
-        else:
-            info[k.diseases] = k.diseases
-        delreport(kc, k.studyuid)
-        graphql_query = '{ ' \
-                        'ai_biomind(' \
-                        'block : false' \
-                        ' study_uid: "' + str(k.studyuid) + '"' \
-                                                            ' protocols: {' \
-                                                            ' penable_cached_results: false' \
-                                                            ' }' \
-                                                            '){' \
-                                                            '  pprediction' \
-                                                            '  preport' \
-                                                            '  pcontour' \
-                                                            '  pmodels' \
-                                                            '  pstudy_uid' \
-                                                            '}' \
-                                                            '}'
-
-        graphql_Interface(graphql_query, kc)
-        # info[k.slicenumber] = info[k.slicenumber] + 1
-
+            endtime = time.time()
+            data ={
+                "stressid":id,
+                "version": version,
+                "type": "jobjz",
+                "modelname":k.diseases,
+                "sec":endtime - starttime,
+                "images":k.imagecount,
+                "studyuid":k.studyuid,
+                "start":starttime,
+                "end":endtime
+            }
+            stress_job.objects.create(**data)
+        enddate =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    except Exception as e:
+        logger.error("执行预测基准测试数据失败：{0}".format(e))
+    try:
+        sql = dictionary.objects.get(key='prediction', type='sql')
+        strsql = sql.value.format(startdate,enddate)
+        saveResult(server,version,'predictionJZ',[startdate,enddate],strsql,[])
+    except Exception as e:
+        logger.error("保存预测基准测试数据失败：{0}".format(e))
 
 # 自动预测压测循环
 def AutoPrediction(orthanc_ip, diseases, count):
     server = orthanc_ip
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
-    info = {}
-    for i in diseases.split(","):
-        stressdata = stress_record.objects.filter(diseases=i )
+    for i in range(int(count)):
+        stressdata = stress_record.objects.filter(status=True)
         for k in stressdata:
-            if str(i) == '9':
-                if info.get(k.slicenumber):
-                    if info[k.slicenumber] == count:
-                        continue
-                    else:
-                        info[k.slicenumber] = info[k.slicenumber] + 1
-                else:
-                    info[k.slicenumber] = 1
-            else:
-                if info.get(k.diseases):
-                    if info[k.diseases] == count:
-                        continue
-                    else:
-                        info[k.diseases] = info[k.diseases] + 1
-                else:
-                    info[k.diseases] = 1
             delreport(kc, k.studyuid)
             graphql_query = '{ ' \
                             'ai_biomind(' \
@@ -128,6 +120,7 @@ def AutoPrediction(orthanc_ip, diseases, count):
                                                                 '}'
 
             graphql_Interface(graphql_query, kc)
+            time.sleep(2)
             # info[k.slicenumber] = info[k.slicenumber] + 1
 
 

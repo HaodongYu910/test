@@ -155,7 +155,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         <collectionProp name="CookieManager.cookies">
           <elementProp name="kc-access" elementType="Cookie" testname="kc-access">
             <stringProp name="Cookie.value">${__P(AToken,)}</stringProp>
-            <stringProp name="Cookie.domain">192.168.1.172</stringProp>
+            <stringProp name="Cookie.domain">192.168.1.208</stringProp>
             <stringProp name="Cookie.path">/</stringProp>
             <boolProp name="Cookie.secure">false</boolProp>
             <longProp name="Cookie.expires">0</longProp>
@@ -375,7 +375,7 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
         </BackendListener>
         <hashTree/>
       </hashTree>
-      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="loadimage" enabled="true">
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="208loadimage" enabled="true">
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="循环控制器" enabled="true">
           <boolProp name="LoopController.continue_forever">false</boolProp>
@@ -398,37 +398,37 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <stringProp name="-1348013956">predictor</stringProp>
           </collectionProp>
           <collectionProp name="UserParameters.thread_values">
-            <collectionProp name="-1383105590">
-              <stringProp name="114103113">7bfd2418-dbdd81a3-41c6ce9a-9be2350a-d7b02c30</stringProp>
-              <stringProp name="131351662">40.113619.2.416.211560944339170806396717298390135969639.71321310</stringProp>
+            <collectionProp name="-1235030638">
+              <stringProp name="-317985594">209cf064-7f8ce900-d57a40eb-ea867f8b-2a6b5717</stringProp>
+              <stringProp name="526384225">40.113619.2.416.297723402920242770870129435910306530950.21550061</stringProp>
               <stringProp name="-175563095">04b79a70-d4d9-4c0b-963f-b162335d518e</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-1841153993">
-              <stringProp name="-1472486141">9bfdcdcd-b326aed2-6ffc8f34-fc801c4c-15c97558</stringProp>
-              <stringProp name="1699094012">40.113619.2.416.275581089377425248906144385594830882836.85128399</stringProp>
+            <collectionProp name="1035619557">
+              <stringProp name="882342225">479600db-92070aee-537abb65-ea0424e9-fbc0f3e</stringProp>
+              <stringProp name="-1967254320">40.113619.2.416.297723402920242770870129435910306530950.36270870</stringProp>
               <stringProp name="-847669590">83dbdab7-a8d9-41fd-892c-7a3aa9c35eb4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-195368289">
-              <stringProp name="2119087392">358a38ea-cac84f35-b35ef58b-82b30cd7-f40a88e8</stringProp>
-              <stringProp name="-917861407">24488.123.450.67.89.20011005.103155.5760.20170412000657.80673300</stringProp>
+            <collectionProp name="1056494307">
+              <stringProp name="-83780529">5bf6931a-fbe533f9-4ecf3365-60645315-eb2a57cc</stringProp>
+              <stringProp name="-676039855">40.113619.2.416.126627296069071647610671185223528287450.20573136</stringProp>
               <stringProp name="-449349854">ac08473f-46f5-4859-910c-53f204ccbd06</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="443986490">
-              <stringProp name="1848185433">5f18069a-d42fac17-06f190f1-5a91d962-c386550c</stringProp>
-              <stringProp name="-624536215">24488.123.450.67.89.20011005.103155.5760.20170329001248.44123445</stringProp>
+            <collectionProp name="-693725836">
+              <stringProp name="-911099065">ac55fe5c-2ee7534a-1e79cb26-41782c06-d7aa5b04</stringProp>
+              <stringProp name="-1796333304">40.113619.2.416.297723402920242770870129435910306530950.99006216</stringProp>
               <stringProp name="-987263501">8e985b66-24ce-4456-bd74-7ef391e4bd80</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
             </collectionProp>
-            <collectionProp name="-1144891420">
-              <stringProp name="1785035796">98b7ee46-707898d9-f24a6fed-ff1f441f-63db8c19</stringProp>
-              <stringProp name="901822070">840.113619.2.416.42233201131450268962796251011403203461.45399021</stringProp>
+            <collectionProp name="1341137474">
+              <stringProp name="1798496023">c3d69dff-0624d47a-fcceda52-50dd0b9d-08bcce11</stringProp>
+              <stringProp name="1360385131">1.2.840.113619.2.416.190274922218387255633568974860423556001</stringProp>
               <stringProp name="-1839812245">b981adb8-17e3-451a-ac24-19e0719e00d4</stringProp>
               <stringProp name="2161">CT</stringProp>
               <stringProp name="67056">CTA</stringProp>
@@ -535,11 +535,11 @@ ${__setProperty(ABreast,${Breast},)};</stringProp>
             <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
               <collectionProp name="Arguments.arguments"/>
             </elementProp>
-            <stringProp name="HTTPSampler.domain">https://192.168.1.172</stringProp>
+            <stringProp name="HTTPSampler.domain">${__P(Asever,)}</stringProp>
             <stringProp name="HTTPSampler.port"></stringProp>
             <stringProp name="HTTPSampler.protocol">https</stringProp>
             <stringProp name="HTTPSampler.contentEncoding">utf-8</stringProp>
-            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/5341c971-6b77e91d-3d2b1294-4239a528-f7298afb/0/high-quality</stringProp>
+            <stringProp name="HTTPSampler.path">/orthanc/osimis-viewer/images/55bd8662-4fb52b74-b4744c8d-5ccc052e-2c0412bf/0/high-quality</stringProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <boolProp name="HTTPSampler.auto_redirects">false</boolProp>

@@ -1,6 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Sum,Min
+from ..models import stress_result
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -111,7 +111,14 @@ class addStressData(APIView):
         if result:
             return result
         try:
-            stresscache(data['id'])
+            dicomdata= stress_record.objects.filter(status=1,benchmarkstatus=1)
+            for i in dicomdata:
+                try:
+                    i.graphql, i.imagecount, i.slicenumber = voteData(i.studyuid, '192.168.1.208', i.diseases)
+                    i.save()
+                except Exception as e:
+                    continue
+            # stresscache(data['id'])
             # thread_stress = threading.Thread(target=stresscache,args=(data['id']))
             # # 启动线程
             # thread_stress.start()
@@ -208,15 +215,41 @@ class stressResult(APIView):
             return result
 
         try:
-            prediction = stress_result.objects.filter(version=data['version'], type__in=['prediction','lung_prediction'])
-            job = stress_result.objects.filter(version=data['version'], type__in=['job','lung_job'])
+            type = data["type"]
+            if type =='jz':
+                prediction = stress_result.objects.filter(version=data['version'],
+                                                          type__in=['predictionJZ', 'lung_JZ'])
+                job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_JZ'])
 
-            predictionb = stress_result.objects.filter(version=data['checkversion'], type__in=['prediction','lung_prediction'])
-            jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job','lung_job'])
+                predictionb = stress_result.objects.filter(version=data['checkversion'],
+                                                           type__in=['predictionJZ', 'lung_JZ'])
+                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobJZ', 'lung_JZ'])
 
-            predictionresult = dataCheck(prediction, predictionb)
-            jobresult = dataCheck(job, jobb)
-            diffresult = dataCheck(job,prediction)
+                predictionresult = dataCheck(prediction, predictionb)
+                jobresult = dataCheck(job, jobb)
+                diffresult = dataCheck(job, prediction)
+            elif type == 'dy':
+                prediction = stress_result.objects.filter(version=data['version'],
+                                                          type__in=['predictiondy', 'lung_dy'])
+                job = stress_result.objects.filter(version=data['version'], type__in=['jobdy', 'lung_jobdy'])
+
+                predictionb = stress_result.objects.filter(version=data['checkversion'],
+                                                           type__in=['predictiondy', 'lung_dy'])
+                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobdy', 'lung_jobdy'])
+
+                predictionresult = dataCheck(prediction, predictionb)
+                jobresult = dataCheck(job, jobb)
+                diffresult = dataCheck(job, prediction)
+            else:
+                prediction = stress_result.objects.filter(version=data['version'], type__in=['prediction','lung_prediction'])
+                job = stress_result.objects.filter(version=data['version'], type__in=['job','lung_job'])
+
+                predictionb = stress_result.objects.filter(version=data['checkversion'], type__in=['prediction','lung_prediction'])
+                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job','lung_job'])
+
+                predictionresult = dataCheck(prediction, predictionb)
+                jobresult = dataCheck(job, jobb)
+                diffresult = dataCheck(job,prediction)
             return JsonResponse(data={"predictionresult": predictionresult,
                                               "jobresult": jobresult,
                                               "diffresult":diffresult
@@ -259,10 +292,10 @@ class stressResultsave(APIView):
             obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
             if obj.projectname=='晨曦':
-                for j in ['prediction','job']:
-                    sql = dictionary.objects.get(key=str(j), type='sql')
-                    strsql = sql.value.format(checkdate[0], checkdate[1])
-                    saveResult(obj.loadserver, obj.version,j,checkdate,strsql,[])
+                jobsaveResult(obj.loadserver, obj.version, checkdate, '')
+                sql = dictionary.objects.get(key='prediction', type='sql')
+                strsql = sql.value.format(checkdate[0], checkdate[1])
+                saveResult(obj.loadserver, obj.version,'prediction',checkdate,strsql,[])
                 for i in obj.testdata.split(","):
                     if int(i) == 9 or i == int(12):
                         lung(checkdate, obj.loadserver, obj.version,i)
@@ -312,8 +345,9 @@ class stressRun(APIView):
             else:
                 obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
+            data['type'] = True
             if data['type'] is True:
-                Manual(obj.loadserver,obj.testdata,obj.loop_count)
+                Manual(obj.loadserver,obj.version,data['id'])
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])

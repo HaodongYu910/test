@@ -9,7 +9,7 @@
 4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
 '''
 
-import os,gc
+import os, gc
 import sys, getopt
 import pydicom
 import logging
@@ -40,10 +40,10 @@ CONFIG = {
     'diseases': 'all',
     'start': 0,
     'end': 1,
-    'sleepcount':9999,
-    'sleeptime':1,
-    'Seriesinstanceuid':'1',
-    'series':'0'
+    'sleepcount': 9999,
+    'sleeptime': 1,
+    'Seriesinstanceuid': '1',
+    'series': '0'
 }
 
 
@@ -52,6 +52,7 @@ CONFIG = {
 def connect_to_influx(data):
     posturl = 'http://192.168.1.121:8086/write?db=autotest'
     requests.post(posturl, data=data)
+
 
 # 链接mysql数据库
 def sqlDB(sql, data):
@@ -105,11 +106,12 @@ def sync_send_file(file_name):
         start_time = time.time()
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
-        end_time =  time.time()
+        end_time = time.time()
         os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
-    return start_time,end_time
+    return start_time, end_time
+
 
 def norm_string(str, len_norm):
     str_dest = str
@@ -147,20 +149,24 @@ def delayed(Seriesinstanceuid):
         time.sleep(int(CONFIG.get('sleeptime', '')))
         CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
 
-def add_image(study_infos, study_uid, patientid, accessionnumber,study_old_uid,start_time,end_time):
+
+def add_image(study_infos, study_uid, patientid, accessionnumber, study_old_uid, start_time, end_time):
     time = end_time - start_time
-    starttime =time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(start_time))
-    endtime =time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(end_time))
+    starttime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
+    endtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
     try:
         if study_infos.get(study_uid):
-            data = "duration,studyinstanceuid={0},duration_id={1},starttime =,endtime,time value=1".format(study_uid,CONFIG.get('durationid', ''),starttime,endtime,time)
+            data = "duration,patientid={0},accessionnumber={1},studyinstanceuid={2},studyolduid={3},sendserver={4},duration_id={5},starttime = {6},endtime= {7},time= {8} value=1".format(
+                patientid, accessionnumber, study_uid, study_old_uid, CONFIG.get('server', {}).get('ip'),
+                CONFIG.get('durationid', ''), starttime, endtime,
+                time)
             connect_to_influx(data)
         else:
             study_infos[study_uid] = study_uid
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
-                  [None, patientid, accessionnumber, study_uid,study_old_uid,None, None,
+                  [None, patientid, accessionnumber, study_uid, study_old_uid, None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   start_time, CONFIG.get('durationid', ''),starttime ,start_time,end_time,endtime,time])
+                   start_time, CONFIG.get('durationid', ''), starttime, start_time, end_time, time])
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
@@ -175,7 +181,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         full_fn = os.path.join(folder, fn)
         full_fn_fake = os.path.join(folder_fake, fn)
 
-        if (os.path.splitext(fn)[1] in  ['.dcm'] == False):
+        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos)
@@ -190,7 +196,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         try:
             study_uid = ds.StudyInstanceUID
             study_old_uid = ds.StudyInstanceUID
-            Seriesinstanceuid=ds.SeriesInstanceUID
+            Seriesinstanceuid = ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
             rand_uid = study_fakeinfo.get("rand_uid")
@@ -240,7 +246,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         # ds.AcquisitionDate = cur_date
         # ds.AcquisitionTime = cur_time
 
-        #send_time = ds.StudyDate + "-" + ds.StudyTime
+        # send_time = ds.StudyDate + "-" + ds.StudyTime
 
         try:
             ds.save_as(full_fn_fake)
@@ -251,19 +257,19 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             continue
         try:
             study_infos["count"] = int(study_infos["count"]) + 1
-            start_time,end_time = sync_send_file(full_fn_fake)
+            start_time, end_time = sync_send_file(full_fn_fake)
             add_image(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber,
                 study_old_uid=study_old_uid,
-                start_time = start_time,
-                end_time = end_time
+                start_time=start_time,
+                end_time=end_time
             )
             delayed(Seriesinstanceuid)
         except Exception as e:
-            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
+            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn, e))
             continue
 
 
@@ -272,7 +278,7 @@ def prepare_config(argv):
     try:
         opts, args = getopt.getopt(argv, "h",
                                    ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
-                                    "start=", "end=","sleepcount=", "sleeptime=","series="])
+                                    "start=", "end=", "sleepcount=", "sleeptime=", "series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
@@ -340,7 +346,7 @@ if __name__ == '__main__':
                                           str(start))
         study_fakeinfos = {}
         study_infos = {}
-        study_infos["count"]=0
+        study_infos["count"] = 0
         fake_folder(
             folder=src_folder,
             folder_fake=folder_fake,
@@ -354,6 +360,5 @@ if __name__ == '__main__':
         gc.collect()
 
         start = int(start) + 1
-
 
     sqlDB('DELETE from pid where pid ="%s"', [ospid])
