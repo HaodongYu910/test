@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 # 检查是否有压测数据
 def checkuid(server_ip,studyuid):
-    obj = dicom.objects.get(studyuid=studyuid,type='test')
+    obj = dicom.objects.get(studyinstanceuid=studyuid,type='test')
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         studyuid)
     result_db = connect_to_postgres(server_ip, sql)
@@ -63,7 +63,6 @@ def delreport(kc, studyinstanceuid):
 
 
 # 手动预测
-
 def Manual(orthanc_ip,version,id):
     server = orthanc_ip
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")

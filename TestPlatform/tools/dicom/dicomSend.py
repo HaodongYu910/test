@@ -35,9 +35,8 @@ CONFIG = {
         'port': '4242'
     },
     'keyword': 'duration',
-    'dicomfolder': '/files/',
+    'dicomfolder': '1',
     'durationid': '1',
-    'diseases': 'all',
     'start': 0,
     'end': 1,
     'sleepcount': 9999,
@@ -55,16 +54,25 @@ def connect_to_influx(data):
 
 
 # 链接mysql数据库
-def sqlDB(sql, data):
+def sqlDB(sql,data,type):
     conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='autotest',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
-    try:
-        logging.info(sql, data)
-        cur.execute(sql, data)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
+    if type=='select':
+        try:
+            # 查询数据
+            cr = cur.execute(sql)  # 查询
+            data = cur.fetchmany(cr)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+    else:
+        try:
+            logging.info(sql, data)
+            cur.execute(sql, data)
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
     cur.close()
     conn.close()
     return data
@@ -110,6 +118,7 @@ def sync_send_file(file_name):
         os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
+    logging.info("start_time:{0}, end_time:{1}".format(start_time, end_time))
     return start_time, end_time
 
 
@@ -140,38 +149,40 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     fake_info = studyuid_fakeinfo[studyuid]
     return fake_info
 
-
-def delayed(Seriesinstanceuid):
-    if study_infos["count"] == int(CONFIG.get('sleepcount', '')):
+# 判断是否 同一个 Series
+def delayed(Seriesinstanceuid,image):
+    if image["count"] == int(CONFIG.get('sleepcount', '')):
         time.sleep(int(CONFIG.get('sleeptime', '')))
-        study_infos["count"] = 0
+        image["count"] = 0
     if CONFIG.get('Seriesinstanceuid', '') != Seriesinstanceuid and CONFIG.get('Series', '') == '1':
         time.sleep(int(CONFIG.get('sleeptime', '')))
         CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
 
-
+# 保存发送记录
 def add_image(study_infos, study_uid, patientid, accessionnumber, study_old_uid, start_time, end_time):
-    time = end_time - start_time
+    time =str('%.2f' % (float(end_time - start_time)))
     starttime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
     endtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
     try:
         if study_infos.get(study_uid):
-            data = "dicomtest,patientid={0},accessionnumber={1},studyinstanceuid={2},studyolduid={3},sendserver={4},duration_id={5},starttime = {6},endtime= {7},time= {8} value=1".format(
-                patientid, accessionnumber, study_uid, study_old_uid, CONFIG.get('server', {}).get('ip'),
-                CONFIG.get('durationid', ''), starttime, endtime,
-                time)
-            connect_to_influx(data)
+            study_infos[study_uid] = study_infos[study_uid] + 1
+            try:
+                data = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={3},starttime = {4},endtime= {5},time= {6} value=1".format(
+                    study_uid, study_old_uid, CONFIG.get('durationid', ''), starttime, endtime,time)
+                connect_to_influx(data)
+            except Exception as e:
+                logging.error("更新influedb失败：{0}".format(e))
         else:
-            study_infos[study_uid] = study_uid
+            study_infos[study_uid] = 1
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, study_old_uid, None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   start_time, CONFIG.get('durationid', ''), starttime, start_time, end_time, time])
+                   start_time, CONFIG.get('durationid', ''), starttime, start_time, end_time, time],'INSERT')
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
-
-def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
+# 遍历文件夹 匿名话
+def fake_folder(folder, folder_fake, study_fakeinfos, study_infos,image,diseases):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
     file_names = os.listdir(folder)
@@ -184,7 +195,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos)
+            fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos,image,diseases)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -230,7 +241,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
 
         ds.PatientID = norm_string(
-            '{0}.{1}'.format(str(CONFIG.get('diseases', '')), rand_uid), 16)
+            '{0}.{1}'.format(str(diseases), rand_uid), 16)
 
         ds.PatientName = norm_string(
             fake_name, 16)
@@ -256,7 +267,6 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
         try:
-            study_infos["count"] = int(study_infos["count"]) + 1
             start_time, end_time = sync_send_file(full_fn_fake)
             add_image(
                 study_infos=study_infos,
@@ -267,7 +277,8 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos):
                 start_time=start_time,
                 end_time=end_time
             )
-            delayed(Seriesinstanceuid)
+            image["count"] = int(image["count"]) + 1
+            delayed(Seriesinstanceuid,image)
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn, e))
             continue
@@ -277,12 +288,12 @@ def prepare_config(argv):
     global CONFIG
     try:
         opts, args = getopt.getopt(argv, "h",
-                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=", "diseases=",
+                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=",
                                     "start=", "end=", "sleepcount=", "sleeptime=", "series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
-                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid> --diseases <diseases> --end <end>')
+                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid>  --end <end>')
                 sys.exit()
             elif opt in ("--aet"):
                 CONFIG["server"]["aet"] = arg
@@ -296,9 +307,6 @@ def prepare_config(argv):
                 CONFIG["dicomfolder"] = arg
             elif opt in ("--durationid"):
                 CONFIG["durationid"] = arg
-            elif opt in ("--diseases"):
-                diseases = arg
-                CONFIG["diseases"] = diseases
             elif opt in ("--start"):
                 CONFIG["start"] = arg
             elif opt in ("--end"):
@@ -326,6 +334,76 @@ def prepare_config(argv):
 
     return True
 
+# 修改影像数量
+def ImageUpdate(study_infos):
+    try:
+        for k, v in study_infos.items():
+            sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(k,v)
+            sqlDB(sql, [], 'update')
+    except Exception as e:
+        logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v,e))
+
+# 按数量发送
+def sendcount(sql):
+    # 发送数量
+    end = int(CONFIG["end"])
+    data = sqlDB(sql, [], 'select')
+    count = 0
+
+    for i in range(end):
+        if count == len(data):
+            data = sqlDB(sql, [], 'select')
+        elif count == end:
+            break
+        for j in data:
+            src_folder = str(j[0])
+            while src_folder[-1] == '/':
+                src_folder = src_folder[0:-1]
+            folder_fake = "{0}/{1}{2}".format(log_path,
+                                              str(CONFIG.get('keyword', '')) + '_' + str(j[1]),
+                                              str(count))
+            study_fakeinfos = {}
+            study_infos = {}
+
+            fake_folder(
+                folder=src_folder,
+                folder_fake=folder_fake,
+                study_fakeinfos=study_fakeinfos,
+                study_infos=study_infos,
+                image=image,
+                diseases=j[1]
+            )
+            ImageUpdate(study_infos)
+            count = count + 1
+
+# 按照时间发送
+def sendtime(sql,image):
+    data = sqlDB(sql, [], 'select')
+    count = 0
+    start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    while str(start) < str(CONFIG["end"]):
+        if count == len(data):
+            data = sqlDB(sql, [], 'select')
+        for j in data:
+            src_folder = str(j[0])
+            while src_folder[-1] == '/':
+                src_folder = src_folder[0:-1]
+            folder_fake = "{0}/{1}{2}".format(log_path,
+                                              str(CONFIG.get('keyword', '')) + '_' + str(j[1]),
+                                              str(count))
+            study_fakeinfos = {}
+            study_infos = {}
+            study_infos["count"] = 0
+            fake_folder(
+                folder=src_folder,
+                folder_fake=folder_fake,
+                study_fakeinfos=study_fakeinfos,
+                study_infos=study_infos,
+                image=image,
+                diseases=j[1]
+            )
+            ImageUpdate(study_infos)
+            start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 if __name__ == '__main__':
     ospid = os.getpid()
@@ -333,32 +411,12 @@ if __name__ == '__main__':
         logging.info("failed to start")
         sys.exit(0)
     # 添加 pid号
-    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')])
-    src_folder = CONFIG.get('dicomfolder', '')
-
-    while src_folder[-1] == '/':
-        src_folder = src_folder[0:-1]
-
-    start = CONFIG["start"]
-    while int(start) < int(CONFIG["end"]):
-        folder_fake = "{0}/{1}{2}".format(log_path,
-                                          str(CONFIG.get('keyword', '')) + '_' + str(CONFIG.get('diseases', '')),
-                                          str(start))
-        study_fakeinfos = {}
-        study_infos = {}
-        study_infos["count"] = 0
-        fake_folder(
-            folder=src_folder,
-            folder_fake=folder_fake,
-            study_fakeinfos=study_fakeinfos,
-            study_infos=study_infos
-        )
-
-        del folder_fake
-        del study_infos
-        del study_fakeinfos
-        gc.collect()
-
-        start = int(start) + 1
-
-    sqlDB('DELETE from pid where pid ="%s"', [ospid])
+    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')],'INSERT')
+    sql = "SELECT route FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
+    image = {}
+    image["count"] = 0
+    if CONFIG["start"]:
+        sendtime(sql,image)
+    else:
+        sendcount(sql,image)
+    sqlDB('DELETE from pid where pid ="%s"', [ospid],'DELETE')
