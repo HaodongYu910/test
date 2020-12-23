@@ -14,7 +14,7 @@ from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..tools.dicom.dicomdetail import delFolder
+from ..common.stressfigure import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

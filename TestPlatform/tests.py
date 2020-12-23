@@ -141,6 +141,3 @@
 #                     obj = dicom.objects.get(studyinstanceuid=i['StudyUID'],type='Gold')
 #                     obj.diagnosis = i['Restult']
 #                     obj.save()
-a ='2020-10-12 12:12:12'
-if len(a)>5:
-    print(len(a))

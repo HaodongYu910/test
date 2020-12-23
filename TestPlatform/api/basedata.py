@@ -13,7 +13,7 @@ from rest_framework.views import APIView
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.common.common import record_dynamic
-from TestPlatform.models import base_data,dictionary
+from TestPlatform.models import base_data,dictionary,dicom
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
 from TestPlatform.tools.dicom.dicomfile import fileSave
@@ -62,8 +62,12 @@ class getBase(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = base_data_Serializer(obm, many=True)
         for i in serialize.data:
-            obd = dictionary.objects.get(id=i["predictor"])
-            i["predictor"] = obd.value
+            try:
+                obd = dictionary.objects.get(id=i["predictor"])
+                i["predictor"] = obd.value
+            except Exception as e:
+                i["predictor"] = "null"
+                continue
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -151,6 +155,13 @@ class UpdatebaseData(APIView):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
             serializer = base_data_Deserializer(data=data)
+            try:
+                obj = dicom.objects.filter(fileid=data["id"])
+                for i in obj:
+                    i.diseases =data["remarks"]
+                    i.save()
+            except Exception as e:
+                return JsonResponse(code="999998", msg="失败")
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
@@ -192,6 +203,13 @@ class Delbasedata(APIView):
             return result
         try:
             for j in data["ids"]:
+                try:
+                    dicomobj = dicom.objects.filter(fileid=data["id"])
+                    for i in dicomobj:
+                        delobj = dicom.objects.filter(id=i.id)
+                        delobj.delete()
+                except Exception as e:
+                    return JsonResponse(code="999998", msg="失败")
                 obj = base_data.objects.filter(id=j)
                 obj.delete()
             return JsonResponse(code="0", msg="成功")

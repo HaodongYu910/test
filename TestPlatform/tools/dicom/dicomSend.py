@@ -110,15 +110,18 @@ def sync_send_file(file_name):
     ]
 
     try:
-        start_time = time.time()
+        starttime = time.time()
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
-        end_time = time.time()
+        endtime = time.time()
+        diff = str('%.2f' % (float(endtime - starttime)))
+        start= time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime))
+        end = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(endtime))
         os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
     logging.info("start_time:{0}, end_time:{1}".format(start_time, end_time))
-    return start_time, end_time
+    return start,end,diff
 
 
 def norm_string(str, len_norm):
@@ -158,16 +161,13 @@ def delayed(Seriesinstanceuid,image):
         CONFIG["Seriesinstanceuid"] = Seriesinstanceuid
 
 # 保存发送记录
-def add_image(study_infos, study_uid, patientid, accessionnumber, study_old_uid, start_time, end_time):
-    time =str('%.2f' % (float(end_time - start_time)))
-    starttime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
-    endtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
+def add_record(study_infos, study_uid, patientid, accessionnumber, study_old_uid, start_time, end_time,diff):
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid] = study_infos[study_uid] + 1
             try:
                 data = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={3},starttime = {4},endtime= {5},time= {6} value=1".format(
-                    study_uid, study_old_uid, CONFIG.get('durationid', ''), starttime, endtime,time)
+                    study_uid, study_old_uid, CONFIG.get('durationid', ''), start_time, end_time,diff)
                 connect_to_influx(data)
             except Exception as e:
                 logging.error("更新influedb失败：{0}".format(e))
@@ -176,7 +176,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber, study_old_uid,
             sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, study_old_uid, None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   start_time, CONFIG.get('durationid', ''), starttime, start_time, end_time, time],'INSERT')
+                   start_time, CONFIG.get('durationid', ''), start_time, start_time, end_time, time],'INSERT')
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
@@ -266,22 +266,30 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos,image,diseases
             logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
             continue
         try:
-            start_time, end_time = sync_send_file(full_fn_fake)
-            add_image(
+            start,end,diff = sync_send_file(full_fn_fake)
+        except Exception as e:
+            logging.error('errormsg: failed to sync_send [{0}]'.format(full_fn_fake))
+            continue
+        try:
+            add_record(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
                 patientid=new_patient_id,
                 accessionnumber=ds.AccessionNumber,
                 study_old_uid=study_old_uid,
-                start_time=start_time,
-                end_time=end_time
+                start_time=start,
+                end_time=end,
+                diff =diff
             )
-            image["count"] = int(image["count"]) + 1
-            delayed(Seriesinstanceuid,image)
         except Exception as e:
-            logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn, e))
+            logging.error('errormsg: failed to save_send_record file [{0}][[1]]'.format(full_fn, e))
             continue
-
+        try:
+            image["count"] = int(image["count"]) + 1
+            delayed(Seriesinstanceuid, image)
+        except Exception as e:
+            logging.error('errormsg: failed delayed{0}]'.format(full_fn_fake))
+            continue
 
 def prepare_config(argv):
     global CONFIG
@@ -377,10 +385,9 @@ if __name__ == '__main__':
         sys.exit(0)
     # 添加 pid号
     sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')],'INSERT')
-    sql = "SELECT route FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
+    sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
     image = {}
     image["count"] = 0
-    logging.info(CONFIG["start"])
     if len(CONFIG["end"])>10:
         sendtime(sql,image)
     else:
@@ -412,4 +419,4 @@ if __name__ == '__main__':
                 )
                 ImageUpdate(study_infos)
                 count = count + 1
-    sqlDB('DELETE from pid where pid ="%s"', [ospid],'DELETE')
+    sqlDB('DELETE from pid where pid ="{1}"'.format(ospid), [],'DELETE')

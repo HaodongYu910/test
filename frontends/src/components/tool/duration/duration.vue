@@ -570,35 +570,33 @@
                             self.total = data.total
                             self.list = data.data
                             var test = []
-                            var gold = []
+                            var testchildren = []
+                            this.options = []
                             var json = JSON.stringify(self.list)
                             this.dis = JSON.parse(json)
-                            for (var i in this.dis) {
-                                var disjson = this.dis[i]
-                                console.log(disjson)
-                                if (disjson['type'] === 'test') {
-                                    test.push({
-                                            value: disjson['id'],
-                                            label: disjson['remarks']
-                                        }
-                                    )
-                                } else {
-                                    gold.push({
+                            for (var j in this.dis) {
+                                var djson = this.dis[j]
+                                console.log(j)
+                                test.push(dijson['type'])
+                            }
+                            for (var k in test) {
+                                for (var i in this.dis) {
+                                    var disjson = this.dis[i]
+
+                                    if (k === disjson['type']) {
+                                        testchildren.push({
                                             value: disjson['id'],
                                             label: disjson['remarks']
                                         }
                                     )
                                 }
-                                this.options = [{
-                                    value: 'test',
-                                    label: 'test',
-                                    children: test
-                                }, {
-                                    value: 'Gold',
-                                    label: 'Gold',
-                                    children: gold
-                                }]
-                                console.log(this.options)
+                                this.options.push({
+                                        value: k,
+                                        label: k,
+                                        children: testchildren
+                                    })
+                                        console.log(this.options)
+                                    }
                             }
                         } else {
                             self.$message.error({
