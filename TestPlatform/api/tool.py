@@ -344,40 +344,31 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
+            a = 0
             durationid = data["id"]
             obj = duration.objects.get(id=durationid)
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
 
             if obj.sendcount is None and obj.end_time is None:
-                start = 0
+                start = ''
                 end = 1
             elif obj.sendcount is None and obj.end_time is not None:
                 start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end_time))).strftime(
                     "%Y-%m-%d %H:%M:%S")
             else:
-                start = 0
-                min = 10000
-                sumdicom = 0
+                start =''
+                end = ''
+                nom =0
                 for j in obj.dicom.split(","):
-                    dicom = base_data.objects.get(id=j)
-                    if min > int(dicom.other):
-                        min = int(dicom.other)
-                    sumdicom = int(dicom.other) + sumdicom
-
+                    nom =nom +1
+                imod = divmod(int(obj.sendcount),nom)
+                if imod[0]< 1:
+                    return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
             for i in obj.dicom.split(","):
-                base = base_data.objects.get(id=i)
-                folder = base.content
-                if sumdicom:
-                    imod = divmod(int(obj.sendcount), sumdicom)
-                    imin = divmod(int(imod[1]), min)
-                    if int(imin[1]) < (int(imin[1]) / 2):
-                        mincount = int(imin[0]) + int(imod[0])
-                    else:
-                        mincount = int(imin[0]) + int(imod[0]) + 1
-                    end = mincount if int(dicom.other) == int(min) else imod[0]
-
+                if end =='':
+                    end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                        ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                        '--ip {0} --aet {1} '
@@ -385,14 +376,13 @@ class EnableDuration(APIView):
                        '--keyword {3} '
                        '--dicomfolder {4} '
                        '--durationid {5} '
-                       '--diseases {6} '
-                       '--start {7} '
-                       '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, base.remarks,
-                                             start, end, sleepcount, sleeptime, obj.series)
+                       '--start {6} '
+                       '--end {7} '
+                       '--sleepcount {8} '
+                       '--sleeptime {9} '
+                       '--series {10} &').format(obj.server, obj.aet, obj.port, obj.keyword,i, durationid,
+                                             start, end,sleepcount, sleeptime, obj.series)
 
-                # '--sleepcount {9} '
-                # '--sleeptime {10} '
-                # '--series {11} &'
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
@@ -402,95 +392,6 @@ class EnableDuration(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
-
-# class TestEnableDuration(APIView):
-#     authentication_classes = (TokenAuthentication,)
-#     permission_classes = ()
-#
-#     def parameter_check(self, data):
-#         """
-#         校验参数
-#         :param data:
-#         :return:
-#         """
-#         try:
-#             # 校验id类型为int
-#             if not isinstance(data["id"], int):
-#                 return JsonResponse(code="999996", msg="参数有误！")
-#         except KeyError:
-#             return JsonResponse(code="999996", msg="参数有误！")
-#
-#     def post(self, request):
-#         """
-#         启用dicom 发送
-#         :param request:
-#         :return:
-#         """
-#         data = JSONParser().parse(request)
-#         result = self.parameter_check(data)
-#         if result:
-#             return result
-#         # 查找id是否存在
-#         try:
-#             a=0
-#             durationid = data["id"]
-#             obj = duration.objects.get(id=durationid)
-#             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
-#             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
-#
-#             if obj.sendcount is None and obj.end_time is None:
-#                 start = 0
-#                 end = 1
-#             elif obj.sendcount is None and obj.end_time is not None:
-#                 start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-#                 end = (datetime.datetime.now() + datetime.timedelta(hours=int(obj.end_time))).strftime(
-#                     "%Y-%m-%d %H:%M:%S")
-#             else:
-#                 for j in obj.dicom.split(","):
-#                     a  = a + 1
-#
-#                 dicomobj = dicom.objects.filter(fileid=j)
-#
-#                     if min > int(dicom.other):
-#                         min = int(dicom.other)
-#                     sumdicom = int(dicom.other) + sumdicom
-#
-#             for i in obj.dicom.split(","):
-#                 base = base_data.objects.get(id=i)
-#                 folder = base.content
-#                 if sumdicom:
-#                     imod = divmod(int(obj.sendcount), sumdicom)
-#                     imin = divmod(int(imod[1]), min)
-#                     if int(imin[1]) < (int(imin[1]) / 2):
-#                         mincount = int(imin[0]) + int(imod[0])
-#                     else:
-#                         mincount = int(imin[0]) + int(imod[0]) + 1
-#                     end = mincount if int(dicom.other) == int(min) else imod[0]
-#
-#                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-#                        ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
-#                        '--ip {0} --aet {1} '
-#                        '--port {2} '
-#                        '--keyword {3} '
-#                        '--dicomfolder {4} '
-#                        '--durationid {5} '
-#                        '--diseases {6} '
-#                        '--start {7} '
-#                        '--end {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, base.remarks,
-#                                              start, end, sleepcount, sleeptime, obj.series)
-#
-#                 # '--sleepcount {9} '
-#                 # '--sleeptime {10} '
-#                 # '--series {11} &'
-#                 logger.info(cmd)
-#                 os.system(cmd)
-#                 time.sleep(1)
-#
-#             obj.sendstatus = True
-#             obj.save()
-#             return JsonResponse(code="0", msg="成功")
-#         except ObjectDoesNotExist:
-#             return JsonResponse(code="999995", msg="运行失败！")
 
 # 删除dicom 发送记录
 class del_duration(APIView):
