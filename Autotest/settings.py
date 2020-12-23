@@ -43,8 +43,8 @@ MAIL_PWD = "Autotest@123"  #密码
 Dicom_PATH = '/home/biomind/testDatas'
 
 # keycloak 用户名
-user ='test'
-passwd ='Asd@123456'
+BiomindUser ='biomind3d'
+Biomindpasswd ='engine3D.'
 
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'logs')

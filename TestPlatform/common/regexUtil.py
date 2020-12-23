@@ -56,7 +56,7 @@ def connect_to_postgres(orthanc_ip,sql):
 # 登录keycloak
 def use_keycloak_bmutils(server_ip, username, password):
     try:
-        kc = KeycloakClient('https://{}'.format(server_ip), 'test', 'Asd@123456')
+        kc = KeycloakClient('https://{}'.format(server_ip), 'biomind3d', 'engine3D.')
         kc.login(username, password)
         return kc
     except Exception as e:

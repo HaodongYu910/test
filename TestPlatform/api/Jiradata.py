@@ -6,7 +6,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.common.jiraData import Jiradata
-from TestPlatform.serializers import ProjectDeserializer
 from TestPlatform.models import test_report
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。

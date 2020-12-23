@@ -5,6 +5,7 @@ from TestPlatform.serializers import stress_result_Deserializer, stress_result_S
 from django.db import transaction
 from ..dicom.dicomdetail import voteData
 import numpy as np
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -74,7 +75,10 @@ def saveResult(server,version,type,checkdate,sql,imagedata):
     result = connect_to_postgres(server,sql)
     dict = result.to_dict(orient='records')
     for i in dict:
-        obj = dictionary.objects.get(key=i["modelname"])
+        if type =='job':
+            obj = dictionary.objects.get(remarks=i["modelname"])
+        else:
+            obj = dictionary.objects.get(key=i["modelname"])
         i["version"] = version
         i["type"] = type
         i["modelname"] = obj.id
@@ -104,8 +108,8 @@ def jobsaveResult(server,version,checkdate,sql):
         modelname = result.to_dict(orient='records')[0]["modelname"]
         dx = dictionary.objects.get(key=modelname)
         i["modelname"] = dx.id
-        i["modelname"] =dx.id
         i["version"] =version
+        i["type"] = 'job'
         stress_job.objects.create(**i)
 
 

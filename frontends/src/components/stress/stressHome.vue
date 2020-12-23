@@ -69,11 +69,12 @@
             <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
+                    <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
                     <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">测试报告</el-button>
-                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                        {{scope.row.status===false?'启用':'禁用'}}
-                    </el-button>
+                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告</el-button>
+<!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
+<!--                        {{scope.row.status===false?'启用':'禁用'}}-->
+<!--                    </el-button>-->
                 </template>
             </el-table-column>
         </el-table>
@@ -446,6 +447,39 @@
                             center: true
                         })
                     }
+                })
+            },
+            stressJz: function (index, row) {
+                this.$confirm('确认执行测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        id: row.id,
+                        type:true
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressTool(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
                 })
             },
             // 运行压力测试

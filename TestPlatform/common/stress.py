@@ -3,16 +3,16 @@ from ..utils.graphql.graphql import graphql_Interface
 from TestPlatform.common.regexUtil import *
 from TestPlatform.models import dicom_record, dicom
 from django.db import transaction
-from TestPlatform.serializers import stressdetail_Serializer, stressdetail_Deserializer
+from TestPlatform.serializers import stress_Deserializer
 import datetime
-
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
 # 修改数据
 def update_data(data):
     obj = dicom_record.objects.get(testid=data["testid"])
-    serializer = stressdetail_Deserializer(data=data)
+    serializer = stress_Deserializer(data=data)
     with transaction.atomic():
         if serializer.is_valid():
             serializer.update(instance=obj, validated_data=data)
@@ -25,7 +25,7 @@ def graphql_prediction(data, kc):
         results = graphql_Interface(data, 'ai', kc)
         data['duration'] = time.time() - start_time
         # data['report'] = str(results['ai_biomind']['preport'])
-        stress_detailserializer = stressdetail_Serializer(data=data)
+        stress_detailserializer = stress_Deserializer(data=data)
         with transaction.atomic():
             stress_detailserializer.is_valid()
             stress_detailserializer.save()
@@ -36,7 +36,7 @@ def graphql_prediction(data, kc):
 
 
 def sequence(orthanc_ip,end_time, diseases, version):
-    kc = use_keycloak_bmutils(orthanc_ip, "test", "Asd@123456")
+    kc = use_keycloak_bmutils(orthanc_ip,settings.BiomindUser, settings.Biomindpasswd)
     stressdata = dicom.objects.filter()
     loop=0
     while datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") <= end_time:
