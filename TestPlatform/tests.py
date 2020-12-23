@@ -141,35 +141,6 @@
 #                     obj = dicom.objects.get(studyinstanceuid=i['StudyUID'],type='Gold')
 #                     obj.diagnosis = i['Restult']
 #                     obj.save()
-
-
-import pymysql
-def selectDB(parameter):
-    conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='autotest',
-                           charset="utf8");  # 连接数据库
-    cur = conn.cursor()
-
-    # 查询数据
-    cr = cur.execute(parameter)  # 查询
-    data = cur.fetchmany(cr)
-    conn.commit()
-    cur.close()
-    conn.close()
-    return data
-
-data = selectDB("SELECT route,diseases FROM dicom where fileid =1")
-a = 0
-for j in range(20):
-    if a ==len(data):
-        data = selectDB("SELECT route,diseases FROM dicom where fileid =1")
-    elif a==20:
-        break
-    for i in data:
-        print (i[0],i[1],a)
-        a = a +1
-
-a = ''
-if a:
-    print(1)
-else:
-    print(2)
+a ='2020-10-12 12:12:12'
+if len(a)>5:
+    print(len(a))

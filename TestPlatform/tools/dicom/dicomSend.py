@@ -37,7 +37,6 @@ CONFIG = {
     'keyword': 'duration',
     'dicomfolder': '1',
     'durationid': '1',
-    'start': 0,
     'end': 1,
     'sleepcount': 9999,
     'sleeptime': 1,
@@ -289,7 +288,7 @@ def prepare_config(argv):
     try:
         opts, args = getopt.getopt(argv, "h",
                                    ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=",
-                                    "start=", "end=", "sleepcount=", "sleeptime=", "series="])
+                                    "end=", "sleepcount=", "sleeptime=", "series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
@@ -307,8 +306,6 @@ def prepare_config(argv):
                 CONFIG["dicomfolder"] = arg
             elif opt in ("--durationid"):
                 CONFIG["durationid"] = arg
-            elif opt in ("--start"):
-                CONFIG["start"] = arg
             elif opt in ("--end"):
                 CONFIG["end"] = arg
             elif opt in ("--sleepcount"):
@@ -343,38 +340,6 @@ def ImageUpdate(study_infos):
     except Exception as e:
         logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v,e))
 
-# 按数量发送
-def sendcount(sql):
-    # 发送数量
-    end = int(CONFIG["end"])
-    data = sqlDB(sql, [], 'select')
-    count = 0
-
-    for i in range(end):
-        if count == len(data):
-            data = sqlDB(sql, [], 'select')
-        elif count == end:
-            break
-        for j in data:
-            src_folder = str(j[0])
-            while src_folder[-1] == '/':
-                src_folder = src_folder[0:-1]
-            folder_fake = "{0}/{1}{2}".format(log_path,
-                                              str(CONFIG.get('keyword', '')) + '_' + str(j[1]),
-                                              str(count))
-            study_fakeinfos = {}
-            study_infos = {}
-
-            fake_folder(
-                folder=src_folder,
-                folder_fake=folder_fake,
-                study_fakeinfos=study_fakeinfos,
-                study_infos=study_infos,
-                image=image,
-                diseases=j[1]
-            )
-            ImageUpdate(study_infos)
-            count = count + 1
 
 # 按照时间发送
 def sendtime(sql,image):
@@ -415,8 +380,36 @@ if __name__ == '__main__':
     sql = "SELECT route FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
     image = {}
     image["count"] = 0
-    if CONFIG["start"]:
+    logging.info(CONFIG["start"])
+    if len(CONFIG["end"])>10:
         sendtime(sql,image)
     else:
-        sendcount(sql,image)
+        end = int(CONFIG["end"])
+        data = sqlDB(sql, [], 'select')
+        count = 0
+        for i in range(end):
+            if count == len(data):
+                data = sqlDB(sql, [], 'select')
+            elif count == end:
+                break
+            for j in data:
+                src_folder = str(j[0])
+                while src_folder[-1] == '/':
+                    src_folder = src_folder[0:-1]
+                folder_fake = "{0}/{1}{2}".format(log_path,
+                                                  str(CONFIG.get('keyword', '')) + '_' + str(j[1]),
+                                                  str(count))
+                study_fakeinfos = {}
+                study_infos = {}
+
+                fake_folder(
+                    folder=src_folder,
+                    folder_fake=folder_fake,
+                    study_fakeinfos=study_fakeinfos,
+                    study_infos=study_infos,
+                    image=image,
+                    diseases=j[1]
+                )
+                ImageUpdate(study_infos)
+                count = count + 1
     sqlDB('DELETE from pid where pid ="%s"', [ospid],'DELETE')
