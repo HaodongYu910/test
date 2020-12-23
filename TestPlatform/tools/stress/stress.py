@@ -1,13 +1,29 @@
 from TestPlatform.common.regexUtil import *
-from TestPlatform.models import dicom_record, dictionary, stress_record, stress_job,uploadfile,stress
+from TestPlatform.models import dicom_record, dictionary, stress_record, stress_result,uploadfile,stress
 from django.db import transaction
 from TestPlatform.serializers import dicomrecord_Serializer
 from ..dicom.dicomdetail import voteData
 from ..stress.PerformanceResult import saveResult
-
+from .PerformanceResult import lung
+from ..dicom.SendDicom import Send
+from ..orthanc.deletepatients import delete_patients_duration
 logger = logging.getLogger(__name__)
 
 
+# 检查是否有压测数据
+def checkuid(server_ip,studyuid):
+    obj = dicom.objects.get(studyuid=studyuid,type='test')
+    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
+        studyuid)
+    result_db = connect_to_postgres(server_ip, sql)
+    # 无此数据，发送
+    if len(result_db) == 0:
+        Send(server_ip, obj.route)
+    # 重复数据 先删除后再发送新数据
+    elif len(result_db) > 2:
+        delete_patients_duration(studyuid, server_ip, 'StudyInstanceUID', False)
+        Send(server_ip, obj.route)
+    return True
 # 修改数据
 def update_data(data):
     obj = dicom_record.objects.get(testid=data["testid"])
@@ -52,6 +68,8 @@ def Manual(orthanc_ip,version,id):
     server = orthanc_ip
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
     stressdata = stress_record.objects.filter(benchmarkstatus=True,status=True)
+    imagecount =''
+    slicenumber =''
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for k in stressdata:
@@ -72,19 +90,27 @@ def Manual(orthanc_ip,version,id):
             except Exception as e:
                 logger.error("执行预测失败：{0}".format(k.studyuid))
                 continue
-            endtime = time.time()
+            avgtime = time.time() -starttime
+
+            if int(k.diseases) in [4,5,7,8,10,9]:
+                vote, imagecount, slicenumber = voteData(k.studyuid, server, int(k.diseases))
             data ={
                 "stressid":id,
                 "version": version,
                 "type": "jobjz",
+                "count":1,
                 "modelname":k.diseases,
-                "sec":endtime - starttime,
-                "images":k.imagecount,
-                "studyuid":k.studyuid,
-                "start":starttime,
-                "end":endtime
+                "slicenumber":slicenumber,
+                "avg":str('%.2f' % avgtime),
+                "single":str('%.2f' % avgtime),
+                "median": str('%.2f' % avgtime),
+                "min": str('%.2f' % avgtime),
+                "max":str('%.2f' % avgtime),
+                "minimages":imagecount,
+                "maximages": imagecount,
+                "avgimages": imagecount,
             }
-            stress_job.objects.create(**data)
+            stress_result.objects.create(**data)
         enddate =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     except Exception as e:
         logger.error("执行预测基准测试数据失败：{0}".format(e))
@@ -92,17 +118,23 @@ def Manual(orthanc_ip,version,id):
         sql = dictionary.objects.get(key='prediction', type='sql')
         strsql = sql.value.format(startdate,enddate)
         saveResult(server,version,'predictionJZ',[startdate,enddate],strsql,[])
+        if int(k.diseases) == 9 or int(k.diseases) == 12:
+            lung([startdate,enddate], server,version, int(k.diseases))
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
 # 自动预测压测循环
 def AutoPrediction(orthanc_ip, diseases, count):
     server = orthanc_ip
+    stressdata = stress_record.objects.filter(status=True)
     kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+    # 检查是否有压测数据
+    for k in stressdata:
+        checkuid(orthanc_ip, k.studyuid)
+        delreport(kc, k.studyuid)
+    # 循环调用graphql 自动预测
     for i in range(int(count)):
-        stressdata = stress_record.objects.filter(status=True)
         for k in stressdata:
-            delreport(kc, k.studyuid)
             graphql_query = '{ ' \
                             'ai_biomind(' \
                             'block : false' \

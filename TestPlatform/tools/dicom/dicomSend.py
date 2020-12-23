@@ -156,7 +156,7 @@ def add_image(study_infos, study_uid, patientid, accessionnumber, study_old_uid,
     endtime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(end_time))
     try:
         if study_infos.get(study_uid):
-            data = "duration,patientid={0},accessionnumber={1},studyinstanceuid={2},studyolduid={3},sendserver={4},duration_id={5},starttime = {6},endtime= {7},time= {8} value=1".format(
+            data = "dicomtest,patientid={0},accessionnumber={1},studyinstanceuid={2},studyolduid={3},sendserver={4},duration_id={5},starttime = {6},endtime= {7},time= {8} value=1".format(
                 patientid, accessionnumber, study_uid, study_old_uid, CONFIG.get('server', {}).get('ip'),
                 CONFIG.get('durationid', ''), starttime, endtime,
                 time)
