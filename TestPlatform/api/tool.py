@@ -10,12 +10,10 @@ import shutil,threading
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data, pid, GlobalHost
 from TestPlatform.serializers import duration_Deserializer
-from ..tools.dicom import SendDicom
 from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..tools.dicom.dicomdetail import delFolder
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -307,9 +305,11 @@ class DisableDuration(APIView):
 
             okj.sendstatus = False
             okj.save()
-            delfolder =threading.Thread(target=delFolder, args=("/files/logs/{0}".format(str(okj.keyword))))
-            # 启动线程
-            delfolder.start()
+            # 删除 文件夹
+            folder="/files/logs/{0}".format(str(okj.keyword))
+            if os.path.exists(folder):
+                shutil.rmtree(folder)
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")
