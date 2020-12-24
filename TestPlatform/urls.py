@@ -10,7 +10,7 @@ from .api.Jiradata import *
 from .api.Sendmail import *
 from .api.basedata import *
 from .api.test_report import *
-from .api.tool import *
+from .api.apiDuration import *
 from .api.apiStress import *
 from .api.user_permission import *
 from .api.stressReport import reportfigure

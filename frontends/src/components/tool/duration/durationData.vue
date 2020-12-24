@@ -66,6 +66,11 @@
                             <span style="margin-left: 10px">{{ scope.row.notai }} 个</span>
                         </template>
                     </el-table-column>
+                    <el-table-column label="平均张/秒" min-width="10%">
+                        <template slot-scope="scope">
+                            <span style="margin-left: 10px">{{ scope.row.avg }} 张/秒</span>
+                        </template>
+                    </el-table-column>
                 </el-table>
         </el-col>
         <!--列表-->
@@ -90,17 +95,17 @@
               <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="发送影像张数" label="发送影像张数" min-width="12%">
+          <el-table-column prop="发送张数" label="发送张数" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="接收影像张数" label="接收影像张数" min-width="12%">
+          <el-table-column prop="接收张数" label="接收张数" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.imagecount_server }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="预测结果" label="预测结果" min-width="8%" sortable>
+          <el-table-column prop="预测结果" label="预测结果" min-width="9%" sortable>
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.aistatus }}</span>
             </template>
@@ -110,14 +115,9 @@
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
             </template>
           </el-table-column>
-             <el-table-column prop="发送时间" label="发送时间" min-width="12%">
+             <el-table-column prop="耗时/张" label="耗时/张" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.time }}</span>
-            </template>
-          </el-table-column>
-          <el-table-column prop="服务器" label="服务器" min-width="12%">
-            <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.sendserver }}</span>
             </template>
           </el-table-column>
           <el-table-column label="发送日期" min-width="10%">

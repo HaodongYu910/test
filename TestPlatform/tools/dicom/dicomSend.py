@@ -394,7 +394,6 @@ if __name__ == '__main__':
     sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
     image = {}
     image["count"] = 0
-    CONFIG["end"] =48
     if len(str(CONFIG["end"]))>10:
         sendtime(sql,image)
     else:
@@ -402,9 +401,9 @@ if __name__ == '__main__':
         data = sqlDB(sql, [], 'select')
         count = 0
         for i in range(end):
-            if count == len(data):
+            if count > len(data):
                 data = sqlDB(sql, [], 'select')
-            elif count == end:
+            elif count >= end:
                 break
             for j in data:
                 src_folder = str(j[0])

@@ -72,6 +72,7 @@ def Manual(orthanc_ip,version,id):
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for k in stressdata:
+            checkuid(orthanc_ip, str(k.studyuid))
             starttime = time.time()
             obj = dictionary.objects.get(id=k.diseases)
             graphql_query = "{ ai_biomind (" \
@@ -96,7 +97,7 @@ def Manual(orthanc_ip,version,id):
             data ={
                 "stressid":id,
                 "version": version,
-                "type": "jobjz",
+                "type": "jobJZ",
                 "count":1,
                 "modelname":k.diseases,
                 "slicenumber":slicenumber,
