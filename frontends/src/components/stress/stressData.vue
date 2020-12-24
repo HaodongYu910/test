@@ -273,7 +273,6 @@ export default {
             'Content-Type': 'application/json'
           }
           stressTool(headers, params).then(_data => {
-            console.log(this.form.testdata)
             const { msg, code, data } = _data
             if (code != '0') {
               this.$message.error(msg)

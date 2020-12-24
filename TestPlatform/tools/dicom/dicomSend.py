@@ -347,9 +347,8 @@ def prepare_config(argv):
 # 修改影像数量
 def ImageUpdate(study_infos):
     try:
-        logging.info("study_infos", study_infos)
         for k, v in study_infos.items():
-            sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(k,v)
+            sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(v,k)
             logging.info("sql",sql)
             sqlDB(sql, [], 'update')
     except Exception as e:
