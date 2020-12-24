@@ -469,10 +469,11 @@ class anonymizationAPI_2nd(APIView):
             disease = data['anon_disease']
             wPN = data['wPN']
             wPID = data['wPID']
+            ap_addr = data['appointed_addr'] # appointed storage address
 
             # 将匿名化后的数据入库
             # 调用后端服务，对传入的文件夹进行匿名化
-            t = threading.Thread(target=onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name))
+            t = threading.Thread(target=onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name, ap_addr))
             t.start()
             return JsonResponse(code="0", msg="匿名化开始")
         except ObjectDoesNotExist:
