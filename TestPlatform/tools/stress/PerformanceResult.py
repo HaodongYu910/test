@@ -51,17 +51,22 @@ def dataCheck(dataA, dataB):
                 a = i['slicenumber']
                 b = j['slicenumber']
             if a == b:
-                for x in ['avg', 'single', 'median', 'min', 'max', 'coef', 'rate','minimages','maximages','avgimages']:
-                    if i[x] is None: i[x] = 0.0
-                    if j[x] is None: j[x] = 0.0
-                    if float(i[x]) > float(j[x]):
-                        i[x] = str(i[x]) + "(+" + str(
-                            '%.2f' % (float(i[x]) - float(j[x]))) + ")"
-                    elif float(i[x]) == float(j[x]):
-                        i[x] = str(i[x])
-                    else:
-                        i[x] = str(i[x]) + " (" + str(
-                            '%.2f' % (float(i[x]) - float(j[x]))) + ")"
+                try:
+                    for x in ['avg', 'single', 'median', 'min', 'max', 'coef', 'rate','minimages','maximages','avgimages']:
+                        if i[x] is None: i[x] = 0.0
+                        if j[x] is None: j[x] = 0.0
+                        if float(i[x]) > float(j[x]):
+                            i[x] = str(i[x]) + "(+" + str(
+                                '%.2f' % (float(i[x]) - float(j[x]))) + ")"
+                        elif float(i[x]) == float(j[x]):
+                            i[x] = str(i[x])
+                        else:
+                            i[x] = str(i[x]) + " (" + str(
+                                '%.2f' % (float(i[x]) - float(j[x]))) + ")"
+                except Exception as e:
+                    logger.error("error:{0}".format(e))
+                    continue
+
             else:
                 continue
         obj = dictionary.objects.get(id=i['modelname'])
