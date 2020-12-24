@@ -184,42 +184,52 @@
                 <el-form :model="anonForm" label-width="80px" :rules="anonFormRules" ref="anonForm">
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
-                            <el-col :span="5">
-                                <el-form-item label="匿名名称" prop="anon-name">
+                            <el-col :span="10">
+                                <el-form-item label="匿名名称（以什么开头）" prop="anon-name">
                                     <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
                                 </el-form-item>
                             </el-col>
-                            <el-col :span="5">
+                            <el-col :span="8">
                                 <el-form-item label="匿名后文件夹名" prop="anon-disease">
                                     <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
                                 </el-form-item>
                             </el-col>
+                        </el-row>
 
-                            <el-col :span="8">
+                        <el-row>
+                            <el-col :span="10">
                                 <el-form-item label="需要被匿名文件路径" prop="anon_addr">
                                     <el-input id="anon_addr" v-model="anonForm.anon_addr" placeholder="路径"/>
+                                </el-form-item>
+                            </el-col>
+
+                            <el-col :span="8">
+                                <el-form-item label="匿名后储存路径" prop="appointed_addr">
+                                    <el-input id="appointed_addr" v-model="anonForm.appointed_addr" placeholder="储存路径"/>
                                 </el-form-item>
                             </el-col>
                         </el-row>
 
                         <el-row>
 
-                            <el-col :span="6">
+                            <el-col :span="10">
                                 <el-form-item label="匿名患者姓名？" prop="wPN">
                                     <el-switch v-model="anonForm.wPN" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
 
-                            <el-col :span="5">
+                            <el-col :span="8">
                                 <el-form-item label="匿名患者ID？" prop="wPID">
                                     <el-switch v-model="anonForm.wPID" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
-                            <el-form-item label="" prop="anon_start">
-                                <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
-                            </el-form-item>
+                            <el-col :span="5">
+                                <el-form-item label="" prop="anon_start">
+                                    <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
+                                </el-form-item>
+                            </el-col>
 
                         </el-row>
 
@@ -412,6 +422,7 @@
                     anon_disease: '',
                     wPN: '',
                     wPID: '',
+                    appointed_addr: '',
                 },
                 anonFormVisible: false, // 匿名化界面是否显示
                 anonLoading: false,
@@ -822,6 +833,7 @@
                             anon_name: self.anonForm.anon_name,
                             anon_addr: self.anonForm.anon_addr,
                             anon_disease: self.anonForm.anon_disease,
+                            appointed_addr: self.anonForm.appointed_addr,
                             wPN: self.anonForm.wPN,
                             wPID: self.anonForm.wPID
                         })
@@ -840,7 +852,6 @@
                                 })
                                 self.$refs['anonForm'].resetFields()
                                 self.anonFormVisible = false
-                                self.getDurationlist()
                             } else if (code === '999997') {
                                 self.$message.error({
                                     message: msg,

@@ -1,5 +1,7 @@
 # coding=utf-8
 import os
+import random
+
 import pydicom
 from tqdm import tqdm
 import time
@@ -15,7 +17,7 @@ def norm_string(str, len_norm):
     return str_dest
 
 
-def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
+def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, ap_addr):
     '''
     src_folder: folder need be anonymization
     study_infos: empty dictionary{}
@@ -26,11 +28,10 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
     '''
     file_names = os.listdir(src_folder)
     file_names.sort()
-    time.sleep(0.5)
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
         if (os.path.isdir(full_fn)):
-            onlyDoAnonymization(full_fn, study_infos, diseases, wPN, wPID, anonkey)
+            onlyDoAnonymization(full_fn, study_infos, diseases, wPN, wPID, anonkey, ap_addr)
             continue
         elif (os.path.splitext(fn)[1] == ".dcm"):
             try:
@@ -44,13 +45,13 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
                         if study_infos[ds.StudyInstanceUID]["patientID"]:  # has value
                             ds.PatientID = study_infos[ds.StudyInstanceUID]["patientID"]
                         elif not study_infos[ds.StudyInstanceUID]["patientID"]:  # no value
-                            ds.PatientID = norm_string("{0}_{1}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                            ds.PatientID = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum()), 32)
                             study_infos[ds.StudyInstanceUID]["patientID"] = ds.PatientID
                     if wPN:
                         if study_infos[ds.StudyInstanceUID]["patientName"]:  # PN有值
                             ds.PatientName = study_infos[ds.StudyInstanceUID]["patientName"]
                         elif not study_infos[ds.StudyInstanceUID]["patientName"]:  # PN没有值
-                            ds.PatientName = norm_string("{0}_{1}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time()))), 16)
+                            ds.PatientName = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum()), 32)
                             study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
 
                     # # 判断要不要进行pid和pn的匿名化
@@ -82,7 +83,7 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
 
                     # 保存文件匿名化之后的文件到192.168.1.121：/files/QA_FTP/testData/anonymization
                     #folder_fake = 'C:\\Users\\yuhaodong\\Desktop\\test\\{0}\\{1}'.format(diseases, ds.PatientName)
-                    folder_fake = '/files/QA_FTP/testData/anonymization/{0}/{1}'.format(diseases, ds.PatientName)
+                    folder_fake = '{0}/{1}/{2}'.format(ap_addr, diseases, ds.PatientName)
                     if not os.path.exists(folder_fake):
                         logging.info('do not have this path. creating...')
                         os.makedirs(folder_fake)
@@ -131,6 +132,7 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey):
 #         tmp = 0
 #     return tmp
 
+# 判断该路径下有多少个文件，并返回n+1
 def nextNumber(addr):
     files = os.listdir(addr)
     if files:
@@ -145,3 +147,12 @@ def nextNumber(addr):
     elif not files:
         tmp = 0
         return tmp
+
+# 创建n位随机数
+def randomFourNum():
+    num_str = ''
+    i = 0
+    while i<4 :
+        num_str = num_str + str(random.randint(0,9))
+        i = i + 1
+    return num_str
