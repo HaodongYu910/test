@@ -75,19 +75,14 @@
           highlight-current-row
           style="width: 100%;"
           @selection-change="selsChange">
-          <el-table-column prop="ID" label="ID" min-width="5%" sortable>
-            <template slot-scope="scope" >
-              <span style="margin-left: 10px">{{ scope.row.id }}</span>
-            </template>
-          </el-table-column>
           <el-table-column prop="patientid" label="PatientName" min-width="15%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="accessionnumber" label="accessionnumber" min-width="20%">
+          <el-table-column prop="studyolduid" label="studyolduid" min-width="20%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.accessionnumber }}</span>
+              <span style="margin-left: 10px">{{ scope.row.studyolduid }}</span>
             </template>
           </el-table-column>
           <el-table-column label="studyuid" min-width="20%">
@@ -115,7 +110,12 @@
               <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="发送服务器" label="发送服务器" min-width="12%">
+             <el-table-column prop="发送时间" label="发送时间" min-width="12%">
+            <template slot-scope="scope">
+              <span style="margin-left: 10px">{{ scope.row.time }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="服务器" label="服务器" min-width="12%">
             <template slot-scope="scope">
               <span style="margin-left: 10px">{{ scope.row.sendserver }}</span>
             </template>
