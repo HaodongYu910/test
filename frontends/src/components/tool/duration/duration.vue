@@ -488,7 +488,7 @@
                             'Content-Type': 'application/json'
                         }
                         delete_patients(headers, params).then(_data => {
-                            console.log(this.form.testtype)
+
                             const {msg, code, data} = _data
                             if (code != '0') {
                                 this.$message.error(msg)
@@ -522,7 +522,6 @@
                     'Content-Type': 'application/json'
                 }
                 getVersion(headers, params).then(_data => {
-                    console.log(_data)
                     const {msg, code, data} = _data
                     if (code != '0') {
                         this.$message.error(msg)
@@ -530,7 +529,6 @@
                     }
                     // 请求正确时执行的代码
                     var mydata = data.data
-                    console.log(mydata)
                     var json = JSON.stringify(mydata)
                     this.tags = JSON.parse(json)
                 })
@@ -541,7 +539,6 @@
                     'Content-Type': 'application/json'
                 }
                 durationverifydata(headers, params).then(_data => {
-                    console.log(_data)
                     const {msg, code, data} = _data
                     if (code != '0') {
                         this.$message.error(msg)
@@ -549,7 +546,6 @@
                     }
                     // 请求正确时执行的代码
                     var mydata = data.data
-                    console.log(mydata)
                     var json = JSON.stringify(mydata)
                     this.tags = JSON.parse(json)
                 })
@@ -585,7 +581,6 @@
                                         )
                                     }
                                 }
-
                                 this.options.push({
                                     value: self.type[k],
                                     label: self.type[k],
@@ -658,6 +653,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
+
                     delduration(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {

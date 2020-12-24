@@ -230,7 +230,6 @@
                         self.count = data.count
                         self.durationdatalist = data.data
                         self.durationresult = data.durationresult
-                        console.log(self.durationresult)
                     } else {
                         self.$message.error({
                             message: msg,
