@@ -127,11 +127,11 @@
                 <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                     <el-row>
                         <el-col :span="6">
-                                <el-form-item label="数据类型" prop="senddata">
-                                    <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
-                                                 @click.native="getBase()"></el-cascader>
-                                </el-form-item>
-                            </el-col>
+                            <el-form-item label="数据类型" prop="senddata">
+                                <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
+                                             @click.native="getBase()"></el-cascader>
+                            </el-form-item>
+                        </el-col>
                         <el-col :span="6">
                             <el-form-item label="匿名名称" prop="keyword">
                                 <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
@@ -142,8 +142,8 @@
                                 <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
                             </el-form-item>
                         </el-col>
-                        </el-row>
-                        <el-row>
+                    </el-row>
+                    <el-row>
 
                         <el-col :span="6">
                             <el-form-item label="持续时间" prop="loop_time">
@@ -160,8 +160,8 @@
                                 <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
                             </el-form-item>
                         </el-col>
-                            </el-row>
-                            <el-row>
+                    </el-row>
+                    <el-row>
                         <el-col :span="6">
                             <el-form-item label="series" prop="series">
                                 <el-switch v-model="editForm.series" active-color="#13ce66"
@@ -261,8 +261,8 @@
                                                  @click.native="getBase()"></el-cascader>
                                 </el-form-item>
                             </el-col>
-                            </el-row>
-                                <el-row>
+                        </el-row>
+                        <el-row>
                             <el-col :span="4">
                                 <el-form-item label="持续时间" prop="loop_time">
                                     <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
@@ -273,13 +273,13 @@
                                     <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
                                 </el-form-item>
                             </el-col>
-                                    <el-col :span="6">
+                            <el-col :span="6">
                                 <el-form-item label="是否dds" prop="dds">
                                     <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
                                 </el-form-item>
                             </el-col>
-                                    </el-row>
-                                    <el-row>
+                        </el-row>
+                        <el-row>
                             <el-col :span="4">
                                 <el-form-item label="延时时间" prop="sleeptime">
                                     <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
@@ -560,7 +560,7 @@
                 const self = this
                 const params = {
                     selecttype: "dicom",
-                    page_size:100
+                    page_size: 100
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -569,34 +569,28 @@
                         if (code === '0') {
                             self.total = data.total
                             self.list = data.data
-                            var test = []
-                            var testchildren = []
+                            self.type = data.type
                             this.options = []
                             var json = JSON.stringify(self.list)
                             this.dis = JSON.parse(json)
-                            for (var j in this.dis) {
-                                var djson = this.dis[j]
-                                console.log(j)
-                                test.push(dijson['type'])
-                            }
-                            for (var k in test) {
+                            for (var k in self.type) {
+                                var testchildren = []
                                 for (var i in this.dis) {
                                     var disjson = this.dis[i]
-
-                                    if (k === disjson['type']) {
+                                    if (self.type[k] === disjson['type']) {
                                         testchildren.push({
-                                            value: disjson['id'],
-                                            label: disjson['remarks']
-                                        }
-                                    )
-                                }
-                                this.options.push({
-                                        value: k,
-                                        label: k,
-                                        children: testchildren
-                                    })
-                                        console.log(this.options)
+                                                value: disjson['id'],
+                                                label: disjson['remarks']
+                                            }
+                                        )
                                     }
+                                }
+
+                                this.options.push({
+                                    value: self.type[k],
+                                    label: self.type[k],
+                                    children: testchildren
+                                })
                             }
                         } else {
                             self.$message.error({

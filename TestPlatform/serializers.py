@@ -836,7 +836,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
         fields = (
             'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
             'aistatus',
-            'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'update_time', 'create_time')
+            'diagnosis', 'sendserver', 'duration_id', 'sendtime','time','endtime', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -859,7 +859,7 @@ class duration_record_Deserializer(serializers.ModelSerializer):
         fields = (
         'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
         'aistatus',
-        'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'create_time')
+        'diagnosis', 'sendserver', 'duration_id', 'sendtime','time','endtime','create_time')
 
 
 class duration_Serializer(serializers.ModelSerializer):

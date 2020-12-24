@@ -57,7 +57,7 @@ def sqlDB(sql,data,type):
     conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='autotest',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor()
-    if type=='select':
+    if type =='select':
         try:
             # 查询数据
             cr = cur.execute(sql)  # 查询
@@ -120,7 +120,6 @@ def sync_send_file(file_name):
         os.remove(file_name)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
-    logging.info("start_time:{0}, end_time:{1}".format(start_time, end_time))
     return start,end,diff
 
 
@@ -166,17 +165,23 @@ def add_record(study_infos, study_uid, patientid, accessionnumber, study_old_uid
         if study_infos.get(study_uid):
             study_infos[study_uid] = study_infos[study_uid] + 1
             try:
-                data = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={3},starttime = {4},endtime= {5},time= {6} value=1".format(
+                data = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime = {3},endtime= {4},time= {5} value=1".format(
                     study_uid, study_old_uid, CONFIG.get('durationid', ''), start_time, end_time,diff)
                 connect_to_influx(data)
             except Exception as e:
                 logging.error("更新influedb失败：{0}".format(e))
         else:
             study_infos[study_uid] = 1
-            sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
+            logging.info( [None, patientid, accessionnumber, study_uid, study_old_uid, None, None,
+                   None, None, CONFIG.get('server', {}).get('ip'),
+                   start_time, CONFIG.get('durationid', ''), start_time, start_time, end_time, diff])
+            try:
+                sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',
                   [None, patientid, accessionnumber, study_uid, study_old_uid, None, None,
                    None, None, CONFIG.get('server', {}).get('ip'),
-                   start_time, CONFIG.get('durationid', ''), start_time, start_time, end_time, time],'INSERT')
+                   start_time, CONFIG.get('durationid', ''), start_time, start_time, end_time,diff],'INSERT')
+            except Exception as e:
+                logging.error("更新mysql失败：{0}".format(e))
     except Exception as e:
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
@@ -234,7 +239,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos,image,diseases
         try:
             instance_uid = ds.SOPInstanceUID
         except Exception as e:
-            logging.info(
+            logging.error(
                 'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
         ds.SOPInstanceUID = norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
@@ -342,8 +347,10 @@ def prepare_config(argv):
 # 修改影像数量
 def ImageUpdate(study_infos):
     try:
+        logging.info("study_infos", study_infos)
         for k, v in study_infos.items():
             sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(k,v)
+            logging.info("sql",sql)
             sqlDB(sql, [], 'update')
     except Exception as e:
         logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v,e))
@@ -388,7 +395,8 @@ if __name__ == '__main__':
     sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
     image = {}
     image["count"] = 0
-    if len(CONFIG["end"])>10:
+    CONFIG["end"] =48
+    if len(str(CONFIG["end"]))>10:
         sendtime(sql,image)
     else:
         end = int(CONFIG["end"])

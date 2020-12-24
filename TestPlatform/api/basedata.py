@@ -61,6 +61,10 @@ class getBase(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = base_data_Serializer(obm, many=True)
+        dictobj =dictionary.objects.filter(type="file")
+        type =[]
+        for j in dictobj:
+            type.append(j.key)
         for i in serialize.data:
             try:
                 obd = dictionary.objects.get(id=i["predictor"])
@@ -69,6 +73,7 @@ class getBase(APIView):
                 i["predictor"] = "null"
                 continue
         return JsonResponse(data={"data": serialize.data,
+                                  "type":type,
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
