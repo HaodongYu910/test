@@ -60,6 +60,11 @@ class HostTotal(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = GlobalHostSerializer(obm, many=True)
+        for i in serialize.data:
+            if i["protocol"] == 'https':
+                i["protocol"] = True
+            else:
+                i["protocol"] = False
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -236,6 +241,105 @@ class DelHost(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
 
+
+class DisableProtocol(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["host_id"], int):
+                return JsonResponse(code="999995", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999995", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用host
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            if data["project_id"] is None:
+                data["project_id"]=1
+            pro_data = Project.objects.get(id=data["project_id"])
+            if not request.user.is_superuser and pro_data.user.is_superuser:
+                return JsonResponse(code="999983", msg="无操作权限！")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+        pro_data = ProjectSerializer(pro_data)
+        if not pro_data.data["status"]:
+            return JsonResponse(code="999985", msg="该项目已禁用")
+        try:
+            obj = GlobalHost.objects.get(id=data["host_id"], project=data["project_id"])
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999992", msg="host不存在")
+        obj.protocol = 'https'
+        obj.save()
+        record_dynamic(project=data["project_id"],
+                       _type="禁用", operationObject="域名", user=request.user.pk, data=obj.name)
+        return JsonResponse(code="0", msg="成功！")
+
+
+class EnableProtocol(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["host_id"], int):
+                return JsonResponse(code="999995", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999995", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            if data["project_id"] is None:
+                data["project_id"]=1
+            pro_data = Project.objects.get(id=data["project_id"])
+            if not request.user.is_superuser and pro_data.user.is_superuser:
+                return JsonResponse(code="999983", msg="无操作权限！")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+        pro_data = ProjectSerializer(pro_data)
+        if not pro_data.data["status"]:
+            return JsonResponse(code="999985", msg="该项目已禁用")
+        try:
+            obj = GlobalHost.objects.get(id=data["host_id"], project=data["project_id"])
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999992", msg="host不存在")
+        obj.protocol = 'http'
+        obj.save()
+        record_dynamic(project=data["project_id"],
+                       _type="禁用", operationObject="域名", user=request.user.pk, data=obj.name)
+        return JsonResponse(code="0", msg="成功！")
 
 class DisableHost(APIView):
     authentication_classes = (TokenAuthentication,)

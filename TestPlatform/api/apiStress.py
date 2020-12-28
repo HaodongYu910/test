@@ -82,7 +82,7 @@ class stressData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-class addStressData(APIView):
+class AddStressData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -93,12 +93,12 @@ class addStressData(APIView):
         :return:
         """
         try:
-            # 必传参数 key, server_ip , type
-            if not data["id"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 id！")
+            # 必传参数 ids
+            if not data["ids"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 ids！")
 
         except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
+            return JsonResponse(code="999996", msg="参数ids有误！")
 
     def post(self, request):
         """
@@ -111,17 +111,18 @@ class addStressData(APIView):
         if result:
             return result
         try:
-            dicomdata= stress_record.objects.filter(status=1,benchmarkstatus=1)
-            for i in dicomdata:
-                try:
-                    i.graphql, i.imagecount, i.slicenumber = voteData(i.studyuid, '192.168.1.208', i.diseases)
-                    i.save()
-                except Exception as e:
-                    continue
-            # stresscache(data['id'])
-            # thread_stress = threading.Thread(target=stresscache,args=(data['id']))
-            # # 启动线程
-            # thread_stress.start()
+            for i in data["ids"]:
+                obj = dicom.objects.get(id=id)
+                data ={
+                    "stressid": i,
+                    "studyuid":obj.studyinstanceuid,
+                    "imagecount":obj.imagecount,
+                    "graphql":obj.vote,
+                    "slicenumber":obj.slicenumber,
+                    "benchmarkstatus":False,
+                    "status":True
+                }
+                stress_record.objects.create(**data)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -340,6 +341,8 @@ class stressRun(APIView):
             return result
         try:
             obj = stress.objects.get(id =data['id'])
+            Hostobj = GlobalHost.objects.get(id=obj.hostid)
+            server = Hostobj.host
             if obj.start_date is None:
                 obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
@@ -347,11 +350,11 @@ class stressRun(APIView):
                 obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                Manual(obj.loadserver,obj.version,data['id'])
+                Manual(obj.hostid,server,obj.version,data['id'])
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                AutoPrediction(obj.loadserver,obj.testdata,obj.loop_count)
+                AutoPrediction(obj.hostid,server,obj.testdata,obj.loop_count)
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)

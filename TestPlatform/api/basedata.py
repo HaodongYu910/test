@@ -1,8 +1,3 @@
-import logging
-import  json
-
-from crontab import CronTab
-from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 
@@ -12,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.common.common import record_dynamic
 from TestPlatform.models import base_data,dictionary,dicom
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *

@@ -11,12 +11,12 @@
                     <el-row>
                         <el-col :span="5">
                             <el-form-item label="测试服务器" prop="server_ip">
-                            <el-select v-model="form.server_ip"  placeholder="请选择" @click.native="gethost()">
+                            <el-select v-model="form.serverID"  placeholder="请选择" @click.native="gethost()">
                               <el-option
                                 v-for="(item,index) in tags"
-                                :key="item.host"
+                                :key="item.id"
                                 :label="item.name"
-                                :value="item.host"
+                                :value="item.id"
                               />
                             </el-select>
                           </el-form-item>
@@ -131,7 +131,7 @@
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
                         const params = {
-                            server_ip: this.form.server_ip,
+                            serverID: this.form.serverID,
                             deldata: this.form.deldata,
                             testtype: this.form.testtype,
                             fuzzy: this.form.fuzzy

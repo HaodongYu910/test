@@ -15,7 +15,7 @@
             </el-form>
         </el-col>
         <!--列表-->
-        <el-table :data="project" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
+        <el-table :data="Host" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
             <el-table-column prop="name" label="名称" min-width="15%" sortable show-overflow-tooltip>
@@ -32,8 +32,9 @@
                     <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="15%">
+            <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
+                    <el-button type="info" size="small" @click="handleChangeProtocol(scope.$index, scope.row)">{{scope.row.protocol===false?'Http':'Https'}}</el-button>
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
@@ -97,7 +98,7 @@
 <script>
     //import NProgress from 'nprogress'
     import { getHost, delHost, disableHost, enableHost,
-    updateHost, addHost} from '../../../router/api'
+    updateHost, addHost,disableHostProtocol,enableHostProtocol} from '../../../router/api'
     export default {
         data() {
             var checkIp = (rule, value, callback) => {
@@ -111,7 +112,7 @@
                 filters: {
                     name: ''
                 },
-                project: [],
+                Host: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -159,7 +160,8 @@
                     name: '',
                     host: '',
                     port:'',
-                    description: ''
+                    description: '',
+                    protocol:'https'
                 }
 
             }
@@ -177,7 +179,7 @@
                 this.listLoading = true;
                 let self = this;
                 let params = {
-                    project_id: this.$route.params.project_id,
+                    Host_id: this.$route.params.Host_id,
                     page: self.page,
                     name: self.filters.name
                 };
@@ -189,7 +191,7 @@
                     self.listLoading = false;
                     if (code === '0') {
                         self.total = data.total;
-                        self.project = data.data
+                        self.Host = data.data
                     }
                     else {
                         self.$message.error({
@@ -208,7 +210,7 @@
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        project_id: Number(this.$route.params.project_id),
+                        Host_id: Number(this.$route.params.Host_id),
                         ids: [row.id, ]
                     };
                     let headers = {
@@ -233,11 +235,62 @@
                     });
                 });
             },
+            handleChangeProtocol: function(index, row) {
+                let self = this;
+                this.listLoading = true;
+                let params = {
+                    Host_id: Number(this.$route.params.Host_id),
+                    host_id: Number(row.id)
+                };
+                let headers = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
+                };
+                if (row.status) {
+                    disableHostProtocol(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '切换成Https 成功',
+                                center: true,
+                                type: 'success'
+                            });
+                            row.status = !row.status;
+                        }
+                        else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                } else {
+                    enableHostProtocol(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '切换成Http 成功',
+                                center: true,
+                                type: 'success'
+                            });
+                            row.status = !row.status;
+                        }
+                        else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                }
+            },
             handleChangeStatus: function(index, row) {
                 let self = this;
                 this.listLoading = true;
                 let params = {
-                    project_id: Number(this.$route.params.project_id),
+                    Host_id: Number(this.$route.params.Host_id),
                     host_id: Number(row.id)
                 };
                 let headers = {
@@ -313,12 +366,13 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                Host_id: Number(this.$route.params.Host_id),
                                 id: Number(self.editForm.id),
                                 name: self.editForm.name,
                                 host: host,
                                 port: self.editForm.port,
-                                description: self.editForm.description
+                                description: self.editForm.description,
+                                protocol:'https'
                             };
                             let headers = {
                                 "Content-Type": "application/json",
@@ -369,11 +423,12 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                Host_id: Number(this.$route.params.Host_id),
                                 name: self.addForm.name,
                                 host: host,
                                 port:self.addForm.port ,
-                                description: self.addForm.description
+                                description: self.addForm.description,
+                                protocol:'https'
                             };
                             let headers = {
                                 "Content-Type": "application/json",
@@ -423,7 +478,7 @@
                     self.listLoading = true;
                     //NProgress.start();
                     let params = {
-                        project_id: Number(this.$route.params.project_id),
+                        Host_id: Number(this.$route.params.Host_id),
                         ids: ids
                     };
                     let headers = {

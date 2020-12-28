@@ -12,15 +12,15 @@ from ...models import GlobalHost,dicom
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-def sync_send_file(server_ip,file_name):
-    obj = GlobalHost.objects.get(host=server_ip)
+def sync_send_file(serverID,file_name):
     local_aet='QA38'
+    Hostobj = GlobalHost.objects.get(id=serverID)
     # logging.info('send file: [{0}]'.format(file_name))
     commands = [
         "storescu",
-        server_ip,
-        "4242",
-        "-aec", "ORTHANC208",
+        Hostobj.host,
+        Hostobj.port,
+        "-aec", Hostobj.description,
         "-aet", local_aet,
         file_name
     ]
@@ -32,7 +32,7 @@ def sync_send_file(server_ip,file_name):
         logger.error('send_file error: {0}'.format(e))
 
 
-def fake_folder(server_ip,folder):
+def fake_folder(serverID,folder):
     file_names = os.listdir(folder)
     file_names.sort()
 
@@ -42,23 +42,23 @@ def fake_folder(server_ip,folder):
         if (os.path.splitext(fn)[1] in  ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            fake_folder(server_ip,full_fn)
+            fake_folder(serverID,full_fn)
             continue
         try:
-            logger.info(server_ip,full_fn)
-            sync_send_file(server_ip,full_fn)
+            logger.info(serverID,full_fn)
+            sync_send_file(serverID,full_fn)
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
             continue
 
 
 
-def Send(server_ip,route):
+def Send(serverID,route):
     try:
         src_folder = route
         while src_folder[-1] == '/':
             src_folder = src_folder[0:-1]
-        fake_folder(server_ip,src_folder)
+        fake_folder(serverID,src_folder)
     except Exception as e:
         logging.error("error: failed to send", e)
 

@@ -13,9 +13,17 @@
                             />
                         </el-select>
                     </el-form-item>
-
                     <el-form-item>
-                        <el-select v-model="filters.diseases" placeholder="请选择病种类型" @click.native="getBase()">
+                        <el-select v-model="filters.type" placeholder="请选择类型" @click.native="getBase()">
+                            <el-option v-for="(item,index) in tags"
+                                       :key="item.remarks"
+                                       :label="item.remarks"
+                                       :value="item.remarks"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option v-for="(item,index) in tags"
                                        :key="item.remarks"
                                        :label="item.remarks"
@@ -37,7 +45,7 @@
                     </el-form-item>
                     <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
                     <el-button type="primary" @click="getdetail">同步</el-button>
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="batchvote">同步挂载</el-button>
+                    <el-button type="danger" :disabled="this.sels.length===0" @click="stressD">压测数据</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -211,7 +219,8 @@
         stressTool,
         getbase,
         deldicomreport,
-        dicomcsv
+        dicomcsv,
+        addStressData
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -314,48 +323,6 @@
                             message: msg,
                             center: true
                         })
-                    }
-                })
-            },
-            run(formName) {
-                this.tableData = null
-                this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        const params = {
-                            version: this.form.version,
-                            loadserver: this.form.Loadserver,
-                            loop_time: this.form.loop_time,
-                            testdata: this.form.testdata,
-                            duration: this.form.duration,
-                            keyword: this.form.keyword
-                        }
-                        const headers = {
-                            'Content-Type': 'application/json'
-                        }
-                        stressTool(headers, params).then(_data => {
-                            console.log(this.form.testdata)
-                            const {msg, code, data} = _data
-                            if (code != '0') {
-                                this.$message.error(msg)
-                                return
-                            }
-                            var result = data[0]
-                            if (data != null && result == false) {
-                                this.$message.error(data[1])
-                                return
-                            }
-                            // 请求正确时执行的代码
-                            var mydata = data[1]
-                            var tableData = []
-                            for (var i = 0; i < mydata.length; i++) {
-                                tableData.push({'name': mydata[i]})
-                            }
-                            var json = JSON.stringify(tableData)
-                            this.tableData = JSON.parse(json)
-                        })
-                    } else {
-                        console.log('error submit')
-                        return false
                     }
                 })
             },
@@ -626,6 +593,39 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     dicomcsv(header, params).then(_data => {
+                        const {msg, code, data} = _data
+                        if (code === '0') {
+                            self.$message({
+                                message: '生成成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                        self.getdata()
+                    })
+                })
+            },
+            // 批量生成压测数据
+            stressD: function () {
+                const ids = this.sels.map(item => item.id)
+                const self = this
+                this.$confirm('确认生成选中记录为压测数据吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    // NProgress.start();
+                    const self = this
+                    const params = {ids: ids}
+                    const header = {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    }
+                    addStressData(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({

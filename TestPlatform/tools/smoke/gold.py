@@ -1,6 +1,7 @@
 import gc
 from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import *
+from TestPlatform.common.regexUtil import savecsv,connect_to_postgres
+from ...utils.keycloak.login_kc import *
 from TestPlatform.models import dicom,base_data,dictionary
 from ...utils.graphql.graphql import *
 from ..dicom.SendDicom import Send
@@ -9,7 +10,7 @@ from ...models import dicom_record,dictionary
 from ...tools.orthanc.deletepatients import delete_patients_duration
 from ...utils.graphql.graphql_ai_status import graphql_ai_status
 from django.db import transaction
-import os
+import os,datetime
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +37,10 @@ def dicomsavecsv(ids):
         savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
 # 冒烟接口请求
-def goldSmoke(version, server_ip, ids):
-    kc = use_keycloak_bmutils(server_ip, 'test', 'Asd@123456')
+def goldSmoke(version, serverID, ids):
+    kc = login_keycloak(serverID)
+    Hostobj = GlobalHost.objects.get(id=serverID)
+    serverIP = Hostobj.host
     # 循环测试数据
     for i in ids:
         try:
@@ -47,7 +50,7 @@ def goldSmoke(version, server_ip, ids):
             data = {
                 "version": version,
                 "patientid": obj.patientid,
-                "server":server_ip,
+                "server":serverIP,
                 "studyinstanceuid": obj.studyinstanceuid,
                 "diseases": obj.diseases,
                 "slicenumber": obj.slicenumber,
@@ -57,14 +60,14 @@ def goldSmoke(version, server_ip, ids):
             }
             sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
                 obj.studyinstanceuid)
-            result_db = connect_to_postgres(server_ip, sql)
+            result_db = connect_to_postgres(serverIP, sql)
             # 无此数据，发送
             if len(result_db) == 0:
-                Send(server_ip,obj.route)
+                Send(serverID,obj.route)
             # 重复数据 先删除后再发送新数据
             elif len(result_db) > 2:
-                delete_patients_duration([i], server_ip,'StudyInstanceUID', False)
-                Send(server_ip,obj.route)
+                delete_patients_duration([i], serverIP,'StudyInstanceUID', False)
+                Send(serverID,obj.route)
 
             graphql_query = "{ ai_biomind (" \
                             "study_uid:\"" + str(obj.studyinstanceuid) + "\", protocols:" \
@@ -163,41 +166,10 @@ def KeyChange(key):
         logger.error("无此结果:{1}".format(e,key))
         return key
 
-# # 比对预测接口结果
-# def checkdata(result,data):
-#     # 比对结果
-#     aidiagnosis=''
-#     try:
-#         airesult=result['ai_biomind']['pprediction']
-#         if str(airesult).find(data["diagnosis"]) >= 0:
-#             data["aidiagnosis"] = data["diagnosis"]
-#             data["report"] = '匹配成功'
-#             dicom_record.objects.create(**data)
-#         else:
-#             # 循环取结果
-#             for i in airesult.values():
-#                 for j in i:
-#                     if str(aidiagnosis).find(str(j['classification'])[1:-1]) >= 0:
-#                         continue
-#                     else:
-#                         aidiagnosis =str(j['classification'])[1:-1] + aidiagnosis
-#             data["aidiagnosis"] = str(aidiagnosis)
-#             data["report"] = '匹配失败'
-#             dicom_record.objects.create(**data)
-#     except Exception as e:
-#         data["status"] = False
-#         data["report"] = '比对失败'
-#         try:
-#             data["aidiagnosis"] = str(result['ai_biomind']['pstatus_code'][0]['code'])
-#         except Exception as e:
-#             logger.error("比对失败:{0},预测结果:{1}".format(e,result['ai_biomind']['pstatus_code']))
-#         dicom_record.objects.create(**data)
-#         logger.error("比对失败:{0},预测结果:{1}".format(e,result))
-
 
 # 删除dicom报告
-def delreport(server_ip, ids):
-    kc = use_keycloak_bmutils(server_ip, 'test', 'Asd@123456')
+def delreport(serverID, ids):
+    kc = login_keycloak(serverID)
     # 循环删除数据报告
     for i in ids:
         try:

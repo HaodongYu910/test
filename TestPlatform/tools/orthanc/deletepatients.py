@@ -1,11 +1,14 @@
 # coding=utf-8
 
 from ...common.regexUtil import *
-from ...models import dicom
+from ...models import dicom,GlobalHost
+from ...utils.keycloak.login_kc import *
 import logging
 logger = logging.getLogger(__name__)
 
-def delete_patients_duration(key, server_ip,type,fuzzy):
+def delete_patients_duration(key, serverID,type,fuzzy):
+    Hostobj =GlobalHost.objects.get(id=serverID)
+
     if fuzzy is True:
         fuzzy='like'
         key = key+'%'
@@ -23,9 +26,9 @@ def delete_patients_duration(key, server_ip,type,fuzzy):
     else:
         sql="select r.publicid from resources r join \"Study\" s on r.publicid = s.publicid  where s.\"{0}\" {1} '{2}'".format(type,fuzzy,key)
     try:
-        result_1 = connect_to_postgres(server_ip,sql)
+        result_1 = connect_to_postgres(Hostobj.host,sql)
         _dict1 = result_1.to_dict(orient='records')
-        kc = use_keycloak_bmutils(server_ip, 'test', 'Asd@123456')
+        kc = login_keycloak(serverID)
     except Exception as e:
         logger.error("failed to find patirents: error[{0}]".format(e))
         return False

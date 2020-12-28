@@ -248,9 +248,9 @@
                                                @click.native="gethost()">
                                         <el-option
                                                 v-for="(item,index) in tags"
-                                                :key="item.host"
+                                                :key="item.id"
                                                 :label="item.name"
-                                                :value="item.host"
+                                                :value="item.id"
                                         />
                                     </el-select>
                                 </el-form-item>
@@ -881,7 +881,6 @@
                             self.addLoading = true
                             // NProgress.start();
                             const params = JSON.stringify({
-                                server: self.addForm.sendserver,
                                 port: self.addForm.port,
                                 loop_time: self.addForm.loop_time,
                                 keyword: this.addForm.keyword,
@@ -892,7 +891,8 @@
                                 sleeptime: this.addForm.sleeptime,
                                 series: this.addForm.series,
                                 sendstatus: false,
-                                status: false
+                                status: false,
+                                hostid:this.addForm.sendserver
                             })
                             const header = {
                                 'Content-Type': 'application/json',

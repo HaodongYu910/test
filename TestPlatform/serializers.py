@@ -122,7 +122,7 @@ class GlobalHostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GlobalHost
-        fields = ('id', 'project_id', 'name', 'host','port', 'status', 'description')
+        fields = ('id', 'project_id', 'name', 'host','port', 'status', 'description','protocol')
 
 
 class ApiGroupLevelFirstSerializer(serializers.ModelSerializer):
@@ -871,7 +871,7 @@ class duration_Serializer(serializers.ModelSerializer):
         model = duration
         fields = (
             'id', 'server', 'port', 'aet', 'keyword', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series',
-            'sendstatus', 'status', 'sendcount', 'dds', 'update_time', 'create_time')
+            'sendstatus', 'status', 'sendcount', 'dds','hostid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -893,7 +893,7 @@ class duration_Deserializer(serializers.ModelSerializer):
         model = duration
         fields = (
         'server', 'port', 'aet', 'keyword', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series', 'sendstatus',
-        'status', 'sendcount', 'dds')
+        'status', 'sendcount', 'dds','hostid')
 
 
 class dicomdata_Deserializer(serializers.ModelSerializer):
