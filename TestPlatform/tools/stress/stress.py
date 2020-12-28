@@ -5,25 +5,13 @@ from TestPlatform.serializers import dicomrecord_Serializer
 from ..dicom.dicomdetail import voteData
 from ..stress.PerformanceResult import saveResult
 from .PerformanceResult import lung
-from ..dicom.SendDicom import Send
-from ..orthanc.deletepatients import delete_patients_duration
+from ...common.dicom import checkuid
+from ...utils.keycloak.login_kc import *
+
 logger = logging.getLogger(__name__)
 
 
-# 检查是否有压测数据
-def checkuid(server_ip,studyuid):
-    obj = dicom.objects.get(studyinstanceuid=studyuid,type='test')
-    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        studyuid)
-    result_db = connect_to_postgres(server_ip, sql)
-    # 无此数据，发送
-    if len(result_db) == 0:
-        Send(server_ip, obj.route)
-    # 重复数据 先删除后再发送新数据
-    elif len(result_db) > 2:
-        delete_patients_duration(studyuid, server_ip, 'StudyInstanceUID', False)
-        Send(server_ip, obj.route)
-    return True
+
 # 修改数据
 def update_data(data):
     obj = dicom_record.objects.get(testid=data["testid"])
@@ -63,16 +51,16 @@ def delreport(kc, studyinstanceuid):
 
 
 # 手动预测
-def Manual(orthanc_ip,version,id):
-    server = orthanc_ip
-    kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+def Manual(serverID,serverIP,version,id):
+
+    kc = login_keycloak(serverID)
     stressdata = stress_record.objects.filter(benchmarkstatus=True,status=True)
     imagecount =''
     slicenumber =''
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for k in stressdata:
-            checkuid(orthanc_ip, str(k.studyuid))
+            checkuid(serverID,serverIP, str(k.studyuid))
             starttime = time.time()
             obj = dictionary.objects.get(id=k.diseases)
             graphql_query = "{ ai_biomind (" \
@@ -90,10 +78,10 @@ def Manual(orthanc_ip,version,id):
             except Exception as e:
                 logger.error("执行预测失败：{0}".format(k.studyuid))
                 continue
-            avgtime = time.time() -starttime
+            avgtime = time.time() - starttime
 
             if int(k.diseases) in [4,5,7,8,10,9]:
-                vote, imagecount, slicenumber = voteData(k.studyuid, server, int(k.diseases))
+                vote, imagecount, slicenumber = voteData(k.studyuid, serverIP, int(k.diseases))
             data ={
                 "stressid":id,
                 "version": version,
@@ -117,20 +105,19 @@ def Manual(orthanc_ip,version,id):
     try:
         sql = dictionary.objects.get(key='prediction', type='sql')
         strsql = sql.value.format(startdate,enddate)
-        saveResult(server,version,'predictionJZ',[startdate,enddate],strsql,[])
+        saveResult(serverIP,version,'predictionJZ',[startdate,enddate],strsql,[])
         if int(k.diseases) == 9 or int(k.diseases) == 12:
-            lung([startdate,enddate], server,version, int(k.diseases))
+            lung([startdate,enddate], serverIP,version, int(k.diseases))
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
 # 自动预测压测循环
-def AutoPrediction(orthanc_ip, diseases, count):
-    server = orthanc_ip
+def AutoPrediction(serverID,serverIP,testdata,count):
     stressdata = stress_record.objects.filter(status=True)
-    kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+    kc = login_keycloak(serverID)
     # 检查是否有压测数据
     for k in stressdata:
-        checkuid(orthanc_ip, k.studyuid)
+        checkuid(serverID,serverIP, k.studyuid)
         delreport(kc, k.studyuid)
     # 循环调用graphql 自动预测
     for i in range(int(count)):

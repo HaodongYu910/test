@@ -47,6 +47,14 @@ export const disableHost = (headers, params) => {
 export const enableHost = (headers, params) => {
   return axios.post(`${test}/api/global/enable_host`, params, { headers }).then(res => res.data)
 }
+// 禁用测试地址列表
+export const disableHostProtocol = (headers, params) => {
+  return axios.post(`${test}/api/global/disable_protocol`, params, { headers }).then(res => res.data)
+}
+// 启用测试地址列表
+export const enableHostProtocol = (headers, params) => {
+  return axios.post(`${test}/api/global/enable_protocol`, params, { headers }).then(res => res.data)
+}
 // 修改测试地址列表
 export const updateHost = (headers, params) => {
   return axios.post(`${test}/api/global/update_host`, params, { headers }).then(res => res.data)
@@ -257,6 +265,10 @@ export const getVersion = (headers, params) => {
 // 生成压测结果
 export const stresssave = (headers, params) => {
   return axios.post(`${test}/api/stress/save`, params, headers).then(res => res.data)
+}
+// 添加压测数据
+export const addStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/addData`, params, headers).then(res => res.data)
 }
 // 删除压测数据
 export const deldicomdata = (headers, params) => {

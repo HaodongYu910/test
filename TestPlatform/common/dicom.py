@@ -10,11 +10,11 @@ import shutil,threading
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data, pid, GlobalHost
 from TestPlatform.serializers import duration_Deserializer
-from ..tools.dicom.anonymization import onlyDoAnonymization
+from ..tools.dicom.SendDicom import Send
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-
+from ..tools.orthanc.deletepatients import delete_patients_duration
 
 def anonymousSend(id,type):
     a = 0
@@ -66,3 +66,17 @@ def anonymousSend(id,type):
         obj.save()
     except Exception as e:
         logger.error("发送失败：{0}".format(e))
+
+# 检查是否数据
+def checkuid(serverID,serverIP,studyuid):
+    obj = dicom.objects.get(studyinstanceuid=studyuid,type='test')
+    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
+        studyuid)
+    result_db = connect_to_postgres(serverIP, sql)
+    # 无此数据，发送
+    if len(result_db) == 0:
+        Send(serverID, obj.route)
+    # 重复数据 先删除后再发送新数据
+    elif len(result_db) > 2:
+        delete_patients_duration(studyuid,serverID, 'StudyInstanceUID', False)
+        Send(serverID, obj.route)

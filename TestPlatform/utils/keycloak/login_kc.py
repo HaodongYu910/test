@@ -1,20 +1,26 @@
-import traceback
+
 import logging
 from .keycloakclient import KeycloakClient
+from django.conf import settings
+from ...models import GlobalHost
+logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
 
-
-def login_keycloak(orthanc_ip,orthanc_port,viewer_username,viewer_password):
+def login_keycloak(id):
     '''
     Log in to keycloak to obtain authentication authority 登录keycloak，获取认证权限
     :returns: KeycloakClient(type: object) message: success/ failed
     '''
+    username = settings.BiomindUser
+    password = settings.Biomindpasswd
+    obj = GlobalHost.objects.get(id)
     try:
-        kc = KeycloakClient('https://{0}:{1}'.format(
-            orthanc_ip, orthanc_port), viewer_username,
-            viewer_password)
-        kc.login(viewer_username,viewer_password)
+        kc = KeycloakClient('{0}://{1}'.format(
+            obj.protocol,obj.host), username,
+            password)
+        kc.login(username,password)
     except Exception as e:
         msg_code = 'kc_001'
-        return None, msg_code
-    return kc, None
+        logger.info("Keycloak 登录失败:{0}".format(e))
+        return msg_code
+    return kc

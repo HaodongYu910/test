@@ -177,7 +177,7 @@ class add_duration(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["dicom"] or not data["server"]:
+            if not data["dicom"] or not data["hostid"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 duration, server！")
 
         except KeyError:
@@ -199,7 +199,8 @@ class add_duration(APIView):
             else:
                 data['series'] = '0'
             dicomdata = ''
-
+            hostobj = GlobalHost.objects.get(id=data['hostid'])
+            data['server']= hostobj.host
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
                 dicomdata = dicomdata + str(i[1]) + ','
@@ -415,7 +416,7 @@ class delete_patients(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["testtype"] or not data["server_ip"]:
+            if not data["testtype"] or not data["serverID"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 key, server_ip！")
 
         except KeyError:
@@ -433,7 +434,7 @@ class delete_patients(APIView):
             return result
         #
         try:
-            delete_patients_duration(data['deldata'], data['server_ip'], data['testtype'], data['fuzzy'])
+            delete_patients_duration(data['deldata'], data['serverID'], data['testtype'], data['fuzzy'])
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")

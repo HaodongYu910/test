@@ -35,7 +35,6 @@ def ai_result(kc,patientid):
     return res_study
 
 def verify():
-
     duration_data = duration_record.objects.filter(aistatus__isnull=True)
     for i in duration_data:
         data = {'studyinstanceuid':i.studyinstanceuid}

@@ -9,6 +9,7 @@ import psycopg2 as pc
 from TestPlatform.utils.keycloak.keycloakclient import KeycloakClient
 from influxdb import InfluxDBClient
 import csv
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,11 @@ def connect_to_postgres(orthanc_ip,sql):
 
 
 # 登录keycloak
-def use_keycloak_bmutils(server_ip, username, password):
+def use_keycloak_bmutils(server_ip,a,b):
+    username = settings.BiomindUser
+    password = settings.Biomindpasswd
     try:
-        kc = KeycloakClient('https://{}'.format(server_ip), 'biomind3d', 'engine3D.')
+        kc = KeycloakClient('https://{}'.format(server_ip), username, password)
         kc.login(username, password)
         return kc
     except Exception as e:

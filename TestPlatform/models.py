@@ -180,6 +180,7 @@ class GlobalHost(models.Model):
     name = models.CharField(max_length=50, verbose_name='名称')
     host = models.CharField(max_length=50, verbose_name='Host地址')
     port = models.CharField(max_length=10, verbose_name='port')
+    protocol = models.CharField(max_length=10,blank = True, null = True, verbose_name='协议')
     description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
     status = models.BooleanField(default=True, verbose_name='状态')
 
@@ -799,6 +800,7 @@ class stress(models.Model):
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")
     jmeterstatus = models.BooleanField(default=True, verbose_name='jmeter状态')
     status = models.BooleanField(default=True, verbose_name='状态')
+    hostid = models.IntegerField(default=True, verbose_name='HOST id')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -933,6 +935,7 @@ class duration(models.Model):
     sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=False, verbose_name='状态')
     dds = models.CharField(max_length=20, blank=True, null=True,  verbose_name='dds 服务')
+    hostid = models.IntegerField(default=True, verbose_name='HOST id')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

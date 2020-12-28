@@ -63,14 +63,11 @@ class dicomDetail(APIView):
                     try:
                         i.vote,i.imagecount,i.slicenumber = voteData(i.studyinstanceuid,server,i.diseases)
                         i.save()
-                    except Exception as e :
+                    except Exception as e:
                         continue
 
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
-
-
-
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")

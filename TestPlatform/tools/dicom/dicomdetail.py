@@ -1,7 +1,8 @@
 import gc
 from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import *
-from TestPlatform.models import  dicom,dictionary
+from TestPlatform.common.regexUtil import connect_to_postgres
+from ...utils.keycloak.login_kc import *
+from TestPlatform.models import GlobalHost,dictionary
 
 import os,time
 import shutil
@@ -9,8 +10,8 @@ import shutil
 logger = logging.getLogger(__name__)
 
 
-def Slice(server,Seriesuid):
-    kc = use_keycloak_bmutils(server, "test", "Asd@123456")
+def Slice(serverID,Seriesuid):
+    kc = login_keycloak(serverID)
     graphql_query='{ series(SeriesInstanceUID:"' + Seriesuid + '"){ '\
         'NumberOfSeriesRelatedInstances Instances{ SliceThickness } } }'
     graphql = GraphQLDriver('/graphql', kc)
