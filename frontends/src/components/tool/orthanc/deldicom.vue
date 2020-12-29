@@ -10,7 +10,7 @@
                 <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
                     <el-row>
                         <el-col :span="5">
-                            <el-form-item label="测试服务器" prop="server_ip">
+                            <el-form-item label="测试服务器" prop="serverID">
                             <el-select v-model="form.serverID"  placeholder="请选择" @click.native="gethost()">
                               <el-option
                                 v-for="(item,index) in tags"
@@ -89,8 +89,6 @@
 </template>
 
 <script>
-    // import NProgress from 'nprogress'
-
     import {
         delete_patients, getHost
     } from '@/router/api'
@@ -101,13 +99,13 @@
         data() {
             return {
                 form: {
-                    server_ip: '',
+                    serverID: '',
                     fuzzy: '是',
                     testtype: 'gold',
                     deldata: ''
                 },
                 rules: {
-                    server_ip: [
+                    serverID: [
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
                     // version: [

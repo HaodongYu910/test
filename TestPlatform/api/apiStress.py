@@ -6,7 +6,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import shutil,threading
-from ..models import uploadfile
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer
 from ..tools.stress.stress import *
@@ -350,11 +349,13 @@ class stressRun(APIView):
                 obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                Manual(obj.hostid,server,obj.version,data['id'])
+                manual =threading.Thread(target=Manual,args=(obj.hostid,server,obj.version,data['id']))
+                manual.start()
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                AutoPrediction(obj.hostid,server,obj.testdata,obj.loop_count)
+                Auto = threading.Thread(target=AutoPrediction,args=(obj.hostid,server,obj.testdata,obj.loop_count))
+                Auto.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)

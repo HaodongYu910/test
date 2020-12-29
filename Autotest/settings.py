@@ -37,6 +37,7 @@ Influxdb ='192.168.1.121'
 InfluxDataBase ='autotest'
 InfluxdbUser =''
 InfluxdbPassWd =''
+
 # 邮箱配置
 MAIL_SERVER = "smtp.exmail.qq.com"  #邮箱地址
 MAIL_PORT = 465  #端口号
@@ -45,10 +46,6 @@ MAIL_PWD = "Autotest@123"  #密码
 
 # Dicom的路径
 Dicom_PATH = '/home/biomind/testDatas'
-
-# keycloak 用户名
-BiomindUser ='biomind3d'
-Biomindpasswd ='engine3D.'
 
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'logs')
@@ -97,7 +94,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
             'filename': os.path.join(BASE_LOG_DIR, "test_info.log"),  # 日志文件
-            'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
+            'maxBytes': 1024 * 1024 * 100,  # 日志大小 100 M
             'backupCount': 3,  # 最多备份几个
             'formatter': 'standard',
             'encoding': 'utf-8',
@@ -112,8 +109,8 @@ LOGGING = {
             'encoding': 'utf-8',
         },
         # 专门定义一个收集特定信息的日志
-        'info': {
-            'level': 'INFO',
+        'debug': {
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
             'filename': os.path.join(BASE_LOG_DIR, "test_collect.log"),
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
