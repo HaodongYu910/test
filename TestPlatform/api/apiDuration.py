@@ -15,6 +15,7 @@ from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
 from ..common.dicom import anonymousSend
+from ..common.duration import verifyDuration,durationtotal
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -72,6 +73,10 @@ class durationData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
         durationid = int(request.GET.get("id"))
+        try:
+            verifyDuration(durationid)
+        except Exception as e:
+            logger.error(e)
         datalist = {}
 
         # 判断是否有查询时间
@@ -104,8 +109,6 @@ class durationData(APIView):
         else:
             obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
-        # else:
-        #     obi = duration_record.objects.raw()
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -116,47 +119,18 @@ class durationData(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
-        rdata = serialize.data
-        du = duration.objects.get(id=durationid)
-        if du.dds is not None:
-            server = du.dds
-        else:
-            server = du.server
+        durationData = serialize.data
         try:
-            datalist['sent'] = durationtotal(obi, server, '\'1\',\'2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'-1\',\'1\',\'2\',\'3')
-            datalist['ai_true'] = durationtotal(obi, server, '1\',\'2')
-            datalist['ai_false'] = durationtotal(obi, server, '-2\',\'3')
-            datalist['notai'] = durationtotal(obi, server, '-1')
+            datalist = durationtotal(durationid)
             datalist['all'] = obi.count()
-            datalist['notsent'] = int(datalist['all']) - int(datalist['sent'])
-            avg=duration_record.objects.aggregate(Avg("time"))
-            datalist['avg'] =avg['time__avg']
-
+            datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])
+            avg = duration_record.objects.filter(duration_id=durationid).aggregate(Avg("time"))
+            datalist['avg'] = 1/avg['time__avg']
         except ValueError:
             return JsonResponse(data={"data": datalist
                                       }, code="0", msg="测试环境数据库连接失败")
-        for i in rdata:
-            try:
-                dbresult = connect_to_postgres(server,
-                                               "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
-                                                   i["studyinstanceuid"]))
-                _dict = dbresult.to_dict(orient='records')
 
-            except Exception as e:
-                logger.error(e)
-            if _dict == []:
-                i['aistatus'] = None
-                i['diagnosis'] = None
-                i['imagecount_server'] = None
-            else:
-                for j in _dict:
-                    i['aistatus'] = j['aistatus']
-                    i['diagnosis'] = j['diagnosis']
-                    i['imagecount_server'] = j['imagecount']
-
-
-        return JsonResponse(data={"data": rdata,
+        return JsonResponse(data={"data": durationData,
                                   "durationresult": [datalist],
                                   "page": page,
                                   "total": total,

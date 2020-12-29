@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-from TestPlatform.common.sqldata import mysqlDB
+from TestPlatform.common.DbSql import mysqlDB
 from jira import JIRA
 from TestPlatform.common.jiraData import Jiradata
 from TestPlatform.common.figure import data_figure,crash
