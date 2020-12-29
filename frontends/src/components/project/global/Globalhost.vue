@@ -15,7 +15,7 @@
             </el-form>
         </el-col>
         <!--列表-->
-        <el-table :data="Host" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
+        <el-table :data="project" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
             <el-table-column prop="name" label="名称" min-width="15%" sortable show-overflow-tooltip>
@@ -34,7 +34,7 @@
             </el-table-column>
             <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
-                    <el-button type="info" size="small" @click="handleChangeProtocol(scope.$index, scope.row)">{{scope.row.protocol===false?'Http':'Https'}}</el-button>
+                    <el-button type="warning" size="small" @click="handleChangeProtocol(scope.$index, scope.row)">{{scope.row.protocol===false?'Https':'Http'}}</el-button>
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
@@ -112,7 +112,7 @@
                 filters: {
                     name: ''
                 },
-                Host: [],
+                project: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -179,7 +179,7 @@
                 this.listLoading = true;
                 let self = this;
                 let params = {
-                    Host_id: this.$route.params.Host_id,
+                    project_id: this.$route.params.project_id,
                     page: self.page,
                     name: self.filters.name
                 };
@@ -191,7 +191,7 @@
                     self.listLoading = false;
                     if (code === '0') {
                         self.total = data.total;
-                        self.Host = data.data
+                        self.project = data.data
                     }
                     else {
                         self.$message.error({
@@ -210,7 +210,7 @@
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        Host_id: Number(this.$route.params.Host_id),
+                        project_id: Number(this.$route.params.project_id),
                         ids: [row.id, ]
                     };
                     let headers = {
@@ -239,14 +239,14 @@
                 let self = this;
                 this.listLoading = true;
                 let params = {
-                    Host_id: Number(this.$route.params.Host_id),
+                    project_id: Number(this.$route.params.project_id),
                     host_id: Number(row.id)
                 };
                 let headers = {
                     "Content-Type": "application/json",
                     Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                 };
-                if (row.status) {
+                if (row.protocol) {
                     disableHostProtocol(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
@@ -256,7 +256,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            row.status = !row.status;
+                            row.protocol = !row.protocol;
                         }
                         else {
                             self.$message.error({
@@ -275,7 +275,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            row.status = !row.status;
+                            row.protocol = !row.protocol;
                         }
                         else {
                             self.$message.error({
@@ -290,7 +290,7 @@
                 let self = this;
                 this.listLoading = true;
                 let params = {
-                    Host_id: Number(this.$route.params.Host_id),
+                    project_id: Number(this.$route.params.project_id),
                     host_id: Number(row.id)
                 };
                 let headers = {
@@ -366,7 +366,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                Host_id: Number(this.$route.params.Host_id),
+                                project_id: Number(this.$route.params.project_id),
                                 id: Number(self.editForm.id),
                                 name: self.editForm.name,
                                 host: host,
@@ -423,7 +423,7 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = {
-                                Host_id: Number(this.$route.params.Host_id),
+                                project_id: Number(this.$route.params.project_id),
                                 name: self.addForm.name,
                                 host: host,
                                 port:self.addForm.port ,
@@ -478,7 +478,7 @@
                     self.listLoading = true;
                     //NProgress.start();
                     let params = {
-                        Host_id: Number(this.$route.params.Host_id),
+                        project_id: Number(this.$route.params.project_id),
                         ids: ids
                     };
                     let headers = {

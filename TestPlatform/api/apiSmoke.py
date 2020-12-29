@@ -1,6 +1,6 @@
 
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-
+from django.db.models import Count
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -87,9 +87,9 @@ class smokeTest(APIView):
         :return:
         """
         try:
-            # 必传参数 loadserver, dicom, loop_time
+            # 必传参数 server,version
             if not data["server_ip"] or not data["version"] :
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 server, ids！")
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 server, version！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -144,15 +144,15 @@ class smokefigure(APIView):
         """
         try:
             # 必传参数 version
-            if not data["type"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 type！")
+            if not data["version"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 version！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 
     def post(self, request):
         """
-        预测时间 压测结果
+        预测时间 金标准结果
         :param request:
         :return:
         """
@@ -161,21 +161,25 @@ class smokefigure(APIView):
         if result:
             return result
         try:
-            # modlename =['aibrainct', 'aibrainmri', 'aicardiomodel', 'archcta',
-            #                 'brainctp','headcta', 'postsurgery','brainmra']
-            # lungname = ['0.9','1.0','1.25','1.5','5.0','10.0']
-            predictionData,modlename =stressdataFigure("prediction")
-            jobData,modlename = stressdataFigure("job")
-
-            lungData,lungname =stressdataFigure("lung_prediction")
-            lungjobData,lungname = stressdataFigure("lung_job")
-
-            return JsonResponse(data={"modlename":modlename,
-                                      "lungname":lungname,
-                                      "predictionFigure": predictionData,
-                                     "jobFigure": jobData,
-                                      "lungFigure":lungData,
-                                      "lungjobFigure":lungjobData
+            goldrows = []
+            goldcolumns =[]
+            # if data['version']:
+            #     print(1)
+            versions = dicom_record.objects.values("version").distinct()
+            for i in versions:
+                goldcolumns.append(i['version'])
+                count = dicom_record.objects.filter(version=i['version']).aggregate(report_nums=Count("report"))
+                success = dicom_record.objects.filter(version=i['version'],report='匹配成功').aggregate(report_nums=Count("report"))
+                fail = dicom_record.objects.filter(version=i['version'], report='匹配失败').aggregate(report_nums=Count("report"))
+                histogram = {
+                    '版本': i['version'],
+                    '匹配成功': success["report_nums"],
+                    '匹配失败': fail['report_nums'],
+                    '预测失败': int(count['report_nums']) - int(success["report_nums"]) - int(fail['report_nums'])
+                }
+                goldrows.append(histogram)
+            return JsonResponse(data={"goldrows":goldrows,
+                                      "goldcolumns":goldcolumns
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)

@@ -62,9 +62,9 @@ class HostTotal(APIView):
         serialize = GlobalHostSerializer(obm, many=True)
         for i in serialize.data:
             if i["protocol"] == 'https':
-                i["protocol"] = True
-            else:
                 i["protocol"] = False
+            else:
+                i["protocol"] = True
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total

@@ -7,6 +7,8 @@
 # from datetime import date
 import logging
 import pymysql
+import pandas as pd
+import psycopg2 as pc
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -60,6 +62,50 @@ class mysqlDB():
         self.conn.close() #关闭连接，释放资源
         return (data)
 
+
+class postgresDB():
+    def __init__(self):
+        self.conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=orthanc_ip, port="5432");  # 连接数据库
+        self.cur = self.conn.cursor()
+
+    def select(self,parameter):
+        # 查询数据
+        result = pd.read_sql(parameter,  self.conn)
+        self.conn.close()
+        return result
+
+    def insert(self,sql,data):
+        # 多条插入数据
+        try:
+            self.cur.executemany(sql,data)
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+        self.cur.close()
+        self.conn.close()
+        return (data)
+
+    def updateDB(self,sql,data):
+        # 修改或插入数据
+        try:
+            self.cur.execute(sql, data)
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+        self.cur.close()
+        self.conn.close() #关闭连接，释放资源
+        return (data)
+
+    def deleteDB(self,sql,data):
+        # 删除数据
+        try:
+            self.cur.execute(sql, data)
+            self.conn.commit()
+        except:
+            self.conn.rollback()
+        self.cur.close()
+        self.conn.close() #关闭连接，释放资源
+        return (data)
 
 
 # class redisDB():

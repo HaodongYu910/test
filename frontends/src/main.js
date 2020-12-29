@@ -25,10 +25,17 @@ Vue.config.productionTip = false
 Vue.use(ElementUI, {
     size: 'small'
 });
-Vue.use(ECharts);
+// Vue.use(ECharts);
 Vue.prototype.$ajax = axios;
 Vue.prototype.$qs = qs;
 
+import VCharts from 'v-charts'
+Vue.use(VCharts)
+
+// new Vue({
+//   el: '#app',
+//   render: h => h(App)
+// })
 
 
 //使用钩子函数对路由进行权限跳转

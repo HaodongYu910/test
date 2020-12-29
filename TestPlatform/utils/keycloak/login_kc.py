@@ -1,7 +1,6 @@
 
 import logging
 from .keycloakclient import KeycloakClient
-from django.conf import settings
 from ...models import GlobalHost
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -11,9 +10,11 @@ def login_keycloak(id):
     Log in to keycloak to obtain authentication authority 登录keycloak，获取认证权限
     :returns: KeycloakClient(type: object) message: success/ failed
     '''
-    username = settings.BiomindUser
-    password = settings.Biomindpasswd
-    obj = GlobalHost.objects.get(id)
+
+    # keycloak 用户名
+    username = 'biomind3d'
+    password = 'engine3D.'
+    obj = GlobalHost.objects.get(id=id)
     try:
         kc = KeycloakClient('{0}://{1}'.format(
             obj.protocol,obj.host), username,
