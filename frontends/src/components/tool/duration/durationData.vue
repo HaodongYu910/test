@@ -126,18 +126,18 @@
             </template>
           </el-table-column>
 
-          <el-table-column label="操作" min-width="10px">
-              <template>
-                  <div class="container">
-                      <input type="text" v-model="message">
-                      <button type="button"
-                              v-clipboard:copy="message"
-                              v-clipboard:success="onCopy"
-                              v-clipboard:error="onError">Copy!
-                      </button>
-                  </div>
-              </template>
-          </el-table-column>
+<!--          <el-table-column label="操作" min-width="10px">-->
+<!--              <template>-->
+<!--                  <div class="container">-->
+<!--                      <input type="text" v-model="message">-->
+<!--                      <button type="button"-->
+<!--                              v-clipboard:copy="message"-->
+<!--                              v-clipboard:success="onCopy"-->
+<!--                              v-clipboard:error="onError">Copy!-->
+<!--                      </button>-->
+<!--                  </div>-->
+<!--              </template>-->
+<!--          </el-table-column>-->
         </el-table>
       <el-footer style="margin-top:20px;">
           <el-pagination
