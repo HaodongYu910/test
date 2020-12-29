@@ -403,15 +403,15 @@ if __name__ == '__main__':
         for i in range(end):
             if count > len(data):
                 data = sqlDB(sql, [], 'select')
-            elif count >= end:
-                break
             for j in data:
+                if count > end:
+                    continue
                 src_folder = str(j[0])
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
                 folder_fake = "{0}/{1}{2}".format(log_path,
                                                   str(CONFIG.get('keyword', '')) + '_' + str(j[1]),
-                                                  str(count))
+                                                  str(i))
                 study_fakeinfos = {}
                 study_infos = {}
 
