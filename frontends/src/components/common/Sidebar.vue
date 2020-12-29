@@ -97,6 +97,11 @@
                             {
                                 index: 'duration',
                                 title: 'Dicom发送'
+                            },
+                            {
+                                // dds监控页面
+                                index: 'dds',
+                                title: 'DDS监控'
                             }
                         ]
                     },
