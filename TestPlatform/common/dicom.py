@@ -36,7 +36,7 @@ def anonymousSend(id,type):
                 if imod[0] < 1:
                     return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
         else:
-            obj = stress_job.objects.get(id=id)
+            obj = duration.objects.get(id=id)
             sleepcount =  9999
             sleeptime =  0
             end = 500
@@ -64,7 +64,9 @@ def anonymousSend(id,type):
 
         obj.sendstatus = True
         obj.save()
+        return True
     except Exception as e:
+        return False
         logger.error("发送失败：{0}".format(e))
 
 # 检查是否数据

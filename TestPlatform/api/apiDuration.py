@@ -351,8 +351,11 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
-            anonymousSend(data["id"], "type")
-            return JsonResponse(code="0", msg="成功")
+            result=anonymousSend(data["id"], "type")
+            if result is True:
+                return JsonResponse(code="0", msg="成功")
+            else:
+                return JsonResponse(code="999995", msg="失败！")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
