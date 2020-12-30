@@ -26,7 +26,7 @@ def Slice(serverID,Seriesuid):
 
     return imagecount,SliceThickness
 
-# 修改数据
+# 查询挂载 张数 层厚
 def voteData(uid,orthanc_ip,diseases):
     vote = ''
     try:

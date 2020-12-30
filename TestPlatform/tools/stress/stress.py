@@ -1,4 +1,3 @@
-from TestPlatform.common.regexUtil import *
 from TestPlatform.models import dicom_record, dictionary, stress_record, stress_result,uploadfile,stress
 from django.db import transaction
 from TestPlatform.serializers import dicomrecord_Serializer
@@ -7,10 +6,12 @@ from ..stress.PerformanceResult import saveResult
 from .PerformanceResult import lung
 from ...common.dicom import checkuid
 from ...utils.keycloak.login_kc import *
+from TestPlatform.utils.graphql.graphql import *
+from TestPlatform.common.regexUtil import *
+import os,time
+import shutil
 
 logger = logging.getLogger(__name__)
-
-
 
 # 修改数据
 def update_data(data):
@@ -60,7 +61,7 @@ def Manual(serverID,serverIP,version,id):
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for k in stressdata:
-            checkuid(serverID,serverIP, str(k.studyuid))
+            checkuid(serverID,serverIP, str(k.stressid))
             starttime = time.time()
             obj = dictionary.objects.get(id=k.diseases)
             graphql_query = "{ ai_biomind (" \
@@ -106,18 +107,20 @@ def Manual(serverID,serverIP,version,id):
         sql = dictionary.objects.get(key='prediction', type='sql')
         strsql = sql.value.format(startdate,enddate)
         saveResult(serverIP,version,'predictionJZ',[startdate,enddate],strsql,[])
-        if int(k.diseases) == 9 or int(k.diseases) == 12:
-            lung([startdate,enddate], serverIP,version, int(k.diseases))
+        lung([startdate,enddate], serverIP,version, 9)
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
 # 自动预测压测循环
 def AutoPrediction(serverID,serverIP,testdata,count):
-    stressdata = stress_record.objects.filter(status=True)
+    diseases=[]
+    for i in testdata.split(","):
+        diseases.append(i)
+    stressdata = stress_record.objects.filter(diseases__in=testdata)
     kc = login_keycloak(serverID)
     # 检查是否有压测数据
     for k in stressdata:
-        checkuid(serverID,serverIP, k.studyuid)
+        checkuid(serverID,serverIP, k.stressid)
         delreport(kc, k.studyuid)
     # 循环调用graphql 自动预测
     for i in range(int(count)):
@@ -166,18 +169,6 @@ def stresscache(stressid):
                     "graphql": None
                     }
             stress_record.objects.create(**data)
-
-
-import gc
-from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import *
-from TestPlatform.models import  dicom
-
-import os,time
-import shutil
-
-logger = logging.getLogger(__name__)
-
 
 # 修改数据
 def updateStressData(uid, orthanc_ip):

@@ -72,17 +72,17 @@ def anonymousSend(id, type):
 
 
 # 检查是否数据
-def checkuid(serverID, serverIP, studyuid):
-    obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
+def checkuid(serverID, serverIP, dicomid):
+    obj = dicom.objects.get(id=dicomid)
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        studyuid)
+        obj.studyinstanceuid)
     result_db = connect_to_postgres(serverIP, sql)
     # 无此数据，发送
     if len(result_db) == 0:
         Send(serverID, obj.route)
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
-        delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
+        delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
         Send(serverID, obj.route)
 
 

@@ -823,6 +823,7 @@ class stress_record(models.Model):
     slicenumber = models.CharField(max_length=5, blank=True, null=True, verbose_name="层厚")
     diseases = models.CharField(max_length=10, blank=True, null=True, verbose_name="病种")
     graphql = models.CharField(max_length=500, blank=True, null=True, verbose_name="手动预测json")
+    fileurl = models.CharField(max_length=200, blank=True, null=True, verbose_name=" 路径")
     benchmarkstatus = models.BooleanField(default=False, verbose_name='是否基准')
     status = models.BooleanField(default=False, verbose_name='状态')
     def __unicode__(self):

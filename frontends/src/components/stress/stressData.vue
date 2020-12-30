@@ -25,8 +25,8 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-                    <el-button type="primary" @click="getdetail">同步</el-button>
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="stressD">删除</el-button>
+<!--                    <el-button type="primary" @click="getdetail">同步</el-button>-->
+                    <el-button type="danger" :disabled="this.sels.length===0" @click="handleTB">同步</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -71,7 +71,7 @@
                     <template slot-scope="scope">
                       <el-button type="warning" size="small" @click="handleChange(scope.$index, scope.row)">{{scope.row.benchmarkstatus===false?'正常':'基准'}}</el-button>
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+                    <el-button type="danger" size="small" @click="handleTB(scope.$index, scope.row)">同步</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
                     </template>
                 </el-table-column>
@@ -188,9 +188,11 @@
         StressData,
         getbase,
         addStressData,
+        DelStressData,
       disableStressData,
       disableBenchmarkstatus,
       enableStressData,
+        StressSynchro,
       enableBenchmarkstatus
     } from '@/router/api'
 
@@ -422,9 +424,9 @@
                     });
                 }
             },
-            // 删除
-            handleDel: function (index, row) {
-                this.$confirm('确认删除该记录吗?', '提示', {
+            // 同步
+            handleTB: function (index, row) {
+                this.$confirm('208环境同步该记录吗?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true
@@ -435,11 +437,11 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    deldicomdata(header, params).then(_data => {
+                    StressSynchro(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
-                                message: '删除成功',
+                                message: '成功',
                                 center: true,
                                 type: 'success'
                             })
@@ -628,7 +630,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    deldicomdata(header, params).then(_data => {
+                    DelStressData(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
