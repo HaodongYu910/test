@@ -63,6 +63,10 @@
                         index: '3',
                         title: '性能测试',
                         subs: [
+                             {
+                                index: 'stressdata',
+                                title: '测试数据'
+                            },
                             {
                                 index: 'stressHome',
                                 title: '性能测试'

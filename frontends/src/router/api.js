@@ -266,9 +266,29 @@ export const getVersion = (headers, params) => {
 export const stresssave = (headers, params) => {
   return axios.post(`${test}/api/stress/save`, params, headers).then(res => res.data)
 }
+// 压测数据列表
+export const StressData = (headers, params) => {
+  return axios.get(`${test}/api/stress/Data`, { params: params }, { headers }).then(res => res.data)
+}
 // 添加压测数据
 export const addStressData = (headers, params) => {
-  return axios.post(`${test}/api/stress/addData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/DataAdd`, params, headers).then(res => res.data)
+}
+// 禁用测试地址列表
+export const disableStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/disableData`, params, { headers }).then(res => res.data)
+}
+// 启用测试地址列表
+export const enableStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/enableData`, params, { headers }).then(res => res.data)
+}
+// 禁用测试地址列表
+export const disableBenchmarkstatus = (headers, params) => {
+  return axios.post(`${test}/api/stress/disablebenchmarkstatus`, params, { headers }).then(res => res.data)
+}
+// 启用测试地址列表
+export const enableBenchmarkstatus = (headers, params) => {
+  return axios.post(`${test}/api/stress/enablebenchmarkstatus`, params, { headers }).then(res => res.data)
 }
 // 删除压测数据
 export const deldicomdata = (headers, params) => {
@@ -426,4 +446,8 @@ export const DisableDictionary = (headers, params) => {
 // 删除基础数据
 export const DelDictionary = (headers, params) => {
   return axios.post(`${test}/api/dictionary/del`, params, headers).then(res => res.data)
+}
+// 跳转imageview页面
+export const getdicomurl = (headers, params) => {
+  return axios.post(`${test}/api/dicomurl`, params, headers).then(res => res.data)
 }

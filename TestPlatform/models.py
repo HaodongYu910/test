@@ -994,6 +994,7 @@ class dicom_record(models.Model):
     report = models.TextField(max_length=100, blank=True, null=True, verbose_name="诊断报告")
     type = models.TextField(max_length=10, blank=True, null=True, verbose_name="诊断报告")
     status = models.BooleanField(default=False, verbose_name='状态')
+    hostid =models.IntegerField(default=False, verbose_name='hostid')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

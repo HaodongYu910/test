@@ -114,8 +114,8 @@
             <template slot-scope="scope">
     <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
     <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
-               <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">重测</el-button>
-<!--             return <el-button type="primary" size="small" @click="handle(scope.$index, scope.row)">跳转</el-button>-->
+               <el-button type="warning" size="small" @click="handleR(scope.$index, scope.row)">重测</el-button>
+               <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>
             </template>
           </el-table-column>
         </el-table>
@@ -136,8 +136,9 @@
 <script>
 // import NProgress from 'nprogress'
 import {
-  getHost,getsmokerecord,getsmokestart, getbase,deldicomreport
+  getHost,getsmokerecord,getsmokestart, getbase,deldicomreport,getdicomurl
 } from '@/router/api'
+import {stresssave} from "../../../router/api";
 
 // import ElRow from "element-ui/packages/row/src/row";
 export default {
@@ -326,6 +327,73 @@ export default {
         })
       })
     },
+    handleR: function (index, row) {
+                this.$confirm('确认重新测试吗?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {id: row.id};
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stresssave(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getdata()
+                    });
+                })
+            },
+    handleU: function (index, row) {
+                this.$confirm('跳转到imageview页面?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                      id: row.id,
+                      type:"gold"
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    getdicomurl(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                          console.log(JSON.stringify(data.url))
+                          window.location.href =JSON.stringify(data.url),
+                          //刷新当前页面
+                          // window.location.reload();
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getdata()
+                    });
+                })
+            },
     // 批量删除报告
     batchDel: function() {
       const ids = this.sels.map(item => item.id)
