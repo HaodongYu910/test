@@ -272,7 +272,15 @@ export const StressData = (headers, params) => {
 }
 // 添加压测数据
 export const addStressData = (headers, params) => {
-  return axios.post(`${test}/api/stress/DataAdd`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/StressDataAdd`, params, headers).then(res => res.data)
+}
+// 删除压测数据
+export const DelStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/StressDataDel`, params, headers).then(res => res.data)
+}
+// 删除压测数据
+export const StressSynchro = (headers, params) => {
+  return axios.post(`${test}/api/stress/SynchroStressData`, params, headers).then(res => res.data)
 }
 // 禁用测试地址列表
 export const disableStressData = (headers, params) => {

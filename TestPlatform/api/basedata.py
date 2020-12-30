@@ -145,7 +145,7 @@ class UpdatebaseData(APIView):
             return result
         #
         try:
-            obj = base_data.objects.get(id=data["id"])
+            baseobj = base_data.objects.get(id=data["id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称的项目
@@ -164,7 +164,7 @@ class UpdatebaseData(APIView):
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
-                    serializer.update(instance=obj, validated_data=data)
+                    serializer.update(instance=baseobj, validated_data=data)
                     return JsonResponse(code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg="失败")
