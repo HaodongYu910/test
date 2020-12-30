@@ -107,7 +107,7 @@ export default new Router({
                     meta: { title: '性能报告' }
                 },
                 {
-                    path: '/data',
+                    path: '/stressdata',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
                     meta: { title: '性能数据' }
                 },

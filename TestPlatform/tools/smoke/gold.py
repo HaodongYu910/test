@@ -56,7 +56,8 @@ def goldSmoke(version, serverID, ids):
                 "slicenumber": obj.slicenumber,
                 "diagnosis": obj.diagnosis,
                 "type": "Gold",
-                "status": True
+                "status": True,
+                "hostid":serverID
             }
             sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
                 obj.studyinstanceuid)

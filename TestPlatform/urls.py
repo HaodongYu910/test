@@ -130,7 +130,12 @@ urlpatterns = [
     url(r'stress/del', delStress.as_view()),
     url(r'stress/disable', DisableStress.as_view()),
     url(r'stress/enable', EnableStress.as_view()),
-    url(r'stress/addData', AddStressData.as_view()),
+    url(r'stress/Data', stressData.as_view()),
+    url(r'stress/DataAdd', AddStressData.as_view()),
+    url(r'stress/disableData', DisableData.as_view()),
+    url(r'stress/enableData', EnableData.as_view()),
+    url(r'stress/disablebenchmarkstatus', DisableBenchmarkStatus.as_view()),
+    url(r'stress/enablebenchmarkstatus', EnableBenchmarkStatus.as_view()),
     url(r'tool/dicomData', dicomData.as_view()),
     url(r'tool/dicomdetail', dicomDetail.as_view()),
     url(r'tool/add_dicomData', adddicomdata.as_view()),
@@ -158,5 +163,6 @@ urlpatterns = [
     url(r'smoke/figure', smokefigure.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
+    url(r'dicomurl',dicomUrl.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view())      # 匿名化数据
 ]

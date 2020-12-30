@@ -5,7 +5,7 @@ from django.db.models import Avg
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil,threading
+import shutil, threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data, pid, GlobalHost
@@ -16,7 +16,8 @@ from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
 from ..tools.orthanc.deletepatients import delete_patients_duration
 
-def anonymousSend(id,type):
+
+def anonymousSend(id, type):
     a = 0
     nom = 0
     try:
@@ -69,9 +70,10 @@ def anonymousSend(id,type):
         return False
         logger.error("发送失败：{0}".format(e))
 
+
 # 检查是否数据
-def checkuid(serverID,serverIP,studyuid):
-    obj = dicom.objects.get(studyinstanceuid=studyuid,type='test')
+def checkuid(serverID, serverIP, studyuid):
+    obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         studyuid)
     result_db = connect_to_postgres(serverIP, sql)
@@ -80,5 +82,16 @@ def checkuid(serverID,serverIP,studyuid):
         Send(serverID, obj.route)
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
-        delete_patients_duration(studyuid,serverID, 'StudyInstanceUID', False)
+        delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
         Send(serverID, obj.route)
+
+
+# 数据跳转listview url
+def listUrl(hostid, studyuid):
+    obj = GlobalHost.objects.get(id=hostid)
+    kc = login_keycloak(hostid)
+    result_db = connect_to_postgres(obj.host,
+                                    'select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
+
+    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host,result_db["publicid"][0])
+    return kc.raw_token,url
