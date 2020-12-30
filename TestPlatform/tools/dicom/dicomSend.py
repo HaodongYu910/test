@@ -404,6 +404,7 @@ if __name__ == '__main__':
             if count > len(data):
                 data = sqlDB(sql, [], 'select')
             for j in data:
+                logging.info("循环次数：{}".format(count))
                 if count > end:
                     continue
                 src_folder = str(j[0])
