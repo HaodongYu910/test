@@ -6,6 +6,7 @@ from tqdm import tqdm
 import time
 import logging
 from TestPlatform.models import base_data,dicom
+from django.db.models import Max
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
@@ -18,7 +19,7 @@ def norm_string(str, len_norm):
     return str_dest
 
 #
-def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
+def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id,filename):
     file_names = os.listdir(src_folder)
     file_names.sort()
     for fn in tqdm(file_names):
@@ -50,7 +51,7 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
                 else:
                     patientid = patientname
                     ds.PatientID = patientid
-                folder_fake = '/files/dicomTest/{0}/{1}/{2}'.format(type,diseases, patientname,)
+                folder_fake = '/files/dicomTest/{0}/{1}/{2}{3}'.format(type,diseases, patientname,filename)
                 if not os.path.exists(folder_fake):
                     os.makedirs(folder_fake)
                 full_fn_fake = '{0}/{1}.dcm'.format(folder_fake,str(study_infos["No"]))
@@ -74,7 +75,8 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
                     continue
                 else:
                     study_infos[study_uid] = patientid
-                    dicom.objects.create(**data)
+                    dicomdata = dicom.objects.create(**data)
+                    filename = dicomdata.id + 1
             except Exception as e:
                 logging.error('errormsg: failed to sql [{0}]'.format(e))
                 continue
@@ -84,6 +86,7 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
             continue
 
 def fileSave(id,type):
+    filename = dicom.objects.all().aggregate(Max('id'))
     obj= base_data.objects.get(id=id)
     uids =dicom.objects.filter(diseases=obj.remarks)
     uidInfos = {}
@@ -102,7 +105,8 @@ def fileSave(id,type):
         diseases=obj.remarks,
         type=obj.type,
         uidInfos=uidInfos,
-        id=id
+        id=id,
+        filename=filename
     )
     obj.other =int(len(study_infos))-1
     obj.save()

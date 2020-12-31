@@ -86,6 +86,12 @@ export default new Router({
 
                 },
                 {
+                    path: '/SmokeData',
+                    component: resolve => require(['../components/tool/smoke/SmokeData.vue'], resolve),
+                    meta: { title: '金标准测试' }
+
+                },
+                {
                     path: '/SmokeResult',
                     component: resolve => require(['../components/tool/smoke/Smoketest.vue'], resolve),
                     meta: { title: '金标准结果' }
@@ -191,6 +197,12 @@ export default new Router({
                     path: '/deldicom',
                     component: resolve => require(['../components/tool/orthanc/deldicom.vue'], resolve),
                     meta: { title: 'dicom删除' }
+                },
+                {
+                    //duration 删除
+                    path: '/dictionary',
+                    component: resolve => require(['../components/settings/dictionary/dictionaryData.vue'], resolve),
+                    meta: { title: '字典' }
                 },
                 {
                     // 权限页面

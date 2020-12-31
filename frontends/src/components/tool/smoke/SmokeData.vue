@@ -14,15 +14,6 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                    <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
-                                    <el-option v-for="(item,index) in filetype"
-                                               :key="item.value"
-                                               :label="item.remarks"
-                                               :value="item.value"
-                                    />
-                                </el-select>
-                </el-form-item>
-                    <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option v-for="(item,index) in tags"
                                        :key="item.remarks"
@@ -45,7 +36,6 @@
                     </el-form-item>
                     <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
                     <el-button type="primary" @click="getdetail">同步</el-button>
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="stressD">压测数据</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -222,7 +212,6 @@
         dicomcsv,
         addStressData
     } from '@/router/api'
-    import {getDictionary} from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -281,30 +270,6 @@
             this.gethost()
         },
         methods: {
-            getfile() {
-                this.listLoading = true;
-                let self = this;
-                let params = {
-                    type: 'file',
-                    status: 1,
-                };
-                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
-                getDictionary(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.filetype = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
             gethost() {
                 this.listLoading = true
                 const self = this
@@ -331,9 +296,9 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    selecttype:"dicom",
+                    selecttype: "dicom",
                     status: 1,
-                    type:self.filters.type
+                    type:"Gold"
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -361,7 +326,7 @@
                     diseases: self.filters.diseases,
                     server: self.filters.server,
                     slicenumber: self.filters.slicenumber,
-                    type: self.filters.type,
+                    type: 'Gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdicomdata(headers, params).then((res) => {
@@ -619,39 +584,6 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     dicomcsv(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '生成成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
-                })
-            },
-            // 批量生成压测数据
-            stressD: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认生成选中记录为压测数据吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    addStressData(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({

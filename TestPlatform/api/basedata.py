@@ -27,10 +27,6 @@ class getBase(APIView):
         :param request:
         :return:
         """
-
-        # for i in obi.content.split(","):
-        #     dict={'key': i, 'value': i}
-        #     list.append(dict)
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
@@ -41,7 +37,9 @@ class getBase(APIView):
         remarks = request.GET.get("remarks")
         if type:
             if remarks:
-                obi = base_data.objects.filter(type=type,remarks=remarks).order_by("remarks")
+                obi = base_data.objects.filter(type=type, remarks=remarks).order_by("remarks")
+            elif selecttype:
+                obi = base_data.objects.filter(type=type, select_type=selecttype).order_by("remarks")
             else:
                 obi = base_data.objects.filter(type=type).order_by("remarks")
         else:
@@ -64,7 +62,7 @@ class getBase(APIView):
                 obd = dictionary.objects.get(id=i["predictor"])
                 i["predictor"] = obd.value
             except Exception as e:
-                i["predictor"] = "null"
+                i["predictor"] = "Null"
                 continue
         return JsonResponse(data={"data": serialize.data,
                                   "type":type,
