@@ -103,9 +103,9 @@ class dicomData(APIView):
             obi = dicom.objects.filter(server__contains=server, type=type, slicenumber__contains=slicenumber).order_by(
                 "-id")
         elif type is not None:
-            obi = dicom.objects.all().order_by("-id")
-        else:
             obi = dicom.objects.filter(type=type).order_by("-id")
+        else:
+            obi = dicom.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:

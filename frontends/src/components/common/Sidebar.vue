@@ -65,7 +65,7 @@
                         subs: [
                              {
                                 index: 'stressdata',
-                                title: '测试数据'
+                                title: '性能数据'
                             },
                             {
                                 index: 'stressHome',
@@ -92,7 +92,7 @@
                             },
                             {
                                 index: 'dicom',
-                                title: 'Dicom详情'
+                                title: 'Dicom数据'
                             },
                             {
                                 index: 'deldicom',
@@ -109,6 +109,10 @@
                         index: '5',
                         title: '金标准验证',
                         subs: [
+                             {
+                                index: 'SmokeData',
+                                title: '标准数据'
+                            },
                             {
                                 index: 'Smoke',
                                 title: '冒烟测试'
@@ -153,6 +157,10 @@
                                 title: '服务集成'
                             }
                             ,
+                            {
+                                index: 'dictionary',
+                                title: '数据字典'
+                            },
                             {
                                 index: 'mailconfig',
                                 title: '消息设置'

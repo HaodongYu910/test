@@ -18,16 +18,14 @@ import time, datetime
 import random
 import math
 import pymysql
-import requests
-import numpy as np
-
-
-# 链接InfluxDB时序数据库
-
-def connect_to_influx(data):
-    posturl = 'http://127.0.0.1:8086/write?db=autotest'
-    requests.post(posturl, data=data)
-
+# import requests
+#
+#
+# # 链接InfluxDB时序数据库
+#
+# def connect_to_influx(data):
+#     posturl = 'http://127.0.0.1:8086/write?db=autotest'
+#     requests.post(posturl, data=data)
 
 # 链接mysql数据库
 def sqlDB(sql, data, type):
@@ -74,7 +72,7 @@ def get_fake_name(rand_uid,fake_prefix):
     return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), norm_string(rand_uid, 6))
 
 
-def sync_send_file(file_name,commands,image):
+def sync_send_file(file_name,commands):
     # 发送匿名话数据
     try:
         starttime = time.time()
@@ -85,7 +83,6 @@ def sync_send_file(file_name,commands,image):
         start = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime))
         end = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(endtime))
         os.remove(file_name)
-        image["sec"].append(diff)
     except Exception as e:
         logging.error('send_file error: {0}'.format(e))
     return start, end, diff
@@ -165,7 +162,6 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases,CONFIG)
             continue
         try:
-            logging.info("路径：{}".format(full_fn))
             ds = pydicom.dcmread(full_fn, force=True)
         except Exception as e:
             logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
@@ -243,7 +239,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
                 "-aet", 'QA38',
                 full_fn_fake
             ]
-            start, end, diff = sync_send_file(full_fn_fake,commands,image)
+            start, end, diff = sync_send_file(full_fn_fake,commands)
         except Exception as e:
             logging.error('errormsg: failed to sync_send [{0}]'.format(full_fn_fake))
             continue
@@ -318,10 +314,10 @@ def prepare_config(argv):
 
 
 # 修改影像数量
-def ImageUpdate(study_infos,avg):
+def ImageUpdate(study_infos):
     try:
         for k, v in study_infos.items():
-            sql = 'UPDATE duration_record set imagecount =\'{0}\',time =\'{1}\' where studyinstanceuid =\'{2}\''.format(v, k, avg)
+            sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(v, k)
             logging.info("sql", sql)
             sqlDB(sql, [], 'update')
     except Exception as e:
@@ -383,7 +379,6 @@ if __name__ == '__main__':
             if count <= end and count > len(data):
                 data = sqlDB(sql, [], 'select')
             for j in data:
-                image["sec"] = []
                 if count > end:
                     break
                 else:
@@ -392,7 +387,7 @@ if __name__ == '__main__':
                         src_folder = src_folder[0:-1]
                     study_fakeinfos = {}
                     study_infos = {}
-                    logging.info("count:{0}----studyuid:{1}".format(count,src_folder))
+
                     fake_folder(
                         folder=src_folder,
                         folder_fake=folder_fake,
@@ -402,8 +397,8 @@ if __name__ == '__main__':
                         diseases=j[1],
                         CONFIG = CONFIG
                     )
+                    ImageUpdate(study_infos)
                     count = count + 1
-                    ImageUpdate(study_infos,str('%.2f' % np.mean(image["sec"])) )
             if count > end:
                 break
         pid = sqlDB('select count(1) from pid where pid ="{0}"'.format(ospid),[],'select')
