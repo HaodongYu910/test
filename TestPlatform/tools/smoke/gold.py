@@ -2,7 +2,7 @@ import gc
 from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import savecsv,connect_to_postgres
 from ...utils.keycloak.login_kc import *
-from TestPlatform.models import dicom,base_data,dictionary
+from TestPlatform.models import dicom,base_data,dictionary,smoke
 from ...utils.graphql.graphql import *
 from ..dicom.SendDicom import Send
 from ...serializers import dicomrecord_Serializer,dicomrecord_Deserializer
@@ -36,48 +36,58 @@ def dicomsavecsv(ids):
             diseases = obj.diseases
         savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
+def updatesmoke(id,count):
+    obj = smoke.objects.get(id=id)
+    obj.progress =count
+    obj.save()
 # 冒烟接口请求
-def goldSmoke(version, serverID, ids):
-    kc = login_keycloak(serverID)
-    Hostobj = GlobalHost.objects.get(id=serverID)
+def goldSmoke(id):
+    smobj = smoke.objects.get(id=id)
+
+    # for i in obj: ids.append(i.id)
+    dicomobj = dicom.objects.filter(fileid__in=smobj.diseases)
+    kc = login_keycloak(smobj.hostid)
+    Hostobj = GlobalHost.objects.get(id=smobj.hostid)
     serverIP = Hostobj.host
+    count = 0
     # 循环测试数据
-    for i in ids:
+    for i in dicomobj:
         try:
-            obj = dicom.objects.get(id=i)
-            objbase = base_data.objects.get(id=obj.fileid)
+            count = count + 1
+            updatesmoke(id, count)
+            objbase = base_data.objects.get(id=i.fileid)
             objdictionary =dictionary.objects.get(id=objbase.predictor)
             data = {
-                "version": version,
-                "patientid": obj.patientid,
+                "version": smobj.version,
+                "patientid": i.patientid,
                 "server":serverIP,
-                "studyinstanceuid": obj.studyinstanceuid,
-                "diseases": obj.diseases,
-                "slicenumber": obj.slicenumber,
-                "diagnosis": obj.diagnosis,
+                "studyinstanceuid": i.studyinstanceuid,
+                "diseases": i.diseases,
+                "slicenumber": i.slicenumber,
+                "diagnosis": i.diagnosis,
                 "type": "Gold",
                 "status": True,
-                "hostid":serverID
+                "hostid":id
             }
             sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-                obj.studyinstanceuid)
+                i.studyinstanceuid)
             result_db = connect_to_postgres(serverIP, sql)
             # 无此数据，发送
             if len(result_db) == 0:
-                Send(serverID,obj.route)
+                Send(smobj.hostid,i.route)
             # 重复数据 先删除后再发送新数据
             elif len(result_db) > 2:
                 delete_patients_duration([i], serverIP,'StudyInstanceUID', False)
-                Send(serverID,obj.route)
+                Send(smobj.hostid,i.route)
 
             graphql_query = "{ ai_biomind (" \
-                            "study_uid:\"" + str(obj.studyinstanceuid) + "\", protocols:" \
+                            "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
                                                                            "{ pothers: " \
                                                                            "{ disable_negative_voting:false} " \
                                                                            "penable_cached_results:false pconfig:{} " \
                                                                            "planguage:\"zh-cn\" " \
                                                                            " puser_id:\"biomind\" " \
-                                                                           "pseries_classifier:" + str(obj.vote) + "}" \
+                                                                           "pseries_classifier:" + str(i.vote) + "}" \
                                                                                                                    "routes: [[\"generate_series\",\"series_classifier\",\"" + str(objdictionary.value) + "\"]])" \
                                  " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
             data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -88,7 +98,7 @@ def goldSmoke(version, serverID, ids):
                 aiFalse(prediction,data)
                 continue
             data["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            result = graphql_ai_status(str(obj.studyinstanceuid), kc)
+            result = graphql_ai_status(str(i.studyinstanceuid), kc)
             if result is False:
                 data["status"] = False
                 data["report"] = '预测报错'

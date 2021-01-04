@@ -976,6 +976,29 @@ class dicom(models.Model):
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
 
+class smoke(models.Model):
+    """
+          smoke测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
+    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    progress = models.CharField(max_length=5, blank=True, null=True, verbose_name="进度")
+    thread = models.CharField(max_length=5, blank=True, null=True, verbose_name="线程数")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
+    count = models.CharField(max_length=5, blank=True, null=True, verbose_name="count")
+    hostid =models.IntegerField(default=False, verbose_name='hostid')
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "smoke测试表"
+        verbose_name_plural = "smoke测试表"
+        db_table = 'smoke'
+
 class dicom_record(models.Model):
     """
           测试记录表
@@ -1006,6 +1029,7 @@ class dicom_record(models.Model):
         verbose_name = "测试记录表"
         verbose_name_plural = "测试记录表"
         db_table = 'dicom_record'
+
 
 class pid(models.Model):
     """

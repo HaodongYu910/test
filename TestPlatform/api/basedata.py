@@ -190,7 +190,7 @@ class Delbasedata(APIView):
 
     def post(self, request):
         """
-        删除项目
+        删除信息
         :param request:
         :return:
         """
@@ -206,7 +206,7 @@ class Delbasedata(APIView):
                         delobj = dicom.objects.filter(id=i.id)
                         delobj.delete()
                 except Exception as e:
-                    return JsonResponse(code="999998", msg="失败")
+                    logger.error("删除dicom表数据失败")
                 obj = base_data.objects.filter(id=j)
                 obj.delete()
             return JsonResponse(code="0", msg="成功")
