@@ -1,13 +1,14 @@
-<template>
-    
-</template>
+<!--<template>-->
+<!--    -->
+<!--</template>-->
 
-<script>
-    export default {
-        name: "dicommasterData"
-    }
-</script>
+<!--<script>-->
+<!--    export default {-->
+<!--        name: "dicommasterData"-->
+<!--    }-->
+<!--</script>-->
 
-<style scoped>
+<!--<style scoped>-->
 
-</style>
+<!--</style>-->
+
