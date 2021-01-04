@@ -382,7 +382,30 @@ export const getdurationverify = (headers, params) => {
 export const durationverifydata = (headers, params) => {
       return axios.get(`${test}/api/duration/durationverifydata`, { params: params }, { headers }).then(res => res.data)
 }
-
+// 冒烟测试列表
+export const getsmoke = (headers, params) => {
+  return axios.get(`${test}/api/smoke/smokelist`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加冒烟测试
+export const addSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/addsmoke`, params, headers).then(res => res.data)
+}
+// 修改冒烟测试
+export const UpdateSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/updatesmoke`, params, headers).then(res => res.data)
+}
+// 启用冒烟测试
+export const EnableSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/enablesmoke`, params, headers).then(res => res.data)
+}
+// 禁用冒烟测试
+export const DisableSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/disablesmoke`, params, headers).then(res => res.data)
+}
+// 删除冒烟测试记录
+export const DelSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/delsmoke`, params, headers).then(res => res.data)
+}
 // 冒烟测试记录
 export const getsmokerecord = (headers, params) => {
   return axios.get(`${test}/api/smoke/record`, { params: params }, { headers }).then(res => res.data)
@@ -454,4 +477,8 @@ export const DelDictionary = (headers, params) => {
 // 跳转imageview页面
 export const getdicomurl = (headers, params) => {
   return axios.post(`${test}/api/dicomurl`, params, headers).then(res => res.data)
+}
+// 上传文件
+export const getupload = (headers, params) => {
+  return axios.post(`${test}/api/stress/upload`, params, headers).then(res => res.data)
 }

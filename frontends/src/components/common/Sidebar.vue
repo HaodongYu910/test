@@ -111,11 +111,11 @@
                         subs: [
                              {
                                 index: 'SmokeData',
-                                title: '标准数据'
+                                title: '金标准数据'
                             },
                             {
-                                index: 'Smoke',
-                                title: '冒烟测试'
+                                index: 'SmokeList',
+                                title: '金标准测试'
                             },
                             {
                                 index: 'SmokeResult',

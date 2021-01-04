@@ -971,6 +971,35 @@ class dictionary_Deserializer(serializers.ModelSerializer):
         fields = ('id', 'key', 'value', 'remarks', 'type', 'status')
 
 
+class smoke_Serializer(serializers.ModelSerializer):
+    """
+    字典序列化
+     """
+    class Meta:
+        model = smoke
+        fields = ('id', 'version', 'diseases','progress', 'thread','count', 'starttime', 'completiontime','status','hostid')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_smoke.all().count()
+
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_smoke.all().count()
+
+
+    def get_memberCount(self, obj):
+        return obj.member_smoke.all().count()
+
+class smoke_Deserializer(serializers.ModelSerializer):
+    """
+    字典反序列化
+    """
+
+    class Meta:
+        model = smoke
+        fields = ('version', 'diseases', 'progress', 'thread','count', 'starttime', 'completiontime','status','hostid')
+
 class uploadfile_Deserializer(serializers.ModelSerializer):
     """
     字典反序列化

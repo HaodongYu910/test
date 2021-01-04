@@ -994,6 +994,6 @@ class StressUpload(APIView):
                 "status":False
             }
             filedata = uploadfile.objects.create(**data)
-            return JsonResponse(code="0", msg="成功",data=filedata.filename)
+            return JsonResponse(code="0", msg="成功",data=filedata.id)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="没有需要上传的文件！")

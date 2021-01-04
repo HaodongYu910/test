@@ -145,7 +145,7 @@ def add_record(study_infos, study_uid,sqldata,influxdata):
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
 
-# 遍历文件夹 匿名话
+# 遍历文件夹 匿名数据
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases,CONFIG):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
