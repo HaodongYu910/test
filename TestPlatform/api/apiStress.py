@@ -1,14 +1,13 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from ..models import stress_result
+from ..models import stress_result,base_data
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil,threading
-from ..models import uploadfile
+import threading
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer
+from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer,stress_record_Serializer
 from ..tools.stress.stress import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.stress.stress import updateStressData
@@ -57,17 +56,15 @@ class stressData(APIView):
         server = request.GET.get("server")
         slicenumber = request.GET.get("slicenumber")
         if diseases is not None and server is None and slicenumber is None:
-            obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
-        elif server is not None and diseases is None and slicenumber is None:
-            obi = dicom.objects.filter(server__contains=server).order_by("-id")
+            obi = stress_record.objects.filter(diseases__contains=diseases).order_by("-id")
         elif server is not None and diseases is not None and slicenumber is None:
-            obi = dicom.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
+            obi = stress_record.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
         elif slicenumber is not None and server is None:
-            obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
+            obi = stress_record.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
         elif slicenumber is not None and server is not None:
-            obi = dicom.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
+            obi = stress_record.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
         else:
-            obi = dicom.objects.all().order_by("-id")
+            obi = stress_record.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -76,7 +73,7 @@ class stressData(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = dicomdata_Deserializer(obm, many=True)
+        serialize = stress_record_Serializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -102,7 +99,7 @@ class AddStressData(APIView):
 
     def post(self, request):
         """
-        send数据
+        添加压测数据
         :param request:
         :return:
         """
@@ -112,20 +109,258 @@ class AddStressData(APIView):
             return result
         try:
             for i in data["ids"]:
-                obj = dicom.objects.get(id=id)
-                data ={
-                    "stressid": i,
-                    "studyuid":obj.studyinstanceuid,
-                    "imagecount":obj.imagecount,
-                    "graphql":obj.vote,
-                    "slicenumber":obj.slicenumber,
-                    "benchmarkstatus":False,
-                    "status":True
-                }
-                stress_record.objects.create(**data)
+                obj = dicom.objects.get(id=i)
+                baseobj = base_data.objects.get(id=obj.fileid)
+                try:
+                    stress_record.objects.get(studyuid=obj.studyinstanceuid)
+                    continue
+                except ObjectDoesNotExist:
+                    data ={
+                        "stressid": i,
+                        "studyuid":obj.studyinstanceuid,
+                        "imagecount":obj.imagecount,
+                        "graphql":obj.vote,
+                        "diseases":baseobj.predictor,
+                        "slicenumber":obj.slicenumber,
+                        "benchmarkstatus":False,
+                        "status":True,
+                        "fileurl":obj.route
+                    }
+                    stress_record.objects.create(**data)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
+
+class SynchroStressData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 ids
+            if not data["ids"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 ids！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数ids有误！")
+
+    def post(self, request):
+        """
+        添加压测数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            for i in data["ids"]:
+                obj = stress_record.objects.get(id=i)
+                try:
+                    checkuid(1, '192.168.1.208', obj.stressid)
+                except ObjectDoesNotExist:
+                    logger.error("数据问题{0}".format(obj.studyuid))
+                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid,'192.168.1.208',obj.diseases)
+                obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
+
+class DelStressData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验id类型为int
+            if not isinstance(data["ids"], list):
+                return JsonResponse(code="999996", msg="参数有误！")
+            for i in data["ids"]:
+                if not isinstance(i, int):
+                    return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        删除压测数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            for j in data["ids"]:
+                try:
+                    obj = stress_record.objects.filter(id=j)
+                    obj.delete()
+                except Exception as e:
+                    return JsonResponse(code="999998", msg="失败")
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+
+class DisableData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            obj = stress.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="不存在！")
+
+
+class EnableData(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            obj = stress.objects.get(id=data["id"])
+            obj.status = True
+            obj.save()
+
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="不存在！")
+
+class DisableBenchmarkStatus(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            obj = stress_record.objects.get(id=data["id"])
+            obj.benchmarkstatus = False
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="不存在！")
+
+#enable
+class EnableBenchmarkStatus(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用项目
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找项目是否存在
+        try:
+            obj = stress_record.objects.get(id=data["id"])
+            obj.benchmarkstatus = True
+            obj.save()
+
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="不存在！")
+
 
 class addData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -341,8 +576,8 @@ class stressRun(APIView):
             return result
         try:
             obj = stress.objects.get(id =data['id'])
-            Hostobj = GlobalHost.objects.get(id=obj.hostid)
-            server = Hostobj.host
+            HostObj = GlobalHost.objects.get(id=obj.hostid)
+            server = HostObj.host
             if obj.start_date is None:
                 obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
@@ -350,11 +585,13 @@ class stressRun(APIView):
                 obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                Manual(obj.hostid,server,obj.version,data['id'])
+                manual = threading.Thread(target=Manual,args=(obj.hostid,server,obj.version,data['id']))
+                manual.start()
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                AutoPrediction(obj.hostid,server,obj.testdata,obj.loop_count)
+                Auto = threading.Thread(target=AutoPrediction,args=(obj.hostid,server,obj.testdata,obj.loop_count))
+                Auto.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
@@ -509,7 +746,7 @@ class stressDetail(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
-    def get(self,request,format=None):
+    def get(self,request):
         """
                 获取压测详情
                 :param request:
@@ -757,6 +994,6 @@ class StressUpload(APIView):
                 "status":False
             }
             filedata = uploadfile.objects.create(**data)
-            return JsonResponse(code="0", msg="成功",data=filedata.filename)
+            return JsonResponse(code="0", msg="成功",data=filedata.id)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="没有需要上传的文件！")

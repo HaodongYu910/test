@@ -4,6 +4,15 @@
             <!--工具条-->
             <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
+                    <el-form-item label="过滤器" prop="server">
+                        <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
+                            <el-option v-for="(item,index) in tags"
+                                       :key="item.host"
+                                       :label="item.name"
+                                       :value="item.host"
+                            />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option v-for="(item,index) in tags"
@@ -25,8 +34,8 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-<!--                    <el-button type="primary" @click="getdetail">同步</el-button>-->
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="handleTB">同步</el-button>
+                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
+                    <el-button type="primary" @click="getdetail">同步</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -42,9 +51,14 @@
                         <span style="margin-left: 10px">{{ scope.row.id }}</span>
                     </template>
                 </el-table-column>
+                <el-table-column prop="patientid" label="Patientid" min-width="10%" sortable>
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="studyinstanceuid" label="Studyinstanceuid" min-width="25%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.studyuid }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="类型" min-width="10%" sortable>
@@ -62,17 +76,22 @@
                         <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="挂载" min-width="15   %">
+                <el-table-column label="类型" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.graphql }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.type }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="20px">
+                <el-table-column label="标准诊断" min-width="15   %">
                     <template slot-scope="scope">
-                      <el-button type="warning" size="small" @click="handleChange(scope.$index, scope.row)">{{scope.row.benchmarkstatus===false?'正常':'基准'}}</el-button>
-                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handleTB(scope.$index, scope.row)">同步</el-button>
-                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
+                        <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="操作" min-width="12px">
+                    <template slot-scope="scope">
+                        <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
+                        <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
+                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -184,16 +203,14 @@
         dicomdetail,
         getHost,
         getdicomdata,
-        updateStressdata,
-        StressData,
+        deldicomdata,
+        updatedicomdata,
+        adddicomdata,
+        stressTool,
         getbase,
-        addStressData,
-        DelStressData,
-      disableStressData,
-      disableBenchmarkstatus,
-      enableStressData,
-        StressSynchro,
-      enableBenchmarkstatus
+        deldicomreport,
+        dicomcsv,
+        addStressData
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -280,7 +297,8 @@
                 const self = this
                 const params = {
                     selecttype: "dicom",
-                    status: 1
+                    status: 1,
+                    type:"Gold"
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -306,10 +324,12 @@
                 const params = {
                     page: self.page,
                     diseases: self.filters.diseases,
-                    slicenumber: self.filters.slicenumber
+                    server: self.filters.server,
+                    slicenumber: self.filters.slicenumber,
+                    type: 'Gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                StressData(headers, params).then((res) => {
+                getdicomdata(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
@@ -324,109 +344,9 @@
                     }
                 })
             },
-            handleChange: function(index, row) {
-                let self = this;
-                this.listLoading = true;
-                let params = {
-                    id: Number(row.id)
-                };
-                let headers = {
-                    "Content-Type": "application/json",
-                    Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
-                };
-                if (row.benchmarkstatus) {
-                    disableBenchmarkstatus(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        self.listLoading = false;
-                        if (code === '0') {
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            });
-                            row.benchmarkstatus = !row.benchmarkstatus;
-                        }
-                        else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                    });
-                } else {
-                    enableBenchmarkstatus(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        self.listLoading = false;
-                        if (code === '0') {
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            });
-                            row.benchmarkstatus = !row.benchmarkstatus;
-                        }
-                        else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                    });
-                }
-            },
-            handleChangeStatus: function(index, row) {
-                let self = this;
-                this.listLoading = true;
-                let params = {
-                    id: Number(row.id)
-                };
-                let headers = {
-                    "Content-Type": "application/json",
-                    Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
-                };
-                if (row.status) {
-                    disableStressData(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        self.listLoading = false;
-                        if (code === '0') {
-                            self.$message({
-                                message: '禁用成功',
-                                center: true,
-                                type: 'success'
-                            });
-                            row.status = !row.status;
-                        }
-                        else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                    });
-                } else {
-                    enableStressData(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        self.listLoading = false;
-                        if (code === '0') {
-                            self.$message({
-                                message: '启用成功',
-                                center: true,
-                                type: 'success'
-                            });
-                            row.status = !row.status;
-                        }
-                        else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                    });
-                }
-            },
-            // 同步
-            handleTB: function (index, row) {
-                this.$confirm('208环境同步该记录吗?', '提示', {
+            // 删除
+            handleDel: function (index, row) {
+                this.$confirm('确认删除该记录吗?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true
@@ -437,11 +357,11 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    StressSynchro(header, params).then(_data => {
+                    deldicomdata(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
-                                message: '成功',
+                                message: '删除成功',
                                 center: true,
                                 type: 'success'
                             })
@@ -630,7 +550,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    DelStressData(header, params).then(_data => {
+                    deldicomdata(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
@@ -664,39 +584,6 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     dicomcsv(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '生成成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
-                })
-            },
-            // 批量生成压测数据
-            stressD: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认生成选中记录为压测数据吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    addStressData(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({

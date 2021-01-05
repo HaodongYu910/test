@@ -14,14 +14,14 @@
                         </el-select>
                     </el-form-item>
                     <el-form-item>
-                        <el-select v-model="filters.type" placeholder="请选择类型" @click.native="getBase()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.remarks"
-                                       :label="item.remarks"
-                                       :value="item.remarks"
-                            />
-                        </el-select>
-                    </el-form-item>
+                    <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
+                                    <el-option v-for="(item,index) in filetype"
+                                               :key="item.value"
+                                               :label="item.remarks"
+                                               :value="item.value"
+                                    />
+                                </el-select>
+                </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option v-for="(item,index) in tags"
@@ -222,6 +222,7 @@
         dicomcsv,
         addStressData
     } from '@/router/api'
+    import {getDictionary} from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -280,6 +281,30 @@
             this.gethost()
         },
         methods: {
+            getfile() {
+                this.listLoading = true;
+                let self = this;
+                let params = {
+                    type: 'file',
+                    status: 1,
+                };
+                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
+                getDictionary(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.list = data.data
+                        var json = JSON.stringify(self.list)
+                        this.filetype = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             gethost() {
                 this.listLoading = true
                 const self = this
@@ -306,8 +331,9 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    selecttype: "dicom",
-                    status: 1
+                    selecttype:"dicom",
+                    status: 1,
+                    type:self.filters.type
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -335,7 +361,7 @@
                     diseases: self.filters.diseases,
                     server: self.filters.server,
                     slicenumber: self.filters.slicenumber,
-                    type: 'Gold'
+                    type: self.filters.type,
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdicomdata(headers, params).then((res) => {

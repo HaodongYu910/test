@@ -6,10 +6,8 @@ import logging,os, datetime,psutil
 from datetime import timedelta
 import pandas as pd
 import psycopg2 as pc
-from TestPlatform.utils.keycloak.keycloakclient import KeycloakClient
 from influxdb import InfluxDBClient
 import csv
-from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -54,18 +52,6 @@ def connect_to_postgres(orthanc_ip,sql):
     return result
 
 
-# 登录keycloak
-def use_keycloak_bmutils(server_ip,a,b):
-    username = settings.BiomindUser
-    password = settings.Biomindpasswd
-    try:
-        kc = KeycloakClient('https://{}'.format(server_ip), username, password)
-        kc.login(username, password)
-        return kc
-    except Exception as e:
-        logger.error('Query failed: {0}'.format(e))
-        return e
-
 
 def get_tc_perf():
     pid = os.getpid()
@@ -109,19 +95,4 @@ def savecsv(csvname,data):
         writer = csv.writer(f)
         writer.writerows(data)
 
-#  duration 统计数据
-def durationtotal(duration_all, server, aistatus):
-    if int(duration_all.count()) == 0:
-        return 0
-    studyuid= ''
-    for j in duration_all:
-        studyuid = studyuid+',\''+j.studyinstanceuid+'\''
-    sql = 'SELECT count(1) FROM study_view WHERE studyinstanceuid in ({0}) and aistatus in (\'{1}\')'.format(
-        studyuid[1:], aistatus)
-    try:
-        result_1 = connect_to_postgres(server, sql)
-        total = result_1.to_dict(orient='records')
-        return int(total[0]['count'])
-    except Exception as e:
-        logger.error(e)
-        return 0
+

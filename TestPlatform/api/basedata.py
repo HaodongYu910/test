@@ -27,10 +27,6 @@ class getBase(APIView):
         :param request:
         :return:
         """
-
-        # for i in obi.content.split(","):
-        #     dict={'key': i, 'value': i}
-        #     list.append(dict)
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
@@ -41,7 +37,9 @@ class getBase(APIView):
         remarks = request.GET.get("remarks")
         if type:
             if remarks:
-                obi = base_data.objects.filter(type=type,remarks=remarks).order_by("remarks")
+                obi = base_data.objects.filter(type=type, remarks=remarks).order_by("remarks")
+            elif selecttype:
+                obi = base_data.objects.filter(type=type, select_type=selecttype).order_by("remarks")
             else:
                 obi = base_data.objects.filter(type=type).order_by("remarks")
         else:
@@ -64,7 +62,7 @@ class getBase(APIView):
                 obd = dictionary.objects.get(id=i["predictor"])
                 i["predictor"] = obd.value
             except Exception as e:
-                i["predictor"] = "null"
+                i["predictor"] = "Null"
                 continue
         return JsonResponse(data={"data": serialize.data,
                                   "type":type,
@@ -145,7 +143,7 @@ class UpdatebaseData(APIView):
             return result
         #
         try:
-            obj = base_data.objects.get(id=data["id"])
+            baseobj = base_data.objects.get(id=data["id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称的项目
@@ -164,7 +162,7 @@ class UpdatebaseData(APIView):
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
-                    serializer.update(instance=obj, validated_data=data)
+                    serializer.update(instance=baseobj, validated_data=data)
                     return JsonResponse(code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg="失败")
@@ -192,7 +190,7 @@ class Delbasedata(APIView):
 
     def post(self, request):
         """
-        删除项目
+        删除信息
         :param request:
         :return:
         """
@@ -208,7 +206,7 @@ class Delbasedata(APIView):
                         delobj = dicom.objects.filter(id=i.id)
                         delobj.delete()
                 except Exception as e:
-                    return JsonResponse(code="999998", msg="失败")
+                    logger.error("删除dicom表数据失败")
                 obj = base_data.objects.filter(id=j)
                 obj.delete()
             return JsonResponse(code="0", msg="成功")

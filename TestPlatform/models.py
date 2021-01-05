@@ -823,6 +823,7 @@ class stress_record(models.Model):
     slicenumber = models.CharField(max_length=5, blank=True, null=True, verbose_name="层厚")
     diseases = models.CharField(max_length=10, blank=True, null=True, verbose_name="病种")
     graphql = models.CharField(max_length=500, blank=True, null=True, verbose_name="手动预测json")
+    fileurl = models.CharField(max_length=200, blank=True, null=True, verbose_name=" 路径")
     benchmarkstatus = models.BooleanField(default=False, verbose_name='是否基准')
     status = models.BooleanField(default=False, verbose_name='状态')
     def __unicode__(self):
@@ -975,6 +976,29 @@ class dicom(models.Model):
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
 
+class smoke(models.Model):
+    """
+          smoke测试记录表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
+    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    progress = models.CharField(max_length=5, blank=True, null=True, verbose_name="进度")
+    thread = models.CharField(max_length=5, blank=True, null=True, verbose_name="线程数")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
+    count = models.CharField(max_length=5, blank=True, null=True, verbose_name="count")
+    hostid =models.IntegerField(default=False, verbose_name='hostid')
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "smoke测试表"
+        verbose_name_plural = "smoke测试表"
+        db_table = 'smoke'
+
 class dicom_record(models.Model):
     """
           测试记录表
@@ -994,6 +1018,7 @@ class dicom_record(models.Model):
     report = models.TextField(max_length=100, blank=True, null=True, verbose_name="诊断报告")
     type = models.TextField(max_length=10, blank=True, null=True, verbose_name="诊断报告")
     status = models.BooleanField(default=False, verbose_name='状态')
+    hostid =models.IntegerField(default=False, verbose_name='hostid')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -1004,6 +1029,7 @@ class dicom_record(models.Model):
         verbose_name = "测试记录表"
         verbose_name_plural = "测试记录表"
         db_table = 'dicom_record'
+
 
 class pid(models.Model):
     """

@@ -11,9 +11,7 @@ from TestPlatform.tools.dicom.duration_verify import *
 logger = logging.getLogger(__name__)
 
 __author__ = "vte"
-__version__ = "0.0.1"
-
-
+__version__ = "1.0.1"
 
 
 
@@ -45,11 +43,25 @@ def mail_task():
         logger.error('[Error] '+ e)
 
 
-def job2_task():
+def clean_task():
     try:
-        verify()
+        obj = pid.objects.filter(durationid=data["id"])
+        okj = duration.objects.get(id=data["id"])
+
+        for i in obj:
+            cmd = 'kill -9 {0}'.format(int(i.pid))
+            logger.info(cmd)
+            os.system(cmd)
+            i.delete()
+
+        okj.sendstatus = False
+        okj.save()
+        # 删除 文件夹
+        folder = "/files/logs/{0}".format(str(okj.keyword))
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
     except Exception as e:
-        logger.error("失败" % e)
+        logger.error("修改失败" % e)
 
 def duration(durationid):
     try:

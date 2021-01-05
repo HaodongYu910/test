@@ -63,6 +63,10 @@
                         index: '3',
                         title: '性能测试',
                         subs: [
+                             {
+                                index: 'stressdata',
+                                title: '性能数据'
+                            },
                             {
                                 index: 'stressHome',
                                 title: '性能测试'
@@ -88,7 +92,7 @@
                             },
                             {
                                 index: 'dicom',
-                                title: 'Dicom详情'
+                                title: 'Dicom数据'
                             },
                             {
                                 index: 'deldicom',
@@ -110,9 +114,13 @@
                         index: '5',
                         title: '金标准验证',
                         subs: [
+                             {
+                                index: 'SmokeData',
+                                title: '金标准数据'
+                            },
                             {
-                                index: 'Smoke',
-                                title: '冒烟测试'
+                                index: 'SmokeList',
+                                title: '金标准测试'
                             },
                             {
                                 index: 'SmokeResult',
@@ -154,6 +162,10 @@
                                 title: '服务集成'
                             }
                             ,
+                            {
+                                index: 'dictionary',
+                                title: '数据字典'
+                            },
                             {
                                 index: 'mailconfig',
                                 title: '消息设置'

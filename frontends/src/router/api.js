@@ -35,6 +35,14 @@ export const getProjectDetail = (headers, params) => {
 export const getHost = (headers, params) => {
   return axios.get(`${test}/api/global/host_total`, { params: params, headers: headers }).then(res => res.data)
 }
+// 修改测试地址列表
+export const updateHost = (headers, params) => {
+  return axios.post(`${test}/api/global/update_host`, params, { headers }).then(res => res.data)
+}
+// 添加测试地址列表
+export const addHost = (headers, params) => {
+  return axios.post(`${test}/api/global/add_host`, params, { headers }).then(res => res.data)
+}
 // 删除测试地址列表
 export const delHost = (headers, params) => {
   return axios.post(`${test}/api/global/del_host`, params, { headers }).then(res => res.data)
@@ -47,21 +55,13 @@ export const disableHost = (headers, params) => {
 export const enableHost = (headers, params) => {
   return axios.post(`${test}/api/global/enable_host`, params, { headers }).then(res => res.data)
 }
-// 禁用测试地址列表
+// 禁用http
 export const disableHostProtocol = (headers, params) => {
   return axios.post(`${test}/api/global/disable_protocol`, params, { headers }).then(res => res.data)
 }
-// 启用测试地址列表
+// 启用http
 export const enableHostProtocol = (headers, params) => {
   return axios.post(`${test}/api/global/enable_protocol`, params, { headers }).then(res => res.data)
-}
-// 修改测试地址列表
-export const updateHost = (headers, params) => {
-  return axios.post(`${test}/api/global/update_host`, params, { headers }).then(res => res.data)
-}
-// 添加测试地址列表
-export const addHost = (headers, params) => {
-  return axios.post(`${test}/api/global/add_host`, params, { headers }).then(res => res.data)
 }
 // 获取项目动态
 export const getProjectDynamicList = (headers, params) => {
@@ -116,10 +116,6 @@ export const delApiGroup = (headers, params) => {
 // 下载地址
 export const download = (headers, params) => {
   return axios.post(`${test}/api/download`, params, { headers }).then(res => res.data)
-}
-// tag相关工具
-export const tagTool = (headers, params) => {
-  return axios.post(`${test}/api/tag`, params, { headers }).then(res => res.data)
 }
 // 基础数据
 export const Base = (headers, params) => {
@@ -266,13 +262,41 @@ export const getVersion = (headers, params) => {
 export const stresssave = (headers, params) => {
   return axios.post(`${test}/api/stress/save`, params, headers).then(res => res.data)
 }
+// 压测数据列表
+export const StressData = (headers, params) => {
+  return axios.get(`${test}/api/stress/Data`, { params: params }, { headers }).then(res => res.data)
+}
 // 添加压测数据
 export const addStressData = (headers, params) => {
-  return axios.post(`${test}/api/stress/addData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/StressDataAdd`, params, headers).then(res => res.data)
+}
+// 删除压测数据
+export const DelStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/StressDataDel`, params, headers).then(res => res.data)
+}
+// 删除压测数据
+export const StressSynchro = (headers, params) => {
+  return axios.post(`${test}/api/stress/SynchroStressData`, params, headers).then(res => res.data)
+}
+// 禁用测试地址列表
+export const disableStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/disableData`, params, { headers }).then(res => res.data)
+}
+// 启用测试地址列表
+export const enableStressData = (headers, params) => {
+  return axios.post(`${test}/api/stress/enableData`, params, { headers }).then(res => res.data)
+}
+// 禁用测试地址列表
+export const disableBenchmarkstatus = (headers, params) => {
+  return axios.post(`${test}/api/stress/disablebenchmarkstatus`, params, { headers }).then(res => res.data)
+}
+// 启用测试地址列表
+export const enableBenchmarkstatus = (headers, params) => {
+  return axios.post(`${test}/api/stress/enablebenchmarkstatus`, params, { headers }).then(res => res.data)
 }
 // 删除压测数据
 export const deldicomdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/del_dicomData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/del_dicomData`, params, headers).then(res => res.data)
 }
 // 修改dicom数据
 export const updatedicomdata = (headers, params) => {
@@ -280,24 +304,24 @@ export const updatedicomdata = (headers, params) => {
 }
 // 新增dicom数据
 export const adddicomdata = (headers, params) => {
-  return axios.post(`${test}/api/tool/add_dicomData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/add_dicomData`, params, headers).then(res => res.data)
 }
 
 // 新增dicom数据
 export const dicomdetail = (headers, params) => {
-  return axios.post(`${test}/api/tool/dicomdetail`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/dicomdetail`, params, headers).then(res => res.data)
 }
 //dicom数据
 export const getdicomdata = (headers, params) => {
-  return axios.get(`${test}/api/tool/dicomData`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/dicom/dicomData`, { params: params }, { headers }).then(res => res.data)
 }
 //生成CSV
 export const dicomcsv = (headers, params) => {
-  return axios.post(`${test}/api/tool/dicomcsv`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/dicomcsv`, params, headers).then(res => res.data)
 }
 //删除报告
 export const deldicomreport = (headers, params) => {
-  return axios.post(`${test}/api/tool/delreport`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/delreport`, params, headers).then(res => res.data)
 }
 // 压测report
 export const getreportfigure = (headers, params) => {
@@ -313,28 +337,28 @@ export const getstressresult = (headers, params) => {
 }
 // 删除patient数据
 export const delete_patients = (headers, params) => {
-  return axios.post(`${test}/api/tool/delete_patients`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/delete_patients`, params, headers).then(res => res.data)
 }
 // 获取duration数据
 export const getduration = (headers, params) => {
-    return axios.get(`${test}/api/tool/getduration`, { params: params }, { headers }).then(res => res.data)
+    return axios.get(`${test}/api/duration/getduration`, { params: params }, { headers }).then(res => res.data)
 }
 
 // 获取duration发送数据
 export const getdurationData = (headers, params) => {
-    return axios.get(`${test}/api/tool/durationData`, { params: params }, { headers }).then(res => res.data)
+    return axios.get(`${test}/api/duration/durationData`, { params: params }, { headers }).then(res => res.data)
 }
 //添加duration
 export const addduration = (headers, params) => {
-  return axios.post(`${test}/api/tool/add_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/duration/add_duration`, params, headers).then(res => res.data)
 }
 // 修改duration
 export const updateduration = (headers, params) => {
-  return axios.post(`${test}/api/tool/update_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/duration/update_duration`, params, headers).then(res => res.data)
 }
 // 删除duration
 export const delduration = (headers, params) => {
-  return axios.post(`${test}/api/tool/del_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/duration/del_duration`, params, headers).then(res => res.data)
 }
 // 启动匿名化
 export const anonStart = (headers, params) => {
@@ -343,22 +367,45 @@ export const anonStart = (headers, params) => {
 
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {
-  return axios.post(`${test}/api/tool/enable_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/duration/enable_duration`, params, headers).then(res => res.data)
 }
 // 修改duration发送状态
 export const disable_duration = (headers, params) => {
-  return axios.post(`${test}/api/tool/disable_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/duration/disable_duration`, params, headers).then(res => res.data)
 }
 
 // 持续化数据验证
 export const getdurationverify = (headers, params) => {
-      return axios.get(`${test}/api/tool/duration_verify`, { params: params }, { headers }).then(res => res.data)
+      return axios.get(`${test}/api/duration/duration_verify`, { params: params }, { headers }).then(res => res.data)
 }
 // 持续化数据验证统计
 export const durationverifydata = (headers, params) => {
-      return axios.get(`${test}/api/tool/durationverifydata`, { params: params }, { headers }).then(res => res.data)
+      return axios.get(`${test}/api/duration/durationverifydata`, { params: params }, { headers }).then(res => res.data)
 }
-
+// 冒烟测试列表
+export const getsmoke = (headers, params) => {
+  return axios.get(`${test}/api/smoke/smokelist`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加冒烟测试
+export const addSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/addsmoke`, params, headers).then(res => res.data)
+}
+// 修改冒烟测试
+export const UpdateSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/updatesmoke`, params, headers).then(res => res.data)
+}
+// 启用冒烟测试
+export const EnableSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/enablesmoke`, params, headers).then(res => res.data)
+}
+// 禁用冒烟测试
+export const DisableSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/disablesmoke`, params, headers).then(res => res.data)
+}
+// 删除冒烟测试记录
+export const DelSmoke = (headers, params) => {
+  return axios.post(`${test}/api/smoke/delsmoke`, params, headers).then(res => res.data)
+}
 // 冒烟测试记录
 export const getsmokerecord = (headers, params) => {
   return axios.get(`${test}/api/smoke/record`, { params: params }, { headers }).then(res => res.data)
@@ -373,7 +420,7 @@ export const getsmokefigure = (headers, params) => {
 }
 // 获取dicom数据
 export const getdicomSend = (headers, params) => {
-  return axios.post(`${test}/api/tool/dicomSend`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/dicom/dicomSend`, params, headers).then(res => res.data)
 }
 // 获取基础数据
 export const getbase = (headers, params) => {
@@ -426,4 +473,12 @@ export const DisableDictionary = (headers, params) => {
 // 删除基础数据
 export const DelDictionary = (headers, params) => {
   return axios.post(`${test}/api/dictionary/del`, params, headers).then(res => res.data)
+}
+// 跳转imageview页面
+export const getdicomurl = (headers, params) => {
+  return axios.post(`${test}/api/dicomurl`, params, headers).then(res => res.data)
+}
+// 上传文件
+export const getupload = (headers, params) => {
+  return axios.post(`${test}/api/stress/upload`, params, headers).then(res => res.data)
 }

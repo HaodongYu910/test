@@ -72,26 +72,52 @@ def anonymousSend(id, type):
 
 
 # 检查是否数据
-def checkuid(serverID, serverIP, dicomid):
-    obj = dicom.objects.get(id=dicomid)
+def checkuid(serverID, serverIP, studyuid):
+    obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        obj.studyinstanceuid)
+        studyuid)
     result_db = connect_to_postgres(serverIP, sql)
     # 无此数据，发送
     if len(result_db) == 0:
         Send(serverID, obj.route)
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
-        delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
+        delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
         Send(serverID, obj.route)
 
+#  duration 统计数据
+def durationtotal(durationid):
+    notsent = duration_record.objects.filter(duration_id=durationid,aistatus=None)
+    ai_true = duration_record.objects.filter(duration_id=durationid,aistatus__in=['1','2'])
+    ai_false = duration_record.objects.filter(duration_id=durationid,aistatus__in=['3','-2'])
+    notai = duration_record.objects.filter(duration_id=durationid,aistatus__in=['-1'])
+    datalist ={
+        'notai':notai.count(),
+        'ai_true':ai_true.count(),
+        'ai_false':ai_false.count(),
+        'notsent':notsent.count()
+    }
+    return datalist
 
-# 数据跳转listview url
-def listUrl(hostid, studyuid):
-    obj = GlobalHost.objects.get(id=hostid)
-    kc = login_keycloak(hostid)
-    result_db = connect_to_postgres(obj.host,
-                                    'select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
+#  duration 数据结果更新
+def verifyDuration(durationid):
+    duration_data = duration_record.objects.filter(duration_id=durationid, aistatus=None)
+    obj = duration.objects.get(id=durationid)
+    if obj.dds is not None:
+        serverip = obj.dds
+    else:
+        serverip = obj.server
+    for i in duration_data:
+        data = {'studyinstanceuid': i.studyinstanceuid}
+        sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
+            i.studyinstanceuid)
+        result_1 = connect_to_postgres(serverip, sql)
+        sqldata = result_1.to_dict(orient='records')
 
-    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host,result_db["publicid"][0])
-    return kc.raw_token,url
+        if sqldata == []:
+            continue
+        else:
+            i.aistatus = sqldata[0]['aistatus']
+            i.diagnosis = sqldata[0]['diagnosis']
+            i.imagecount_server = sqldata[0]['imagecount']
+            i.save()

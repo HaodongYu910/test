@@ -346,7 +346,9 @@
                 let params = {
                     page: self.page,
                     remarks: self.filters.remarks,
-                    type: self.filters.type
+                    type: self.filters.type,
+                    selecttype:"dicom",
+                    status: 1,
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 getbase(headers, params).then((res) => {

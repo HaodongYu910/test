@@ -62,8 +62,10 @@
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
-                    <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/qiyong.png"/>
-                    <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/fou.png"/>
+                    <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                         src="../../assets/img/qiyong.png"/>
+                    <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                         src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
             <el-table-column label="操作" min-width="30%">
@@ -72,9 +74,9 @@
                     <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
                     <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行</el-button>
                     <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告</el-button>
-<!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
-<!--                        {{scope.row.status===false?'启用':'禁用'}}-->
-<!--                    </el-button>-->
+                    <!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
+                    <!--                        {{scope.row.status===false?'启用':'禁用'}}-->
+                    <!--                    </el-button>-->
                 </template>
             </el-table-column>
         </el-table>
@@ -93,20 +95,20 @@
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                 <el-divider>基本配置</el-divider>
                 <el-row>
-                <el-col :span="12">
-                    <el-form-item label="项目" prop="name">
-                        <el-select v-model="editForm.projectname" placeholder="请选择">
-                            <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                            <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                        </el-select>
-                    </el-form-item>
-                </el-col>
-                <el-col :span="6">
-                    <el-form-item label="版本" prop='version'>
-                        <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
-                    </el-form-item>
-                </el-col>
-                    </el-row>
+                    <el-col :span="12">
+                        <el-form-item label="项目" prop="name">
+                            <el-select v-model="editForm.projectname" placeholder="请选择">
+                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="6">
+                        <el-form-item label="版本" prop='version'>
+                            <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
@@ -175,10 +177,10 @@
                     </el-col>
                 </el-row>
                 <i
-                   class="el-icon-close"
-                   @click="deleteClick(item)"
-                   style=" position: absolute;top: -8px; left: 60px; cursor: pointer;"
-                 ></i>
+                        class="el-icon-close"
+                        @click="deleteClick(item)"
+                        style=" position: absolute;top: -8px; left: 60px; cursor: pointer;"
+                ></i>
                 <el-row>
                     <el-divider>文件上传</el-divider>
                     <el-upload
@@ -189,19 +191,15 @@
                         <i class="el-icon-upload"></i>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                         <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
-
-                        <!--                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">-->
-                        <!--                                上传到服务器-->
-                        <!--                            </el-button>-->
                     </el-upload>
                 </el-row>
                 <el-divider>-</el-divider>
                 <el-row>
-                        <el-form-item label="基准测试" prop="switch">
-                            <el-switch v-model="editForm.type" active-color="#13ce66"
-                                       inactive-color="#ff4949"></el-switch>
-                        </el-form-item>
-                    </el-row>
+                    <el-form-item label="基准测试" prop="switch">
+                        <el-switch v-model="editForm.type" active-color="#13ce66"
+                                   inactive-color="#ff4949"></el-switch>
+                    </el-form-item>
+                </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editFormVisible = false">关闭</el-button>
@@ -216,24 +214,24 @@
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-divider>基本配置</el-divider>
                 <el-row>
-                <el-col :span="12">
-                    <el-form-item label="项目" prop="name">
-                        <el-select v-model="addForm.projectname" placeholder="请选择">
-                            <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                            <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                        </el-select>
-                    </el-form-item>
-                </el-col>
-                <el-col :span="8">
-                    <el-form-item label="版本" prop='version'>
-                        <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                    </el-form-item>
-                </el-col>
-                    </el-row>
+                    <el-col :span="12">
+                        <el-form-item label="项目" prop="name">
+                            <el-select v-model="addForm.projectname" placeholder="请选择">
+                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="版本" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.loadserver" placeholder="请选择服务器"  @click.native="gethost()">
+                            <el-select v-model="addForm.loadserver" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
                                         :key="item.host"
@@ -301,17 +299,28 @@
                     <el-divider>文件上传</el-divider>
                     <el-upload
                             class="upload-demo"
-                            drag
-                            action="/api/stress/upload"
-                            multiple v-model="addForm.upload">
-                        <i class="el-icon-upload"></i>
-                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
-
-                        <!--                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">-->
-                        <!--                                上传到服务器-->
-                        <!--                            </el-button>-->
+                            action="#"
+                            :file-list="fileList"
+                            :on-change="changeData"
+                            :http-request="handleRequest"
+                            :before-upload="beforeUpload">
+                        <el-button class="btn upload-btn">上传附件</el-button>
+                        <div slot="tip" class="el-upload__tip">上传文件大小不超过50M</div>
                     </el-upload>
+                    <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
+<!--                    <el-upload-->
+<!--                            class="upload-demo"-->
+<!--                            drag-->
+<!--                            action="/api/stress/upload"-->
+<!--                            multiple v-model="addForm.upload">-->
+<!--                        <i class="el-icon-upload"></i>-->
+<!--                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>-->
+<!--                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>-->
+
+<!--                        &lt;!&ndash;                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">&ndash;&gt;-->
+<!--                        &lt;!&ndash;                                上传到服务器&ndash;&gt;-->
+<!--                        &lt;!&ndash;                            </el-button>&ndash;&gt;-->
+<!--                    </el-upload>-->
                 </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -326,7 +335,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delStress, disableStress, enableStress,
-        updateStress, addStress, stresssave, getHost,getDictionary,stressTool
+        updateStress, addStress, stresssave, getHost, getDictionary, stressTool,getupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -363,7 +372,7 @@
                     projectname: '',
                     version: '',
                     thread: 1,
-                    type:false
+                    type: false
                 },
 
                 addFormVisible: false,//新增界面是否显示
@@ -387,12 +396,43 @@
                     loadserver: '192.168.1.208',
                     version: '',
                     type: '',
-                    jmeterstatus:false
+                    jmeterstatus: false
                 }
             }
         },
         methods: {
             //展示风险项
+            //上传前对文件大小进行校验
+            beforeUpload(file) {
+                const isLt2M = file.size / 1024 / 1024 < 50;
+                if (!isLt2M) {
+                    this.$message.error('上传文件大小大小不能超过 50MB!');
+                    return isLt2M;
+                }
+            },
+            changeData(file, fileList) {
+                // 数据小于0.1M的时候按KB显示
+                const size = file.size / 1024 / 1024 > 0.1 ? `(${(file.size / 1024 / 1024).toFixed(1)}M)` : `(${(file.size / 1024).toFixed(1)}KB)`
+                file.name.indexOf('M') > -1 || file.name.indexOf('KB') > -1 ? file.name : file.name += size
+            },
+            handleRequest(data) {
+                let params = new FormData()
+                params.append('file', data.file)
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getupload(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        this.data = data.data
+                        var json = JSON.stringify(this.data)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             showdetail(index, row) {
                 this.$router.push({
                     path: '/stressdetail',
@@ -430,7 +470,7 @@
                 const self = this
                 const params = {
                     status: 1,
-                    type:'model'
+                    type: 'model'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getDictionary(headers, params).then((res) => {
@@ -458,7 +498,7 @@
                     let self = this;
                     let params = {
                         id: row.id,
-                        type:true
+                        type: true
                     };
                     let header = {
                         "Content-Type": "application/json",
@@ -492,7 +532,7 @@
                     let self = this;
                     let params = {
                         id: row.id,
-                        type:false
+                        type: false
                     };
                     let header = {
                         "Content-Type": "application/json",
@@ -684,7 +724,7 @@
                             //NProgress.start();
                             let params = {
                                 id: self.editForm.id,
-                                type:self.editForm.type
+                                type: self.editForm.type
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -738,7 +778,7 @@
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
                                 status: true,
-                                jmeterstatus:false,
+                                jmeterstatus: false,
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -790,7 +830,7 @@
                                 ramp: this.addForm.ramp,
                                 loop_count: this.addForm.loop_count,
                                 loop_time: this.addForm.loop_time,
-                                jmeterstatus:false,
+                                jmeterstatus: false,
                                 status: true,
                             });
                             let header = {
