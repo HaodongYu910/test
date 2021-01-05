@@ -34,14 +34,14 @@
                         <span style="margin-left: 10px">{{ scope.row.id }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="服务器" label="服务器" min-width="10%">
+                <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.server }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="version" label="版本" min-width="8%" sortable>
+                <el-table-column prop="patientname" label="patientname" min-width="8%" sortable>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.version }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="diseases" label="病种" min-width="8%" sortable>
@@ -163,15 +163,17 @@
             }
         },
         mounted() {
-            this.getdata();
             this.gethost();
             this.getParams();
+            this.getdata();
         },
         created(){
 			  this.getParams();
+			  this.getdata();
 			  },
 		activated() {
 			  this.getParams();
+			  this.getdata();
 			  },
         methods: {
             getParams() {
