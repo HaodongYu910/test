@@ -828,7 +828,7 @@ class dicomrecord_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom_record
-        fields = ('id', 'version','server', 'patientid', 'studyinstanceuid', 'slicenumber',
+        fields = ('id', 'version','server', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'report', 'status','hostid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -850,7 +850,7 @@ class dicomrecord_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = dicom_record
-        fields = ('version','server', 'patientid', 'studyinstanceuid', 'slicenumber',
+        fields = ('version','server', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'report', 'status','hostid')
 
@@ -866,7 +866,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration_record
         fields = (
-            'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
+            'id', 'patientid','patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
             'aistatus',
             'diagnosis', 'sendserver', 'duration_id', 'sendtime','time','endtime', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -889,7 +889,7 @@ class duration_record_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = duration_record
         fields = (
-        'id', 'patientid', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
+        'id', 'patientid', 'patientname','accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
         'aistatus',
         'diagnosis', 'sendserver', 'duration_id', 'sendtime','time','endtime','create_time')
 
@@ -936,7 +936,7 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = dicom
         fields = (
-        'id', 'patientid', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote', 'server', 'imagecount', 'fileid',
+        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote', 'server', 'imagecount', 'fileid',
         'diagnosis', 'type', 'route')
 
 

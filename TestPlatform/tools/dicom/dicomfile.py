@@ -63,11 +63,12 @@ def fake_folder(src_folder,study_infos,diseases,type,uidInfos,id):
 
             data = {
                 "patientid": patientid,
+                "patientname": patientname,
                 "studyinstanceuid": study_uid,
                 "diseases": diseases,
                 "type": type,
                 "route": folder_fake,
-                "fileid":id
+                "fileid": id
             }
             try:
                 if study_infos.get(study_uid):
