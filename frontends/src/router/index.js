@@ -80,6 +80,13 @@ export default new Router({
 
                 },
                 {
+                    // dds监控界面
+                    path: '/dds',
+                    component: resolve => require(['../components/tool/DDS/dds.vue'], resolve),
+                    meta: { title: 'DDS监控' }
+
+                },
+                {
                     path: '/SmokeList',
                     component: resolve => require(['../components/tool/smoke/Smokelist.vue'], resolve),
                     meta: {title: '金标准列表'}
