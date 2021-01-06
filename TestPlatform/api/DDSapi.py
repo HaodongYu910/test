@@ -106,3 +106,18 @@ class ddsData(APIView):
                                   "total": total,
                                   "count": count
                                   }, code="0", msg="成功")
+
+# class sync_dds_data(APIView):
+#
+#     time_dic = {}
+#     time_dic[1] = {"time":"00:00:00-03:59:59", "success":0, "fail":0, "image":0}
+#     time_dic[2] = {"time":"04:00:00-07:59:59", "success":0, "fail":0, "image":0}
+#     time_dic[3] = {"time":"08:00:00-11:59:59", "success":0, "fail":0, "image":0}
+#     time_dic[4] = {"time":"12:00:00-15:59:59", "success":0, "fail":0, "image":0}
+#     time_dic[5] = {"time":"16:00:00-19:59:59", "success":0, "fail":0, "image":0}
+#     time_dic[6] = {"time":"20:00:00-23:59:59", "success":0, "fail":0, "image":0}
+#     current_time_period = time.localtime()
+#     i = 0
+#     for i in 12:
+#         time_dic[i] = 1
+
