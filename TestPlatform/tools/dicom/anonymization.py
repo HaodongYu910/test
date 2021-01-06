@@ -121,17 +121,6 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                 continue
 
 
-# def nextNumber(addr):
-#     files = os.listdir(addr)
-#     if files:
-#         files.sort(reverse = True)
-#         tmp = files[0]
-#         tmp = tmp.split('.', 1)[0]
-#         tmp = int(tmp) + 1
-#     elif not files:
-#         tmp = 0
-#     return tmp
-
 # 判断该路径下有多少个文件，并返回n+1
 def nextNumber(addr):
     files = os.listdir(addr)
