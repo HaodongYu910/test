@@ -9,7 +9,7 @@
 4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
 '''
 
-import os,shutil
+import os, shutil
 import sys, getopt
 import pydicom
 import logging
@@ -18,6 +18,8 @@ import time, datetime
 import random
 import math
 import pymysql
+
+
 # import requests
 #
 #
@@ -67,12 +69,12 @@ def get_rand_uid():
     return "%08d" % rand_val
 
 
-def get_fake_name(rand_uid,fake_prefix):
+def get_fake_name(rand_uid, fake_prefix):
     ts = time.localtime(time.time())
     return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), norm_string(rand_uid, 6))
 
 
-def sync_send_file(file_name,commands):
+def sync_send_file(file_name, commands):
     # 发送匿名话数据
     try:
         starttime = time.time()
@@ -100,12 +102,12 @@ def get_fake_accession_number(acc_number, rand_uid):
     return norm_string(str, 16)
 
 
-def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo,keyword):
+def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo, keyword):
     if not studyuid_fakeinfo.get(studyuid):
         rand_uid = get_rand_uid()
         info = {
             "rand_uid": rand_uid,
-            "fake_name": get_fake_name(rand_uid,keyword),
+            "fake_name": get_fake_name(rand_uid, keyword),
             "fake_acc_num": get_fake_accession_number(acc_number, rand_uid),
             "cur_date": get_date(),
             "cur_time": get_time()
@@ -117,7 +119,7 @@ def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo,keyword):
 
 
 # 判断是否 同一个 Series
-def delayed(Seriesinstanceuid, image,CONFIG):
+def delayed(Seriesinstanceuid, image, CONFIG):
     if image["count"] == int(CONFIG.get('sleepcount', '')):
         time.sleep(int(CONFIG.get('sleeptime', '')))
         image["count"] = 0
@@ -127,7 +129,7 @@ def delayed(Seriesinstanceuid, image,CONFIG):
 
 
 # 保存发送记录
-def add_record(study_infos, study_uid,sqldata,influxdata):
+def add_record(study_infos, study_uid, sqldata, influxdata):
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid] = study_infos[study_uid] + 1
@@ -138,7 +140,7 @@ def add_record(study_infos, study_uid,sqldata,influxdata):
         else:
             study_infos[study_uid] = 1
             try:
-                sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',sqldata,'INSERT')
+                sqlDB(sqldata, [], 'INSERT')
             except Exception as e:
                 logging.error("更新mysql失败：{0}".format(e))
     except Exception as e:
@@ -146,7 +148,7 @@ def add_record(study_infos, study_uid,sqldata,influxdata):
 
 
 # 遍历文件夹 匿名数据
-def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases,CONFIG):
+def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases, CONFIG):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
     file_names = os.listdir(folder)
@@ -159,7 +161,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases,CONFIG)
+            fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases, CONFIG)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
@@ -173,7 +175,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             study_old_uid = ds.StudyInstanceUID
             Seriesinstanceuid = ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
-            study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos,CONFIG["keyword"])
+            study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos, CONFIG["keyword"])
             rand_uid = study_fakeinfo.get("rand_uid")
             fake_name = study_fakeinfo.get("fake_name")
             fake_acc_number = study_fakeinfo.get("fake_acc_num")
@@ -239,14 +241,14 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
                 "-aet", 'QA38',
                 full_fn_fake
             ]
-            start, end, diff = sync_send_file(full_fn_fake,commands)
+            start, end, diff = sync_send_file(full_fn_fake, commands)
         except Exception as e:
             logging.error('errormsg: failed to sync_send [{0}]'.format(full_fn_fake))
             continue
         try:
-            sqldata = [None, new_patient_id, ds.AccessionNumber, new_study_uid, study_old_uid, None, None,
-                       None, None, CONFIG['ip'],
-                       start, CONFIG.get('durationid', ''), start, start, end, diff,ds.PatientName]
+            sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', NULL, NULL,NULL, NULL, \'{4}\',\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\')".format(
+                new_patient_id, ds.AccessionNumber, new_study_uid, study_old_uid, CONFIG['ip'], start,
+                CONFIG.get('durationid', ''), start, start, end, diff, ds.PatientName)
             influxdata = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime={3},endtime={4},time={5} value=1".format(
                 study_uid, study_old_uid, CONFIG.get('durationid', ''), start, end, diff)
             add_record(
@@ -260,7 +262,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             continue
         try:
             image["count"] = int(image["count"]) + 1
-            delayed(Seriesinstanceuid, image,CONFIG)
+            delayed(Seriesinstanceuid, image, CONFIG)
         except Exception as e:
             logging.error('errormsg: failed delayed{0}]'.format(full_fn_fake))
             continue
@@ -309,7 +311,7 @@ def prepare_config(argv):
     logging.basicConfig(filename=log_file, filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
-
+    logging.info("------start------")
     return CONFIG,log_path
 
 
@@ -325,7 +327,7 @@ def ImageUpdate(study_infos):
 
 
 # 按照时间发送
-def sendtime(sql, image,CONFIG):
+def sendtime(sql, image, CONFIG):
     data = sqlDB(sql, [], 'select')
     count = 0
     start = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -358,10 +360,10 @@ def sendtime(sql, image,CONFIG):
 if __name__ == '__main__':
     try:
         ospid = os.getpid()
-        CONFIG,log_path = prepare_config(sys.argv[1:])
+        CONFIG, log_path = prepare_config(sys.argv[1:])
         folder_fake = "{0}/{1}".format(log_path, str(CONFIG.get('keyword', '')))
     except Exception as e:
-        logging.info("failed to start:{}".format(e))
+        logging.error("failed to start:{}".format(e))
         sys.exit(0)
 
     # 添加 pid号
@@ -395,13 +397,14 @@ if __name__ == '__main__':
                         study_infos=study_infos,
                         image=image,
                         diseases=j[1],
-                        CONFIG = CONFIG
+                        CONFIG=CONFIG
                     )
+                    logging.info("发送成功{}".format(study_infos))
                     ImageUpdate(study_infos)
                     count = count + 1
             if count > end:
                 break
-        pid = sqlDB('select count(1) from pid where pid ="{0}"'.format(ospid),[],'select')
+        pid = sqlDB('select count(1) from pid where pid ="{0}"'.format(ospid), [], 'select')
         if int(pid[0][0]) == 1:
             sqlDB('UPDATE duration set sendstatus = 0 where id ={0}'.format(CONFIG["durationid"]), [], 'update')
             sqlDB('DELETE from pid where pid ="{0}"'.format(ospid), [], 'DELETE')

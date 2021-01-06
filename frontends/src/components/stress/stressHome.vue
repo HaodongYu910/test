@@ -345,7 +345,7 @@
                 filters: {
                     name: ''
                 },
-                project: [],
+                fileid: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -424,7 +424,7 @@
                     const {msg, code, data} = res
                     if (code === '0') {
                         this.data = data.data
-                        var json = JSON.stringify(this.data)
+                        this.fileid.push(this.data)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -777,6 +777,7 @@
                                 ramp: this.editForm.ramp,
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
+                                fileid:this.fileid,
                                 status: true,
                                 jmeterstatus: false,
                             };
@@ -831,6 +832,7 @@
                                 loop_count: this.addForm.loop_count,
                                 loop_time: this.addForm.loop_time,
                                 jmeterstatus: false,
+                                fileid:this.fileid,
                                 status: true,
                             });
                             let header = {

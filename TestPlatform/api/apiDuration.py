@@ -287,7 +287,7 @@ class DisableDuration(APIView):
             okj.sendstatus = False
             okj.save()
             # 删除 文件夹
-            folder="/files/logs/{0}".format(str(okj.keyword))
+            folder="/home/biomind/Biomind_Test_Platform/logs/{0}".format(str(okj.keyword))
             if os.path.exists(folder):
                 shutil.rmtree(folder)
 

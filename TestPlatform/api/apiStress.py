@@ -798,7 +798,14 @@ class addStress(APIView):
 
             with transaction.atomic():
                 Stressadd.is_valid()
-                Stressadd.save()
+                strdata = Stressadd.save()
+            try:
+                for i in data['fileid']:
+                    obj = uploadfile.objects.get(id=i)
+                    obj.fileid = str(strdata.id)
+                    obj.save()
+            except Exception as e:
+                return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
@@ -980,7 +987,7 @@ class StressUpload(APIView):
         :return:
         """
         try:
-            url = '/files/stress'
+            url = '/files1/files'
             File = request.FILES.get("file", None)
             with open("{0}/{1}".format(url,File.name) , 'wb+') as f:
                 # 分块写入文件
