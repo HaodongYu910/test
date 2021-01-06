@@ -1122,7 +1122,8 @@ class dds_data(models.Model):
     orthancImageCount = models.IntegerField(blank=True, null=True, verbose_name="orthancImageCount")
     orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageInsertionTime")
     orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
-
+    ddsFinishTime = models.TimeField(auto_now=False, auto_now_add=False, verbose_name="ddsFinishTime")
+    ddsFinishDate = models.DateField(auto_now=False, auto_now_add=False, verbose_name="ddsFinishDate")
     def __unicode__(self):
         return self.id
 

@@ -816,7 +816,7 @@
                 })
             }
             ,
-            // 匿名
+            // 开始匿名
             startAnon: function () {
                 this.$refs.anonForm.validate((valid) => {
                     if (valid) {

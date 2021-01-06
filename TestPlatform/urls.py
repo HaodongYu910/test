@@ -3,6 +3,7 @@ from rest_framework import routers
 
 from .api import ApiDoc, automationCase as Case, member, dynamic, user, VisitorRecord
 from .api import automationReport as Report
+from .api.DDSapi import *
 from .api.projectList import *
 from .api.global_parameter import *
 from .api.projectTitle import ProjectInfo
@@ -173,5 +174,6 @@ urlpatterns = [
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
     url(r'dicomurl',dicomUrl.as_view()),
-    url(r'tool/anonymization', anonymizationAPI_2nd.as_view())      # 匿名化数据
+    url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
+    # url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]
