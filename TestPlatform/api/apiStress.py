@@ -455,11 +455,11 @@ class stressResult(APIView):
             if type =='jz':
                 prediction = stress_result.objects.filter(version=data['version'],
                                                           type__in=['predictionJZ', 'lung_JZ'])
-                job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_JZ'])
+                job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_jobJZ'])
 
                 predictionb = stress_result.objects.filter(version=data['checkversion'],
                                                            type__in=['predictionJZ', 'lung_JZ'])
-                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobJZ', 'lung_JZ'])
+                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobJZ', 'lung_jobJZ'])
 
                 predictionresult = dataCheck(prediction, predictionb)
                 jobresult = dataCheck(job, jobb)
@@ -527,18 +527,18 @@ class stressResultsave(APIView):
         try:
             obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
+            kc = login_keycloak(obj.hostid)
             if obj.projectname=='晨曦':
                 for i in ['job','prediction']:
-                # jobsaveResult(obj.loadserver, obj.version, checkdate, '')
                     sql = dictionary.objects.get(key=i, type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
-                    saveResult(obj.loadserver, obj.version,i,checkdate,strsql,[])
+                    saveResult(obj.loadserver, obj.version,i,checkdate,strsql,[],kc)
                 for i in obj.testdata.split(","):
                     if int(i) == 9 or int(i) == 12:
-                        lung(checkdate, obj.loadserver, obj.version,i)
+                        lung(checkdate, obj.loadserver, obj.version,i,kc)
 
-            elif obj.projectname=='肺炎':
-                lung(checkdate, obj.loadserver, obj.version,obj.testdata)
+            elif obj.projectname == '肺炎':
+                lung(checkdate, obj.loadserver, obj.version,obj.testdata,kc)
 
             return JsonResponse( code="0", msg="成功")
         except Exception as e:

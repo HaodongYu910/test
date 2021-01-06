@@ -52,12 +52,7 @@ export default new Router({
                     meta: {title: '项目列表'}
                 },
                 {
-                    path: '/table',
-                    component: resolve => require(['../components/page/BaseTable.vue'], resolve),
-                    meta: {title: '环境地址'}
-                },
-                {
-                    path: '/cd',
+                    path: '/message',
                     component: resolve => require(['../components/page/Tabs.vue'], resolve),
                     meta: {title: '消息中心'}
                 },
@@ -225,12 +220,12 @@ export default new Router({
                 },
                 {
                     path: '/404',
-                    component: resolve => require(['../components/page/404.vue'], resolve),
+                    component: resolve => require(['../components/errorpage/404.vue'], resolve),
                     meta: {title: '404'}
                 },
                 {
                     path: '/403',
-                    component: resolve => require(['../components/page/403.vue'], resolve),
+                    component: resolve => require(['../components/errorpage/403.vue'], resolve),
                     meta: {title: '403'}
                 },
                 {

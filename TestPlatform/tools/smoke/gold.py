@@ -54,7 +54,7 @@ def goldSmoke(id):
     # 循环测试数据
     for k in smobj.diseases.split(","):
         try:
-            dicomobj = dicom.objects.filter(fileid=k)
+            dicomobj = dicom.objects.filter(fileid=k.strip())
         except Exception as e:
             logger.error("数据错误")
             continue
@@ -72,7 +72,7 @@ def goldSmoke(id):
                     "diseases": i.diseases,
                     "slicenumber": i.slicenumber,
                     "diagnosis": i.diagnosis,
-                    "type": "Gold",
+                    "type": "gold",
                     "status": True,
                     "hostid":id
                 }

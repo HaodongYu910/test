@@ -53,8 +53,23 @@
                                 title: '项目列表'
                             },
                             {
-                                index: 'data',
+                                index: 'ProjectReport',
                                 title: '自动化报告'
+                            }
+                        ]
+                    },
+                    {
+                        icon: 'el-icon-picture-outline-round',
+                        index: 'uiauto',
+                        title: 'UI自动化',
+                        subs: [
+                            {
+                                index: 'dialog',
+                                title: 'UI列表'
+                            },
+                            {
+                                index: 'charts',
+                                title: 'UI自动化报告'
                             }
                         ]
                     },
@@ -128,21 +143,21 @@
                         index: 'host',
                         title: 'Host配置'
                     },
-                    {
-                        icon: 'el-icon-message',
-                        index: '6',
-                        title: '邮件管理',
-                        subs: [
-                            {
-                                index: 'testreport',
-                                title: '邮件配置'
-                            },
-                            {
-                                index: 'testreport',
-                                title: '邮件模板'
-                            }
-                        ]
-                    },
+                    // {
+                    //     icon: 'el-icon-message',
+                    //     index: '6',
+                    //     title: '邮件管理',
+                    //     subs: [
+                    //         {
+                    //             index: 'testreport',
+                    //             title: '邮件配置'
+                    //         },
+                    //         {
+                    //             index: 'testreport',
+                    //             title: '邮件模板'
+                    //         }
+                    //     ]
+                    // },
                     {
                         icon: 'el-icon-s-tools',
                         index: '7',
@@ -174,7 +189,7 @@
                     },
                     {
                         icon: 'el-icon-message-solid',
-                        index: 'tabs',
+                        index: 'message',
                         title: '消息中心'
                     },
                 ]

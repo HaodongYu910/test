@@ -13,7 +13,7 @@ from ..serializers import stress_Deserializer, \
     dicomdata_Deserializer, duration_Deserializer
 from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
-from ..common.dicom import listUrl
+from ..tools.dicom.dicomdetail import listUrl
 from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
 from ..tools.dicom.dicomdetail import *
@@ -278,7 +278,7 @@ class dicomSend(APIView):
                 if not isinstance(i, int):
                     return JsonResponse(code="999996", msg="参数有误！")
             # 必传参数  server_ip
-            if not data["server_ip"]:
+            if not data["server"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 server_ip！")
 
         except KeyError:
@@ -295,10 +295,14 @@ class dicomSend(APIView):
         if result:
             return result
         try:
+            host = GlobalHost.objects.get(id=data["server"])
             if data['ids']:
                 obj = base_data.objects.filter(id__in=data['ids'])
                 for i in obj:
-                    thread_Send = threading.Thread(target=Send, args=(data["server_ip"], i.content))
+                    dicomobj = dicom.objects.filter(fileid=i.id)
+                    for j in dicomobj:
+                        delete_patients_duration(j.studyinstanceuid, data["server"], "StudyInstanceUID",False)
+                    thread_Send = threading.Thread(target=Send, args=(host.host, i.content))
                     # 启动线程
                     thread_Send.start()
             else:

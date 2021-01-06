@@ -9,8 +9,8 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 from django.db.models import Q
-from ..models import stress,stress_result,dictionary
-from ..serializers import stress_Deserializer
+from TestPlatform.models import stress,stress_result,dictionary
+from TestPlatform.serializers import stress_Deserializer
 # from TestPlatform.common.excel_data import *
 import logging
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。

@@ -8,13 +8,12 @@ from rest_framework.views import APIView
 import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import dicom_record, base_data,smoke
-from TestPlatform.serializers import dicomrecord_Serializer,dicomrecord_Deserializer,smoke_Deserializer,smoke_Serializer
+from TestPlatform.serializers import smoke_Deserializer,smoke_Serializer
 from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..common.stressfigure import *
+from TestPlatform.tools.stress.stressfigure import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

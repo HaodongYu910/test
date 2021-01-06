@@ -6,9 +6,9 @@
                 <el-form-item label="服务器" prop="server">
                     <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
                         <el-option v-for="(item,index) in tags"
-                                   :key="item.host"
+                                   :key="item.id"
                                    :label="item.name"
-                                   :value="item.host"
+                                   :value="item.id"
                         />
                     </el-select>
                 </el-form-item>
@@ -257,7 +257,7 @@
                 addForm: {
                     content: '',
                     select_type: 'dicom',
-                    type: 'test',
+                    type: 'endurance',
                     description: ''
                 }
 
@@ -457,7 +457,7 @@
                     status: true,
                     remarks: null,
                     other: null,
-                    type: 'test',
+                    type: 'endurance',
                     predictor: ''
                 };
             },
@@ -575,7 +575,7 @@
                     const self = this
                     const params = {
                         ids: ids,
-                        server_ip: this.filters.server
+                        server: this.filters.server
                     }
                     const header = {
                         'Content-Type': 'application/json',

@@ -4,7 +4,7 @@ from TestPlatform.serializers import dicomrecord_Serializer
 from ..dicom.dicomdetail import voteData
 from ..stress.PerformanceResult import saveResult
 from .PerformanceResult import lung
-from ...common.dicom import checkuid
+from ..dicom.dicomdetail import checkuid
 from ...utils.keycloak.login_kc import *
 from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import *

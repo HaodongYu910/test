@@ -138,7 +138,7 @@ def add_record(study_infos, study_uid,sqldata,influxdata):
         else:
             study_infos[study_uid] = 1
             try:
-                sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',sqldata,'INSERT')
+                sqlDB('INSERT INTO duration_record values(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',sqldata,'INSERT')
             except Exception as e:
                 logging.error("更新mysql失败：{0}".format(e))
     except Exception as e:
@@ -246,7 +246,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
         try:
             sqldata = [None, new_patient_id, ds.AccessionNumber, new_study_uid, study_old_uid, None, None,
                        None, None, CONFIG['ip'],
-                       start, CONFIG.get('durationid', ''), start, start, end, diff]
+                       start, CONFIG.get('durationid', ''), start, start, end, diff,ds.PatientName]
             influxdata = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime={3},endtime={4},time={5} value=1".format(
                 study_uid, study_old_uid, CONFIG.get('durationid', ''), start, end, diff)
             add_record(
@@ -301,7 +301,7 @@ def prepare_config(argv):
     except Exception as e:
         logging.error("error: failed to get args", e)
 
-    log_path = "{0}/{1}".format('/files/logs', CONFIG["keyword"])
+    log_path = "{0}/{1}".format('/home/biomind/Biomind_Test_Platform/logs', CONFIG["keyword"])
     if not os.path.exists(log_path):
         os.makedirs(log_path)
 
