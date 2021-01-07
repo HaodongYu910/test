@@ -196,19 +196,18 @@ def savecsv(path, graphql_query):
     csv_writer.writerow(graphql_query)
     f.close()
 
-
+# 执行 jmeter 脚本
 def jmeterStress(id):
     obj = stress.objects.get(id=id)
     jmeterobj = uploadfile.objects.filter(fileid=id)
     path = os.path.join(os.getcwd())
-    if not os.path.exists('{0}/stress'.format(path)):
-        os.mkdir(path + '/stress')
+    if not os.path.exists('/home/biomind/logs/stressdata'):
+        os.mkdir('/home/biomind/logs/stressdata')
     else:
-        shutil.rmtree('{0}/stress'.format(path))
-
-        os.mkdir(path + '/stress')
+        shutil.rmtree('/home/biomind/logs/stressdata')
+        os.mkdir('/home/biomind/logs/stressdata')
     list=[obj.loadserver, 'test', 'Asd@123456', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,obj.loop_count]
-    savecsv('{0}/stress/config.csv'.format(path),list)
+    savecsv('/home/biomind/logs/stressdata/config.csv'.format(path),list)
 
     # 循环生成压测数据
     for i in [4,7,8,10]:
@@ -218,13 +217,12 @@ def jmeterStress(id):
         stressdata = connect_to_postgres(obj.loadserver,sql)
 
         for k in stressdata.to_dict(orient='records'):
-            savecsv('{0}/stress/data.csv'.format(path, str(i)), [k["publicid"],k["studyinstanceuid"],k["publicid"],k['modality'],obd.remarks])
+            savecsv('/home/biomind/logs/stressdata/data.csv'.format(path, str(i)), [k["publicid"],k["studyinstanceuid"],k["publicid"],k['modality'],obd.remarks])
     # 执行jmeter
     try:
         for j in jmeterobj:
             start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
-            cmd = 'nohup jmeter -n -t {0}/{1} -l {2}/logs/{3}.jtl -j {4}/logs/jmeter{5}.log &'.format(j.fileurl, j.filename, path,start_time,
-                                                                                      path, start_time)
+            cmd = 'nohup jmeter -n -t {0}/{1} -l /home/biomind/logs/{2}.jtl -j /home/biomind/logs/jmeter{3}.log &'.format(j.fileurl, j.filename,start_time,start_time)
             logger.info(cmd)
             os.system(cmd)
     except Exception as e:

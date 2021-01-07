@@ -304,7 +304,7 @@
                 const self = this
                 const params = {
                     status: 1,
-                    type: 'Gold'
+                    type: 'gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {

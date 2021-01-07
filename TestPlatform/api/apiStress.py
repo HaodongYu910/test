@@ -795,17 +795,23 @@ class addStress(APIView):
         try:
             data["testdata"] =str(data["testdata"])[1:-1]
             Stressadd = stress_Deserializer(data=data)
-
             with transaction.atomic():
                 Stressadd.is_valid()
                 strdata = Stressadd.save()
-            try:
-                for i in data['fileid']:
-                    obj = uploadfile.objects.get(id=i)
-                    obj.fileid = str(strdata.id)
+
+                dict = data['filedict']
+                if dict != {}:
+                    for k,v in dict.items():
+                        try:
+                            obj = uploadfile.objects.get(id=v)
+                            obj.fileid = str(strdata.id)
+                            obj.save()
+                        except Exception as e:
+                            logger.error("更新upload数据失败{0},错误：{1}".format(v,e))
+                            continue
+                    obj = stress.objects.get(id=strdata.id)
+                    obj.jmeterstatus =True
                     obj.save()
-            except Exception as e:
-                return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
@@ -841,6 +847,14 @@ class updateStress(APIView):
         if result:
             return result
         try:
+            try:
+                dict = data['filedict']
+                for k, v in dict.items():
+                    obj = uploadfile.objects.get(id=v)
+                    obj.fileid = str(data["id"])
+                    obj.save()
+            except Exception as e:
+                return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
             data["testdata"] =str(data["testdata"])[1:-1]
             obj = stress.objects.get(id=data["id"])
             serializer = stress_Deserializer(data=data)
@@ -976,31 +990,3 @@ class delStress(APIView):
             return JsonResponse(code="999995", msg="执行失败！")
 
 
-class StressUpload(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def post(self, request):
-        """
-        启用项目
-        :param request:
-        :return:
-        """
-        try:
-            url = '/files1/files'
-            File = request.FILES.get("file", None)
-            with open("{0}/{1}".format(url,File.name) , 'wb+') as f:
-                # 分块写入文件
-                for chunk in File.chunks():
-                    f.write(chunk)
-
-            data={
-                "filename":File.name,
-                "fileurl":url,
-                "type":"stress",
-                "status":False
-            }
-            filedata = uploadfile.objects.create(**data)
-            return JsonResponse(code="0", msg="成功",data=filedata.id)
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="没有需要上传的文件！")
