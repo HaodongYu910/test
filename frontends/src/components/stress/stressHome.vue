@@ -302,25 +302,17 @@
                             action="#"
                             :file-list="fileList"
                             :on-change="changeData"
+                            multiple
                             :http-request="handleRequest"
-                            :before-upload="beforeUpload">
+                            :before-upload="beforeUpload"
+                            :on-remove="handleRemove"
+                            :before-remove="beforeRemove">
+
                         <el-button class="btn upload-btn">上传附件</el-button>
-                        <div slot="tip" class="el-upload__tip">上传文件大小不超过50M</div>
+                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                        <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
                     </el-upload>
                     <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
-<!--                    <el-upload-->
-<!--                            class="upload-demo"-->
-<!--                            drag-->
-<!--                            action="/api/stress/upload"-->
-<!--                            multiple v-model="addForm.upload">-->
-<!--                        <i class="el-icon-upload"></i>-->
-<!--                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>-->
-<!--                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>-->
-
-<!--                        &lt;!&ndash;                            <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">&ndash;&gt;-->
-<!--                        &lt;!&ndash;                                上传到服务器&ndash;&gt;-->
-<!--                        &lt;!&ndash;                            </el-button>&ndash;&gt;-->
-<!--                    </el-upload>-->
                 </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -335,7 +327,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delStress, disableStress, enableStress,
-        updateStress, addStress, stresssave, getHost, getDictionary, stressTool,getupload
+        updateStress, addStress, stresssave, getHost, getDictionary, stressTool,addupload,delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -345,7 +337,8 @@
                 filters: {
                     name: ''
                 },
-                project: [],
+                fileList: {},
+                filedict: {},
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -404,9 +397,9 @@
             //展示风险项
             //上传前对文件大小进行校验
             beforeUpload(file) {
-                const isLt2M = file.size / 1024 / 1024 < 50;
+                const isLt2M = file.size / 1024 / 1024 < 100;
                 if (!isLt2M) {
-                    this.$message.error('上传文件大小大小不能超过 50MB!');
+                    this.$message.error('上传文件大小大小不能超过 100MB!');
                     return isLt2M;
                 }
             },
@@ -415,16 +408,46 @@
                 const size = file.size / 1024 / 1024 > 0.1 ? `(${(file.size / 1024 / 1024).toFixed(1)}M)` : `(${(file.size / 1024).toFixed(1)}KB)`
                 file.name.indexOf('M') > -1 || file.name.indexOf('KB') > -1 ? file.name : file.name += size
             },
+            beforeRemove(file) {
+                const isLt2M = file.size / 1024 / 1024 < 100;
+                if (!isLt2M) {
+                    this.$message.info('文件删除中 ！!');
+                    return isLt2M;
+                }
+            },
+            handleRemove(file, fileList) {
+                console.log(file)
+                var id =this.filedict[file.raw.name]
+                let params = {"id":id,"filename":file.raw.name}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                delupload(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code} = res
+                    if (code === '0') {
+                        self.$message.info({
+                            message: msg,
+                            center: true
+                        })
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             handleRequest(data) {
                 let params = new FormData()
                 params.append('file', data.file)
+                params.append('type', "stress")
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getupload(headers, params).then((res) => {
+                addupload(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.data = data.data
-                        var json = JSON.stringify(this.data)
+                        var filename = data.filename
+                        this.filedict[filename] = data.fileid;
+                        this.$set(this.filedict,data.filename,data.fileid)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -777,6 +800,7 @@
                                 ramp: this.editForm.ramp,
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
+                                filedict:this.filedict,
                                 status: true,
                                 jmeterstatus: false,
                             };
@@ -831,6 +855,7 @@
                                 loop_count: this.addForm.loop_count,
                                 loop_time: this.addForm.loop_time,
                                 jmeterstatus: false,
+                                filedict:this.filedict,
                                 status: true,
                             });
                             let header = {

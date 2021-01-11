@@ -2,7 +2,7 @@
     <div class="">
         <div class="crumbs">
             <el-breadcrumb separator="/">
-                <el-breadcrumb-item><i class="el-icon-lx-copy"></i> tab选项卡</el-breadcrumb-item>
+                <el-breadcrumb-item><i class="el-icon-lx-copy"></i> 消息中心</el-breadcrumb-item>
             </el-breadcrumb>
         </div>
         <div class="container">
@@ -78,18 +78,18 @@
                 message: 'first',
                 showHeader: false,
                 unread: [{
-                    date: '2018-04-19 20:00:00',
+                    date: '2021-01-01 20:00:00',
                     title: '【系统通知】该系统将于今晚凌晨2点到5点进行升级维护',
                 },{
-                    date: '2018-04-19 21:00:00',
-                    title: '今晚12点整发大红包，先到先得',
+                    date: '2021-01-19 21:00:00',
+                    title: '2.16.6 版本性能测试完成 详情请查看---》',
                 }],
                 read: [{
-                    date: '2018-04-19 20:00:00',
+                    date: '2021-01-05 20:00:00',
                     title: '【系统通知】该系统将于今晚凌晨2点到5点进行升级维护'
                 }],
                 recycle: [{
-                    date: '2018-04-19 20:00:00',
+                    date: '2021-01-04 20:00:00',
                     title: '【系统通知】该系统将于今晚凌晨2点到5点进行升级维护'
                 }]
             }

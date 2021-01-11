@@ -8,13 +8,12 @@ from rest_framework.views import APIView
 import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import dicom_record, base_data,smoke
-from TestPlatform.serializers import dicomrecord_Serializer,dicomrecord_Deserializer,smoke_Deserializer,smoke_Serializer
+from TestPlatform.serializers import smoke_Deserializer,smoke_Serializer
 from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..common.stressfigure import *
+from TestPlatform.tools.stress.stressfigure import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -52,12 +51,18 @@ class getSmoke(APIView):
         serialize = smoke_Serializer(obm, many=True)
         for i in serialize.data:
             try:
+                count = dicom_record.objects.filter(hostid=i['id']).aggregate(report_nums=Count("report"))
+                success = dicom_record.objects.filter(hostid=i['id'], report='匹配成功').aggregate(report_nums=Count("report"))
+                fail = dicom_record.objects.filter(hostid=i['id'], report='匹配失败').aggregate(report_nums=Count("report"))
                 # id 转换成病种文案
                 for j in i["diseases"].split(","):
                     obj = base_data.objects.get(id=j)
                     model = model + obj.remarks + ","
                 i["diseases"] = model
                 i["progress"] = '%.2f' % (int(i["progress"])/ int(i["count"]) * 100)
+                i["success"] = success["report_nums"]
+                i["fail"] = fail['report_nums']
+                i["aifail"] = int(count['report_nums']) - int(success["report_nums"]) - int(fail['report_nums'])
                 hostobj = GlobalHost.objects.get(id=i["hostid"])
                 i["hostid"] = hostobj.host
             except Exception as e:
@@ -99,9 +104,12 @@ class AddSmoke(APIView):
         if result:
             return result
         try:
+            count = 0
+            for i in data["diseases"]:
+                obj = dicom.objects.filter(fileid=i)
+                count = count + int(obj.count())
             data["diseases"] = str(data["diseases"])[1:-1]
-            obj = dicom.objects.filter(fileid__in=data["diseases"])
-            data["count"] = obj.count()
+            data["count"] = count
             smokeadd = smoke_Serializer(data=data)
 
             with transaction.atomic():
@@ -370,7 +378,7 @@ class smokeTest(APIView):
             # 执行smoke测试
             try:
                 thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(data["id"]))
+                                                      args=(str(data["id"])))
                 # 启动线程
                 thread_fake_folder.start()
             except Exception as e:

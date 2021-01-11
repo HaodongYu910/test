@@ -298,7 +298,7 @@
                 const params = {
                     selecttype: "dicom",
                     status: 1,
-                    type:"Gold"
+                    type:"gold"
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -326,7 +326,7 @@
                     diseases: self.filters.diseases,
                     server: self.filters.server,
                     slicenumber: self.filters.slicenumber,
-                    type: 'Gold'
+                    type: 'gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdicomdata(headers, params).then((res) => {

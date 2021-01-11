@@ -18,7 +18,7 @@ def delete_patients_duration(key, serverID,type,fuzzy):
     if type =='error':
         sql = "select publicid FROM \"Study\"  where \"StudyInstanceUID\" in (select \"StudyInstanceUID\" FROM \"Study\"  GROUP BY \"StudyInstanceUID\" HAVING count(\"StudyInstanceUID\")>1)"
     elif type =='gold':
-        sqldata =dicom.objects.filter(type='Gold')
+        sqldata =dicom.objects.filter(type='gold')
         strsql ="'"
         for i in sqldata:
             strsql = strsql + str(i.studyinstanceuid)+"','"

@@ -479,6 +479,10 @@ export const getdicomurl = (headers, params) => {
   return axios.post(`${test}/api/dicomurl`, params, headers).then(res => res.data)
 }
 // 上传文件
-export const getupload = (headers, params) => {
-  return axios.post(`${test}/api/stress/upload`, params, headers).then(res => res.data)
+export const addupload = (headers, params) => {
+  return axios.post(`${test}/api/addupload`, params, headers).then(res => res.data)
+}
+// 上传文件
+export const delupload = (headers, params) => {
+  return axios.post(`${test}/api/delupload`, params, headers).then(res => res.data)
 }

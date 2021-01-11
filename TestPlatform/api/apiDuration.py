@@ -14,7 +14,7 @@ from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..common.dicom import anonymousSend
+from ..tools.dicom.dicomdetail import anonymousSend
 from ..common.duration import verifyDuration,durationtotal
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -287,7 +287,7 @@ class DisableDuration(APIView):
             okj.sendstatus = False
             okj.save()
             # 删除 文件夹
-            folder="/files/logs/{0}".format(str(okj.keyword))
+            folder="/home/biomind/Biomind_Test_Platform/logs/{0}".format(str(okj.keyword))
             if os.path.exists(folder):
                 shutil.rmtree(folder)
 

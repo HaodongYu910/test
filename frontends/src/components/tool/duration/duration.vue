@@ -1,13 +1,6 @@
 <template>
     <div class="app-container">
         <div class="filter-container">
-
-            <!--工具条-->
-            <aside>
-                <a href="http://192.168.2.38:9000/" target="_blank">匿名发送dicom数据
-                </a>
-            </aside>
-
             <!--工具条-->
             <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
