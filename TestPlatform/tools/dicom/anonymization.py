@@ -8,7 +8,7 @@ import time
 import logging
 
 logger = logging.getLogger(__name__)
-
+# code may has efficient issues. I didn't release the memory which is allocated by dic.
 
 def norm_string(str, len_norm):
     str_dest = str
@@ -36,23 +36,22 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
         else:
             ds = pydicom.dcmread(full_fn, force=True) # 读取该路径文件的dicom信息
             try:
-                if ds.StudyInstanceUID and ds.PatientID and ds.PatientName:
-
-                    if ds.StudyInstanceUID not in study_infos.keys():
-                        study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}
+                if ds.StudyInstanceUID and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
+                    if ds.StudyInstanceUID not in study_infos.keys():   # 如果UID没在dic里面
+                        study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}  # 在dic里面创建这个UID分支
                     try:
                         if wPID:
                             # 判断pID是否有值
                             if study_infos[ds.StudyInstanceUID]["patientID"]:  # has value
                                 ds.PatientID = study_infos[ds.StudyInstanceUID]["patientID"]
                             elif not study_infos[ds.StudyInstanceUID]["patientID"]:  # no value
-                                ds.PatientID = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum()), 32)
+                                ds.PatientID = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum(4)), 32)
                                 study_infos[ds.StudyInstanceUID]["patientID"] = ds.PatientID
                         if wPN:
                             if study_infos[ds.StudyInstanceUID]["patientName"]:  # PN有值
                                 ds.PatientName = study_infos[ds.StudyInstanceUID]["patientName"]
                             elif not study_infos[ds.StudyInstanceUID]["patientName"]:  # PN没有值
-                                ds.PatientName = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum()), 32)
+                                ds.PatientName = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum(4)), 32)
                                 study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
 
                         # # 判断要不要进行pid和pn的匿名化
@@ -139,10 +138,10 @@ def nextNumber(addr):
         return tmp
 
 # 创建n位随机数
-def randomFourNum():
+def randomFourNum(n):
     num_str = ''
     i = 0
-    while i<4 :
+    while i<n :
         num_str = num_str + str(random.randint(0,9))
         i = i + 1
     return num_str

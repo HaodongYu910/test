@@ -176,5 +176,5 @@ urlpatterns = [
     url(r'todo', todo.as_view()),
     url(r'dicomurl',dicomUrl.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
-    # url(r'tool/sync_dds_data', sync_dds_data.as_view())
+    url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]
