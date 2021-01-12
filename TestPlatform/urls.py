@@ -19,7 +19,7 @@ from .api.apiDicom import *
 from .api.apiDictionary import *
 from .api.apiSmoke import *
 from .api.apiDictionary import *
-
+from .api.apiUpload import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -118,7 +118,8 @@ urlpatterns = [
     url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
-    url(r'stress/upload', StressUpload.as_view()),# 文件上传
+    url(r'addupload', AddUpload.as_view()),# 文件上传
+    url(r'delupload', DelUpload.as_view()),# 文件上传
     url(r'stress/version', stressversion.as_view()),
     url(r'stress/tool', stressRun.as_view()),
     url(r'stress/Detail', stressDetail.as_view()),

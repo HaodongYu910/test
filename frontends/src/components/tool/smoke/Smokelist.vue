@@ -64,7 +64,21 @@
                     <el-progress :text-inside="true" :stroke-width="26" :percentage=scope.row.progress></el-progress>
                 </template>
             </el-table-column>
-
+            <el-table-column prop="success" label="匹配成功" min-width="15%">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.success }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="fail" label="匹配失败" min-width="15%">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.fail }}</span>
+                </template>
+            </el-table-column>
+            <el-table-column prop="aifail" label="执行失败" min-width="15%">
+                <template slot-scope="scope">
+                    <span style="margin-left: 10px">{{ scope.row.aifail }}</span>
+                </template>
+            </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
@@ -189,7 +203,7 @@
     //import NProgress from 'nprogress'
     import {
         getsmoke, DelSmoke, DisableSmoke, EnableSmoke,
-        UpdateSmoke, addSmoke, stresssave, getHost, getbase, stressTool, getupload
+        UpdateSmoke, addSmoke, stresssave, getHost, getbase, getsmokestart, getupload
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -290,7 +304,7 @@
                 const self = this
                 const params = {
                     status: 1,
-                    type: 'Gold'
+                    type: 'gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -449,7 +463,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    stressTool(header, params).then(_data => {
+                    getsmokestart(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({

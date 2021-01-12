@@ -895,6 +895,7 @@ class duration_record(models.Model):
         """
     id = models.AutoField(primary_key=True)
     patientid = models.CharField(max_length=80, blank=True, null=True, verbose_name="patientid")
+    patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="id")
     accessionnumber = models.CharField(max_length=80, blank=True, null=True, verbose_name="accessionnumber")
     studyinstanceuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="数据uid")
     studyolduid = models.CharField(max_length=200, blank=True, null=True, verbose_name="影像张数验证")
@@ -955,6 +956,7 @@ class dicom(models.Model):
         """
     id = models.AutoField(primary_key=True)
     patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
+    patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="id")
     studyinstanceuid = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测类型")
     slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
@@ -1005,7 +1007,8 @@ class dicom_record(models.Model):
         """
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=10, blank=True, null=True, verbose_name="版本")
-    patientid = models.CharField(max_length=30, blank=True, null=True, verbose_name="id")
+    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="id")
+    patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="id")
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
     studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")

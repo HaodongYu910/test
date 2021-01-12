@@ -40,78 +40,85 @@ def updatesmoke(id,count):
     obj = smoke.objects.get(id=id)
     obj.progress =count
     obj.save()
+
 # 冒烟接口请求
 def goldSmoke(id):
     smobj = smoke.objects.get(id=id)
 
     # for i in obj: ids.append(i.id)
-    dicomobj = dicom.objects.filter(fileid__in=smobj.diseases)
+
     kc = login_keycloak(smobj.hostid)
     Hostobj = GlobalHost.objects.get(id=smobj.hostid)
     serverIP = Hostobj.host
     count = 0
     # 循环测试数据
-    for i in dicomobj:
+    for k in smobj.diseases.split(","):
         try:
-            count = count + 1
-            updatesmoke(id, count)
-            objbase = base_data.objects.get(id=i.fileid)
-            objdictionary =dictionary.objects.get(id=objbase.predictor)
-            data = {
-                "version": smobj.version,
-                "patientid": i.patientid,
-                "server":serverIP,
-                "studyinstanceuid": i.studyinstanceuid,
-                "diseases": i.diseases,
-                "slicenumber": i.slicenumber,
-                "diagnosis": i.diagnosis,
-                "type": "Gold",
-                "status": True,
-                "hostid":id
-            }
-            sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-                i.studyinstanceuid)
-            result_db = connect_to_postgres(serverIP, sql)
-            # 无此数据，发送
-            if len(result_db) == 0:
-                Send(smobj.hostid,i.route)
-            # 重复数据 先删除后再发送新数据
-            elif len(result_db) > 2:
-                delete_patients_duration([i], serverIP,'StudyInstanceUID', False)
-                Send(smobj.hostid,i.route)
-
-            graphql_query = "{ ai_biomind (" \
-                            "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
-                                                                           "{ pothers: " \
-                                                                           "{ disable_negative_voting:false} " \
-                                                                           "penable_cached_results:false pconfig:{} " \
-                                                                           "planguage:\"zh-cn\" " \
-                                                                           " puser_id:\"biomind\" " \
-                                                                           "pseries_classifier:" + str(i.vote) + "}" \
-                                                                                                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(objdictionary.value) + "\"]])" \
-                                 " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-            data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            # 调用 手动预测接口
+            dicomobj = dicom.objects.filter(fileid=k.strip())
+        except Exception as e:
+            logger.error("数据错误")
+            continue
+        for i in dicomobj:
             try:
-                prediction = graphql_Interface(graphql_query, kc)
+                count = count + 1
+                updatesmoke(id, count)
+                objbase = base_data.objects.get(id=i.fileid)
+                objdictionary =dictionary.objects.get(id=objbase.predictor)
+                data = {
+                    "version": smobj.version,
+                    "patientid": i.patientid,
+                    "server":serverIP,
+                    "studyinstanceuid": i.studyinstanceuid,
+                    "diseases": i.diseases,
+                    "slicenumber": i.slicenumber,
+                    "diagnosis": i.diagnosis,
+                    "type": "gold",
+                    "status": True,
+                    "hostid":id
+                }
+                sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
+                    i.studyinstanceuid)
+                result_db = connect_to_postgres(serverIP, sql)
+                # 无此数据，发送
+                if len(result_db) == 0:
+                    Send(smobj.hostid,i.route)
+                # 重复数据 先删除后再发送新数据
+                elif len(result_db) > 2:
+                    delete_patients_duration([i], serverIP,'StudyInstanceUID', False)
+                    Send(smobj.hostid,i.route)
+
+                graphql_query = "{ ai_biomind (" \
+                                "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
+                                                                               "{ pothers: " \
+                                                                               "{ disable_negative_voting:false} " \
+                                                                               "penable_cached_results:false pconfig:{} " \
+                                                                               "planguage:\"zh-cn\" " \
+                                                                               " puser_id:\"biomind\" " \
+                                                                               "pseries_classifier:" + str(i.vote) + "}" \
+                                                                                                                       "routes: [[\"generate_series\",\"series_classifier\",\"" + str(objdictionary.value) + "\"]])" \
+                                     " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+                data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                # 调用 手动预测接口
+                try:
+                    prediction = graphql_Interface(graphql_query, kc)
+                except Exception as e:
+                    aiFalse(prediction,data)
+                    continue
+                data["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                result = graphql_ai_status(str(i.studyinstanceuid), kc)
+                if result is False:
+                    data["status"] = False
+                    data["report"] = '预测报错'
+                    saverecord(data)
+                    continue
+                else:
+                    checkdata(result,data)
             except Exception as e:
-                aiFalse(prediction,data)
-                continue
-            data["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            result = graphql_ai_status(str(i.studyinstanceuid), kc)
-            if result is False:
+                logger.error("error:{0}".format(e))
+                data["report"] = '执行失败'
                 data["status"] = False
-                data["report"] = '预测报错'
                 saverecord(data)
                 continue
-            else:
-                checkdata(result,data)
-        except Exception as e:
-            logger.error("error:{0}".format(e))
-            data["report"] = '执行失败'
-            data["status"] = False
-            saverecord(data)
-            continue
 
 def saverecord(data):
     serializer = dicomrecord_Serializer(data=data)
