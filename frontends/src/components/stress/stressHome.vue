@@ -185,13 +185,20 @@
                     <el-divider>文件上传</el-divider>
                     <el-upload
                             class="upload-demo"
-                            drag
-                            action="/api/stress/upload"
-                            multiple>
-                        <i class="el-icon-upload"></i>
+                            action="#"
+                            :file-list="fileList"
+                            :on-change="changeData"
+                            multiple
+                            :http-request="handleRequest"
+                            :before-upload="beforeUpload"
+                            :on-remove="handleRemove"
+                            :before-remove="beforeRemove">
+
+                        <el-button class="btn upload-btn">上传附件</el-button>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                        <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
+                        <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
                     </el-upload>
+                    <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
                 </el-row>
                 <el-divider>-</el-divider>
                 <el-row>
@@ -357,7 +364,7 @@
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
+                        // {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //编辑界面数据
@@ -380,7 +387,7 @@
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
+                        // {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 },
                 //新增界面数据

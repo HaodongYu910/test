@@ -14,9 +14,7 @@ from .api.test_report import *
 from .api.apiDuration import *
 from .api.apiStress import *
 from .api.user_permission import *
-from .api.stressReport import reportfigure
 from .api.apiDicom import *
-from .api.apiDictionary import *
 from .api.apiSmoke import *
 from .api.apiDictionary import *
 from .api.apiUpload import *

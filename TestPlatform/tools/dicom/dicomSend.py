@@ -6,7 +6,7 @@
 1，CONFIG.local：本storescu的信息，包括ae title
 2，CONFIG.server：storescp的信息，包括ae title、ip、port
 3，CONFIG.keyword：发送文件匿名tags（patientID, patientName）的前缀关键词
-4，CONFIG.dicomfolder：需要发送dicom文件的所在目录
+4，CONFIG.folderid：需要发送dicom文件的所在目录id
 '''
 
 import os, shutil
@@ -75,7 +75,7 @@ def get_fake_name(rand_uid, fake_prefix):
 
 
 def sync_send_file(file_name, commands):
-    # 发送匿名话数据
+    # 发送数据
     try:
         starttime = time.time()
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
@@ -102,12 +102,11 @@ def get_fake_accession_number(acc_number, rand_uid):
     return norm_string(str, 16)
 
 
-def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo, keyword):
+def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
     if not studyuid_fakeinfo.get(studyuid):
         rand_uid = get_rand_uid()
         info = {
-            "rand_uid": rand_uid,
-            "fake_name": get_fake_name(rand_uid, keyword),
+            "rand_uid": rand_uid, # "fake_name": get_fake_name(rand_uid, keyword),
             "fake_acc_num": get_fake_accession_number(acc_number, rand_uid),
             "cur_date": get_date(),
             "cur_time": get_time()
@@ -147,7 +146,77 @@ def add_record(study_infos, study_uid, sqldata, influxdata):
         logging.error('errormsg: failed to sql [{0}]'.format(e))
 
 
-# 遍历文件夹 匿名数据
+# 匿名数据
+def anonymization(full_fn,full_fn_fake,CONFIG):
+    try:
+        ds = pydicom.dcmread(full_fn, force=True)
+    except Exception as e:
+        logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
+    study_uid = ''
+    try:
+        study_uid = ds.StudyInstanceUID
+        study_old_uid = ds.StudyInstanceUID
+        Seriesinstanceuid = ds.SeriesInstanceUID
+        acc_number = ds.AccessionNumber
+        study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
+        rand_uid = study_fakeinfo.get("rand_uid")
+        fake_acc_number = study_fakeinfo.get("fake_acc_num")
+        cur_date = study_fakeinfo.get("cur_date")
+        cur_time = study_fakeinfo.get("cur_time")
+    except Exception as e:
+        logging.error(
+            'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+    ds.StudyInstanceUID = norm_string(
+        '{0}.{1}'.format(study_uid, rand_uid), 64)
+
+    series_uid = ''
+    try:
+        series_uid = ds.SeriesInstanceUID
+    except Exception as e:
+        logging.error(
+            'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+    ds.SeriesInstanceUID = norm_string(
+        '{0}.{1}'.format(series_uid, rand_uid), 64)
+
+    instance_uid = ''
+    try:
+        instance_uid = ds.SOPInstanceUID
+    except Exception as e:
+        logging.error(
+            'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+    ds.SOPInstanceUID = norm_string(
+        '{0}.{1}'.format(instance_uid, rand_uid), 64)
+    if CONFIG["patientid"]:
+        ds.PatientID = norm_string(
+            '{0}.{1}'.format(str(CONFIG["patientid"]), rand_uid), 16)
+    if CONFIG["patientname"]:
+        ds.PatientName = norm_string(
+            '{0}.{1}'.format(str(CONFIG["patientname"]), rand_uid), 16)
+
+    ds.AccessionNumber = fake_acc_number
+
+    ds.StudyDate = cur_date
+    ds.StudyTime = cur_time
+    ds.SeriesDate = cur_date
+    ds.SeriesTime = cur_time
+    # ds.ContentDate = cur_date
+    # ds.ContentTime = cur_time
+    # ds.AcquisitionDate = cur_date
+    # ds.AcquisitionTime = cur_time
+
+    # send_time = ds.StudyDate + "-" + ds.StudyTime
+    ds.save_as(full_fn_fake)
+    try:
+        new_study_uid = ds.StudyInstanceUID
+        new_patient_id = ds.PatientID
+        accessionNumber = ds.AccessionNumber
+        new_patient_name = ds.PatientName
+        Seriesinstanceuid = ds.Seriesinstanceuid
+    except Exception as e:
+        logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
+    return new_study_uid,new_patient_id,new_patient_name,study_old_uid,accessionNumber,Seriesinstanceuid
+
+# 遍历文件夹
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases, CONFIG):
     if not os.path.exists(folder_fake):
         os.makedirs(folder_fake)
@@ -163,75 +232,14 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases, CONFIG)
             continue
-        try:
-            ds = pydicom.dcmread(full_fn, force=True)
-        except Exception as e:
-            logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
-            continue
-
-        study_uid = ''
-        try:
-            study_uid = ds.StudyInstanceUID
-            study_old_uid = ds.StudyInstanceUID
-            Seriesinstanceuid = ds.SeriesInstanceUID
-            acc_number = ds.AccessionNumber
-            study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos, CONFIG["keyword"])
-            rand_uid = study_fakeinfo.get("rand_uid")
-            fake_name = study_fakeinfo.get("fake_name")
-            fake_acc_number = study_fakeinfo.get("fake_acc_num")
-            cur_date = study_fakeinfo.get("cur_date")
-            cur_time = study_fakeinfo.get("cur_time")
-        except Exception as e:
-            logging.error(
-                'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-            continue
-        ds.StudyInstanceUID = norm_string(
-            '{0}.{1}'.format(study_uid, rand_uid), 64)
-
-        series_uid = ''
-        try:
-            series_uid = ds.SeriesInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SeriesInstanceUID = norm_string(
-            '{0}.{1}'.format(series_uid, rand_uid), 64)
-
-        instance_uid = ''
-        try:
-            instance_uid = ds.SOPInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SOPInstanceUID = norm_string(
-            '{0}.{1}'.format(instance_uid, rand_uid), 64)
-
-        ds.PatientID = norm_string(
-            '{0}.{1}'.format(str(diseases), rand_uid), 16)
-
-        ds.PatientName = norm_string(
-            fake_name, 16)
-
-        ds.AccessionNumber = fake_acc_number
-
-        ds.StudyDate = cur_date
-        ds.StudyTime = cur_time
-        ds.SeriesDate = cur_date
-        ds.SeriesTime = cur_time
-        # ds.ContentDate = cur_date
-        # ds.ContentTime = cur_time
-        # ds.AcquisitionDate = cur_date
-        # ds.AcquisitionTime = cur_time
-
-        # send_time = ds.StudyDate + "-" + ds.StudyTime
-
-        try:
-            ds.save_as(full_fn_fake)
-            new_study_uid = ds.StudyInstanceUID
-            new_patient_id = ds.PatientID
-        except Exception as e:
-            logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
-            continue
+        if CONFIG['patientname']=='' and CONFIG['patientid']=='':
+            full_fn_fake = full_fn
+        else:
+            try:
+                new_study_uid,new_patient_id,new_patient_name,study_old_uid,accessionNumber,Seriesinstanceuid = anonymization(full_fn, full_fn_fake, CONFIG)
+            except Exception as e:
+                logging.error("")
+                continue
         try:
             commands = [
                 "storescu",
@@ -247,10 +255,10 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             continue
         try:
             sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', NULL, NULL,NULL, NULL, \'{4}\',\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\')".format(
-                new_patient_id, ds.AccessionNumber, new_study_uid, study_old_uid, CONFIG['ip'], start,
-                CONFIG.get('durationid', ''), start, start, end, diff, ds.PatientName)
+                new_patient_id, accessionNumber, new_study_uid, study_old_uid, CONFIG['ip'], start,
+                CONFIG.get('durationid', ''), start, start, end, diff, new_patient_name)
             influxdata = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime={3},endtime={4},time={5} value=1".format(
-                study_uid, study_old_uid, CONFIG.get('durationid', ''), start, end, diff)
+                new_study_uid, study_old_uid, CONFIG.get('durationid', ''), start, end, diff)
             add_record(
                 study_infos=study_infos,
                 study_uid=new_study_uid,
@@ -272,12 +280,12 @@ def prepare_config(argv):
     CONFIG = {}
     try:
         opts, args = getopt.getopt(argv, "h",
-                                   ["aet=", "ip=", "port=", "keyword=", "dicomfolder=", "durationid=",
+                                   ["aet=", "ip=", "port=", "patientid=","patientname=", "folderid=", "durationid=",
                                     "end=", "sleepcount=", "sleeptime=", "series="])
         for opt, arg in opts:
             if opt == '-h':
                 logging.info(
-                    '--aet <aetitle> --ip <ip> --port <port> --keyword <keyword> --dicomfolder <dicomfolder>  --durationid <durationid>  --end <end>')
+                    '--aet <aetitle> --ip <ip> --port <port> --patientid <patientid> --folderid <folderid>  --durationid <durationid>  --end <end>')
                 sys.exit()
             elif opt in ("--aet"):
                 CONFIG["aet"] = arg
@@ -285,10 +293,12 @@ def prepare_config(argv):
                 CONFIG["ip"] = arg
             elif opt in ("--port"):
                 CONFIG["port"] = arg
-            elif opt in ("--keyword"):
-                CONFIG["keyword"] = arg
-            elif opt in ("--dicomfolder"):
-                CONFIG["dicomfolder"] = arg
+            elif opt in ("--patientid"):
+                CONFIG["patientid"] = arg
+            elif opt in ("--patientname"):
+                CONFIG["patientname"] = arg
+            elif opt in ("--folderid"):
+                CONFIG["folderid"] = arg
             elif opt in ("--durationid"):
                 CONFIG["durationid"] = arg
             elif opt in ("--end"):
@@ -302,6 +312,10 @@ def prepare_config(argv):
 
     except Exception as e:
         logging.error("error: failed to get args", e)
+    if CONFIG["patientname"]:
+        CONFIG["keyword"] = CONFIG["patientname"]
+    elif CONFIG["patientid"]:
+        CONFIG["keyword"] = CONFIG["patientid"]
 
     log_path = "{0}/{1}".format('/home/biomind/Biomind_Test_Platform/logs', CONFIG["keyword"])
     if not os.path.exists(log_path):
@@ -368,11 +382,13 @@ if __name__ == '__main__':
 
     # 添加 pid号
     sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')], 'INSERT')
-    sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["dicomfolder"])
+    sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
     image = {}
     image["count"] = 0
     if len(str(CONFIG["end"])) > 10:
         sendtime(sql, image, CONFIG)
+    elif patientid =='' and patientname =='':
+        normalsend(sqlDB(sql, [], 'select'))
     else:
         count = 1
         end = int(CONFIG["end"])

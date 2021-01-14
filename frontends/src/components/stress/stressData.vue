@@ -26,7 +26,7 @@
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
 <!--                    <el-button type="primary" @click="getdetail">同步</el-button>-->
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="handleTB">同步</el-button>
+                    <el-button type="danger" :disabled="this.sels.length===0" @click="handleSynchro">同步</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -40,6 +40,16 @@
                 <el-table-column prop="ID" label="ID" min-width="4%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="patientid" label="patientid" min-width="15%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="patientname" label="patientname" min-width="15%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="studyinstanceuid" label="Studyinstanceuid" min-width="25%">
@@ -648,11 +658,11 @@
                     })
                 })
             },
-            // 批量生成CSV
-            batchCsv: function () {
+            // 批量同步
+            handleSynchro: function () {
                 const ids = this.sels.map(item => item.id)
                 const self = this
-                this.$confirm('确认生成选中记录吗？', '提示', {
+                this.$confirm('确认生成选中记录详细信息吗？', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true
@@ -663,7 +673,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    dicomcsv(header, params).then(_data => {
+                    StressSynchro(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({

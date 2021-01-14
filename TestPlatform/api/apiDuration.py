@@ -14,7 +14,7 @@ from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..tools.dicom.dicomdetail import anonymousSend
+from ..tools.dicom.dicomdetail import anonymousSend,normalSend
 from ..common.duration import verifyDuration,durationtotal
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -325,7 +325,11 @@ class EnableDuration(APIView):
             return result
         # 查找id是否存在
         try:
-            result=anonymousSend(data["id"], "type")
+            obj = duration.objects.get(id=data["id"])
+            if obj.anonymous is True:
+                result= anonymousSend(data["id"], "type")
+            else:
+                result = normalSend(data["id"])
             if result is True:
                 return JsonResponse(code="0", msg="成功")
             else:

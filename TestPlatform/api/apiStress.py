@@ -1,18 +1,18 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from ..models import stress_result,base_data
+from ..models import stress_result, base_data
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
-from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.serializers import dicomdata_Deserializer,stress_Deserializer,stress_record_Serializer
+from ..common.api_response import JsonResponse
+from ..serializers import dicomdata_Deserializer, stress_Deserializer, stress_record_Serializer
 from ..tools.stress.stress import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
-
+from ..tools.stress.stressfigure import stressdataFigure
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -58,11 +58,12 @@ class stressData(APIView):
         if diseases is not None and server is None and slicenumber is None:
             obi = stress_record.objects.filter(diseases__contains=diseases).order_by("-id")
         elif server is not None and diseases is not None and slicenumber is None:
-            obi = stress_record.objects.filter(server__contains=server,diseases__contains=diseases).order_by("-id")
+            obi = stress_record.objects.filter(server__contains=server, diseases__contains=diseases).order_by("-id")
         elif slicenumber is not None and server is None:
             obi = stress_record.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
         elif slicenumber is not None and server is not None:
-            obi = stress_record.objects.filter(server__contains=server,slicenumber__contains=slicenumber).order_by("-id")
+            obi = stress_record.objects.filter(server__contains=server, slicenumber__contains=slicenumber).order_by(
+                "-id")
         else:
             obi = stress_record.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -74,10 +75,18 @@ class stressData(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = stress_record_Serializer(obm, many=True)
+        for i in serialize.data:
+            dictobj = dictionary.objects.get(id=i["diseases"])
+            dicomobj = dicom.objects.get(id=i["stressid"])
+            i["diseases"] = dictobj.value
+            i["patientname"] = dicomobj.patientname
+            i["patientid"] = dicomobj.patientid
+
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
+
 
 class AddStressData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -115,21 +124,22 @@ class AddStressData(APIView):
                     stress_record.objects.get(studyuid=obj.studyinstanceuid)
                     continue
                 except ObjectDoesNotExist:
-                    data ={
+                    data = {
                         "stressid": i,
-                        "studyuid":obj.studyinstanceuid,
-                        "imagecount":obj.imagecount,
-                        "graphql":obj.vote,
-                        "diseases":baseobj.predictor,
-                        "slicenumber":obj.slicenumber,
-                        "benchmarkstatus":False,
-                        "status":True,
-                        "fileurl":obj.route
+                        "studyuid": obj.studyinstanceuid,
+                        "imagecount": obj.imagecount,
+                        "graphql": obj.vote,
+                        "diseases": baseobj.predictor,
+                        "slicenumber": obj.slicenumber,
+                        "benchmarkstatus": False,
+                        "status": True,
+                        "fileurl": obj.route
                     }
                     stress_record.objects.create(**data)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
+
 
 class SynchroStressData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -151,7 +161,7 @@ class SynchroStressData(APIView):
 
     def post(self, request):
         """
-        添加压测数据
+        同步压测数据
         :param request:
         :return:
         """
@@ -160,17 +170,19 @@ class SynchroStressData(APIView):
         if result:
             return result
         try:
+            kc = login_keycloak(1)
             for i in data["ids"]:
                 obj = stress_record.objects.get(id=i)
                 try:
                     checkuid(1, '192.168.1.208', obj.stressid)
                 except ObjectDoesNotExist:
                     logger.error("数据问题{0}".format(obj.studyuid))
-                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid,'192.168.1.208',obj.diseases)
+                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid, '192.168.1.208', obj.diseases, kc)
                 obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
+
 
 class DelStressData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -212,6 +224,7 @@ class DelStressData(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
+
 
 class DisableData(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -287,6 +300,7 @@ class EnableData(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="不存在！")
 
+
 class DisableBenchmarkStatus(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -323,7 +337,8 @@ class DisableBenchmarkStatus(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="不存在！")
 
-#enable
+
+# enable
 class EnableBenchmarkStatus(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -391,22 +406,22 @@ class addData(APIView):
         if result:
             return result
         try:
-            server=data['server']
+            server = data['server']
             if data['studyinstanceuid'] is None:
                 StudyUID = connect_to_postgres(server,
-                                         "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
-                                             data['patientid'])).to_dict(orient='records')
+                                               "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
+                                                   data['patientid'])).to_dict(orient='records')
                 if len(StudyUID) > 1:
                     return JsonResponse(code="999994", msg="数据重复！")
                 else:
                     data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
             else:
                 patientid = connect_to_postgres(server,
-                                               "select \"PatientID\" from \"Study\" where \"StudyInstanceUID\" ='{0}'".format(
-                                                   data['studyinstanceuid'])).to_dict(orient='records')
-                data['patientid']=patientid[0]['PatientID']
+                                                "select \"PatientID\" from \"Study\" where \"StudyInstanceUID\" ='{0}'".format(
+                                                    data['studyinstanceuid'])).to_dict(orient='records')
+                data['patientid'] = patientid[0]['PatientID']
             try:
-                data['vote'],SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
+                data['vote'], SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="数据未预测，请先预测！")
 
@@ -452,7 +467,7 @@ class stressResult(APIView):
 
         try:
             type = data["type"]
-            if type =='jz':
+            if type == 'jz':
                 prediction = stress_result.objects.filter(version=data['version'],
                                                           type__in=['predictionJZ', 'lung_JZ'])
                 job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_jobJZ'])
@@ -477,22 +492,25 @@ class stressResult(APIView):
                 jobresult = dataCheck(job, jobb)
                 diffresult = dataCheck(job, prediction)
             else:
-                prediction = stress_result.objects.filter(version=data['version'], type__in=['prediction','lung_prediction'])
-                job = stress_result.objects.filter(version=data['version'], type__in=['job','lung_job'])
+                prediction = stress_result.objects.filter(version=data['version'],
+                                                          type__in=['prediction', 'lung_prediction'])
+                job = stress_result.objects.filter(version=data['version'], type__in=['job', 'lung_job'])
 
-                predictionb = stress_result.objects.filter(version=data['checkversion'], type__in=['prediction','lung_prediction'])
-                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job','lung_job'])
+                predictionb = stress_result.objects.filter(version=data['checkversion'],
+                                                           type__in=['prediction', 'lung_prediction'])
+                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job', 'lung_job'])
 
                 predictionresult = dataCheck(prediction, predictionb)
                 jobresult = dataCheck(job, jobb)
-                diffresult = dataCheck(job,prediction)
+                diffresult = dataCheck(job, prediction)
             return JsonResponse(data={"predictionresult": predictionresult,
-                                              "jobresult": jobresult,
-                                              "diffresult":diffresult
-                                              }, code="0", msg="成功")
+                                      "jobresult": jobresult,
+                                      "diffresult": diffresult
+                                      }, code="0", msg="成功")
 
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
+
 
 # 保存压力测试预测性能结果
 class stressResultsave(APIView):
@@ -528,19 +546,19 @@ class stressResultsave(APIView):
             obj = stress.objects.get(id=data['id'])
             checkdate = [obj.start_date, obj.end_date]
             kc = login_keycloak(obj.hostid)
-            if obj.projectname=='晨曦':
-                for i in ['job','prediction']:
+            if obj.projectname == '晨曦':
+                for i in ['job', 'prediction']:
                     sql = dictionary.objects.get(key=i, type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
-                    saveResult(obj.loadserver, obj.version,i,checkdate,strsql,[],kc)
+                    saveResult(obj.loadserver, obj.version, i, checkdate, strsql, [], kc)
                 for i in obj.testdata.split(","):
                     if int(i) == 9 or int(i) == 12:
-                        lung(checkdate, obj.loadserver, obj.version,i,kc)
+                        lung(checkdate, obj.loadserver, obj.version, i, kc)
 
             elif obj.projectname == '肺炎':
-                lung(checkdate, obj.loadserver, obj.version,obj.testdata,kc)
+                lung(checkdate, obj.loadserver, obj.version, obj.testdata, kc)
 
-            return JsonResponse( code="0", msg="成功")
+            return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
 
@@ -575,22 +593,22 @@ class stressRun(APIView):
         if result:
             return result
         try:
-            obj = stress.objects.get(id =data['id'])
+            obj = stress.objects.get(id=data['id'])
             HostObj = GlobalHost.objects.get(id=obj.hostid)
             server = HostObj.host
             if obj.start_date is None:
                 obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             else:
-                obj.update_time =datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                obj.update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                manual = threading.Thread(target=Manual,args=(obj.hostid,server,obj.version,data['id']))
+                manual = threading.Thread(target=Manual, args=(obj.hostid, server, obj.version, data['id']))
                 manual.start()
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                Auto = threading.Thread(target=AutoPrediction,args=(obj.hostid,server,obj.testdata,obj.loop_count))
+                Auto = threading.Thread(target=AutoPrediction, args=(obj.hostid, server, obj.testdata, obj.loop_count))
                 Auto.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
@@ -687,7 +705,7 @@ class getStressdata(APIView):
         du = stressdata.data
         for i in du:
             obj = stress_record.objects.filter(stress_id=i["id"],
-                                                 create_time__gte=i["update_time"])
+                                               create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
 
         return JsonResponse(data={"data": stressdata.data
@@ -714,7 +732,7 @@ class stressList(APIView):
 
         # 判断查询数据类型
         if version:
-            obi = stress.objects.filter(version=version,status=True).order_by("-id")
+            obi = stress.objects.filter(version=version, status=True).order_by("-id")
         else:
             obi = stress.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -734,8 +752,8 @@ class stressList(APIView):
                 obj = dictionary.objects.get(id=j)
                 model = model + obj.value + ","
             i["testdata"] = model
-            i["type"] =False
-        return JsonResponse(data={"data":serialize.data,
+            i["type"] = False
+        return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total,
                                   "count": count
@@ -746,7 +764,7 @@ class stressDetail(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
-    def get(self,request):
+    def get(self, request):
         """
                 获取压测详情
                 :param request:
@@ -758,10 +776,11 @@ class stressDetail(APIView):
             stressserializer = stress_Deserializer(obj, many=True)
 
             return JsonResponse(data={"data": stressserializer.data
-                                          }, code="0", msg="成功")
+                                      }, code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
+
 
 # 保存性能测试记录
 class addStress(APIView):
@@ -776,7 +795,7 @@ class addStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["testdata"] or not data["loadserver"]or not data["version"]:
+            if not data["testdata"] or not data["loadserver"] or not data["version"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 stress, loadserver！")
 
         except KeyError:
@@ -793,7 +812,7 @@ class addStress(APIView):
         if result:
             return result
         try:
-            data["testdata"] =str(data["testdata"])[1:-1]
+            data["testdata"] = str(data["testdata"])[1:-1]
             Stressadd = stress_Deserializer(data=data)
             with transaction.atomic():
                 Stressadd.is_valid()
@@ -801,16 +820,16 @@ class addStress(APIView):
 
                 dict = data['filedict']
                 if dict != {}:
-                    for k,v in dict.items():
+                    for k, v in dict.items():
                         try:
                             obj = uploadfile.objects.get(id=v)
                             obj.fileid = str(strdata.id)
                             obj.save()
                         except Exception as e:
-                            logger.error("更新upload数据失败{0},错误：{1}".format(v,e))
+                            logger.error("更新upload数据失败{0},错误：{1}".format(v, e))
                             continue
                     obj = stress.objects.get(id=strdata.id)
-                    obj.jmeterstatus =True
+                    obj.jmeterstatus = True
                     obj.save()
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
@@ -855,7 +874,7 @@ class updateStress(APIView):
                     obj.save()
             except Exception as e:
                 return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
-            data["testdata"] =str(data["testdata"])[1:-1]
+            data["testdata"] = str(data["testdata"])[1:-1]
             obj = stress.objects.get(id=data["id"])
             serializer = stress_Deserializer(data=data)
             with transaction.atomic():
@@ -942,7 +961,6 @@ class EnableStress(APIView):
             return JsonResponse(code="999995", msg="不存在！")
 
 
-
 # 删除dicom 发送记录
 class delStress(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -990,3 +1008,56 @@ class delStress(APIView):
             return JsonResponse(code="999995", msg="执行失败！")
 
 
+# 性能图表
+class reportfigure(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 version
+            if not data["type"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 type！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        预测时间 压测结果
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            type = data["type"]
+            if type == 'jz':
+                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
+                                                                     ["predictionJZ", "jobJZ", "lung_JZ",
+                                                                      "lung_jobJZ"])
+            elif type == 'dy':
+                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
+                                                                     ["predictiondy", "jobdy", "lung_dy",
+                                                                      "lung_jobdy"])
+            else:
+                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
+                                                                     ["prediction", "job", "lung_prediction",
+                                                                      "lung_job"])
+
+            return JsonResponse(data={"modlename": predictionData[1],
+                                      "lungname": lungData[1],
+                                      "predictionFigure": predictionData[0],
+                                      "jobFigure": jobData[0],
+                                      "lungFigure": lungData[0],
+                                      "lungjobFigure": lungjobData[0]
+                                      }, code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(msg="失败", code="999991", exception=e)

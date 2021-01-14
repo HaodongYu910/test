@@ -82,18 +82,18 @@
                 <el-table-column label="标准" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.report)">{{ scope.row.diagnosis }}</span>
+                              :class="valuestatus(scope.row.result)">{{ scope.row.diagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="实际" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px" :class="valuestatus(scope.row.report)">{{ scope.row.aidiagnosis }}</span>
+                        <span style="margin-left: 10px" :class="valuestatus(scope.row.result)">{{ scope.row.aidiagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="结果" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.report)">{{ scope.row.report }}</span>
+                              :class="valuestatus(scope.row.result)">{{ scope.row.result }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" min-width="8px">
@@ -122,7 +122,7 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, deldicomreport, getdicomurl
+        getHost, getsmokerecord, getsmokestart, getbase, deldicomresult, getdicomurl
     } from '@/router/api'
     import {stresssave} from "../../../router/api";
 
@@ -404,7 +404,7 @@
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    deldicomreport(header, params).then(_data => {
+                    deldicomresult(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
                             self.$message({
