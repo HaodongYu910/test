@@ -795,6 +795,8 @@
                 this.anonFormVisible = true
                 this.anonForm = {
                     anon_addr: '',
+                    anon_disease: '',
+                    appointed_addr:'',
                     wPN: true,
                     wPID: true
                 }
