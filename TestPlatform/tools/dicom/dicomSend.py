@@ -147,15 +147,16 @@ def add_record(study_infos, study_uid, sqldata, influxdata):
 
 
 # 匿名数据
-def anonymization(full_fn,full_fn_fake,CONFIG):
+def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
     try:
         ds = pydicom.dcmread(full_fn, force=True)
     except Exception as e:
         logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
     study_uid = ''
+    series_uid = ''
     try:
         study_uid = ds.StudyInstanceUID
-        study_old_uid = ds.StudyInstanceUID
+        studyolduid = ds.StudyInstanceUID
         Seriesinstanceuid = ds.SeriesInstanceUID
         acc_number = ds.AccessionNumber
         study_fakeinfo = get_study_fakeinfo(study_uid, acc_number, study_fakeinfos)
@@ -168,8 +169,6 @@ def anonymization(full_fn,full_fn_fake,CONFIG):
             'failed to fake studyinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
     ds.StudyInstanceUID = norm_string(
         '{0}.{1}'.format(study_uid, rand_uid), 64)
-
-    series_uid = ''
     try:
         series_uid = ds.SeriesInstanceUID
     except Exception as e:
@@ -188,10 +187,10 @@ def anonymization(full_fn,full_fn_fake,CONFIG):
         '{0}.{1}'.format(instance_uid, rand_uid), 64)
     if CONFIG["patientid"]:
         ds.PatientID = norm_string(
-            '{0}.{1}'.format(str(CONFIG["patientid"]), rand_uid), 16)
+            '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientid"]), rand_uid), 24)
     if CONFIG["patientname"]:
         ds.PatientName = norm_string(
-            '{0}.{1}'.format(str(CONFIG["patientname"]), rand_uid), 16)
+            '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientname"]), rand_uid), 24)
 
     ds.AccessionNumber = fake_acc_number
 
@@ -205,16 +204,17 @@ def anonymization(full_fn,full_fn_fake,CONFIG):
     # ds.AcquisitionTime = cur_time
 
     # send_time = ds.StudyDate + "-" + ds.StudyTime
-    ds.save_as(full_fn_fake)
     try:
-        new_study_uid = ds.StudyInstanceUID
-        new_patient_id = ds.PatientID
-        accessionNumber = ds.AccessionNumber
-        new_patient_name = ds.PatientName
-        Seriesinstanceuid = ds.Seriesinstanceuid
+        ds.save_as(full_fn_fake)
     except Exception as e:
         logging.error('errormsg: failed to save file [{0}]'.format(full_fn_fake))
-    return new_study_uid,new_patient_id,new_patient_name,study_old_uid,accessionNumber,Seriesinstanceuid
+    logging.info("ds.StudyInstanceUID:{}".format(ds.StudyInstanceUID))
+    logging.info("ds.PatientID:{0}".format(ds.PatientID))
+    logging.info("ds.PatientName:{0}".format(ds.PatientName))
+    logging.info("ds.AccessionNumber:{0}".format(ds.AccessionNumber))
+    logging.info("ds.studyolduid:{0}".format(studyolduid))
+    logging.info("ds.Seriesinstanceuid:{0}".format(Seriesinstanceuid))
+    return ds.StudyInstanceUID,ds.PatientID,ds.PatientName,studyolduid,ds.AccessionNumber,Seriesinstanceuid
 
 # 遍历文件夹
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases, CONFIG):
@@ -232,13 +232,21 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases, CONFIG)
             continue
-        if CONFIG['patientname']=='' and CONFIG['patientid']=='':
+        if CONFIG['patientname'] == 'patientname' and CONFIG['patientid'] == 'patientid':
+            ds = pydicom.dcmread(full_fn, force=True)
+            newstudyuid = ds.StudyInstanceUID
+            newpatientid = 'newpatientid'
+            newpatientname =' PatientName'
+            studyolduid = ds.StudyInstanceUID
+            accessionNumber = 'AccessionNumber'
+            Seriesinstanceuid = ''
             full_fn_fake = full_fn
+            logging.info(full_fn_fake)
         else:
             try:
-                new_study_uid,new_patient_id,new_patient_name,study_old_uid,accessionNumber,Seriesinstanceuid = anonymization(full_fn, full_fn_fake, CONFIG)
+                newstudyuid,newpatientid,newpatientname,studyolduid,accessionNumber,Seriesinstanceuid = anonymization(full_fn, full_fn_fake,diseases, CONFIG)
             except Exception as e:
-                logging.error("")
+                logging.error("{0}{1}{2}{3}{4}{5}".format(newstudyuid,newpatientid,newpatientname,studyolduid,accessionNumber,Seriesinstanceuid))
                 continue
         try:
             commands = [
@@ -255,13 +263,13 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             continue
         try:
             sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', NULL, NULL,NULL, NULL, \'{4}\',\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\')".format(
-                new_patient_id, accessionNumber, new_study_uid, study_old_uid, CONFIG['ip'], start,
-                CONFIG.get('durationid', ''), start, start, end, diff, new_patient_name)
+                newpatientid, accessionNumber, newstudyuid, studyolduid, CONFIG['ip'], start,
+                CONFIG.get('durationid', ''), start, start, end, diff, newpatientname)
             influxdata = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime={3},endtime={4},time={5} value=1".format(
-                new_study_uid, study_old_uid, CONFIG.get('durationid', ''), start, end, diff)
+                newstudyuid, studyolduid, CONFIG.get('durationid', ''), start, end, diff)
             add_record(
                 study_infos=study_infos,
-                study_uid=new_study_uid,
+                study_uid=newstudyuid,
                 sqldata=sqldata,
                 influxdata=influxdata
             )
@@ -325,7 +333,6 @@ def prepare_config(argv):
     logging.basicConfig(filename=log_file, filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
-    logging.info("------start------")
     return CONFIG,log_path
 
 
@@ -387,8 +394,6 @@ if __name__ == '__main__':
     image["count"] = 0
     if len(str(CONFIG["end"])) > 10:
         sendtime(sql, image, CONFIG)
-    elif patientid =='' and patientname =='':
-        normalsend(sqlDB(sql, [], 'select'))
     else:
         count = 1
         end = int(CONFIG["end"])

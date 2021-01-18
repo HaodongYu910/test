@@ -1067,6 +1067,78 @@ class smoke_record(models.Model):
         db_table = 'smoke_record'
 
 
+class autotest(models.Model):
+    """
+          autotest测试表
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
+    setup = models.CharField(max_length=20, blank=True, null=True, verbose_name="setup用例")
+    cases = models.CharField(max_length=20, blank=True, null=True, verbose_name="用例")
+    tearDown = models.CharField(max_length=20, blank=True, null=True, verbose_name="tearDown用例")
+    progress = models.CharField(max_length=5, blank=True, null=True, verbose_name="进度")
+    thread = models.CharField(max_length=5, blank=True, null=True, verbose_name="线程数")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
+    total = models.CharField(max_length=5, blank=True, null=True, verbose_name="count")
+    hostid = models.IntegerField(default=False, verbose_name='hostid')
+    report = models.CharField(max_length=80, blank=True, null=True, verbose_name="报告")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "autotest测试表"
+        verbose_name_plural = "autotest测试表"
+        db_table = 'autotest'
+
+class auto_case(models.Model):
+    """
+          auto_record记录表
+    """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="名称")
+    testdata = models.CharField(max_length=100, blank=True, null=True, verbose_name="关联测试数据")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "auto_case"
+        verbose_name_plural = "auto_case"
+        db_table = 'auto_case'
+
+class auto_record(models.Model):
+    """
+          auto_record记录表
+    """
+    id = models.AutoField(primary_key=True)
+    aistatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="预测结果")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始时间")
+    completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束时间")
+    result = models.TextField(max_length=2500, blank=True, null=True, verbose_name="结果")
+    type = models.TextField(max_length=10, blank=True, null=True, verbose_name="类型")
+    caseid = models.IntegerField(default=False, verbose_name='caseid')
+    testid = models.IntegerField(default=False, verbose_name="关联测试数据")
+    autoid = models.IntegerField(default=False, verbose_name='autoid')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "auto_record"
+        verbose_name_plural = "auto_record"
+        db_table = 'auto_record'
+
 class pid(models.Model):
     """
           pid表
@@ -1157,6 +1229,7 @@ class dds_data(models.Model):
     orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
     ddsFinishTime = models.TimeField(auto_now=False, auto_now_add=False, verbose_name="ddsFinishTime")
     ddsFinishDate = models.DateField(auto_now=False, auto_now_add=False, verbose_name="ddsFinishDate")
+
     def __unicode__(self):
         return self.id
 

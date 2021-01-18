@@ -57,21 +57,25 @@ def dicomsavecsv(ids):
 def normalSend(id):
     obj = duration.objects.get(id=id)
     for i in obj.dicom.split(","):
-        dicomobj = dicom.objects.get(fileid=i)
+        try:
+            dicomobj = dicom.objects.filter(fileid=str(i))
+        except Exception as e:
+            continue
         for j in dicomobj:
-            delete_patients_duration(j.studyinstanceuid, obj.hostid, 'studyinstanceuid', False)
+            delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
            ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
            '--ip {0} --aet {1} '
            '--port {2} '
-           '--keyword {3} '
-           '--folderid {4} '
-           '--durationid {5} '
-           '--end {6} '
-           '--sleepcount {7} '
-           '--sleeptime {8} '
-           '--series {9} &').format(obj.server, obj.aet, obj.port,'normal', i, id,
-                                    0, 9999, 1, obj.series)
+           '--patientid {3} '
+           '--patientname {4} '
+           '--folderid {5} '
+           '--durationid {6} '
+           '--end {7} '
+           '--sleepcount {8} '
+           '--sleeptime {9} '
+           '--series {10} &').format(obj.server, obj.aet, obj.port,'patientid','patientname', i, id,
+                                    int(dicomobj.count()), 9999, 1, obj.series)
 
         logger.info(cmd)
         os.system(cmd)
@@ -114,13 +118,14 @@ def anonymousSend(id, type):
                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                    '--ip {0} --aet {1} '
                    '--port {2} '
-                   '--keyword {3} '
-                   '--folderid {4} '
-                   '--durationid {5} '
-                   '--end {6} '
-                   '--sleepcount {7} '
-                   '--sleeptime {8} '
-                   '--series {9} &').format(obj.server, obj.aet, obj.port, obj.keyword, i, id,
+                   '--patientid {3} '
+                   '--patientname {4} '
+                   '--folderid {5} '
+                   '--durationid {6} '
+                   '--end {7} '
+                   '--sleepcount {8} '
+                   '--sleeptime {9} '
+                   '--series {10} &').format(obj.server, obj.aet, obj.port, obj.patientid,obj.patientname, i, id,
                                             end, sleepcount, sleeptime, obj.series)
 
             logger.info(cmd)

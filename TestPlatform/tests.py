@@ -48,6 +48,3 @@
 # #     p.start()
 # #     p.join()
 # #     pa.start()
-a=''
-if a:
-    print(1)
