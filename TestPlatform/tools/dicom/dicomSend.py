@@ -186,9 +186,13 @@ def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
     ds.SOPInstanceUID = norm_string(
         '{0}.{1}'.format(instance_uid, rand_uid), 64)
     if CONFIG["patientid"]:
+        if CONFIG["patientid"] == 'None':
+            CONFIG["patientid"] = ''
         ds.PatientID = norm_string(
             '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientid"]), rand_uid), 24)
     if CONFIG["patientname"]:
+        if CONFIG["patientname"] == 'None':
+            CONFIG["patientname"] = ''
         ds.PatientName = norm_string(
             '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientname"]), rand_uid), 24)
 

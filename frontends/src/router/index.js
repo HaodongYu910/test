@@ -88,6 +88,19 @@ export default new Router({
                     meta: { title: 'UI用例' }
 
                 },
+                {
+                    path: '/UICase/caseid=:caseid',
+                    component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                    meta: {title: 'UI用例详情'},
+                    hidden: true,
+                    children: [
+                        {
+                            path: '/UICase/caseid=:caseid',
+                            component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                            meta: {title: 'UI用例详情'}, name: 'UI用例详情', leaf: true
+                        }
+                    ]
+                },
                 // UI列表
                 {
                     path: '/UIList',
@@ -102,7 +115,7 @@ export default new Router({
                     hidden: true,
                     children: [
                         {
-                            path: '/Smoke/smokeid=:smokeid',
+                            path: '/UI/UIid=:UIid',
                             component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
                             meta: {title: 'UI自动化详情'}, name: 'UI自动化详情', leaf: true
                         }

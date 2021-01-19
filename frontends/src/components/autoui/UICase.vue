@@ -28,8 +28,8 @@
             <el-table-column prop="filename" label="用例名称" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ name: '概况', params: {id: scope.row.id}}"
-                                 style='text-decoration: none;color: #000000;'>
+                    <router-link v-if="scope.row.status" :to="{ name: 'UI用例详情', params: {caseid: scope.row.id}}"
+                                 style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.name }}
                     </router-link>
                     {{ !scope.row.status?scope.row.filename:""}}
@@ -55,10 +55,10 @@
             </el-table-column>
             <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
-                    <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">修改</el-button>
-                    <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">调试</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">删除</el-button>
+                    <el-button type="warning" size="small" @click="handleDetail(scope.$index, scope.row)">查看</el-button>
+                    <el-button type="info" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    <el-button type="primary" size="small" @click="handleDebug(scope.$index, scope.row)">调试</el-button>
+                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
                     <!--                        {{scope.row.status===false?'启用':'禁用'}}-->
                     <!--                    </el-button>-->

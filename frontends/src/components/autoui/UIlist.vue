@@ -371,7 +371,7 @@
                         this.total = data.total
                         this.list = data.data
                         var json = JSON.stringify(this.list)
-                        this.case = JSON.parse(json)
+                        this.testcase = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,

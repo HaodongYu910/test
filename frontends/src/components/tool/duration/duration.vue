@@ -20,37 +20,44 @@
                 </el-form>
             </el-col>
 
-
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
-                      width="95%">
-                <el-table-column type="selection" min-width="5%">
-                </el-table-column>
+                      width="120%">
+                <el-table-column prop="anonymous" label="匿名状态" min-width="12%">
+                <template slot-scope="scope">
+                        <img v-show="scope.row.anonymous"
+                             style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/qidong.png"/>
+                        <img v-show="!scope.row.anonymous"
+                             style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/fou.png"/>
+                    </template>
+            </el-table-column>
                 <el-table-column prop="type" label="服务器" min-width="20%">
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
-                                     style='text-decoration: none;color: #000000;'>
+                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationid: scope.row.id}}"
+                                     style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="12%">
+                <el-table-column prop="type" label="匿名名称" min-width="25%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
+                        <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="发送类型" min-width="25%">
+                <el-table-column prop="type" label="发送类型" min-width="20%" sortable show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="预发送数量" min-width="10%">
+                <el-table-column label="预计数量" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="实际已发送" min-width="12%">
+                <el-table-column label="实际数量" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
                     </template>
