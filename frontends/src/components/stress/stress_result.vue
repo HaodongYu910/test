@@ -3,6 +3,38 @@
 
         <div class="filter-container">
             <!--工具条-->
+                <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+                    <el-form :inline="true" :model="filters" @click.native="getreportData()">
+                        <el-select v-model="filters.type" placeholder="类型">
+                            <el-option key="jz" label="基准测试" value="jz"/>
+                            <el-option key="hh" label="混合测试" value="hh"/>
+                            <el-option key="dy" label="单一测试" value="dy"/>
+                        </el-select>
+                        <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
+                            <el-option
+                                    v-for="(item,index) in versions"
+                                    :key="item.version"
+                                    :label="item.version"
+                                    :value="item.version"
+                            />
+                        </el-select>
+                        <el-select v-model="filters.checkversion" placeholder="以前版本" @click.native="getversion()">
+                            <el-option
+                                    v-for="(item,index) in versions"
+                                    :key="item.version"
+                                    :label="item.version"
+                                    :value="item.version"
+                            />
+                        </el-select>
+                        <el-form-item>
+                            <el-button type="primary" @click="getstresslist">查询</el-button>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button type="primary" @click="handleAdd">生成报告</el-button>
+                        </el-form-item>
+                    </el-form>
+                </el-col>
+            <!--图表-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
                 <el-card shadow="hover" style="width:100%;height:600px;">
                     <el-row :gutter="50">
@@ -40,38 +72,7 @@
                         </el-col>
                     </el-row>
                 </el-card>
-                <!--工具条-->
-                <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-select v-model="filters.type" placeholder="类型">
-                            <el-option key="jz" label="基准测试" value="jz"/>
-                            <el-option key="hh" label="混合测试" value="hh"/>
-                            <el-option key="dy" label="单一测试" value="dy"/>
-                        </el-select>
-                        <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
-                            <el-option
-                                    v-for="(item,index) in versions"
-                                    :key="item.version"
-                                    :label="item.version"
-                                    :value="item.version"
-                            />
-                        </el-select>
-                        <el-select v-model="filters.checkversion" placeholder="以前版本" @click.native="getversion()">
-                            <el-option
-                                    v-for="(item,index) in versions"
-                                    :key="item.version"
-                                    :label="item.version"
-                                    :value="item.version"
-                            />
-                        </el-select>
-                        <el-form-item>
-                            <el-button type="primary" @click="getstresslist">查询</el-button>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="handleAdd">生成报告</el-button>
-                        </el-form-item>
-                    </el-form>
-                </el-col>
+
                 <!--列表-->
                 <span style="margin-left: 15px" class="title">Prediction Time</span>
                 <el-table :data="prediction" v-loading="listLoading"
@@ -607,7 +608,7 @@
             getreportData() {
                 let params = {
                     "version": "Boimind",
-                    "type": "prediction"
+                    "type": this.filters.type
                 };
                 let headers = {
                     "Content-Type": "application/json"

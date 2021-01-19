@@ -8,13 +8,10 @@ from rest_framework.views import APIView
 import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.serializers import smoke_Deserializer,smoke_Serializer
+from TestPlatform.serializers import smoke_Deserializer,smoke_Serializer,smokerecord_Serializer
 from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.duration_verify import *
-from ..tools.stress.PerformanceResult import *
-from TestPlatform.tools.stress.stressfigure import *
-
+from ..models import smoke_record
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
@@ -47,22 +44,22 @@ class getSmoke(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        model =''
         serialize = smoke_Serializer(obm, many=True)
         for i in serialize.data:
+            model = ''
             try:
-                count = dicom_record.objects.filter(hostid=i['id']).aggregate(report_nums=Count("report"))
-                success = dicom_record.objects.filter(hostid=i['id'], report='匹配成功').aggregate(report_nums=Count("report"))
-                fail = dicom_record.objects.filter(hostid=i['id'], report='匹配失败').aggregate(report_nums=Count("report"))
+                count = smoke_record.objects.filter(smokeid=i['id']).aggregate(result_nums=Count("result"))
+                success = smoke_record.objects.filter(smokeid=i['id'], result='匹配成功').aggregate(result_nums=Count("result"))
+                fail = smoke_record.objects.filter(smokeid=i['id'], result='匹配失败').aggregate(result_nums=Count("result"))
                 # id 转换成病种文案
                 for j in i["diseases"].split(","):
                     obj = base_data.objects.get(id=j)
                     model = model + obj.remarks + ","
                 i["diseases"] = model
                 i["progress"] = '%.2f' % (int(i["progress"])/ int(i["count"]) * 100)
-                i["success"] = success["report_nums"]
-                i["fail"] = fail['report_nums']
-                i["aifail"] = int(count['report_nums']) - int(success["report_nums"]) - int(fail['report_nums'])
+                i["success"] = success["result_nums"]
+                i["fail"] = fail['result_nums']
+                i["aifail"] = int(count['result_nums']) - int(success["result_nums"]) - int(fail['result_nums'])
                 hostobj = GlobalHost.objects.get(id=i["hostid"])
                 i["hostid"] = hostobj.host
             except Exception as e:
@@ -131,10 +128,10 @@ class UpdateSmoke(APIView):
         """
         try:
             # 校验project_id类型为int
-            if not isinstance(data["id"], int):
+            if not isinstance(data["hostid"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
             # 必传参数 content, predictor , type
-            if not data["hostid"] or not data["version"]:
+            if not data["id"] or not data["version"]:
                 return JsonResponse(code="999996", msg="参数有误 必传参数 content, predictor , type！")
 
         except KeyError:
@@ -164,14 +161,14 @@ class UpdateSmoke(APIView):
             try:
                 obj = dicom.objects.filter(fileid=data["id"])
                 for i in obj:
-                    i.diseases =data["remarks"]
+                    i.diseases = data["remarks"]
                     i.save()
             except ObjectDoesNotExist:
                 return JsonResponse(code="999998", msg="失败")
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
-                    serializer.update(instance=baseobj, validated_data=data)
+                    serializer.update(instance=smokeobj, validated_data=data)
                     return JsonResponse(code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg="失败")
@@ -319,11 +316,11 @@ class smokeRecord(APIView):
             status = ''
 
         if diseases != '' and status != '':
-            obi = dicom_record.objects.filter(diseases__contains=diseases, status=status, hostid=smokeid).order_by("-id")
+            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by("-id")
         elif diseases == ''  and status != '':
-            obi = dicom_record.objects.filter(diseases__contains=diseases,status=status,hostid=smokeid).order_by("-id")
+            obi = smoke_record.objects.filter(diseases__contains=diseases,status=status,smokeid=smokeid).order_by("-id")
         else:
-            obi = dicom_record.objects.filter(hostid=smokeid).order_by("-id")
+            obi = smoke_record.objects.filter(smokeid=smokeid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -332,7 +329,7 @@ class smokeRecord(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = dicomrecord_Serializer(obm, many=True)
+        serialize = smokerecord_Serializer(obm, many=True)
         for i in serialize.data:
             # 求预测时间
             if i['completiontime'] is not None and i['starttime'] is not None:
@@ -377,6 +374,8 @@ class smokeTest(APIView):
         try:
             # 执行smoke测试
             try:
+                obj = smoke_record.objects.filter(smokeid=str(data["id"]))
+                obj.delete()
                 thread_fake_folder = threading.Thread(target=goldSmoke,
                                                       args=(str(data["id"])))
                 # 启动线程
@@ -426,9 +425,9 @@ class smokefigure(APIView):
             versions = smoke.objects.filter(status=True)
             for i in versions:
                 goldcolumns.append(i.version)
-                count = dicom_record.objects.filter(hostid=i.id).aggregate(report_nums=Count("report"))
-                success = dicom_record.objects.filter(hostid=i.id,report='匹配成功').aggregate(report_nums=Count("report"))
-                fail = dicom_record.objects.filter(hostid=i.id, report='匹配失败').aggregate(report_nums=Count("report"))
+                count = smoke_record.objects.filter(smokeid=i.id).aggregate(report_nums=Count("report"))
+                success = smoke_record.objects.filter(smokeid=i.id,report='匹配成功').aggregate(report_nums=Count("report"))
+                fail = smoke_record.objects.filter(smokeid=i.id, report='匹配失败').aggregate(report_nums=Count("report"))
                 histogram = {
                     '版本': i.version,
                     '匹配成功': success["report_nums"],

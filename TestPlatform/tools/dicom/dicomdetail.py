@@ -28,6 +28,62 @@ from ...tools.dicom.duration_verify import *
 from ...tools.stress.PerformanceResult import *
 from ...tools.orthanc.deletepatients import delete_patients_duration
 
+
+
+
+# 生成csv  数据
+def dicomsavecsv(ids):
+    path = os.path.join(os.getcwd())
+    for i in ids:
+        obj = dicom.objects.get(id=i)
+        graphql_query = "{ ai_biomind (" \
+                        "study_uid:\\\"" + str(obj.studyinstanceuid) + "\\\", protocols:" \
+                                                                       "{ pothers: " \
+                                                                       "{ disable_negative_voting:false} " \
+                                                                       "penable_cached_results:false pconfig:{} " \
+                                                                       "planguage:\\\"zh-cn\\\" " \
+                                                                       " puser_id:\\\"biomind\\\" " \
+                                                                       "pseries_classifier:" + str(obj.vote) + "}" \
+                                                                                                               "routes: [[\\\"generate_series\\\",\\\"series_classifier\\\",\\\"" + str(
+            obj.predictor) + "\\\"]])" \
+                             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+        if obj.diseases == "Lung":
+            diseases = str("{0}_{1}_slicenumber".format(obj.diseases, str(obj.slicenumber)))
+        else:
+            diseases = obj.diseases
+        savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
+
+# 正常发送
+def normalSend(id):
+    obj = duration.objects.get(id=id)
+    for i in obj.dicom.split(","):
+        try:
+            dicomobj = dicom.objects.filter(fileid=str(i))
+        except Exception as e:
+            continue
+        for j in dicomobj:
+            delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
+        cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+           '--ip {0} --aet {1} '
+           '--port {2} '
+           '--patientid {3} '
+           '--patientname {4} '
+           '--folderid {5} '
+           '--durationid {6} '
+           '--end {7} '
+           '--sleepcount {8} '
+           '--sleeptime {9} '
+           '--series {10} &').format(obj.server, obj.aet, obj.port,'patientid','patientname', i, id,
+                                    int(dicomobj.count()), 9999, 1, obj.series)
+
+        logger.info(cmd)
+        os.system(cmd)
+        time.sleep(1)
+
+    obj.sendstatus = True
+    obj.save()
+
 # 匿名化发送数据
 def anonymousSend(id, type):
     a = 0
@@ -62,13 +118,14 @@ def anonymousSend(id, type):
                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                    '--ip {0} --aet {1} '
                    '--port {2} '
-                   '--keyword {3} '
-                   '--dicomfolder {4} '
-                   '--durationid {5} '
-                   '--end {6} '
-                   '--sleepcount {7} '
-                   '--sleeptime {8} '
-                   '--series {9} &').format(obj.server, obj.aet, obj.port, obj.keyword, i, id,
+                   '--patientid {3} '
+                   '--patientname {4} '
+                   '--folderid {5} '
+                   '--durationid {6} '
+                   '--end {7} '
+                   '--sleepcount {8} '
+                   '--sleeptime {9} '
+                   '--series {10} &').format(obj.server, obj.aet, obj.port, obj.patientid,obj.patientname, i, id,
                                             end, sleepcount, sleeptime, obj.series)
 
             logger.info(cmd)
@@ -147,7 +204,7 @@ def voteData(uid,orthanc_ip,diseases,kc):
                     SeriesInstanceUID=str(i['SeriesInstanceUID'])
         vote = "{"+vote+"}"
 
-        if diseases in [4,5,7,8,9,10,12]:
+        if int(diseases) in [4,5,7,8,9,10,12]:
             imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
         else:
             imagecount, slicenumber =None,None

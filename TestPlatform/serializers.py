@@ -855,9 +855,6 @@ class dicomrecord_Deserializer(serializers.ModelSerializer):
                   'report', 'status','hostid')
 
 
-
-
-
 class duration_record_Serializer(serializers.ModelSerializer):
     """
     持续化测试记录表序列化
@@ -902,8 +899,8 @@ class duration_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = (
-            'id', 'server', 'port', 'aet', 'keyword', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series',
-            'sendstatus', 'status', 'sendcount', 'dds','hostid', 'update_time', 'create_time')
+            'id', 'server', 'port', 'aet', 'patientname','patientid', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series',
+            'anonymous','sendstatus','status', 'sendcount', 'dds','hostid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -924,8 +921,8 @@ class duration_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = (
-        'server', 'port', 'aet', 'keyword', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series', 'sendstatus',
-        'status', 'sendcount', 'dds','hostid')
+        'server', 'port', 'aet', 'patientname','patientid', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series', 'anonymous',
+        'sendstatus','status', 'sendcount', 'dds','hostid')
 
 
 class dicomdata_Deserializer(serializers.ModelSerializer):
@@ -999,6 +996,132 @@ class smoke_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = smoke
         fields = ('version', 'diseases', 'progress', 'thread','count', 'starttime', 'completiontime','status','hostid')
+
+
+class smokerecord_Serializer(serializers.ModelSerializer):
+    """
+    smoke测试数据记录表序列化
+
+     """
+
+    class Meta:
+        model = smoke_record
+        fields = ('id', 'version','patientid','patientname', 'studyinstanceuid', 'slicenumber',
+                  'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
+                  'result', 'status','smokeid', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_smoke.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_smoke.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_smoke.all().count()
+
+
+class smokerecord_Deserializer(serializers.ModelSerializer):
+    """
+    smoke测试数据记录表反序列化
+    """
+
+    class Meta:
+        model = smoke_record
+        fields = ('version', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
+                  'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
+                  'result', 'status','smokeid')
+
+class autotest_Serializer(serializers.ModelSerializer):
+    """
+    自动化测试列表列化
+     """
+    class Meta:
+        model = autotest
+        fields = ('id', 'version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','hostid','report','type','status')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_autotest.all().count()
+
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_autotest.all().count()
+
+
+    def get_memberCount(self, obj):
+        return obj.member_autotest.all().count()
+
+class autotest_Deserializer(serializers.ModelSerializer):
+    """
+    自动化测试列表反序列化
+    """
+
+    class Meta:
+        model = autotest
+        fields = ('version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','status','hostid','report','type')
+
+
+class autorecord_Serializer(serializers.ModelSerializer):
+    """
+    autotest测试数据记录表序列化
+
+     """
+
+    class Meta:
+        model = auto_record
+        fields = ('id', 'aistatus',  'starttime', 'completiontime', 'type',
+                  'result', 'status','caseid','testid', 'autoid','update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_smoke.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_smoke.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_smoke.all().count()
+
+
+class autorecord_Deserializer(serializers.ModelSerializer):
+    """
+    autotest测试数据记录表反序列化
+    """
+    class Meta:
+        model = auto_record
+        fields = ('aistatus',  'starttime', 'completiontime', 'type',
+                  'result', 'status','caseid','testid', 'autoid')
+
+class autocase_Serializer(serializers.ModelSerializer):
+    """
+    auto_case表序列化
+
+     """
+
+    class Meta:
+        model = auto_case
+        fields = ('id', 'name',  'testdata', 'type','status','update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.auto_case.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_case.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_case.all().count()
+
+
+class autocase_Deserializer(serializers.ModelSerializer):
+    """
+    auto_case表反序列化
+    """
+    class Meta:
+        model = auto_case
+        fields = ('name',  'testdata', 'type','status')
+
 
 class uploadfile_Deserializer(serializers.ModelSerializer):
     """

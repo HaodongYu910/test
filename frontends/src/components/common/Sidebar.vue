@@ -64,12 +64,12 @@
                         title: 'UI自动化',
                         subs: [
                             {
-                                index: 'dialog',
-                                title: 'UI列表'
+                                index: 'UICase',
+                                title: 'UI用例'
                             },
                             {
-                                index: 'charts',
-                                title: 'UI自动化报告'
+                                index: 'UIList',
+                                title: 'UI列表'
                             }
                         ]
                     },

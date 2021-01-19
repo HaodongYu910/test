@@ -82,6 +82,46 @@ export default new Router({
 
                 },
                 {
+                    // UICase 用例
+                    path: '/UICase',
+                    component: resolve => require(['../components/autoui/UICase.vue'], resolve),
+                    meta: { title: 'UI用例' }
+
+                },
+                {
+                    path: '/UICase/caseid=:caseid',
+                    component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                    meta: {title: 'UI用例详情'},
+                    hidden: true,
+                    children: [
+                        {
+                            path: '/UICase/caseid=:caseid',
+                            component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                            meta: {title: 'UI用例详情'}, name: 'UI用例详情', leaf: true
+                        }
+                    ]
+                },
+                // UI列表
+                {
+                    path: '/UIList',
+                    component: resolve => require(['../components/autoui/UIlist.vue'], resolve),
+                    meta: {title: 'UI自动化列表'}
+
+                },
+                {
+                    path: '/UI/UIid=:UIid',
+                    component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
+                    meta: {title: 'UI自动化详情'},
+                    hidden: true,
+                    children: [
+                        {
+                            path: '/UI/UIid=:UIid',
+                            component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
+                            meta: {title: 'UI自动化详情'}, name: 'UI自动化详情', leaf: true
+                        }
+                    ]
+                },
+                {
                     path: '/SmokeList',
                     component: resolve => require(['../components/tool/smoke/Smokelist.vue'], resolve),
                     meta: {title: '金标准列表'}
@@ -89,13 +129,13 @@ export default new Router({
                 },
                 {
                     path: '/smoke/smokeid=:smokeid',
-                    component: resolve => require(['../components/tool/smoke/Smoke.vue'], resolve),
+                    component: resolve => require(['../components/tool/smoke/SmokeDetails.vue'], resolve),
                     meta: {title: '金标准'},
                     hidden: true,
                     children: [
                         {
                             path: '/Smoke/smokeid=:smokeid',
-                            component: resolve => require(['../components/tool/smoke/Smoke.vue'], resolve),
+                            component: resolve => require(['../components/tool/smoke/SmokeDetails.vue'], resolve),
                             meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
                         }
                     ]
