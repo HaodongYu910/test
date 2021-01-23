@@ -7,12 +7,14 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
 from ..common.api_response import JsonResponse
+from ..common.dicomBase import baseTransform
 from ..serializers import dicomdata_Deserializer, stress_Deserializer, stress_record_Serializer
 from ..tools.stress.stress import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.stress.stress import updateStressData
 from ..tools.stress.PerformanceResult import *
 from ..tools.stress.stressfigure import stressdataFigure
+from ..tools.dicom.dicomdetail import anonymousSend
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -608,6 +610,7 @@ class stressRun(APIView):
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
+                anonymousSend(data['id'], 'stress')
                 Auto = threading.Thread(target=AutoPrediction, args=(obj.hostid, server, obj.testdata, obj.loop_count))
                 Auto.start()
             return JsonResponse(code="0", msg="运行成功")
@@ -746,12 +749,7 @@ class stressList(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = stress_Deserializer(obm, many=True)
         for i in serialize.data:
-            model = ''
-            # id 转换成病种文案
-            for j in i["testdata"].split(","):
-                obj = dictionary.objects.get(id=j)
-                model = model + obj.value + ","
-            i["testdata"] = model
+            i["testdata"] = baseTransform(i["testdata"],'dictionary')
             i["type"] = False
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
@@ -795,11 +793,11 @@ class addStress(APIView):
         """
         try:
             # 必传参数 key, server_ip , type
-            if not data["testdata"] or not data["loadserver"] or not data["version"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 stress, loadserver！")
+            if not data["testdata"] or not data["hostid"] or not data["version"]:
+                return JsonResponse(code="999996", msg="参数有误,必传参数 version, hostid！")
 
         except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
+            return JsonResponse(code="999996", msg="参数有误,必传参数 version, hostid testdata！！")
 
     def post(self, request):
         """
@@ -812,6 +810,8 @@ class addStress(APIView):
         if result:
             return result
         try:
+            hostobj = GlobalHost.objects.get(id=data['hostid'])
+            data["loadserver"] = hostobj.host
             data["testdata"] = str(data["testdata"])[1:-1]
             Stressadd = stress_Deserializer(data=data)
             with transaction.atomic():
@@ -867,6 +867,8 @@ class updateStress(APIView):
             return result
         try:
             try:
+                hostobj = GlobalHost.objects.get(id=data['hostid'])
+                data["loadserver"] = hostobj.host
                 dict = data['filedict']
                 for k, v in dict.items():
                     obj = uploadfile.objects.get(id=v)

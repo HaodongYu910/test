@@ -6,7 +6,7 @@ from ..dicom.SendDicom import Send
 from ...models import smoke_record,dictionary
 from ...tools.orthanc.deletepatients import delete_patients_duration
 from ...utils.graphql.graphql_ai_status import graphql_ai_status
-from django.db import transaction
+
 import os,datetime
 
 logger = logging.getLogger(__name__)

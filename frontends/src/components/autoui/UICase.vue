@@ -101,7 +101,7 @@
                             <el-select v-model="editForm.testdata" placeholder="请选择服务器" @click.native="getBase()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
-                                           :label="item.value"
+                                           :label="item.remarks"
                                            :value="item.id"
                                 />
                             </el-select>
@@ -161,7 +161,7 @@
                             <el-select v-model="addForm.testdata" placeholder="请选择服务器" @click.native="getBase()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
-                                           :label="item.value"
+                                           :label="item.remarks"
                                            :value="item.id"
                                 />
                             </el-select>
@@ -200,7 +200,7 @@
     //import NProgress from 'nprogress'
     import {
         getAutoCase, DelAutoCase, DisableAutoCase, EnableAutoCase,
-        UpdateAutoCase, addAutoCase, stresssave, getHost, getDictionary, stressTool,addupload,delupload
+        UpdateAutoCase, addAutoCase, stresssave, getHost, getbase, stressTool,addupload,delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -366,10 +366,11 @@
                 const self = this
                 const params = {
                     status: 1,
-                    type: 'model'
+                    selecttype:'dicom',
+                    type: 'gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getDictionary(headers, params).then((res) => {
+                getbase(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
@@ -660,18 +661,11 @@
                             //NProgress.start();
                             let params = {
                                 id: self.editForm.id,
-                                projectname: self.editForm.projectname,
-                                loadserver: self.editForm.loadserver,
-                                version: self.editForm.version,
+                                name: self.editForm.name,
                                 testdata: self.editForm.testdata,
-                                thread: this.editForm.thread,
-                                synchroniz: this.editForm.synchroniz,
-                                ramp: this.editForm.ramp,
-                                loop_count: this.editForm.loop_count,
-                                loop_time: this.editForm.loop_time,
+                                type: this.editForm.type,
                                 filedict:this.filedict,
-                                status: true,
-                                jmeterstatus: false,
+                                status: true
                             };
                             let header = {
                                 "Content-Type": "application/json",

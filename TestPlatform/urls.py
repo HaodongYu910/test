@@ -178,7 +178,7 @@ urlpatterns = [
     url(r'auto/disableauto', DisableAutoTest.as_view()),
     url(r'auto/enableauto', EnableAutoTest.as_view()),
     url(r'auto/record', AutoRecord.as_view()),
-    url(r'auto/autotest', AutoTest.as_view()),
+    url(r'auto/autotest', AutoRunTest.as_view()),
     url(r'auto/figure', Autofigure.as_view()),
     url(r'auto/autolist', getAutoTest.as_view()),
     url(r'auto/addcase', AddAutoCase.as_view()),

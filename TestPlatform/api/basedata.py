@@ -10,7 +10,7 @@ from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data,dictionary,dicom
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomfile import fileSave
+from TestPlatform.tools.dicom.dicomfile import fileUpdate
 import threading
 
 
@@ -103,8 +103,8 @@ class AddbaseData(APIView):
 
         basedata=base_data.objects.create(**data)
         # 创建线程
-        thread_fake_folder = threading.Thread(target=fileSave,
-                                              args=(basedata.id,''))
+        thread_fake_folder = threading.Thread(target=getDicomfile,
+                                              args=(basedata.id,))
         # 启动线程
         thread_fake_folder.start()
 
@@ -320,5 +320,9 @@ class getDicomfile(APIView):
         :param request:
         :return:
         """
-        fileSave(request.GET.get("id"),'update')
+        # 创建线程
+        thread_fake_folder = threading.Thread(target=fileUpdate,
+                                              args=(request.GET.get("id"),))
+        # 启动线程
+        thread_fake_folder.start()
         return JsonResponse( code="0", msg="成功")

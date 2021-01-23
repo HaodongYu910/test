@@ -1,26 +1,7 @@
-import gc
 from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import connect_to_postgres
 from ...utils.keycloak.login_kc import *
-from TestPlatform.models import GlobalHost,dictionary
-
-import os,time
-import shutil
-
-logger = logging.getLogger(__name__)
-
-
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Avg
-
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
-import shutil, threading
-
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost
+from TestPlatform.models import base_data, pid, GlobalHost,stress
 from TestPlatform.serializers import duration_Deserializer
 from ...tools.dicom.SendDicom import Send
 from ...tools.orthanc.deletepatients import *
@@ -29,7 +10,7 @@ from ...tools.stress.PerformanceResult import *
 from ...tools.orthanc.deletepatients import delete_patients_duration
 
 
-
+logger = logging.getLogger(__name__)
 
 # 生成csv  数据
 def dicomsavecsv(ids):
@@ -90,7 +71,15 @@ def anonymousSend(id, type):
     nom = 0
     try:
         if type != "stress":
+            durationid = id
             obj = duration.objects.get(id=id)
+            testdata = obj.dicom
+            server = obj.server
+            aet = obj.aet
+            port = obj.port
+            patientid = obj.patientid
+            patientname = obj.patientname
+            series = obj.series
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
             if obj.sendcount is None and obj.end_time is None:
@@ -105,15 +94,24 @@ def anonymousSend(id, type):
                 if imod[0] < 1:
                     return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
         else:
-            obj = duration.objects.get(id=id)
-            sleepcount = 9999
+            obj = stress.objects.get(id=id)
+            hostobj = GlobalHost.objects.get(id=obj.hostid)
+            testdata = obj.testdata
+            server = hostobj.host
+            aet = hostobj.description
+            port = hostobj.port
+            patientid = 'stress'
+            patientname = 'stress'
+            series = 0
+            sleepcount = 8787
             sleeptime = 0
-            end = 500
+            end = int(obj.loop_count)
+            durationid = '0{}'.format(id)
 
-        for i in obj.dicom.split(","):
+        for i in testdata.split(","):
             if nom != 0:
                 end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
-            a = a + 1
+                a = a + 1
             cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                    '--ip {0} --aet {1} '
@@ -125,8 +123,8 @@ def anonymousSend(id, type):
                    '--end {7} '
                    '--sleepcount {8} '
                    '--sleeptime {9} '
-                   '--series {10} &').format(obj.server, obj.aet, obj.port, obj.patientid,obj.patientname, i, id,
-                                            end, sleepcount, sleeptime, obj.series)
+                   '--series {10} &').format(server, aet, port, patientid,patientname, i,durationid,
+                                            end, sleepcount, sleeptime,series)
 
             logger.info(cmd)
             os.system(cmd)

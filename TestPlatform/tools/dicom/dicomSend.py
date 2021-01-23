@@ -44,7 +44,7 @@ def sqlDB(sql, data, type):
             conn.rollback()
     else:
         try:
-            logging.info(sql, data)
+            logging.info("sql:{0},data:{1}".format(sql, data))
             cur.execute(sql, data)
             conn.commit()
         except Exception as e:
@@ -324,11 +324,7 @@ def prepare_config(argv):
 
     except Exception as e:
         logging.error("error: failed to get args", e)
-    if CONFIG["patientname"]:
-        CONFIG["keyword"] = CONFIG["patientname"]
-    elif CONFIG["patientid"]:
-        CONFIG["keyword"] = CONFIG["patientid"]
-
+    CONFIG["keyword"] = str(CONFIG["patientname"])+str(CONFIG["patientid"])+str(CONFIG["durationid"])
     log_path = "{0}/{1}".format('/home/biomind/Biomind_Test_Platform/logs', CONFIG["keyword"])
     if not os.path.exists(log_path):
         os.makedirs(log_path)
@@ -345,7 +341,7 @@ def ImageUpdate(study_infos):
     try:
         for k, v in study_infos.items():
             sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(v, k)
-            logging.info("sql", sql)
+            logging.info("sql:{}", sql)
             sqlDB(sql, [], 'update')
     except Exception as e:
         logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v, e))
@@ -387,13 +383,15 @@ if __name__ == '__main__':
         ospid = os.getpid()
         CONFIG, log_path = prepare_config(sys.argv[1:])
         folder_fake = "{0}/{1}".format(log_path, str(CONFIG.get('keyword', '')))
+        # 添加 pid号
+        sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG['durationid']], 'INSERT')
     except Exception as e:
         logging.error("failed to start:{}".format(e))
         sys.exit(0)
-
-    # 添加 pid号
-    sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG.get('durationid', '')], 'INSERT')
-    sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
+    if str(CONFIG["sleepcount"]) == '8787':
+        sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases ='{0}'".format(CONFIG["folderid"])
+    else:
+        sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
     image = {}
     image["count"] = 0
     if len(str(CONFIG["end"])) > 10:

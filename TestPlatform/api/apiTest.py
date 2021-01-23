@@ -12,6 +12,9 @@ from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import autotest_Serializer,autotest_Deserializer,autocase_Serializer,autorecord_Serializer,autorecord_Deserializer
 from ..tools.orthanc.deletepatients import *
 from ..models import autotest,auto_record,auto_case,uploadfile
+from ..common.dicomBase import baseTransform
+from AutoUI.common.autouitest import autoRun
+
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 class getAutoCase(APIView):
@@ -46,26 +49,8 @@ class getAutoCase(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = autocase_Serializer(obm, many=True)
-        # for i in serialize.data:
-        #     model = ''
-        #     try:
-        #         # count = auto_record.objects.filter(smokeid=i['id']).aggregate(result_nums=Count("result"))
-        #         # success = auto_record.objects.filter(smokeid=i['id'], result='匹配成功').aggregate(result_nums=Count("result"))
-        #         # fail = auto_record.objects.filter(smokeid=i['id'], result='匹配失败').aggregate(result_nums=Count("result"))
-        #         # id 转换成病种文案
-        #         # for j in i["diseases"].split(","):
-        #         #     obj = base_data.objects.get(id=j)
-        #         #     model = model + obj.remarks + ","
-        #         # i["diseases"] = model
-        #         i["progress"] = '%.2f' % (int(i["progress"])/ int(i["count"]) * 100)
-        #         # i["success"] = success["result_nums"]
-        #         # i["fail"] = fail['result_nums']
-        #         # i["aifail"] = int(count['result_nums']) - int(success["result_nums"]) - int(fail['result_nums'])
-        #         hostobj = GlobalHost.objects.get(id=i["hostid"])
-        #         i["hostid"] = hostobj.host
-        #     except Exception as e:
-        #         i["host"] = "Null"
-        #         continue
+        for i in serialize.data:
+            i["testdata"]= baseTransform(i["testdata"],'base')
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
@@ -100,23 +85,27 @@ class AddAutoCase(APIView):
         if result:
             return result
         try:
-            data["testdata"] = str(data["testdata"])[1:-1]
+            # data["testdata"] = str(data["testdata"])[1:-1]
             dict = data['filedict']
             autoadd = autocase_Serializer(data=data)
-
-            with transaction.atomic():
-                autoadd.is_valid()
-                acase=autoadd.save()
-            if dict != {}:
-                for k, v in dict.items():
-                    try:
-                        obj = uploadfile.objects.get(id=v)
-                        obj.fileid = str(acase.id)
-                        obj.save()
-                    except Exception as e:
-                        logger.error("更新upload数据失败{0},错误：{1}".format(v, e))
-                        continue
-            return JsonResponse(code="0", msg="成功")
+            # 查找是否相同名称
+            name = auto_case.objects.filter(name=data["name"])
+            if len(name):
+                return JsonResponse(code="999997", msg="存在相同用例名")
+            else:
+                with transaction.atomic():
+                    autoadd.is_valid()
+                    acase=autoadd.save()
+                if dict != {}:
+                    for k, v in dict.items():
+                        try:
+                            obj = uploadfile.objects.get(id=v)
+                            obj.fileid = str(acase.id)
+                            obj.save()
+                        except Exception as e:
+                            logger.error("更新upload数据失败{0},错误：{1}".format(v, e))
+                            continue
+                return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
 
@@ -135,11 +124,10 @@ class UpdateAutoCase(APIView):
             if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
             # 必传参数 content, predictor , type
-            if not data["id"] or not data["version"]:
-                return JsonResponse(code="999996", msg="参数有误 必传参数 content, predictor , type！")
-
+            if not data["id"] or not data["name"]or not data["type"]:
+                return JsonResponse(code="999996", msg="参数有误 必传参数 name, id , type！")
         except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
+            return JsonResponse(code="999996", msg="参数有误 必传参数 name, id , type！！")
 
     def post(self, request):
         """
@@ -149,6 +137,7 @@ class UpdateAutoCase(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
+        dict = data['filedict']
         if result:
             return result
         #
@@ -156,10 +145,10 @@ class UpdateAutoCase(APIView):
             autoobj = auto_case.objects.get(id=data["id"])
         except Exception as e:
             return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称的项目
-        name = autotest.objects.filter(name=data["name"]).exclude(id=data["id"])
+        # 查找是否相同名称
+        name = auto_case.objects.filter(name=data["name"]).exclude(id=data["id"])
         if len(name):
-            return JsonResponse(code="999997", msg="存在相同内容数据")
+            return JsonResponse(code="999997", msg="存在相同用例名")
         else:
             serializer = autotest_Deserializer(data=data)
             with transaction.atomic():
@@ -331,14 +320,12 @@ class getAutoTest(APIView):
         serialize = autotest_Serializer(obm, many=True)
         for i in serialize.data:
             try:
+                i["setup"] = baseTransform(i["setup"],'case')
+                i["cases"] = baseTransform(i["cases"],'case')
+                i["tearDown"] = baseTransform(i["tearDown"], 'case')
                 # count = auto_record.objects.filter(smokeid=i['id']).aggregate(result_nums=Count("result"))
                 # success = auto_record.objects.filter(smokeid=i['id'], result='匹配成功').aggregate(result_nums=Count("result"))
                 # fail = auto_record.objects.filter(smokeid=i['id'], result='匹配失败').aggregate(result_nums=Count("result"))
-                # id 转换成病种文案
-                # for j in i["diseases"].split(","):
-                #     obj = base_data.objects.get(id=j)
-                #     model = model + obj.remarks + ","
-                # i["diseases"] = model
                 i["progress"] = '%.2f' % (int(i["progress"]) * 100)
                 # i["success"] = success["result_nums"]
                 # i["fail"] = fail['result_nums']
@@ -407,12 +394,12 @@ class UpdateAutoTest(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
-            if not isinstance(data["hostid"], int):
+            # 校验id类型为int
+            if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
-            # 必传参数 content, predictor , type
+            # 必传参数 id,version
             if not data["id"] or not data["version"]:
-                return JsonResponse(code="999996", msg="参数有误 必传参数 content, predictor , type！")
+                return JsonResponse(code="999996", msg="参数有误 必传参数 id, version！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -427,24 +414,19 @@ class UpdateAutoTest(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        #
+        data["setup"] = str(data["setup"])[1:-1]
+        # data["cases"] = str(data["cases"])[1:-1]
+        data["tearDown"] = str(data["tearDown"])[1:-1]
         try:
             autoobj = autotest.objects.get(id=data["id"])
         except Exception as e:
             return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称的项目
+        # 查找是否相同名称
         name = autotest.objects.filter(version=data["version"]).exclude(id=data["id"])
         if len(name):
             return JsonResponse(code="999997", msg="存在相同内容数据")
         else:
             serializer = autotest_Deserializer(data=data)
-            try:
-                obj = dicom.objects.filter(fileid=data["id"])
-                for i in obj:
-                    i.diseases = data["remarks"]
-                    i.save()
-            except ObjectDoesNotExist:
-                return JsonResponse(code="999998", msg="失败")
             with transaction.atomic():
                 if serializer.is_valid():
                     # 修改数据
@@ -622,7 +604,7 @@ class AutoRecord(APIView):
                                   }, code="0", msg="成功")
 
 
-class AutoTest(APIView):
+class AutoRunTest(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -642,7 +624,7 @@ class AutoTest(APIView):
 
     def post(self, request):
         """
-        执行脚本
+        执行测试脚本
         :param request:
         :return:
         """
@@ -652,14 +634,13 @@ class AutoTest(APIView):
             return result
 
         try:
-            # 执行smoke测试
+            # 执行测试
             try:
-                obj = auto_record.objects.filter(smokeid=str(data["id"]))
-                obj.delete()
-                thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(str(data["id"])))
+                autoRun(data["id"])
+                # thread_fake_folder = threading.Thread(target=goldSmoke,
+                #                                       args=(str(data["id"])))
                 # 启动线程
-                thread_fake_folder.start()
+                # thread_fake_folder.start()
             except Exception as e:
                 logger.error(e)
                 return JsonResponse(msg="执行失败", code="999991", exception=e)

@@ -139,11 +139,17 @@
                 </el-row>
                 <el-divider>数据配置</el-divider>
                 <el-row :gutter="24">
-                    <el-checkbox-group v-model="editForm.diseases" size="small">
-                        <el-checkbox-button v-for="(item,index) in model" :label="item.remarks" :key="item.id">
-                            {{item.remarks}}
-                        </el-checkbox-button>
-                    </el-checkbox-group>
+                    <el-col :span="12">
+                        <el-form-item label="类型" prop='diseases'>
+                            <el-select v-model="editForm.diseases" multiple placeholder="请选择" @click.native="getsetUp()">
+                                <el-option v-for="(item,index) in model"
+                                           :key="item.id"
+                                           :label="item.remarks"
+                                           :value="item.id"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
                 </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
@@ -221,11 +227,9 @@
 
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
-                options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
                 editFormRules: {
                     diseases: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                        {required: true, message: '请选择病种', trigger: 'blur'}
                     ],
                     hostid: [
                         {required: true, message: '请选择服务', trigger: 'blur'}
@@ -238,8 +242,7 @@
                 editForm: {
                     hostid: '',
                     version: '',
-                    thread: 1,
-                    diseases: []
+                    thread: 1
                 },
 
                 addFormVisible: false,//新增界面是否显示

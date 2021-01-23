@@ -1018,7 +1018,7 @@ class smoke(models.Model):
         """
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
-    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    diseases = models.CharField(max_length=50, blank=True, null=True, verbose_name="病种")
     progress = models.CharField(max_length=5, blank=True, null=True, verbose_name="进度")
     thread = models.CharField(max_length=5, blank=True, null=True, verbose_name="线程数")
     starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")

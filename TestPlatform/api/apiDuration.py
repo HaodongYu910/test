@@ -15,7 +15,7 @@ from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
 from ..tools.dicom.dicomdetail import anonymousSend,normalSend
-from ..common.duration import verifyDuration,durationtotal
+from ..common.dicomBase import verifyDuration,durationtotal,baseTransform
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -36,20 +36,10 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obi, many=True)
 
         for i in dataSerializer.data:
-            dicomdata = ''
             # 已发送的数据统计
             obj = duration_record.objects.filter(duration_id=i["id"],create_time__gte = i["update_time"])
             i['send'] = str(obj.count())
-            # dicom id 转换成病种文案
-            for j in i["dicom"].split(","):
-                try:
-                    obj = base_data.objects.get(id=j)
-                    name = obj.remarks
-                except Exception as e:
-                    logger.error("id:{0}文件已经删除了".format(j))
-                    name ="Null"
-                dicomdata = dicomdata + name +","
-            i["dicom"] = dicomdata
+            i["dicom"] = baseTransform(i["dicom"],'base')
 
         return JsonResponse(data={"data": dataSerializer.data
                                   }, code="0", msg="成功")
@@ -232,9 +222,9 @@ class update_duration(APIView):
             for i in data['dicom']:
                 dicomdata = dicomdata + str(i[1]) + ','
             data['dicom'] = dicomdata[:-1]
-            keyword = duration.objects.filter(keyword=data["keyword"])
-            if len(keyword):
-                return JsonResponse(code="999997", msg="存在相同匿名名称数据，请修改")
+            patientname = duration.objects.filter(patientname=data["patientname"],sendstatus=True)
+            if len(patientname):
+                return JsonResponse(code="999997", msg="存在相同patientname名称数据，请修改")
             else:
                 serializer = duration_Deserializer(data=data)
                 with transaction.atomic():

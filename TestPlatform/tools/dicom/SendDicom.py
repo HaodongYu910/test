@@ -45,7 +45,6 @@ def fake_folder(serverID,folder):
             fake_folder(serverID,full_fn)
             continue
         try:
-            logger.info(serverID,full_fn)
             sync_send_file(serverID,full_fn)
         except Exception as e:
             logging.error('errormsg: failed to sync_send file [{0}][[1]]'.format(full_fn,e))
