@@ -102,6 +102,9 @@
                         <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑
                         </el-button>
+                        <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        {{scope.row.status===false?'启用':'禁用'}}
+                    </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -220,9 +223,11 @@
         getbase,
         deldicomreport,
         dicomcsv,
-        addStressData
+        addStressData,
+        DisableDicom,
+        EnableDicom
     } from '@/router/api'
-    import {getDictionary} from "../../../router/api";
+    import {DisableSmoke, EnableSmoke, getDictionary} from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -635,6 +640,53 @@
                         self.getdata()
                     })
                 })
+            },
+            // 改变项目状态
+            handleChangeStatus: function (index, row) {
+                let self = this;
+                this.listLoading = true;
+                let params = {id: row.id};
+                let headers = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                };
+                if (row.status) {
+                    DisableDicom(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '禁用成功',
+                                center: true,
+                                type: 'success'
+                            });
+                            row.status = !row.status;
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                } else {
+                    EnableDicom(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '启用成功',
+                                center: true,
+                                type: 'success'
+                            });
+                            row.status = !row.status;
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                }
             },
             // 批量生成压测数据
             stressD: function () {

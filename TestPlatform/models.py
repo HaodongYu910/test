@@ -969,6 +969,8 @@ class dicom(models.Model):
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
+    status = models.BooleanField(default=False, verbose_name='状态')
+    stressstatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="性能状态")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -1018,7 +1020,7 @@ class smoke(models.Model):
         """
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
-    diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
+    diseases = models.CharField(max_length=80, blank=True, null=True, verbose_name="病种")
     progress = models.CharField(max_length=5, blank=True, null=True, verbose_name="进度")
     thread = models.CharField(max_length=5, blank=True, null=True, verbose_name="线程数")
     starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")

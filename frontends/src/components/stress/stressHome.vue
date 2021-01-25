@@ -112,12 +112,12 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="editForm.loadserver" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="editForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
-                                        :key="item.host"
+                                        :key="item.id"
                                         :label="item.name"
-                                        :value="item.host"
+                                        :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -238,12 +238,12 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.loadserver" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
-                                        :key="item.host"
+                                        :key="item.id"
                                         :label="item.name"
-                                        :value="item.host"
+                                        :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -393,7 +393,7 @@
                 //新增界面数据
                 addForm: {
                     projectname: '晨曦',
-                    loadserver: '192.168.1.208',
+                    hostid: '1',
                     version: '',
                     type: '',
                     jmeterstatus: false
@@ -737,7 +737,7 @@
                 this.addForm = {
                     version: null,
                     projectname: "晨曦",
-                    loadserver: '192.168.1.208',
+                    hostid: '1',
                     thread: 1,
                     synchroniz: 0,
                     ramp: 0,
@@ -799,7 +799,6 @@
                             let params = {
                                 id: self.editForm.id,
                                 projectname: self.editForm.projectname,
-                                loadserver: self.editForm.loadserver,
                                 version: self.editForm.version,
                                 testdata: self.editForm.testdata,
                                 thread: this.editForm.thread,
@@ -808,6 +807,7 @@
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
                                 filedict:this.filedict,
+                                hostid:this.editForm.hostid,
                                 status: true,
                                 jmeterstatus: false,
                             };
@@ -853,7 +853,6 @@
                             //NProgress.start();
                             let params = JSON.stringify({
                                 projectname: self.addForm.projectname,
-                                loadserver: self.addForm.loadserver,
                                 version: self.addForm.version,
                                 testdata: self.addForm.testdata,
                                 thread: this.addForm.thread,
@@ -863,6 +862,7 @@
                                 loop_time: this.addForm.loop_time,
                                 jmeterstatus: false,
                                 filedict:this.filedict,
+                                hostid:this.addForm.hostid,
                                 status: true,
                             });
                             let header = {

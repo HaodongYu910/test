@@ -46,7 +46,7 @@
             </el-table-column>
             <el-table-column prop="diseases" label="规则" min-width="30%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
+                    <span style="margin-left: 10px">SetUp:{{ scope.row.setup }}<br>Cases:{{ scope.row.cases }}<br>TearDown:{{ scope.row.tearDown }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="开始时间" min-width="16%" sortable>
@@ -90,8 +90,8 @@
             <el-table-column label="操作" min-width="45%">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
-                    <el-button type="primary" size="small" @click="smoketest(scope.$index, scope.row)">测试</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告</el-button>
+                    <el-button type="primary" size="small" @click="autotest(scope.$index, scope.row)">测试</el-button>
+                    <el-button type="danger" size="small" @click="handleReport(scope.$index, scope.row)">报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -118,18 +118,6 @@
                             <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="editForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
-                                <el-option
-                                        v-for="(item,index) in hosts"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
                     <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5"
@@ -141,7 +129,7 @@
                 <el-row :gutter="36">
                     <el-col :span="12">
                         <el-form-item label="setUp" prop='setUp'>
-                            <el-select v-model="editForm.setUp" multiple placeholder="请选择" @click.native="getsetUp()">
+                            <el-select v-model="editForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
                                            :key="item.id"
                                            :label="item.name"
@@ -214,7 +202,7 @@
                 <el-row :gutter="36">
                     <el-col :span="12">
                         <el-form-item label="setUp" prop='setUp'>
-                            <el-select v-model="addForm.setUp" multiple placeholder="请选择" @click.native="getsetUp()">
+                            <el-select v-model="addForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
                                            :key="item.id"
                                            :label="item.name"
@@ -295,14 +283,14 @@
                     hostid: '',
                     version: '',
                     thread: 1,
-                    diseases: []
+                    testdata: []
                 },
 
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    diseases: [
-                        {required: true, message: '请选择模型类型', trigger: 'blur'}
+                    hostid: [
+                        {required: true, message: '请选择服务', trigger: 'blur'}
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
@@ -312,7 +300,7 @@
                 addForm: {
                     hostid: '',
                     version: '',
-                    diseases: [],
+                    testdata: [],
                     status: true
                 }
             }
@@ -575,7 +563,7 @@
                 };
             },
             //smoke测试
-            smoketest: function (index, row) {
+            autotest: function (index, row) {
                 this.$confirm('执行测试?', '提示', {
                     type: 'warning'
                 }).then(() => {
@@ -618,14 +606,11 @@
                             //NProgress.start();
                             let params = {
                                 id: self.editForm.id,
-                                hostid: self.editForm.hostid,
                                 version: self.editForm.version,
                                 setup: self.editForm.setup,
                                 cases: self.editForm.cases,
                                 tearDown: self.editForm.tearDown,
-                                thread: this.editForm.thread,
-                                progress: 0,
-                                status: true
+                                thread: this.editForm.thread
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -671,9 +656,10 @@
                                 hostid: self.addForm.hostid,
                                 version: self.addForm.version,
                                 setup: self.addForm.setup,
-                                cases: self.addForm.cases,
+                                cases: self.addForm.testdata,
                                 tearDown: self.addForm.tearDown,
                                 thread: this.addForm.thread,
+                                type:"UI",
                                 progress: 0,
                                 status: true,
                             });

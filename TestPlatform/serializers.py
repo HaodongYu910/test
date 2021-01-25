@@ -927,14 +927,14 @@ class duration_Deserializer(serializers.ModelSerializer):
 
 class dicomdata_Deserializer(serializers.ModelSerializer):
     """
-    持续化记录表反序列化
+    dicom数据表反序列化
     """
 
     class Meta:
         model = dicom
         fields = (
         'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote', 'server', 'imagecount', 'fileid',
-        'diagnosis', 'type', 'route')
+        'diagnosis', 'type', 'route','status','stressstatus')
 
 
 class dictionary_Serializer(serializers.ModelSerializer):

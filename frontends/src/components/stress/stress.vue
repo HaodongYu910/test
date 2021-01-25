@@ -11,13 +11,13 @@
                 <el-form ref="form" :model="form" status-icon :rules="rules" label-width="100px">
                     <el-row>
                         <el-col :span="3">
-                            <el-form-item label="服务器" prop="loadserver">
-                            <el-select v-model="form.loadserver"  placeholder="请选择" @click.native="gethost()">
+                            <el-form-item label="服务器" prop="hostid">
+                            <el-select v-model="form.hostid"  placeholder="请选择" @click.native="gethost()">
                               <el-option
                                 v-for="(item,index) in tags"
-                                :key="item.host"
+                                :key="item.id"
                                 :label="item.name"
-                                :value="item.host"
+                                :value="item.id"
                               />
                             </el-select>
                           </el-form-item>
@@ -47,11 +47,6 @@
                                 <el-input id="synchronizing" v-model="form.synchronizing" placeholder="个" />
                               </el-form-item>
                             </el-col>
-                        <el-col :span="3">
-                            <el-form-item label="dicom发送" prop="loadserver">
-                                <el-switch v-model="form.switch" active-color="#13ce66" inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                        </el-col>
                         <el-col :span="4">
                             <el-form-item>
                                 <el-button type="primary" @click="stressrun('form')">执行</el-button>
@@ -256,7 +251,7 @@
                 cities: ['lung','swi','svd'],
                 form: {
                     version: '',
-                    loadserver: '192.168.1.208',
+                    loadserver: '',
                     loop_time: '',
                     thread:4,
                     synchronizing:0,
@@ -336,6 +331,7 @@
                             testdata: this.form.testdata,
                             switch: this.form.switch,
                             loop: this.form.loop,
+                            hostid:this.form.hostid,
                             synchronizing:this.form.synchronizing
                         });
                         let header = {

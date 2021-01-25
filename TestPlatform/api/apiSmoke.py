@@ -6,12 +6,14 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
-
+from django.db import transaction
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.serializers import smoke_Deserializer,smoke_Serializer,smokerecord_Serializer
-from ..tools.smoke.gold import *
+from TestPlatform.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
+from ..tools.smoke.gold import goldSmoke,SmokeThread
 from ..tools.orthanc.deletepatients import *
-from ..models import smoke_record
+from ..models import smoke_record,smoke
+from ..common.dicomBase import baseTransform
+
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
@@ -46,17 +48,14 @@ class getSmoke(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = smoke_Serializer(obm, many=True)
         for i in serialize.data:
-            model = ''
             try:
                 count = smoke_record.objects.filter(smokeid=i['id']).aggregate(result_nums=Count("result"))
-                success = smoke_record.objects.filter(smokeid=i['id'], result='匹配成功').aggregate(result_nums=Count("result"))
-                fail = smoke_record.objects.filter(smokeid=i['id'], result='匹配失败').aggregate(result_nums=Count("result"))
-                # id 转换成病种文案
-                for j in i["diseases"].split(","):
-                    obj = base_data.objects.get(id=j)
-                    model = model + obj.remarks + ","
-                i["diseases"] = model
-                i["progress"] = '%.2f' % (int(i["progress"])/ int(i["count"]) * 100)
+                success = smoke_record.objects.filter(smokeid=i['id'], result='匹配成功').aggregate(
+                    result_nums=Count("result"))
+                fail = smoke_record.objects.filter(smokeid=i['id'], result='匹配失败').aggregate(
+                    result_nums=Count("result"))
+                i["diseases"] = baseTransform(i["diseases"], 'base')
+                i["progress"] = '%.2f' % (int(i["progress"]) / int(i["count"]) * 100)
                 i["success"] = success["result_nums"]
                 i["fail"] = fail['result_nums']
                 i["aifail"] = int(count['result_nums']) - int(success["result_nums"]) - int(fail['result_nums'])
@@ -69,7 +68,6 @@ class getSmoke(APIView):
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
-
 
 
 class AddSmoke(APIView):
@@ -101,12 +99,9 @@ class AddSmoke(APIView):
         if result:
             return result
         try:
-            count = 0
-            for i in data["diseases"]:
-                obj = dicom.objects.filter(fileid=i)
-                count = count + int(obj.count())
+            obj = dicom.objects.filter(fileid__in=data["diseases"])
+            data["count"] = int(obj.count())
             data["diseases"] = str(data["diseases"])[1:-1]
-            data["count"] = count
             smokeadd = smoke_Serializer(data=data)
 
             with transaction.atomic():
@@ -115,6 +110,7 @@ class AddSmoke(APIView):
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
+
 
 class UpdateSmoke(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -147,31 +143,22 @@ class UpdateSmoke(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        #
+        obj = dicom.objects.filter(fileid__in=data["diseases"])
+        data["count"] = int(obj.count())
+        data["diseases"] = str(data["diseases"])[1:-1]
         try:
             smokeobj = smoke.objects.get(id=data["id"])
         except Exception as e:
             return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称的项目
-        name = smoke.objects.filter(version=data["version"]).exclude(id=data["id"])
-        if len(name):
-            return JsonResponse(code="999997", msg="存在相同内容数据")
-        else:
-            serializer = smoke_Deserializer(data=data)
-            try:
-                obj = dicom.objects.filter(fileid=data["id"])
-                for i in obj:
-                    i.diseases = data["remarks"]
-                    i.save()
-            except ObjectDoesNotExist:
+
+        serializer = smoke_Deserializer(data=data)
+        with transaction.atomic():
+            if serializer.is_valid():
+                # 修改数据
+                serializer.update(instance=smokeobj, validated_data=data)
+                return JsonResponse(code="0", msg="成功")
+            else:
                 return JsonResponse(code="999998", msg="失败")
-            with transaction.atomic():
-                if serializer.is_valid():
-                    # 修改数据
-                    serializer.update(instance=smokeobj, validated_data=data)
-                    return JsonResponse(code="0", msg="成功")
-                else:
-                    return JsonResponse(code="999998", msg="失败")
 
 
 class DelSmoke(APIView):
@@ -246,6 +233,10 @@ class DisableSmoke(APIView):
         # 查找是否存在
         try:
             obj = smoke.objects.get(id=data["id"])
+            testThread = SmokeThread(data["id"])
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setFlag = False
+            print(testThread.is_alive())
             obj.status = False
             obj.save()
             return JsonResponse(code="0", msg="成功")
@@ -283,12 +274,22 @@ class EnableSmoke(APIView):
         # 查找项目是否存在
         try:
             obj = smoke.objects.get(id=data["id"])
+            objrecord = smoke_record.objects.filter(smokeid=str(data["id"]))
             obj.status = True
+            testThread = SmokeThread(data["id"])
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setDaemon(True)
+            # 开始线程
+            testThread.start()
+            # 删除以前记录
+            objrecord.delete()
+            # 变更状态
             obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
+
 
 class smokeRecord(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -308,17 +309,19 @@ class smokeRecord(APIView):
         diseases = request.GET.get("diseases")
         smokeid = request.GET.get("smokeid")
 
-        if  request.GET.get("status")=='true':
+        if request.GET.get("status") == 'true':
             status = 1
-        elif request.GET.get("status")=='False':
+        elif request.GET.get("status") == 'False':
             status = 0
         else:
             status = ''
 
         if diseases != '' and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by("-id")
-        elif diseases == ''  and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases,status=status,smokeid=smokeid).order_by("-id")
+            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
+                "-id")
+        elif diseases == '' and status != '':
+            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
+                "-id")
         else:
             obi = smoke_record.objects.filter(smokeid=smokeid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -341,52 +344,6 @@ class smokeRecord(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-
-class smokeTest(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 server,version
-            if not data["id"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 id！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        执行脚本
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-
-        try:
-            # 执行smoke测试
-            try:
-                obj = smoke_record.objects.filter(smokeid=str(data["id"]))
-                obj.delete()
-                thread_fake_folder = threading.Thread(target=goldSmoke,
-                                                      args=(str(data["id"])))
-                # 启动线程
-                thread_fake_folder.start()
-            except Exception as e:
-                logger.error(e)
-                return JsonResponse(msg="执行失败", code="999991", exception=e)
-            return JsonResponse(code="0", msg="成功")
-        except Exception as e:
-            logger.error(e)
-            return JsonResponse(msg="失败", code="999991", exception=e)
 
 
 class smokefigure(APIView):
@@ -419,14 +376,15 @@ class smokefigure(APIView):
             return result
         try:
             goldrows = []
-            goldcolumns =[]
+            goldcolumns = []
             # if data['version']:
             #     print(1)
             versions = smoke.objects.filter(status=True)
             for i in versions:
                 goldcolumns.append(i.version)
                 count = smoke_record.objects.filter(smokeid=i.id).aggregate(report_nums=Count("report"))
-                success = smoke_record.objects.filter(smokeid=i.id,report='匹配成功').aggregate(report_nums=Count("report"))
+                success = smoke_record.objects.filter(smokeid=i.id, report='匹配成功').aggregate(
+                    report_nums=Count("report"))
                 fail = smoke_record.objects.filter(smokeid=i.id, report='匹配失败').aggregate(report_nums=Count("report"))
                 histogram = {
                     '版本': i.version,
@@ -435,8 +393,8 @@ class smokefigure(APIView):
                     '预测失败': int(count['report_nums']) - int(success["report_nums"]) - int(fail['report_nums'])
                 }
                 goldrows.append(histogram)
-            return JsonResponse(data={"goldrows":goldrows,
-                                      "goldcolumns":goldcolumns
+            return JsonResponse(data={"goldrows": goldrows,
+                                      "goldcolumns": goldcolumns
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
