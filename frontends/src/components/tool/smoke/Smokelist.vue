@@ -32,11 +32,10 @@
             <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ name: '金标准详情', params: {smokeid: scope.row.id}}"
-                                 style='text-decoration: none;color: #000000;'>
+                    <router-link v-if=true :to="{ name: '金标准详情', params: {smokeid: scope.row.id}}"
+                                 style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.version }}
                     </router-link>
-                    {{ !scope.row.status?scope.row.version:""}}
                 </template>
             </el-table-column>
             <el-table-column prop="hostid" label="服务" min-width="12%" sortable>
@@ -90,10 +89,10 @@
             <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
-                    <el-button type="primary" size="small" @click="smoketest(scope.$index, scope.row)">测试</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">定时</el-button>
-                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                        {{scope.row.status===false?'启用':'禁用'}}
+<!--                    <el-button type="primary" size="small" @click="smoketest(scope.$index, scope.row)">测试</el-button>-->
+<!--                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">定时</el-button>-->
+                    <el-button type="danger" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        {{scope.row.status===false?'启用测试':'停止测试'}}
                     </el-button>
                 </template>
             </el-table-column>
@@ -260,7 +259,7 @@
                     hostid: '',
                     version: '',
                     diseases: [],
-                    status: true
+                    status: false
                 }
             }
         },
@@ -547,7 +546,7 @@
                                 diseases: self.addForm.diseases,
                                 thread: this.addForm.thread,
                                 progress: 0,
-                                status: true,
+                                status: false,
                             });
                             let header = {
                                 "Content-Type": "application/json",

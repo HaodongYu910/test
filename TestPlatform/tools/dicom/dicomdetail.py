@@ -1,12 +1,11 @@
 from TestPlatform.utils.graphql.graphql import *
 from ...utils.keycloak.login_kc import *
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost,stress
+from TestPlatform.models import base_data, pid, GlobalHost,stress,dictionary,dicom
 from TestPlatform.serializers import duration_Deserializer
 from ...tools.dicom.SendDicom import Send
-from ...tools.orthanc.deletepatients import *
 from ...tools.dicom.duration_verify import *
-from ...tools.stress.PerformanceResult import *
+from ...tools.stress.PerformanceResult import savecsv
 from ...tools.orthanc.deletepatients import delete_patients_duration
 
 
@@ -182,14 +181,10 @@ def Slice(kc,Seriesuid):
 def voteData(uid,orthanc_ip,diseases,kc):
     vote = ''
     try:
-        Series = connect_to_postgres(orthanc_ip,
-                                     "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
-                                         uid)).to_dict(orient='records')
-        pseries_classifier = connect_to_postgres(orthanc_ip,
-                                                 "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
-                                                     uid)).to_dict(orient='records')
-
-
+        Series = dictionary.objects.get(type='sql',key='Series')
+        protocol = dictionary.objects.get(type='sql',key='protocol')
+        Series = connect_to_postgres(orthanc_ip,Series.value.format(uid)).to_dict(orient='records')
+        pseries_classifier = connect_to_postgres(orthanc_ip,protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))
@@ -197,9 +192,9 @@ def voteData(uid,orthanc_ip,diseases,kc):
     try:
         for key in pseries:
             for i in Series:
-                if str(i['SeriesInstanceUID']) in str(pseries[key]):
-                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
-                    SeriesInstanceUID=str(i['SeriesInstanceUID'])
+                if str(i['seriesinstanceuid']) in str(pseries[key]):
+                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
+                    SeriesInstanceUID=str(i['seriesinstanceuid'])
         vote = "{"+vote+"}"
 
         if int(diseases) in [4,5,7,8,9,10,12]:
@@ -207,6 +202,6 @@ def voteData(uid,orthanc_ip,diseases,kc):
         else:
             imagecount, slicenumber =None,None
     except Exception as e:
-        return None,None,None
+        return vote,None,None
     return str(vote),imagecount,slicenumber
 

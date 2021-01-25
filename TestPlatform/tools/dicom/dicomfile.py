@@ -81,7 +81,8 @@ def updateFolder(src_folder,study_infos,diseases,type,id):
                             "diseases": diseases,
                             "type": type,
                             "route": folder_fake,
-                            "fileid": id
+                            "fileid": id,
+                            "status": True
                         }
                         logger.info("添加数据{}".format(data))
                         dicom.objects.create(**data)

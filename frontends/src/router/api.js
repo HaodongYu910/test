@@ -306,7 +306,14 @@ export const updatedicomdata = (headers, params) => {
 export const adddicomdata = (headers, params) => {
   return axios.post(`${test}/api/dicom/add_dicomData`, params, headers).then(res => res.data)
 }
-
+// DisableDicom数据
+export const DisableDicom = (headers, params) => {
+  return axios.post(`${test}/api/dicom/disabledicom`, params, headers).then(res => res.data)
+}
+// EnableDicom数据
+export const EnableDicom = (headers, params) => {
+  return axios.post(`${test}/api/dicom/enabledicom`, params, headers).then(res => res.data)
+}
 // 新增dicom数据
 export const dicomdetail = (headers, params) => {
   return axios.post(`${test}/api/dicom/dicomdetail`, params, headers).then(res => res.data)

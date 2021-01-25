@@ -9,7 +9,7 @@ import threading
 from django.db import transaction
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
-from ..tools.smoke.gold import goldSmoke
+from ..tools.smoke.gold import goldSmoke,SmokeThread
 from ..tools.orthanc.deletepatients import *
 from ..models import smoke_record,smoke
 from ..common.dicomBase import baseTransform
@@ -233,6 +233,10 @@ class DisableSmoke(APIView):
         # 查找是否存在
         try:
             obj = smoke.objects.get(id=data["id"])
+            testThread = SmokeThread(data["id"])
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setFlag = False
+            print(testThread.is_alive())
             obj.status = False
             obj.save()
             return JsonResponse(code="0", msg="成功")
@@ -270,7 +274,16 @@ class EnableSmoke(APIView):
         # 查找项目是否存在
         try:
             obj = smoke.objects.get(id=data["id"])
+            objrecord = smoke_record.objects.filter(smokeid=str(data["id"]))
             obj.status = True
+            testThread = SmokeThread(data["id"])
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setDaemon(True)
+            # 开始线程
+            testThread.start()
+            # 删除以前记录
+            objrecord.delete()
+            # 变更状态
             obj.save()
 
             return JsonResponse(code="0", msg="成功")
@@ -331,51 +344,6 @@ class smokeRecord(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-
-class smokeTest(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 server,version
-            if not data["id"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 id！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        执行脚本
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-
-        try:
-            # 执行smoke测试
-            try:
-                obj = smoke_record.objects.filter(smokeid=str(data["id"]))
-                obj.delete()
-                goldthread = threading.Thread(target=goldSmoke,args=(str(data["id"]),))
-                # 启动线程
-                goldthread.start()
-            except Exception as e:
-                logger.error(e)
-                return JsonResponse(msg="执行失败", code="999991", exception=e)
-            return JsonResponse(code="0", msg="成功")
-        except Exception as e:
-            logger.error(e)
-            return JsonResponse(msg="失败", code="999991", exception=e)
 
 
 class smokefigure(APIView):
