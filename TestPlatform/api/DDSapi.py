@@ -121,3 +121,4 @@ class sync_dds_data(APIView):
     # for i in 12:
     #     time_dic[i] = 1
     pass
+
