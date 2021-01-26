@@ -16,24 +16,25 @@ def lung(checkdate, server, version,lungid,kc):
     # 查询sql
     dise = dictionary.objects.get(id=lungid)
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-    db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
+    db_query = 'select studyinstanceuid from study_view where aistatus =\'3\''
+    # db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,int(lungid),kc)
+        vote, imagecount, SliceThickness = voteData(u["studyinstanceuid"], server,int(lungid),kc)
         if SliceThickness is None:
             continue
         if dict.get(SliceThickness) is None:
-            dict[SliceThickness] = '\'' + str(u["studyuid"]) + '\''
+            dict[SliceThickness] = '\'' + str(u["studyinstanceuid"]) + '\''
             imagescount[SliceThickness] = imagecount
         else:
-            dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyuid"]) + '\''
+            dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyinstanceuid"]) + '\''
             if imagecount is None:
                 imagescount[SliceThickness] = imagescount[SliceThickness]
             else:
                 imagescount[SliceThickness] =imagescount[SliceThickness]+','+str(int(imagecount))
     for ikey in dict.keys():
-        for j in ['lung_prediction','lung_job']:
+        for j in ['lung_job']:
             sql = dictionary.objects.get(key=str(j), type='sql')
             strsql = sql.value.format(checkdate[0], checkdate[1], dict[ikey], ikey)
             saveResult(server, version,j, checkdate,strsql,imagescount[ikey],kc)
@@ -80,7 +81,7 @@ def saveResult(server,version,type,checkdate,sql,imagedata,kc):
     result = connect_to_postgres(server,sql)
     dict = result.to_dict(orient='records')
     for i in dict:
-        if type =='job':
+        if type =='lung_job':
             obj = dictionary.objects.get(remarks=i["modelname"])
         else:
             obj = dictionary.objects.get(key=i["modelname"])

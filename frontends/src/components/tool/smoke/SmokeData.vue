@@ -3,16 +3,7 @@
         <div class="filter-container">
             <!--工具条-->
             <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
-                <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item label="过滤器" prop="server">
-                        <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.host"
-                                       :label="item.name"
-                                       :value="item.host"
-                            />
-                        </el-select>
-                    </el-form-item>
+                <el-form label="过滤器" :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option v-for="(item,index) in tags"
@@ -35,6 +26,15 @@
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
                     <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
+                     <el-form-item label="同步服务" prop="server">
+                        <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
+                            <el-option v-for="(item,index) in tags"
+                                       :key="item.id"
+                                       :label="item.name"
+                                       :value="item.id"
+                            />
+                        </el-select>
+                    </el-form-item>
                     <el-button type="primary" @click="getdetail">同步</el-button>
                 </el-form>
             </el-col>
@@ -66,19 +66,9 @@
                         <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="slicenumber" min-width="10%" sortable>
+                <el-table-column label="挂载" min-width="15%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="预测张数" min-width="10%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="类型" min-width="10%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.vote }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="标准诊断" min-width="15   %">
@@ -441,30 +431,35 @@
                     }
                 })
             },
-            getdetail() {
-                this.listLoading = true
-                // const ids = this.sels.map(item => item.id)
+            getdetail: function () {
+                const ids = this.sels.map(item => item.id)
                 const self = this
-                const params = {
-                    diseases: self.filters.diseases,
-                    server: self.filters.server,
-                    type: self.filters.type,
-                    ids: ''
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                dicomdetail(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.page = data.page
-                        self.stresslist = data.data
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
+                this.$confirm('确认同步选中数据吗？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    const self = this
+                    const params = {
+                        diseases: self.filters.diseases,
+                        server: self.filters.server,
+                        type: self.filters.type,
+                        ids: ids
                     }
+                    const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                    dicomdetail(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            self.total = data.total
+                            self.page = data.page
+                            self.stresslist = data.data
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    })
                 })
             },
             // 新增

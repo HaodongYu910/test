@@ -22,7 +22,7 @@ plt.rcParams['font.family'] = ['Times New Roman']
 def stressdataFigure(type):
     version = []
     modelname = []
-    if type =='lung_prediction' or type =='lung_job':
+    if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
         stressobj = stress.objects.filter(status=True).order_by("version")
         model = stress_result.objects.values("slicenumber").order_by("slicenumber").distinct()
     else:
@@ -35,7 +35,7 @@ def stressdataFigure(type):
 
     for k in model:
         avg = []
-        if type == 'lung_prediction' or type == 'lung_job':
+        if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
             if k["slicenumber"] is None:
                 continue
             modelname.append(k["slicenumber"])
@@ -44,7 +44,7 @@ def stressdataFigure(type):
             modelname.append(obj.key)
         for j in version:
             try:
-                if type =='lung_prediction' or type =='lung_job' :
+                if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
                     resultobj = stress_result.objects.get(type=type, slicenumber=str(k["slicenumber"]), version=j)
                 else:
                     resultobj = stress_result.objects.get(type=type, modelname=k.id, version=j)

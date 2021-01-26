@@ -4,13 +4,13 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-                    <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="stresslistList"></el-input>
+                    <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="getAutoCaseList"></el-input>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="stresslistList">查询</el-button>
+                    <el-button type="primary" @click="getAutoCaseList">查询</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="handleAdd">创建测试</el-button>
+                    <el-button type="primary" @click="handleAdd">添加用例</el-button>
                 </el-form-item>
             </el-form>
         </el-col>
@@ -20,44 +20,29 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="version" label="项目" min-width="12%" sortable>
+            <el-table-column prop="id" label="id" min-width="12%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.projectname }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.id }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
+            <el-table-column prop="filename" label="用例名称" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {id: scope.row.id}}"
-                                 style='text-decoration: none;color: #000000;'>
-                        {{ scope.row.version }}
+                    <router-link v-if="scope.row.status" :to="{ name: 'UI用例详情', params: {caseid: scope.row.id}}"
+                                 style='text-decoration: none;color: #0000ff;'>
+                        {{ scope.row.name }}
                     </router-link>
-                    {{ !scope.row.status?scope.row.version:""}}
+                    {{ !scope.row.status?scope.row.filename:""}}
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="服务" min-width="12%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="type" label="线程数" min-width="9%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.thread }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="type" label="规则" min-width="30%">
+            <el-table-column prop="testdata" label="关联数据" min-width="12%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="16%" sortable>
+            <el-table-column prop="type" label="类型" min-width="9%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="结束时间" min-width="16%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
@@ -70,10 +55,10 @@
             </el-table-column>
             <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
-                    <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
-                    <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告</el-button>
+                    <el-button type="warning" size="small" @click="handleDetail(scope.$index, scope.row)">查看</el-button>
+                    <el-button type="info" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    <el-button type="primary" size="small" @click="handleDebug(scope.$index, scope.row)">调试</el-button>
+                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
                     <!--                        {{scope.row.status===false?'启用':'禁用'}}-->
                     <!--                    </el-button>-->
@@ -93,94 +78,36 @@
         <el-dialog :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 100%; left: 5.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-divider>基本配置</el-divider>
+                <el-divider>基本信息</el-divider>
                 <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="项目" prop="name">
-                            <el-select v-model="editForm.projectname" placeholder="请选择">
-                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                            </el-select>
+                     <el-col :span="12">
+                        <el-form-item label="用例名称" prop='name'>
+                            <el-input v-model.trim="editForm.name" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="6">
-                        <el-form-item label="版本" prop='version'>
-                            <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
+                    <el-col :span="12">
+                        <el-form-item label="用例类型" prop="type">
+                            <el-select v-model="editForm.type" placeholder="请选择">
+                                <el-option key="setUp" label="setUp" value="setUp"></el-option>
+                                <el-option key="case" label="case" value="case"></el-option>
+                                <el-option key="tearDown" label="tearDown" value="tearDown"></el-option>
+                            </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="editForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
-                                <el-option
-                                        v-for="(item,index) in hosts"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-form-item label="时间" prop='loop_time'>
-                            <el-input v-model.trim="editForm.loop_time" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="editForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                        <el-form-item label="关联测试数据" prop='server'>
+                            <el-select v-model="editForm.testdata" placeholder="请选择服务器" @click.native="getBase()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
-                                           :label="item.value"
+                                           :label="item.remarks"
                                            :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-divider>参数配置</el-divider>
-                <el-row :gutter="24">
-                    <el-col :span="8">
-                        <el-form-item label="线程数" prop='thread'>
-                            <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5000"
-                                             label="线程数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="循环次数" prop='loop_count'>
-                            <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="并发数" prop='synchroniz'>
-                            <el-input-number v-model="editForm.synchroniz" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="ramp" prop='ramp'>
-                            <el-input-number v-model="editForm.ramp" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="10">
-                        <el-form-item label="dicom" prop="switch">
-                            <el-switch v-model="editForm.switch" active-color="#13ce66"
-                                       inactive-color="#ff4949"></el-switch>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <i
-                        class="el-icon-close"
-                        @click="deleteClick(item)"
-                        style=" position: absolute;top: -8px; left: 60px; cursor: pointer;"
-                ></i>
                 <el-row>
                     <el-divider>文件上传</el-divider>
                     <el-upload
@@ -194,111 +121,50 @@
                             :on-remove="handleRemove"
                             :before-remove="beforeRemove">
 
-                        <el-button class="btn upload-btn">上传附件</el-button>
+                        <el-button class="btn upload-btn">上传用例</el-button>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                        <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
+                        <div slot="tip" class="el-upload__tip">只能上传.py文件</div>
                     </el-upload>
                     <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
                 </el-row>
-                <el-divider>-</el-divider>
-                <el-row>
-                    <el-form-item label="基准测试" prop="switch">
-                        <el-switch v-model="editForm.type" active-color="#13ce66"
-                                   inactive-color="#ff4949"></el-switch>
-                    </el-form-item>
-                </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
-                <el-button @click.native="editFormVisible = false">关闭</el-button>
-                <el-button type="primary" @click.native="run" :loading="editLoading">运行</el-button>
                 <el-button type="primary" @click.native="editSubmit" :loading="editLoading">修改</el-button>
+                <el-button @click.native="editFormVisible = false">关闭</el-button>
             </div>
         </el-dialog>
 
         <!--新增界面-->
-        <el-dialog title="新增测试" :visible.sync="addFormVisible" :close-on-click-modal="false"
+        <el-dialog title="新增用例" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-divider>基本配置</el-divider>
+                <el-divider>基本信息</el-divider>
                 <el-row>
-                    <el-col :span="12">
-                        <el-form-item label="项目" prop="name">
-                            <el-select v-model="addForm.projectname" placeholder="请选择">
-                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                            </el-select>
+                     <el-col :span="12">
+                        <el-form-item label="用例名称" prop='name'>
+                            <el-input v-model.trim="addForm.name" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="版本" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                    <el-col :span="12">
+                        <el-form-item label="用例类型" prop="type">
+                            <el-select v-model="addForm.type" placeholder="请选择">
+                                <el-option key="setUp" label="setUp" value="setUp"></el-option>
+                                <el-option key="case" label="case" value="case"></el-option>
+                                <el-option key="tearDown" label="tearDown" value="tearDown"></el-option>
+                            </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
-                                <el-option
-                                        v-for="(item,index) in hosts"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="时间" prop='loop_time' auto-complete="off">
-                            <el-input v-model.trim="addForm.loop_time" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                        <el-form-item label="关联测试数据" prop='server'>
+                            <el-select v-model="addForm.testdata" placeholder="请选择服务器" @click.native="getBase()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
-                                           :label="item.value"
+                                           :label="item.remarks"
                                            :value="item.id"
                                 />
                             </el-select>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-divider>参数配置</el-divider>
-                <el-row :gutter="24">
-                    <el-col :span="8">
-                        <el-form-item label="线程数" prop='thread'>
-                            <el-input-number v-model="addForm.thread" @change="handleChange" :min="1" :max="5000"
-                                             label="线程数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="循环次数" prop='loop_count'>
-                            <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-form-item label="并发数" prop='synchroniz'>
-                            <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="ramp" prop='ramp'>
-                            <el-input-number v-model="addForm.ramp" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="10">
-                        <el-form-item label="dicom" prop="switch">
-                            <el-switch v-model="addForm.switch" active-color="#13ce66"
-                                       inactive-color="#ff4949"></el-switch>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -315,9 +181,9 @@
                             :on-remove="handleRemove"
                             :before-remove="beforeRemove">
 
-                        <el-button class="btn upload-btn">上传附件</el-button>
+                        <el-button class="btn upload-btn">上传用例</el-button>
                         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                        <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
+                        <div slot="tip" class="el-upload__tip">只能上传.py文件</div>
                     </el-upload>
                     <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
                 </el-row>
@@ -333,8 +199,8 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        stresslist, delStress, disableStress, enableStress,
-        updateStress, addStress, stresssave, getHost, getDictionary, stressTool,addupload,delupload
+        getAutoCase, DelAutoCase, DisableAutoCase, EnableAutoCase,
+        UpdateAutoCase, addAutoCase, stresssave, getHost, getbase, stressTool,addupload,delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -393,7 +259,7 @@
                 //新增界面数据
                 addForm: {
                     projectname: '晨曦',
-                    hostid: '1',
+                    loadserver: '192.168.1.208',
                     version: '',
                     type: '',
                     jmeterstatus: false
@@ -446,7 +312,7 @@
             handleRequest(data) {
                 let params = new FormData()
                 params.append('file', data.file)
-                params.append('type', "stress")
+                params.append('type', "UI")
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 addupload(headers, params).then((res) => {
                     this.listLoading = false
@@ -500,10 +366,11 @@
                 const self = this
                 const params = {
                     status: 1,
-                    type: 'model'
+                    selecttype:'dicom',
+                    type: 'gold'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getDictionary(headers, params).then((res) => {
+                getbase(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
@@ -548,7 +415,7 @@
                                 center: true,
                             })
                         }
-                        self.stresslistList()
+                        self.getAutoCaseList()
                     });
                 })
             },
@@ -582,21 +449,21 @@
                                 center: true,
                             })
                         }
-                        self.stresslistList()
+                        self.getAutoCaseList()
                     });
                 })
             },
             // 获取项目列表
-            stresslistList() {
+            getAutoCaseList() {
                 this.listLoading = true;
                 let self = this;
                 let params = {
                     page: self.page,
-                    name: self.filters.name,
-                    type: ""
+                    filename: self.filters.name,
+                    type: self.filters.type,
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
-                stresslist(headers, params).then((res) => {
+                getAutoCase(headers, params).then((res) => {
                     self.listLoading = false;
                     let {msg, code, data} = res;
                     if (code === '0') {
@@ -637,7 +504,7 @@
                                 center: true,
                             })
                         }
-                        self.stresslistList()
+                        self.getAutoCaseList()
                     });
                 })
             },
@@ -668,7 +535,7 @@
                                 center: true,
                             })
                         }
-                        self.stresslistList()
+                        self.getAutoCaseList()
                     });
                 })
             },
@@ -685,7 +552,7 @@
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    disableStress(headers, params).then(_data => {
+                    DisableAutoCase(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -703,7 +570,7 @@
                         }
                     });
                 } else {
-                    enableStress(headers, params).then(_data => {
+                    EnableAutoCase(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -724,7 +591,7 @@
             },
             handleCurrentChange(val) {
                 this.page = val;
-                this.stresslistList()
+                this.getAutoCaseList()
             },
             //显示编辑界面
             handleEdit: function (index, row) {
@@ -735,13 +602,9 @@
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm = {
-                    version: null,
-                    projectname: "晨曦",
-                    hostid: '1',
-                    thread: 1,
-                    synchroniz: 0,
-                    ramp: 0,
-                    loop_count: 1
+                    name: "",
+                    testdata: '',
+                    type: ""
                 };
             },
             //run 性能测试
@@ -771,7 +634,7 @@
                                     });
                                     self.$refs['editForm'].resetFields();
                                     self.editFormVisible = false;
-                                    self.stresslistList()
+                                    self.getAutoCaseList()
                                 } else if (code === '999997') {
                                     self.$message.error({
                                         message: msg,
@@ -798,24 +661,17 @@
                             //NProgress.start();
                             let params = {
                                 id: self.editForm.id,
-                                projectname: self.editForm.projectname,
-                                version: self.editForm.version,
+                                name: self.editForm.name,
                                 testdata: self.editForm.testdata,
-                                thread: this.editForm.thread,
-                                synchroniz: this.editForm.synchroniz,
-                                ramp: this.editForm.ramp,
-                                loop_count: this.editForm.loop_count,
-                                loop_time: this.editForm.loop_time,
+                                type: this.editForm.type,
                                 filedict:this.filedict,
-                                hostid:this.editForm.hostid,
-                                status: true,
-                                jmeterstatus: false,
+                                status: true
                             };
                             let header = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            updateStress(header, params).then(_data => {
+                            UpdateAutoCase(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.editLoading = false;
                                 if (code === '0') {
@@ -826,7 +682,7 @@
                                     });
                                     self.$refs['editForm'].resetFields();
                                     self.editFormVisible = false;
-                                    self.stresslistList()
+                                    self.getAutoCaseList()
                                 } else if (code === '999997') {
                                     self.$message.error({
                                         message: msg,
@@ -852,24 +708,17 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                projectname: self.addForm.projectname,
-                                version: self.addForm.version,
+                                name: self.addForm.name,
                                 testdata: self.addForm.testdata,
-                                thread: this.addForm.thread,
-                                synchroniz: this.addForm.synchroniz,
-                                ramp: this.addForm.ramp,
-                                loop_count: this.addForm.loop_count,
-                                loop_time: this.addForm.loop_time,
-                                jmeterstatus: false,
+                                type: self.addForm.type,
                                 filedict:this.filedict,
-                                hostid:this.addForm.hostid,
                                 status: true,
                             });
                             let header = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            addStress(header, params).then(_data => {
+                            addAutoCase(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.addLoading = false;
                                 if (code === '0') {
@@ -880,7 +729,7 @@
                                     });
                                     self.$refs['addForm'].resetFields();
                                     self.addFormVisible = false;
-                                    self.stresslistList()
+                                    self.getAutoCaseList()
                                 } else if (code === '999997') {
                                     self.$message.error({
                                         message: msg,
@@ -893,7 +742,7 @@
                                     });
                                     self.$refs['addForm'].resetFields();
                                     self.addFormVisible = false;
-                                    self.stresslistList()
+                                    self.getAutoCaseList()
                                 }
                             })
                         });
@@ -918,7 +767,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    delStress(header, params).then(_data => {
+                    DelAutoCase(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
@@ -932,13 +781,13 @@
                                 center: true,
                             })
                         }
-                        self.stresslistList()
+                        self.getAutoCaseList()
                     });
                 })
             }
         },
         mounted() {
-            this.stresslistList();
+            this.getAutoCaseList();
         }
     }
 

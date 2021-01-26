@@ -45,6 +45,12 @@ def Weekdays(str):
 
 
 # """链接数据库"""
+def connect_postgres(*args):
+    conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=args[0], port="5432")
+    result = pd.read_sql(args[1], conn)
+    conn.close()
+    return result
+
 def connect_to_postgres(orthanc_ip,sql):
     conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=orthanc_ip, port="5432")
     result = pd.read_sql(sql, conn)

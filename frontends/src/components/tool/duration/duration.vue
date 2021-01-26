@@ -20,37 +20,44 @@
                 </el-form>
             </el-col>
 
-
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
-                      width="95%">
-                <el-table-column type="selection" min-width="5%">
-                </el-table-column>
+                      width="120%">
+                <el-table-column prop="anonymous" label="匿名状态" min-width="12%">
+                <template slot-scope="scope">
+                        <img v-show="scope.row.anonymous"
+                             style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/qidong.png"/>
+                        <img v-show="!scope.row.anonymous"
+                             style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
+                             src="../../../assets/img/fou.png"/>
+                    </template>
+            </el-table-column>
                 <el-table-column prop="type" label="服务器" min-width="20%">
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化数据详情', params: {id: scope.row.id}}"
-                                     style='text-decoration: none;color: #000000;'>
+                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
+                                     style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="12%">
+                <el-table-column prop="type" label="匿名名称" min-width="25%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.keyword }}</span>
+                        <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="发送类型" min-width="25%">
+                <el-table-column prop="type" label="发送类型" min-width="20%" sortable show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="预发送数量" min-width="10%">
+                <el-table-column label="预计数量" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="实际已发送" min-width="12%">
+                <el-table-column label="实际数量" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
                     </template>
@@ -116,51 +123,89 @@
 
             <!--编辑界面-->
             <el-dialog title="修改" :visible.sync="editFormVisible" :close-on-click-modal="false"
-                       style="width: 75%; left: 12.5%">
+                       style="width: 100%; left: 7.5%">
                 <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                    <el-row>
+                    <el-divider>基本配置</el-divider>
+                    <el-row :gutter="32">
+                        <el-col :span="20">
+                                <el-form-item label="数据类型" prop="senddata">
+                                    <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
+                                                 @click.native="getBase()"></el-cascader>
+                                </el-form-item>
+                            </el-col>
                         <el-col :span="6">
-                            <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
-                                             @click.native="getBase()"></el-cascader>
+                                <el-form-item label="匿名" prop="anonymous">
+                                    <el-switch v-model="editForm.anonymous" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                    </el-row>
+                    <el-divider>匿名配置</el-divider>
+                    <el-row :gutter="24">
+                        <el-col :span="8">
+                            <el-form-item label="匿名姓名" prop='patientname'>
+                                 <el-input label="匿名名称" id="patientname" v-model="editForm.patientname" placeholder="patientname"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="匿名名称" prop="keyword">
-                                <el-input id="key_word" v-model="editForm.keyword" placeholder="数据名称"/>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="发送个数" prop="keyword">
-                                <el-input id="sendcount" v-model="editForm.sendcount" placeholder="共/个"/>
+                        <el-col :span="8">
+                            <el-form-item label="匿名ID" prop='patientid'>
+                                <el-input label="匿名名称" id="patientid" v-model="editForm.patientid" placeholder="patientid"/>
                             </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-row>
-
-                        <el-col :span="6">
-                            <el-form-item label="持续时间" prop="loop_time">
-                                <el-input id="looptime" v-model="editForm.loop_time" placeholder="小时"/>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="发送数量" prop='sendcount'>
+                                <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0" :max="100000"
+                                                 label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="延时时间" prop="sleeptime">
-                                <el-input id="sleeptime" v-model="editForm.sleeptime" placeholder="秒"/>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="6">
-                            <el-form-item label="延时数量" prop="sleepcount">
-                                <el-input id="sleepcount" v-model="editForm.sleepcount" placeholder="张"/>
+                        <el-col :span="12">
+                            <el-form-item label="持续时间（时）" prop='loop_time'>
+                                <el-input-number v-model="editForm.loop_time" @change="handleChange" :min="0"
+                                                 :max="100000"
+                                                 label="持续时间（时）"></el-input-number>
                             </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-row>
-                        <el-col :span="6">
-                            <el-form-item label="series" prop="series">
-                                <el-switch v-model="editForm.series" active-color="#13ce66"
-                                           inactive-color="#ff4949"></el-switch>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="延时数量" prop='sleepcount'>
+                                <el-input-number v-model="editForm.sleepcount" @change="handleChange" :min="0"
+                                                 :max="99999"
+                                                 label="延时数量"></el-input-number>
                             </el-form-item>
                         </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="延时时间（秒）" prop='sleeptime'>
+                                <el-input-number v-model="editForm.sleeptime" @change="handleChange" :min="0" :max="5000"
+                                                 label="延时时间（秒）"></el-input-number>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
+                        <el-row>
+                            <el-col :span="15">
+                                    <el-form-item label="DDS服务" prop="dds">
+                                        <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
+                                                   @click.native="gethost()">
+                                            <el-option
+                                                    v-for="(item,index) in tags"
+                                                    :key="item.host"
+                                                    :label="item.name"
+                                                    :value="item.host"
+                                            />
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                            <el-col :span="6">
+                                <el-form-item label="series延时" prop="series">
+                                    <el-switch v-model="editForm.series" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    <el-row>
                         <el-col :span="4">
                             <el-form-item label="操作" prop="keyword">
                                 <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
@@ -168,6 +213,7 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
+                </el-form>
                 </el-form>
             </el-dialog>
 
@@ -231,75 +277,113 @@
             </el-dialog>
             <!--新增界面-->
             <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
-                       style="width: 75%; left: 12.5%">
-                <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="5">
-                                <el-form-item label="发送服务器" prop="sendserver">
-                                    <el-select v-model="addForm.sendserver" placeholder="请选择"
-                                               @click.native="gethost()">
-                                        <el-option
-                                                v-for="(item,index) in tags"
-                                                :key="item.id"
-                                                :label="item.name"
-                                                :value="item.id"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="端口号" prop="port">
-                                    <el-input id="port" v-model="addForm.port" placeholder=""/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="匿名名称" prop="keyword">
-                                    <el-input id="keyword" v-model="addForm.keyword" placeholder="数据名称"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
+                       style="width: 100%; left: 10%">
+                <el-form :model="addForm" label-width="120" :rules="addFormRules" ref="addForm">
+                    <el-divider>基本配置</el-divider>
+                    <el-row>
+                        <el-form :inline="true" :model="filters" @submit.native.prevent>
+                            <el-row>
+                                <el-col :span="14">
+                                    <el-form-item label="服务器" prop="sendserver">
+                                        <el-select v-model="addForm.sendserver" placeholder="请选择"
+                                                   @click.native="gethost()">
+                                            <el-option
+                                                    v-for="(item,index) in tags"
+                                                    :key="item.id"
+                                                    :label="item.name"
+                                                    :value="item.id"
+                                            />
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="10">
+                                    <el-form-item label="端口号" prop="port">
+                                        <el-input id="port" v-model="addForm.port" placeholder=""/>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                        </el-form>
+                    </el-row>
+                    <el-row :gutter="32">
+                        <el-col :span="20">
                                 <el-form-item label="数据类型" prop="senddata">
                                     <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
                                                  @click.native="getBase()"></el-cascader>
                                 </el-form-item>
                             </el-col>
-                        </el-row>
+                        <el-col :span="6">
+                                <el-form-item label="匿名" prop="anonymous">
+                                    <el-switch v-model="addForm.anonymous" active-color="#13ce66"
+                                               inactive-color="#ff4949"></el-switch>
+                                </el-form-item>
+                            </el-col>
+                    </el-row>
+                    <el-divider>匿名配置</el-divider>
+                    <el-row :gutter="24">
+                        <el-col :span="8">
+                            <el-form-item label="匿名姓名" prop='patientname'>
+                                 <el-input label="匿名名称" id="patientname" v-model="addForm.patientname" placeholder="patientname"/>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
+                            <el-form-item label="匿名ID" prop='patientid'>
+                                <el-input label="匿名名称" id="patientid" v-model="addForm.patientid" placeholder="patientid"/>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="发送数量" prop='sendcount'>
+                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0" :max="100000"
+                                                 label="发送数量"></el-input-number>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="持续时间（时）" prop='loop_time'>
+                                <el-input-number v-model="addForm.loop_time" @change="handleChange" :min="0"
+                                                 :max="100000"
+                                                 label="持续时间（时）"></el-input-number>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="延时数量" prop='sleepcount'>
+                                <el-input-number v-model="addForm.sleepcount" @change="handleChange" :min="0"
+                                                 :max="99999"
+                                                 label="延时数量"></el-input-number>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="延时时间（秒）" prop='sleeptime'>
+                                <el-input-number v-model="addForm.sleeptime" @change="handleChange" :min="0" :max="5000"
+                                                 label="延时时间（秒）"></el-input-number>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
-                            <el-col :span="4">
-                                <el-form-item label="持续时间" prop="loop_time">
-                                    <el-input id="loop_time" v-model="addForm.loop_time" placeholder="小时"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="发送数量" prop="count">
-                                    <el-input id="sendcount" v-model="addForm.sendcount" placeholder="共/个"/>
-                                </el-form-item>
-                            </el-col>
+                            <el-col :span="15">
+                                    <el-form-item label="DDS服务" prop="dds">
+                                        <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
+                                                   @click.native="gethost()">
+                                            <el-option
+                                                    v-for="(item,index) in tags"
+                                                    :key="item.host"
+                                                    :label="item.name"
+                                                    :value="item.host"
+                                            />
+                                        </el-select>
+                                    </el-form-item>
+                                </el-col>
                             <el-col :span="6">
-                                <el-form-item label="是否dds" prop="dds">
-                                    <el-input id="dds" v-model="addForm.dds" placeholder="DDS服务"/>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                        <el-row>
-                            <el-col :span="4">
-                                <el-form-item label="延时时间" prop="sleeptime">
-                                    <el-input id="sleeptime" v-model="addForm.sleeptime" placeholder="秒"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="4">
-                                <el-form-item label="延时数量" prop="sleepcount">
-                                    <el-input id="sleepcount" v-model="addForm.sleepcount" placeholder="张"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="3">
-                                <el-form-item label="series" prop="series">
+                                <el-form-item label="series延时" prop="series">
                                     <el-switch v-model="addForm.series" active-color="#13ce66"
                                                inactive-color="#ff4949"></el-switch>
                                 </el-form-item>
                             </el-col>
-
+                        </el-row>
+                        <el-row>
                             <el-col :span="4">
                                 <el-form-item label="操作" prop="save">
                                     <el-button type="primary" @click="addSubmit('form')">保存</el-button>
@@ -436,7 +520,10 @@
                 },
 
                 addForm: {
-                    port: '4242'
+                    port: '4242',
+                    anonymous: true,
+                    sendcount:0
+
                 },
                 addFormVisible: false, // 新增界面是否显示
                 addLoading: false,
@@ -452,15 +539,7 @@
                         {required: true, message: '请输入版本号', trigger: 'change'},
                         {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
-                },
-                // 新增界面数据
-                addForm: {
-                    diseases: '',
-                    version: '',
-                    type: '',
-                    description: ''
                 }
-
             }
         },
         mounted() {
@@ -751,6 +830,8 @@
                     status: false,
                     sleepcount: null,
                     sleeptime: 0,
+                    sendcount:0,
+                    anonymous: true,
                     series: false
                 }
             }
@@ -778,12 +859,15 @@
                             const params = {
                                 id: self.editForm.id,
                                 loop_time: self.editForm.loop_time,
-                                keyword: this.editForm.keyword,
+                                patientname: this.editForm.patientname,
+                                patientid: this.editForm.patientid,
                                 dicom: this.editForm.senddata,
                                 sendcount: this.editForm.sendcount,
+                                dds: this.editForm.dds,
                                 sleepcount: this.editForm.sleepcount,
                                 sleeptime: this.editForm.sleeptime,
-                                series: this.editForm.series
+                                series: this.editForm.series,
+                                anonymous: this.editForm.anonymous,
                             }
                             const header = {
                                 'Content-Type': 'application/json',
@@ -865,9 +949,7 @@
                         })
                     }
                 })
-            }
-            ,
-
+            },
             // 新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {
@@ -879,16 +961,18 @@
                             const params = JSON.stringify({
                                 port: self.addForm.port,
                                 loop_time: self.addForm.loop_time,
-                                keyword: this.addForm.keyword,
+                                patientname: this.addForm.patientname,
+                                patientid: this.addForm.patientid,
                                 dicom: this.addForm.senddata,
                                 sendcount: this.addForm.sendcount,
                                 dds: this.addForm.dds,
                                 sleepcount: this.addForm.sleepcount,
                                 sleeptime: this.addForm.sleeptime,
                                 series: this.addForm.series,
+                                anonymous: this.addForm.anonymous,
                                 sendstatus: false,
                                 status: false,
-                                hostid:this.addForm.sendserver
+                                hostid: this.addForm.sendserver
                             })
                             const header = {
                                 'Content-Type': 'application/json',

@@ -1,32 +1,68 @@
-import gc
 from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import connect_to_postgres
 from ...utils.keycloak.login_kc import *
-from TestPlatform.models import GlobalHost,dictionary
+from TestPlatform.common.api_response import JsonResponse
+from TestPlatform.models import base_data, pid, GlobalHost,stress,dictionary,dicom
+from TestPlatform.serializers import duration_Deserializer
+from ...tools.dicom.SendDicom import Send
+from ...tools.dicom.duration_verify import *
+from ...tools.stress.PerformanceResult import savecsv
+from ...tools.orthanc.deletepatients import delete_patients_duration
 
-import os,time
-import shutil
 
 logger = logging.getLogger(__name__)
 
+# 生成csv  数据
+def dicomsavecsv(ids):
+    path = os.path.join(os.getcwd())
+    for i in ids:
+        obj = dicom.objects.get(id=i)
+        graphql_query = "{ ai_biomind (" \
+                        "study_uid:\\\"" + str(obj.studyinstanceuid) + "\\\", protocols:" \
+                                                                       "{ pothers: " \
+                                                                       "{ disable_negative_voting:false} " \
+                                                                       "penable_cached_results:false pconfig:{} " \
+                                                                       "planguage:\\\"zh-cn\\\" " \
+                                                                       " puser_id:\\\"biomind\\\" " \
+                                                                       "pseries_classifier:" + str(obj.vote) + "}" \
+                                                                                                               "routes: [[\\\"generate_series\\\",\\\"series_classifier\\\",\\\"" + str(
+            obj.predictor) + "\\\"]])" \
+                             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+        if obj.diseases == "Lung":
+            diseases = str("{0}_{1}_slicenumber".format(obj.diseases, str(obj.slicenumber)))
+        else:
+            diseases = obj.diseases
+        savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Avg
+# 正常发送
+def normalSend(id):
+    obj = duration.objects.get(id=id)
+    for i in obj.dicom.split(","):
+        try:
+            dicomobj = dicom.objects.filter(fileid=str(i))
+        except Exception as e:
+            continue
+        for j in dicomobj:
+            delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
+        cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+           '--ip {0} --aet {1} '
+           '--port {2} '
+           '--patientid {3} '
+           '--patientname {4} '
+           '--folderid {5} '
+           '--durationid {6} '
+           '--end {7} '
+           '--sleepcount {8} '
+           '--sleeptime {9} '
+           '--series {10} &').format(obj.server, obj.aet, obj.port,'patientid','patientname', i, id,
+                                    int(dicomobj.count()), 9999, 1, obj.series)
 
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
-import shutil, threading
+        logger.info(cmd)
+        os.system(cmd)
+        time.sleep(1)
 
-from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost
-from TestPlatform.serializers import duration_Deserializer
-from ...tools.dicom.SendDicom import Send
-from ...tools.orthanc.deletepatients import *
-from ...tools.dicom.duration_verify import *
-from ...tools.stress.PerformanceResult import *
-from ...tools.orthanc.deletepatients import delete_patients_duration
+    obj.sendstatus = True
+    obj.save()
 
 # 匿名化发送数据
 def anonymousSend(id, type):
@@ -34,7 +70,15 @@ def anonymousSend(id, type):
     nom = 0
     try:
         if type != "stress":
+            durationid = id
             obj = duration.objects.get(id=id)
+            testdata = obj.dicom
+            server = obj.server
+            aet = obj.aet
+            port = obj.port
+            patientid = obj.patientid
+            patientname = obj.patientname
+            series = obj.series
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
             if obj.sendcount is None and obj.end_time is None:
@@ -49,27 +93,37 @@ def anonymousSend(id, type):
                 if imod[0] < 1:
                     return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
         else:
-            obj = duration.objects.get(id=id)
-            sleepcount = 9999
+            obj = stress.objects.get(id=id)
+            hostobj = GlobalHost.objects.get(id=obj.hostid)
+            testdata = obj.testdata
+            server = hostobj.host
+            aet = hostobj.description
+            port = hostobj.port
+            patientid = 'stress'
+            patientname = 'stress'
+            series = 0
+            sleepcount = 8787
             sleeptime = 0
-            end = 500
+            end = int(obj.loop_count)
+            durationid = '0{}'.format(id)
 
-        for i in obj.dicom.split(","):
+        for i in testdata.split(","):
             if nom != 0:
                 end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
-            a = a + 1
+                a = a + 1
             cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
                    ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
                    '--ip {0} --aet {1} '
                    '--port {2} '
-                   '--keyword {3} '
-                   '--dicomfolder {4} '
-                   '--durationid {5} '
-                   '--end {6} '
-                   '--sleepcount {7} '
-                   '--sleeptime {8} '
-                   '--series {9} &').format(obj.server, obj.aet, obj.port, obj.keyword, i, id,
-                                            end, sleepcount, sleeptime, obj.series)
+                   '--patientid {3} '
+                   '--patientname {4} '
+                   '--folderid {5} '
+                   '--durationid {6} '
+                   '--end {7} '
+                   '--sleepcount {8} '
+                   '--sleeptime {9} '
+                   '--series {10} &').format(server, aet, port, patientid,patientname, i,durationid,
+                                            end, sleepcount, sleeptime,series)
 
             logger.info(cmd)
             os.system(cmd)
@@ -127,14 +181,10 @@ def Slice(kc,Seriesuid):
 def voteData(uid,orthanc_ip,diseases,kc):
     vote = ''
     try:
-        Series = connect_to_postgres(orthanc_ip,
-                                     "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
-                                         uid)).to_dict(orient='records')
-        pseries_classifier = connect_to_postgres(orthanc_ip,
-                                                 "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
-                                                     uid)).to_dict(orient='records')
-
-
+        Series = dictionary.objects.get(type='sql',key='Series')
+        protocol = dictionary.objects.get(type='sql',key='protocol')
+        Series = connect_to_postgres(orthanc_ip,Series.value.format(uid)).to_dict(orient='records')
+        pseries_classifier = connect_to_postgres(orthanc_ip,protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))
@@ -142,16 +192,16 @@ def voteData(uid,orthanc_ip,diseases,kc):
     try:
         for key in pseries:
             for i in Series:
-                if str(i['SeriesInstanceUID']) in str(pseries[key]):
-                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['SeriesInstanceUID']))
-                    SeriesInstanceUID=str(i['SeriesInstanceUID'])
+                if str(i['seriesinstanceuid']) in str(pseries[key]):
+                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
+                    SeriesInstanceUID=str(i['seriesinstanceuid'])
         vote = "{"+vote+"}"
 
-        if diseases in [4,5,7,8,9,10,12]:
+        if int(diseases) in [4,5,7,8,9,10,12]:
             imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
         else:
             imagecount, slicenumber =None,None
     except Exception as e:
-        return None,None,None
+        return vote,None,None
     return str(vote),imagecount,slicenumber
 

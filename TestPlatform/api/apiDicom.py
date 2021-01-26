@@ -6,7 +6,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
-
 from ..common.api_response import JsonResponse
 from ..models import stress, dicom, base_data, pid, GlobalHost, dicom_record, duration_record
 from ..serializers import stress_Deserializer, \
@@ -15,7 +14,6 @@ from ..tools.smoke.gold import *
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.dicomdetail import listUrl
 from ..tools.stress.stress import updateStressData
-from ..tools.stress.PerformanceResult import *
 from ..tools.dicom.dicomdetail import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -50,17 +48,19 @@ class dicomDetail(APIView):
         if result:
             return result
         try:
-            server = data['server']
+            kc = login_keycloak(data['server'])
             try:
                 if data['ids']:
-                    dicomdata = dicom.objects.filter(vote=None, id__in=data['ids'])
+                    dicomdata = dicom.objects.filter(id__in=data['ids'])
                 elif data['diseases']:
-                    dicomdata = dicom.objects.filter(vote=None, diseases=data['diseases'])
+                    dicomdata = dicom.objects.filter(diseases=data['diseases'])
                 else:
                     dicomdata = dicom.objects.filter(vote=None)
                 for i in dicomdata:
                     try:
-                        i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid, server, i.diseases)
+                        obj = GlobalHost.objects.get(id=data['server'])
+                        diseasesobj =base_data.objects.get(id=i.fileid)
+                        i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid,obj.host, diseasesobj.predictor,kc)
                         i.save()
                     except Exception as e:
                         continue
@@ -88,20 +88,16 @@ class dicomData(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
-        server = request.GET.get("server")
         slicenumber = request.GET.get("slicenumber")
         type = request.GET.get("type")
-        if diseases is not None and server is None and slicenumber is None:
+        if diseases is not None and slicenumber is None:
             obi = dicom.objects.filter(diseases__contains=diseases, type=type).order_by("-id")
-        elif server is not None and diseases is None and slicenumber is None:
-            obi = dicom.objects.filter(server__contains=server, type=type).order_by("-id")
-        elif server is not None and diseases is not None and slicenumber is None:
-            obi = dicom.objects.filter(server__contains=server, type=type, diseases__contains=diseases).order_by("-id")
-        elif slicenumber is not None and server is None:
+        elif diseases is None and slicenumber is None:
+            obi = dicom.objects.filter( type=type).order_by("-id")
+        elif diseases is not None and slicenumber is None:
+            obi = dicom.objects.filter(type=type, diseases__contains=diseases).order_by("-id")
+        elif slicenumber is not None:
             obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=type).order_by("-id")
-        elif slicenumber is not None and server is not None:
-            obi = dicom.objects.filter(server__contains=server, type=type, slicenumber__contains=slicenumber).order_by(
-                "-id")
         elif type is not None:
             obi = dicom.objects.filter(type=type).order_by("-id")
         else:
@@ -259,6 +255,79 @@ class deldicomdata(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
+class DisableDicom(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        禁用数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            obj = dicom.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
+
+
+class EnableDicom(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["id"], int):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        启用数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            obj = dicom.objects.get(id=data["id"])
+            obj.status = True
+            # 变更状态
+            obj.save()
+
+            return JsonResponse(code="0", msg="成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目不存在！")
 
 class dicomSend(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -354,42 +423,6 @@ class dicomcsv(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-class deldicomResult(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["ids"], list):
-                return JsonResponse(code="999996", msg="参数有误！")
-            for i in data["ids"]:
-                if not isinstance(i, int):
-                    return JsonResponse(code="999996", msg="参数有误！")
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        删除
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        try:
-            delreport(data['server'], data["ids"])
-            return JsonResponse(code="0", msg="执行成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
-
 
 class Update_base_Data(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -441,49 +474,6 @@ class Update_base_Data(APIView):
                 else:
                     return JsonResponse(code="999998", msg="失败")
 
-
-class Updatedata(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 service,type,showid,
-            if not data["service"] or not data["showid"] or not data["type"]:
-                return JsonResponse(code="999996", msg="必传参数有误！")
-            # 环境 类型 online，Autotest
-            if data["service"] not in ["staging", "Autotest"]:
-                return JsonResponse(code="999996", msg="service参数有误！staging，Autotest")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-
-class Updatedata(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 service,type,showid,
-            if not data["service"] or not data["showid"] or not data["type"]:
-                return JsonResponse(code="999996", msg="必传参数有误！")
-            # 环境 类型 online，Autotest
-            if data["service"] not in ["staging", "Autotest"]:
-                return JsonResponse(code="999996", msg="service参数有误！staging，Autotest")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
 
 
 class dicomUrl(APIView):

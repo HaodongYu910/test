@@ -306,7 +306,14 @@ export const updatedicomdata = (headers, params) => {
 export const adddicomdata = (headers, params) => {
   return axios.post(`${test}/api/dicom/add_dicomData`, params, headers).then(res => res.data)
 }
-
+// DisableDicom数据
+export const DisableDicom = (headers, params) => {
+  return axios.post(`${test}/api/dicom/disabledicom`, params, headers).then(res => res.data)
+}
+// EnableDicom数据
+export const EnableDicom = (headers, params) => {
+  return axios.post(`${test}/api/dicom/enabledicom`, params, headers).then(res => res.data)
+}
 // 新增dicom数据
 export const dicomdetail = (headers, params) => {
   return axios.post(`${test}/api/dicom/dicomdetail`, params, headers).then(res => res.data)
@@ -474,6 +481,66 @@ export const DisableDictionary = (headers, params) => {
 export const DelDictionary = (headers, params) => {
   return axios.post(`${test}/api/dictionary/del`, params, headers).then(res => res.data)
 }
+// 自动测试列表
+export const getAutoCase = (headers, params) => {
+  return axios.get(`${test}/api/auto/case`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加自动测试
+export const addAutoCase = (headers, params) => {
+  return axios.post(`${test}/api/auto/addcase`, params, headers).then(res => res.data)
+}
+// 修改自动测试
+export const UpdateAutoCase = (headers, params) => {
+  return axios.post(`${test}/api/auto/updatecase`, params, headers).then(res => res.data)
+}
+// 启用自动测试
+export const EnableAutoCase = (headers, params) => {
+  return axios.post(`${test}/api/auto/enablecase`, params, headers).then(res => res.data)
+}
+// 禁用自动测试
+export const DisableAutoCase = (headers, params) => {
+  return axios.post(`${test}/api/auto/disablecase`, params, headers).then(res => res.data)
+}
+// 删除自动测试记录
+export const DelAutoCase = (headers, params) => {
+  return axios.post(`${test}/api/auto/delcase`, params, headers).then(res => res.data)
+}
+// 自动测试列表
+export const getAuto = (headers, params) => {
+  return axios.get(`${test}/api/auto/autolist`, { params: params }, { headers }).then(res => res.data)
+}
+// 添加自动测试
+export const addAuto = (headers, params) => {
+  return axios.post(`${test}/api/auto/addauto`, params, headers).then(res => res.data)
+}
+// 修改自动测试
+export const UpdateAuto = (headers, params) => {
+  return axios.post(`${test}/api/auto/updateauto`, params, headers).then(res => res.data)
+}
+// 启用自动测试
+export const EnableAuto = (headers, params) => {
+  return axios.post(`${test}/api/auto/enableauto`, params, headers).then(res => res.data)
+}
+// 禁用自动测试
+export const DisableAuto = (headers, params) => {
+  return axios.post(`${test}/api/auto/disableauto`, params, headers).then(res => res.data)
+}
+// 删除自动测试记录
+export const DelAuto = (headers, params) => {
+  return axios.post(`${test}/api/auto/delauto`, params, headers).then(res => res.data)
+}
+// 自动测试记录
+export const getAutorecord = (headers, params) => {
+  return axios.get(`${test}/api/auto/record`, { params: params }, { headers }).then(res => res.data)
+}
+// 启动自动测试
+export const getAutoTest = (headers, params) => {
+  return axios.post(`${test}/api/auto/autotest`, params, headers).then(res => res.data)
+}
+// 自动测试图表
+export const getAutofigure = (headers, params) => {
+  return axios.post(`${test}/api/auto/figure`, params, headers).then(res => res.data)
+}
 // 跳转imageview页面
 export const getdicomurl = (headers, params) => {
   return axios.post(`${test}/api/dicomurl`, params, headers).then(res => res.data)
@@ -485,4 +552,8 @@ export const addupload = (headers, params) => {
 // 上传文件
 export const delupload = (headers, params) => {
   return axios.post(`${test}/api/delupload`, params, headers).then(res => res.data)
+}
+// 自动测试记录
+export const getupload = (headers, params) => {
+  return axios.get(`${test}/api/upload`, { params: params }, { headers }).then(res => res.data)
 }
