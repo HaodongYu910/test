@@ -102,18 +102,19 @@ def get_fake_accession_number(acc_number, rand_uid):
     return norm_string(str, 16)
 
 
-def get_study_fakeinfo(studyuid, acc_number, studyuid_fakeinfo):
-    if not studyuid_fakeinfo.get(studyuid):
+def get_study_fakeinfo(studyuid, acc_number,study_fakeinfos):
+    if not study_fakeinfos.get(studyuid):
         rand_uid = get_rand_uid()
+        # "fake_name": get_fake_name(rand_uid, keyword),
         info = {
-            "rand_uid": rand_uid, # "fake_name": get_fake_name(rand_uid, keyword),
+            "rand_uid": rand_uid,
             "fake_acc_num": get_fake_accession_number(acc_number, rand_uid),
             "cur_date": get_date(),
             "cur_time": get_time()
         }
-        studyuid_fakeinfo[studyuid] = info
-
-    fake_info = studyuid_fakeinfo[studyuid]
+        study_fakeinfos[studyuid] = info
+    fake_info = study_fakeinfos[studyuid]
+    logging.info("---debug{}".format(fake_info))
     return fake_info
 
 
@@ -148,12 +149,12 @@ def add_record(study_infos, study_uid, sqldata, influxdata):
 
 # 匿名数据
 def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
+    study_uid = ''
+    series_uid = ''
     try:
         ds = pydicom.dcmread(full_fn, force=True)
     except Exception as e:
         logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
-    study_uid = ''
-    series_uid = ''
     try:
         study_uid = ds.StudyInstanceUID
         studyolduid = ds.StudyInstanceUID
@@ -245,12 +246,12 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             accessionNumber = 'AccessionNumber'
             Seriesinstanceuid = ''
             full_fn_fake = full_fn
-            logging.info(full_fn_fake)
+            # logging.info(full_fn_fake)
         else:
             try:
                 newstudyuid,newpatientid,newpatientname,studyolduid,accessionNumber,Seriesinstanceuid = anonymization(full_fn, full_fn_fake,diseases, CONFIG)
             except Exception as e:
-                logging.error("{0}{1}{2}{3}{4}{5}".format(newstudyuid,newpatientid,newpatientname,studyolduid,accessionNumber,Seriesinstanceuid))
+                logging.error("匿名错误 {}".format(e))
                 continue
         try:
             commands = [

@@ -38,7 +38,7 @@ def normalSend(id):
     obj = duration.objects.get(id=id)
     for i in obj.dicom.split(","):
         try:
-            dicomobj = dicom.objects.filter(fileid=str(i))
+            dicomobj = dicom.objects.filter(fileid=str(i),status=True)
         except Exception as e:
             continue
         for j in dicomobj:
@@ -190,17 +190,20 @@ def voteData(uid,orthanc_ip,diseases,kc):
         logger.info("没有此数据信息{0}".format(e))
         return None,None,None
     try:
-        for key in pseries:
-            for i in Series:
-                if str(i['seriesinstanceuid']) in str(pseries[key]):
-                    vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
-                    SeriesInstanceUID=str(i['seriesinstanceuid'])
-        vote = "{"+vote+"}"
-
-        if int(diseases) in [4,5,7,8,9,10,12]:
+        if int(diseases) in [4, 5, 8, 9, 10, 12]:
+            for key in pseries:
+                for i in Series:
+                    if str(i['seriesinstanceuid']) in str(pseries[key]):
+                        vote = vote + '{0}: \"{1}\",'.format(str(key), str(uid))
+                        SeriesInstanceUID = str(i['seriesinstanceuid'])
             imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
         else:
+            for key in pseries:
+                for i in Series:
+                    if str(i['seriesinstanceuid']) in str(pseries[key]):
+                        vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
             imagecount, slicenumber =None,None
+        vote = "{" + vote + "}"
     except Exception as e:
         return vote,None,None
     return str(vote),imagecount,slicenumber

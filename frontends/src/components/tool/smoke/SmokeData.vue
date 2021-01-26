@@ -450,9 +450,11 @@
                         self.listLoading = false
                         const {msg, code, data} = res
                         if (code === '0') {
-                            self.total = data.total
-                            self.page = data.page
-                            self.stresslist = data.data
+                            self.$message.info({
+                                message: "同步成功",
+                                center: true
+                            })
+                            self.getdata()
                         } else {
                             self.$message.error({
                                 message: msg,

@@ -25,7 +25,6 @@ def sync_send_file(serverID,file_name):
         file_name
     ]
     try:
-        logger.info(commands)
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
     except Exception as e:

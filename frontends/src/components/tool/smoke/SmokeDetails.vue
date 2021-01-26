@@ -6,7 +6,8 @@
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种类型" @click.native="getBase()">
-                            <el-option v-for="(item,index) in tags"
+                            <el-option key="" label="" value=""/>
+                            <el-option v-for="(item,index) in bases"
                                        :key="item.remarks"
                                        :label="item.remarks"
                                        :value="item.remarks"
@@ -14,6 +15,7 @@
                         </el-select>
                     </el-form-item>
                     <el-select v-model="filters.status" placeholder="预测状态">
+                        <el-option key="" label="" value=""/>
                         <el-option key="true" label="成功" value="true"/>
                         <el-option key="false" label="失败" value="false"/>
                     </el-select>
@@ -213,7 +215,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    selecttype: "dicom", type: "Gold",
+                    selecttype: "dicom", type: "gold",
                     status: 1
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -224,7 +226,7 @@
                         self.total = data.total
                         self.list = data.data
                         var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
+                        this.bases = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -264,7 +266,9 @@
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.smokeid
+                    smokeid: this.smokeid,
+                    diseases:this.filters.diseases,
+                    status:this.filters.status
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getsmokerecord(headers, params).then((res) => {

@@ -208,12 +208,12 @@ def savecsv(path, graphql_query):
 
 def saveStressddt(id, path):
     obj = stress.objects.get(id=id)
-    savecsv('{}/stress/config.csv'.format(path),
+    savecsv('{}/logs/stress/config.csv'.format(path),
             [obj.loadserver, 'biomind3d', 'engine3D.', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,
              obj.loop_count])
 
     # 循环生成压测数据
-    for i in stress.testdata.split(","):
+    for i in obj.testdata.split(","):
         if int(i) in [4, 7, 8, 10]:
             obd = dictionary.objects.get(id=i)
             sqlobj = dictionary.objects.get(type='sql', key='3d')
@@ -221,22 +221,25 @@ def saveStressddt(id, path):
             stressdict = connect_to_postgres(obj.loadserver, sql)
             stressdata = stressdict.to_dict(orient='records')
         elif int(i) in [9,12]:
-            stressdata =[]
-        for k in stressdata:
-            savecsv('{}/stress/data.csv'.format(path, str(i)),
-                    [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks])
+            continue
+        try:
+            for k in stressdata:
+                savecsv('{}/logs/stress/data.csv'.format(path, str(i)),
+                        [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks])
+        except Exception as e:
+            continue
 
 
 # 执行 jmeter 脚本
 def jmeterStress(id):
     jmeterobj = uploadfile.objects.filter(fileid=id)
     path = os.path.join(os.getcwd())
-    if not os.path.exists('{}/stressdata'.format(path)):
-        os.mkdir('{}/stressdata'.format(path))
+    if not os.path.exists('{}/logs/stress'.format(path)):
+        os.mkdir('{}/logs/stress'.format(path))
     else:
-        shutil.rmtree('{}/stressdata'.format(path))
-        os.mkdir('{}/stressdata'.format(path))
-    saveStressddt()
+        shutil.rmtree('{}/logs/stress'.format(path))
+        os.mkdir('{}/logs/stress'.format(path))
+    saveStressddt(id, path)
     # 执行jmeter
     try:
         for j in jmeterobj:

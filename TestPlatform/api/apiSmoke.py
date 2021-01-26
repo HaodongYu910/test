@@ -9,7 +9,7 @@ import threading
 from django.db import transaction
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
-from ..tools.smoke.gold import goldSmoke,SmokeThread
+from ..tools.smoke.gold import SmokeThread
 from ..tools.orthanc.deletepatients import *
 from ..models import smoke_record,smoke
 from ..common.dicomBase import baseTransform
@@ -311,7 +311,7 @@ class smokeRecord(APIView):
 
         if request.GET.get("status") == 'true':
             status = 1
-        elif request.GET.get("status") == 'False':
+        elif request.GET.get("status") == 'false':
             status = 0
         else:
             status = ''
