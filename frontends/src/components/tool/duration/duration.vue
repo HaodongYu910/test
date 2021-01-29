@@ -19,11 +19,11 @@
                     </el-form-item>
                 </el-form>
             </el-col>
-
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
                       width="120%">
+                <el-table-column type="selection" min-width="5%"></el-table-column>
                 <el-table-column prop="anonymous" label="匿名状态" min-width="12%">
                 <template slot-scope="scope">
                         <img v-show="scope.row.anonymous"

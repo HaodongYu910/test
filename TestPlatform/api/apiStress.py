@@ -175,13 +175,16 @@ class SynchroStressData(APIView):
             return result
         try:
             kc = login_keycloak(1)
-            for i in data["ids"]:
-                obj = stress_record.objects.get(id=i)
+            objr = stress_record.objects.filter(benchmarkstatus=True,graphql=None)
+            # for i in data["ids"]:
+            for i in objr:
+                # obj = stress_record.objects.get(id=i)
+                obj = stress_record.objects.get(id=i.id)
                 try:
-                    checkuid(1, '192.168.1.208', obj.stressid)
+                    checkuid(27, '192.168.1.176', obj.stressid)
                 except ObjectDoesNotExist:
                     logger.error("数据问题{0}".format(obj.studyuid))
-                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid, '192.168.1.208', obj.diseases, kc)
+                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid, '192.168.1.176', obj.diseases, kc)
                 obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -551,6 +554,7 @@ class stressResultsave(APIView):
             checkdate = [obj.start_date, obj.end_date]
             kc = login_keycloak(obj.hostid)
             if obj.projectname == '晨曦':
+                #jobsaveResult(data['id'], obj.loadserver, obj.version, checkdate, kc)
                 for i in ['job', 'prediction']:
                     sql = dictionary.objects.get(key=i, type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
@@ -607,7 +611,7 @@ class stressRun(APIView):
                 obj.update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                manual = threading.Thread(target=Manual, args=(obj.hostid, server, obj.version, data['id']))
+                manual = threading.Thread(target=Manual, args=(obj.hostid, server, obj.version, data['id'],int(obj.ramp),obj.testdata))
                 manual.start()
             else:
                 if obj.jmeterstatus is True:

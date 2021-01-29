@@ -90,7 +90,7 @@ def updateFolder(src_folder, study_infos, diseases, type, id):
                 ds.PatientName = str(study_infos[study_uid]["patientname"])
                 ds.PatientID = str(study_infos[study_uid]["patientid"])
                 full_fn_fake = '{0}/{1}.dcm'.format(str(study_infos[study_uid]["folder_fake"]), str(study_infos["No"]))
-                # logger.info("添加数据{}".format(data))
+                    # logger.info("添加数据{}".format(data))
                 ds.save_as(full_fn_fake)
             except Exception as e:
                 logger.error('errormsg: failed to save_as [{0}]---[{1}]'.format(study_infos[study_uid], e))

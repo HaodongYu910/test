@@ -342,7 +342,6 @@ def ImageUpdate(study_infos):
     try:
         for k, v in study_infos.items():
             sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(v, k)
-            logging.info("sql:{}", sql)
             sqlDB(sql, [], 'update')
     except Exception as e:
         logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v, e))

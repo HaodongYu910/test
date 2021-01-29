@@ -1,15 +1,15 @@
 from TestPlatform.utils.graphql.graphql import *
 from ...utils.keycloak.login_kc import *
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost,stress,dictionary,dicom
+from TestPlatform.models import base_data, pid, GlobalHost, stress, dictionary, dicom
 from TestPlatform.serializers import duration_Deserializer
 from ...tools.dicom.SendDicom import Send
 from ...tools.dicom.duration_verify import *
 from ...tools.stress.PerformanceResult import savecsv
 from ...tools.orthanc.deletepatients import delete_patients_duration
 
-
 logger = logging.getLogger(__name__)
+
 
 # 生成csv  数据
 def dicomsavecsv(ids):
@@ -33,29 +33,30 @@ def dicomsavecsv(ids):
             diseases = obj.diseases
         savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
+
 # 正常发送
 def normalSend(id):
     obj = duration.objects.get(id=id)
     for i in obj.dicom.split(","):
         try:
-            dicomobj = dicom.objects.filter(fileid=str(i),status=True)
+            dicomobj = dicom.objects.filter(fileid=str(i), status=True)
         except Exception as e:
             continue
         for j in dicomobj:
             delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
-           '--ip {0} --aet {1} '
-           '--port {2} '
-           '--patientid {3} '
-           '--patientname {4} '
-           '--folderid {5} '
-           '--durationid {6} '
-           '--end {7} '
-           '--sleepcount {8} '
-           '--sleeptime {9} '
-           '--series {10} &').format(obj.server, obj.aet, obj.port,'patientid','patientname', i, id,
-                                    int(dicomobj.count()), 9999, 1, obj.series)
+               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+               '--ip {0} --aet {1} '
+               '--port {2} '
+               '--patientid {3} '
+               '--patientname {4} '
+               '--folderid {5} '
+               '--durationid {6} '
+               '--end {7} '
+               '--sleepcount {8} '
+               '--sleeptime {9} '
+               '--series {10} &').format(obj.server, obj.aet, obj.port, 'patientid', 'patientname', i, id,
+                                         int(dicomobj.count()), 9999, 1, obj.series)
 
         logger.info(cmd)
         os.system(cmd)
@@ -63,6 +64,7 @@ def normalSend(id):
 
     obj.sendstatus = True
     obj.save()
+
 
 # 匿名化发送数据
 def anonymousSend(id, type):
@@ -122,8 +124,8 @@ def anonymousSend(id, type):
                    '--end {7} '
                    '--sleepcount {8} '
                    '--sleeptime {9} '
-                   '--series {10} &').format(server, aet, port, patientid,patientname, i,durationid,
-                                            end, sleepcount, sleeptime,series)
+                   '--series {10} &').format(server, aet, port, patientid, patientname, i, durationid,
+                                             end, sleepcount, sleeptime, series)
 
             logger.info(cmd)
             os.system(cmd)
@@ -159,12 +161,13 @@ def listUrl(hostid, studyuid):
     result_db = connect_to_postgres(obj.host,
                                     'select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
-    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host,result_db["publicid"][0])
-    return kc.raw_token,url
+    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
+    return kc.raw_token, url
 
-def Slice(kc,Seriesuid):
-    graphql_query='{ series(SeriesInstanceUID:"' + Seriesuid + '"){ '\
-        'NumberOfSeriesRelatedInstances Instances{ SliceThickness } } }'
+
+def Slice(kc, Seriesuid):
+    graphql_query = '{ series(SeriesInstanceUID:"' + Seriesuid + '"){ ' \
+                                                                 'NumberOfSeriesRelatedInstances Instances{ SliceThickness } } }'
     graphql = GraphQLDriver('/graphql', kc)
     results = graphql.execute_query(graphql_query)
     if results['series'] == []:
@@ -172,39 +175,38 @@ def Slice(kc,Seriesuid):
     elif results['series'][0]['Instances'][0] is None:
         return False
     else:
-        imagecount= results['series'][0]['NumberOfSeriesRelatedInstances']
+        imagecount = results['series'][0]['NumberOfSeriesRelatedInstances']
         SliceThickness = round(float(results['series'][0]['Instances'][0]['SliceThickness']), 2)
 
-    return imagecount,SliceThickness
+    return imagecount, SliceThickness
+
 
 # 查询挂载 张数 层厚
-def voteData(uid,orthanc_ip,diseases,kc):
+def voteData(uid, orthanc_ip, diseases, kc):
     vote = ''
     try:
-        Series = dictionary.objects.get(type='sql',key='Series')
-        protocol = dictionary.objects.get(type='sql',key='protocol')
-        Series = connect_to_postgres(orthanc_ip,Series.value.format(uid)).to_dict(orient='records')
-        pseries_classifier = connect_to_postgres(orthanc_ip,protocol.value.format(uid)).to_dict(orient='records')
+        Series = dictionary.objects.get(type='sql', key='Series')
+        protocol = dictionary.objects.get(type='sql', key='protocol')
+        Series = connect_to_postgres(orthanc_ip, Series.value.format(uid)).to_dict(orient='records')
+        pseries_classifier = connect_to_postgres(orthanc_ip, protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))
-        return None,None,None
+        return None, None, None
     try:
-        if int(diseases) in [4, 5, 8, 9, 10, 12]:
-            for key in pseries:
-                for i in Series:
-                    if str(i['seriesinstanceuid']) in str(pseries[key]):
-                        vote = vote + '{0}: \"{1}\",'.format(str(key), str(uid))
-                        SeriesInstanceUID = str(i['seriesinstanceuid'])
-            imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
-        else:
-            for key in pseries:
+        for key in pseries:
+            if key in ["Breast_DWI", "Breast_AX_T1", "DCE", "Breast_AX_T2", "CINE_SHORT", "CINE_2CH", "CINE_3CH",
+                       "CINE_4CH", "LGE_SHORT", "AX_T1", "AX_T2", "AX_TC", "DWI_B1000", "ADC", "AX_T2Flair", "SWI",
+                       "T2_STAR","CT_Lung","CT_Brain","CTA","CT_120KV","CTP"]:
                 for i in Series:
                     if str(i['seriesinstanceuid']) in str(pseries[key]):
                         vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
-            imagecount, slicenumber =None,None
+                        SeriesInstanceUID = str(i['seriesinstanceuid'])
+        if int(diseases) in [4, 5, 8, 9, 10]:
+            imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
+        else:
+            imagecount, slicenumber = None, None
         vote = "{" + vote + "}"
     except Exception as e:
-        return vote,None,None
-    return str(vote),imagecount,slicenumber
-
+        return vote, None, None
+    return str(vote), imagecount, slicenumber

@@ -10,6 +10,7 @@ from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.common.regexUtil import *
 import os, time
 import shutil
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -53,68 +54,74 @@ def delreport(kc, studyinstanceuid):
 
 
 #  基准/单一手动预测
-def Manual(serverID, serverIP, version, id):
+def Manual(serverID, serverIP, version,id,count,data):
     kc = login_keycloak(serverID)
-    stressdata = stress_record.objects.filter(benchmarkstatus=True, status=True)
-    imagecount = ''
-    slicenumber = ''
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        for k in stressdata:
-            checkuid(serverID, serverIP, str(k.stressid))
-            starttime = time.time()
-            obj = dictionary.objects.get(id=k.diseases)
-            graphql_query = "{ ai_biomind (" \
-                            "study_uid:\"" + str(k.studyuid) + "\", protocols:" \
-                                                               "{ pothers: " \
-                                                               "{ disable_negative_voting:false} " \
-                                                               "penable_cached_results:false pconfig:{} " \
-                                                               "planguage:\"zh-cn\" " \
-                                                               " puser_id:\"biomind\" " \
-                                                               "pseries_classifier:" + str(k.graphql) + "}" \
-                                                                                                        "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                obj.value) + "\"]])" \
-                             " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-            try:
-                graphql_Interface(graphql_query, kc)
-            except Exception as e:
-                logger.error("执行预测失败：{0}".format(k.studyuid))
-                continue
-            avgtime = time.time() - starttime
-
-            if int(k.diseases) in [4, 5, 7, 8, 10, 9, 12]:
-                vote, imagecount, slicenumber = voteData(k.studyuid, serverIP, int(k.diseases), kc)
-            if int(k.diseases) in [9, 12]:
-                jobtype = 'lung_jobJZ'
-                predictiontype ='lung_JZ'
-            else:
-                jobtype = 'jobJZ'
-                predictiontype = 'predictionJZ'
-            data = {
-                "stressid": id,
-                "version": version,
-                "type": jobtype,
-                "count": 1,
-                "modelname": k.diseases,
-                "slicenumber": slicenumber,
-                "avg": str('%.2f' % avgtime),
-                "single": str('%.2f' % avgtime),
-                "median": str('%.2f' % avgtime),
-                "min": str('%.2f' % avgtime),
-                "max": str('%.2f' % avgtime),
-                "minimages": imagecount,
-                "maximages": imagecount,
-                "avgimages": imagecount,
-            }
-            stress_result.objects.create(**data)
-        enddate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        for i in data.split(","):
+            stressdata = stress_record.objects.filter(diseases__in=i,benchmarkstatus=True)
+            for k in stressdata:
+                avglist = []
+                checkuid(serverID, serverIP, str(k.stressid))
+                obj = dictionary.objects.get(id=k.diseases)
+                if str(k.diseases) == "9":
+                    manager = "\",\"artifacts_manager\"]])"
+                else:
+                    manager = "\"]])"
+                graphql_query = "{ ai_biomind (" \
+                                "study_uid:\"" + str(k.studyuid) + "\", protocols:" \
+                                                                   "{ pothers: " \
+                                                                   "{ disable_negative_voting:false} " \
+                                                                   "penable_cached_results:false pconfig:{} " \
+                                                                   "planguage:\"zh-cn\" " \
+                                                                   " puser_id:\"biomind\" " \
+                                                                   "pseries_classifier:" + str(k.graphql) + "}" \
+                                                                                                            "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
+                    obj.value) + manager +" { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+                # 循环 测试基准数据
+                for j in range(count):
+                    try:
+                        # 开始时间
+                        starttime = time.time()
+                        result = graphql_Interface(graphql_query, kc)
+                        ai_biomind = result['ai_biomind']
+                        avgtime = time.time() - starttime
+                        avglist.append(avgtime)
+                    except Exception as e:
+                        logger.error("执行预测失败：{0}".format(k.studyuid))
+                        continue
+                if int(k.diseases) in [9, 12]:
+                    jobtype = 'lung_jobJZ'
+                    predictiontype ='lung_prediction'
+                else:
+                    jobtype = 'jobJZ'
+                    predictiontype = 'predictionJZ'
+                    avgtime =str('%.2f' % np.mean(avglist))
+                data = {
+                    "stressid": id,
+                    "version": version,
+                    "type": jobtype,
+                    "count": 1,
+                    "modelname": k.diseases,
+                    "slicenumber": k.slicenumber,
+                    "avg": avgtime,
+                    "single": avgtime,
+                    "median": avgtime,
+                    "min": avgtime,
+                    "max": avgtime,
+                    "minimages": k.imagecount,
+                    "maximages": k.imagecount,
+                    "avgimages": k.imagecount,
+                }
+                stress_result.objects.create(**data)
     except Exception as e:
         logger.error("执行预测基准测试数据失败：{0}".format(e))
     try:
+        enddate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         sql = dictionary.objects.get(key='prediction', type='sql')
         strsql = sql.value.format(startdate, enddate)
-        saveResult(serverIP, version, predictiontype, [startdate, enddate], strsql, [])
-        lung([startdate, enddate], serverIP, version, 9)
+        saveResult(serverIP, version, predictiontype, [startdate, enddate], strsql, [],kc)
+        lung([startdate, enddate], serverIP, version, 9,kc)
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
@@ -126,13 +133,13 @@ def AutoPrediction(serverID, serverIP, testdata, count):
         diseases.append(i)
     stressdata = stress_record.objects.filter(diseases__in=testdata)
     kc = login_keycloak(serverID)
-    # 检查是否有压测数据
-    for k in stressdata:
-        checkuid(serverID, serverIP, k.stressid)
-        delreport(kc, k.studyuid)
+
     # 循环调用graphql 自动预测
     for i in range(int(count)):
         for k in stressdata:
+            # 检查是否有压测数据
+            checkuid(serverID, serverIP, k.stressid)
+            delreport(kc, k.studyuid)
             graphql_query = '{ ' \
                             'ai_biomind(' \
                             'block : false' \
