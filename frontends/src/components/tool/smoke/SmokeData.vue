@@ -125,7 +125,7 @@
                         </el-col>
                     </el-row>
                     <el-form-item label="挂载">
-                        <el-input v-model="editForm.vote" :disabled="true" auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">

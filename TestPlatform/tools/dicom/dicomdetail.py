@@ -171,23 +171,30 @@ def Slice(kc, Seriesuid):
     graphql = GraphQLDriver('/graphql', kc)
     results = graphql.execute_query(graphql_query)
     if results['series'] == []:
-        return False
-    elif results['series'][0]['Instances'][0] is None:
-        return False
+        return None,None
     else:
-        imagecount = results['series'][0]['NumberOfSeriesRelatedInstances']
-        SliceThickness = round(float(results['series'][0]['Instances'][0]['SliceThickness']), 2)
-
+        try:
+            imagecount = results['series'][0]['NumberOfSeriesRelatedInstances']
+        except Exception as e:
+            imagecount = None
+        try:
+            SliceThickness = round(float(results['series'][0]['Instances'][0]['SliceThickness']), 2)
+        except Exception as e:
+            SliceThickness = None
     return imagecount, SliceThickness
 
 
 # 查询挂载 张数 层厚
 def voteData(uid, orthanc_ip, diseases, kc):
     vote = ''
+    version ='new'
     try:
-        Series = dictionary.objects.get(type='sql', key='Series')
+        if version =="old":
+            Series = 'select "SeriesInstanceUID" as "seriesinstanceuid" from "Series" where "StudyInstanceUID" =\'{0}\''
+        else:
+            Series = dictionary.objects.get(type='sql', key='Series').value
         protocol = dictionary.objects.get(type='sql', key='protocol')
-        Series = connect_to_postgres(orthanc_ip, Series.value.format(uid)).to_dict(orient='records')
+        Series = connect_to_postgres(orthanc_ip, Series.format(uid)).to_dict(orient='records')
         pseries_classifier = connect_to_postgres(orthanc_ip, protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
@@ -202,7 +209,7 @@ def voteData(uid, orthanc_ip, diseases, kc):
                     if str(i['seriesinstanceuid']) in str(pseries[key]):
                         vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
                         SeriesInstanceUID = str(i['seriesinstanceuid'])
-        if int(diseases) in [4, 5, 8, 9, 10]:
+        if int(diseases) in [4, 5, 8, 9, 10,12]:
             imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
         else:
             imagecount, slicenumber = None, None

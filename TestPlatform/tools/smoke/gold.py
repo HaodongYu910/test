@@ -176,6 +176,7 @@ class SmokeThread(threading.Thread):
                         i.vote) + "}" \
                                   "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
                         objdictionary.value) + manager +"{ pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+                    logger.info("请求graphql_query：{0}".format(graphql_query))
                     data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     # 调用 手动预测接口
                     try:

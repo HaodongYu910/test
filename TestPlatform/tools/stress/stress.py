@@ -59,7 +59,7 @@ def Manual(serverID, serverIP, version,id,count,data):
     try:
         startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         for i in data.split(","):
-            stressdata = stress_record.objects.filter(diseases__in=i,benchmarkstatus=True)
+            stressdata = stress_record.objects.filter(diseases=i,benchmarkstatus=True)
             for k in stressdata:
                 avglist = []
                 checkuid(serverID, serverIP, str(k.stressid))

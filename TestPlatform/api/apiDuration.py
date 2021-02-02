@@ -277,7 +277,7 @@ class DisableDuration(APIView):
             okj.sendstatus = False
             okj.save()
             # 删除 文件夹
-            folder="/home/biomind/Biomind_Test_Platform/logs/{0}".format(str(okj.keyword))
+            folder="/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(okj.patientname),str(okj.patientid),str(obj.id))
             if os.path.exists(folder):
                 shutil.rmtree(folder)
 
@@ -405,8 +405,8 @@ class delete_patients(APIView):
             return result
         #
         try:
-            delete_patients_duration(data['deldata'], data['serverID'], data['testtype'], data['fuzzy'])
-            return JsonResponse(code="0", msg="成功")
+            data=delete_patients_duration(data['deldata'], data['serverID'], data['testtype'], data['fuzzy'])
+            return JsonResponse(code="0", msg="成功",data=data)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 

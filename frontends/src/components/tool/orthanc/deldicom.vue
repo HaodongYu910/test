@@ -29,12 +29,13 @@
                         <el-col :span="5">
                             <el-form-item label="数据类型" prop="testtype">
                                 <el-select v-model="form.testtype" placeholder="请选择">
+                                    <el-option key="fail" label="预测失败" value="fail"/>
+                                    <el-option key="repeat" label="重复" value="repeat"/>
                                     <el-option key="gold" label="金标准" value="gold"/>
                                     <el-option key="error" label="错误数据" value="error"/>
-                                    <el-option key="PatientName" label="患者姓名" value="PatientName"/>
-                                    <el-option key="PatientID" label="患者编号" value="PatientID"/>
-                                    <el-option key="ai" label="预测结果" value="ai"/>
-                                    <el-option key="StudyInstanceUID" label="StudyInstanceUID" value="StudyInstanceUID"/>
+                                    <el-option key="patientname" label="患者姓名" value="patientname"/>
+                                    <el-option key="patientid" label="患者编号" value="patientid"/>
+                                    <el-option key="studyinstanceuid" label="studyinstanceuid" value="studyinstanceuid"/>
                                 </el-select>
                             </el-form-item>
                         </el-col>
@@ -51,25 +52,15 @@
                     </el-row>
                 </el-form>
                 <div>
-                    <el-table :data="tableData" style="width: 50%">
+                    <el-table :data="delresult" style="width: 50%">
                         <el-table-column label="结果显示" width="180">
                             <template slot-scope="scope">
                                 <el-popover trigger="hover" placement="top">
-                                    <p>标签: {{ scope.row.name }}</p>
+                                    <p>标签: {{ scope.row }}</p>
                                     <div slot="reference" class="name-wrapper">
-                                        <el-tag size="medium">{{ scope.row.name }}</el-tag>
+                                        <el-tag size="medium">{{ scope.row }}</el-tag>
                                     </div>
                                 </el-popover>
-                            </template>
-                        </el-table-column>
-                        <el-table-column fixed="right" label="">
-                            <template slot-scope="scope">
-                                <el-button
-                                        size="mini"
-                                        type="danger"
-                                        @click="deleteTag(scope.$index, scope.row)"
-                                >开始/关闭
-                                </el-button>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -108,13 +99,8 @@
                     serverID: [
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
-                    // version: [
-                    //     {required: true, message: '请输入版本号', trigger: 'change'},
-                    //     {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
-                    // ]
                 },
-                durationlist: {
-                },
+                delresult: {},
                 listLoading: true,
                 sels: [], // 列表选中列
 
@@ -146,17 +132,17 @@
                             }
                             var result = data[0]
                             if (data != null && result == false) {
-                                this.$message.error(data[1])
+                                this.$message.error("删除失败")
                                 return
                             }
-                            // 请求正确时执行的代码
-                            var mydata = data[1]
-                            var tableData = []
-                            for (var i = 0; i < mydata.length; i++) {
-                                tableData.push({'name': mydata[i]})
-                            }
-                            var json = JSON.stringify(tableData)
-                            this.tableData = JSON.parse(json)
+                            // // 请求正确时执行的代码
+                            // var mydata = data
+                            // var tableData = []
+                            // for (var i = 0; i < mydata.length; i++) {
+                            //     tableData.push({'name': mydata[i]})
+                            // }
+                            var del = JSON.stringify(data)
+                            this.delresult = JSON.parse(del)
                         })
                     } else {
                         console.log('error submit')

@@ -68,12 +68,25 @@
                          src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="30%">
+            <el-table-column label="操作" min-width="20%">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看</el-button>
-                    <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
-                    <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行</el-button>
-                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告</el-button>
+                    <el-row>
+                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看
+                        </el-button>
+                        <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
+                        <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行
+                        </el-button>
+                    </el-row>
+                    <el-row>
+                        <el-button type="primary" size="small"
+                                   @click="checkExpress(scope.row.start_date,scope.row.end_date, scope.row.loadserver)">
+                            监控
+                        </el-button>
+                        <el-button type="warning" size="small" @click="handleSave(scope.$index, scope.row)">结果
+                        </el-button>
+                        <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告
+                        </el-button>
+                    </el-row>
                     <!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
                     <!--                        {{scope.row.status===false?'启用':'禁用'}}-->
                     <!--                    </el-button>-->
@@ -334,7 +347,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delStress, disableStress, enableStress,
-        updateStress, addStress, stresssave, getHost, getDictionary, stressTool,addupload,delupload
+        updateStress, addStress, stresssave, getHost, getDictionary, stressTool, addupload, delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -401,7 +414,21 @@
             }
         },
         methods: {
-            //展示风险项
+            //展示监控
+            checkExpress: function (start_date, end_date, loadserver) {
+                var startdate = start_date.replace(/-/g, '/');
+                var startstamp = new Date(startdate).getTime();
+
+                var enddate = end_date.replace(/-/g, '/');
+                var endstamp = new Date(enddate).getTime();
+                {
+                    window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/docker-and-os-metrics-test?orgId=1&from=" +
+                        startstamp + "&to=" + endstamp + "&var-host_name=" +
+                        loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                }
+                // //刷新当前页面
+                // window.location.reload();
+            },
             //上传前对文件大小进行校验
             beforeUpload(file) {
                 const isLt2M = file.size / 1024 / 1024 < 100;
@@ -424,8 +451,8 @@
             },
             handleRemove(file, fileList) {
                 console.log(file)
-                var id =this.filedict[file.raw.name]
-                let params = {"id":id,"filename":file.raw.name}
+                var id = this.filedict[file.raw.name]
+                let params = {"id": id, "filename": file.raw.name}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 delupload(headers, params).then((res) => {
                     this.listLoading = false
@@ -454,7 +481,7 @@
                     if (code === '0') {
                         var filename = data.filename
                         this.filedict[filename] = data.fileid;
-                        this.$set(this.filedict,data.filename,data.fileid)
+                        this.$set(this.filedict, data.filename, data.fileid)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -806,8 +833,8 @@
                                 ramp: this.editForm.ramp,
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
-                                filedict:this.filedict,
-                                hostid:this.editForm.hostid,
+                                filedict: this.filedict,
+                                hostid: this.editForm.hostid,
                                 status: true,
                                 jmeterstatus: false,
                             };
@@ -861,8 +888,8 @@
                                 loop_count: this.addForm.loop_count,
                                 loop_time: this.addForm.loop_time,
                                 jmeterstatus: false,
-                                filedict:this.filedict,
-                                hostid:this.addForm.hostid,
+                                filedict: this.filedict,
+                                hostid: this.addForm.hostid,
                                 status: true,
                             });
                             let header = {

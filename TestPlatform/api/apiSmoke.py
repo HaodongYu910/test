@@ -308,20 +308,25 @@ class smokeRecord(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
         smokeid = request.GET.get("smokeid")
-
-        if request.GET.get("status") == 'true':
-            status = 1
-        elif request.GET.get("status") == 'false':
-            status = 0
-        else:
-            status = ''
+        status = request.GET.get("status")
 
         if diseases != '' and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
-                "-id")
+            if status in ["0","1"]:
+                obi = smoke_record.objects.filter(diseases=diseases, status=int(status), smokeid=smokeid).order_by(
+                    "-id")
+            else:
+                obi = smoke_record.objects.filter(diseases=diseases, result=status, smokeid=smokeid).order_by(
+                    "-id")
         elif diseases == '' and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
-                "-id")
+            if status in ["0","1"]:
+                obi = smoke_record.objects.filter(status=int(status), smokeid=smokeid).order_by(
+                    "-id")
+            else:
+                obi = smoke_record.objects.filter(result=status, smokeid=smokeid).order_by(
+                    "-id")
+        elif diseases != '' and status == '':
+            obi = smoke_record.objects.filter(diseases=diseases, smokeid=smokeid).order_by(
+                    "-id")
         else:
             obi = smoke_record.objects.filter(smokeid=smokeid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象

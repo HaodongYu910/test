@@ -16,8 +16,8 @@ def lung(checkdate, server, version,lungid,kc):
     # 查询sql
     dise = dictionary.objects.get(id=lungid)
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-    # db_query = 'select studyinstanceuid from study_view where aistatus =\'3\''
-    db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
+    db_query = 'select studyinstanceuid as studyuid  from study_view where aistatus =\'3\''
+    # db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
