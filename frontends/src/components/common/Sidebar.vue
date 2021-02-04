@@ -32,7 +32,7 @@
 </template>
 
 <script>
-    import bus from '../common/bus';
+    import bus from '../../utils/bus';
     export default {
         data() {
             return {
@@ -89,10 +89,6 @@
                             {
                                 index: 'stressreport',
                                 title: '性能图表'
-                            },
-                             {
-                                index: 'stressreport',
-                                title: '性能报告'
                             }
                         ]
                     },
@@ -136,10 +132,6 @@
                             {
                                 index: 'SmokeList',
                                 title: '金标准测试'
-                            },
-                            {
-                                index: 'SmokeResult',
-                                title: '结果数据'
                             }
                         ]
                     },

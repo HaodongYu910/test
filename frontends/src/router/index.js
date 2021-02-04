@@ -25,7 +25,7 @@ const ProjectDynamic = () => import('../components/project/ProjectDynamic.vue');
 const ProjectTitle = () => import('../components/project/projectTitle/ProjectTitle.vue');
 const ProjectReport = () => import('../components/project/ProjectReport.vue');
 const ReportInfo = () => import('../components/report/Testreportdetail.vue');
-const ReportTitle = () => import('../components/page/Dashboard.vue');
+const ReportTitle = () => import('../components/home/Dashboard.vue');
 
 
 Vue.use(Router);
@@ -43,7 +43,7 @@ export default new Router({
             children: [
                 {
                     path: '/home',
-                    component: resolve => require(['../components/page/Dashboard.vue'], resolve),
+                    component: resolve => require(['../components/home/Dashboard.vue'], resolve),
                     meta: {title: '系统首页'}
                 },
                 {
@@ -79,6 +79,13 @@ export default new Router({
                     path: '/dds',
                     component: resolve => require(['../components/tool/DDS/dds.vue'], resolve),
                     meta: { title: 'DDS监控' }
+
+                },
+                {
+                    // dds监控界面
+                    path: '/html',
+                    component: resolve => require(['../components/html/HtmlPanel.vue'], resolve),
+                    meta: { title: '详情' }
 
                 },
                 {
@@ -432,7 +439,7 @@ export default new Router({
         },
         {
             path: '/login',
-            component: resolve => require(['../components/page/Login.vue'], resolve)
+            component: resolve => require(['../components/login/Login.vue'], resolve)
         },
         {
             path: '*',

@@ -16,19 +16,19 @@ def lung(checkdate, server, version,lungid,kc):
     # 查询sql
     dise = dictionary.objects.get(id=lungid)
     sql = dictionary.objects.get(key="predictionuid",type="sql")
-    db_query = 'select studyinstanceuid from study_view where aistatus =\'3\''
+    db_query = 'select studyinstanceuid as studyuid  from study_view where aistatus =\'3\''
     # db_query =sql.value.format(dise.key,checkdate[0], checkdate[1])
 
     result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
     for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyinstanceuid"], server,int(lungid),kc)
+        vote, imagecount, SliceThickness = voteData(u["studyuid"], server,int(lungid),kc)
         if SliceThickness is None:
             continue
         if dict.get(SliceThickness) is None:
-            dict[SliceThickness] = '\'' + str(u["studyinstanceuid"]) + '\''
+            dict[SliceThickness] = '\'' + str(u["studyuid"]) + '\''
             imagescount[SliceThickness] = imagecount
         else:
-            dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyinstanceuid"]) + '\''
+            dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyuid"]) + '\''
             if imagecount is None:
                 imagescount[SliceThickness] = imagescount[SliceThickness]
             else:
@@ -83,6 +83,8 @@ def saveResult(server,version,type,checkdate,sql,imagedata,kc):
     for i in dict:
         if type =='lung_job':
             obj = dictionary.objects.get(remarks=i["modelname"])
+        elif type =="job":
+            obj = dictionary.objects.get(value=i["modelname"])
         else:
             obj = dictionary.objects.get(key=i["modelname"])
         i["version"] = version
@@ -101,24 +103,42 @@ def saveResult(server,version,type,checkdate,sql,imagedata,kc):
             stressserializer.save()
     return True
 
-
-def jobsaveResult(server,version,checkdate,sql):
+# 保存 job 结果数据
+def jobsaveResult(id,server,version,checkdate,kc):
+    # 查询测试时间 job 数据
+    images = None
+    slicenumber = None
     dictobj=dictionary.objects.get(key="job_ls")
+    obj = dictionary.objects.get(key="modelname")
     sql = dictobj.value.format(checkdate[0],checkdate[1])
     result = connect_to_postgres(server, sql)
     dict = result.to_dict(orient='records')
+    # 循环数据保存
     for i in dict:
-        obj = dictionary.objects.get(key="modelname")
-        sql = obj.value.format(i["studyuid"])
-        result = connect_to_postgres(server, sql)
-        modelname = result.to_dict(orient='records')[0]["modelname"]
-        dx = dictionary.objects.get(key=modelname)
-        i["modelname"] = dx.id
-        i["version"] =version
-        i["type"] = 'job'
-        stress_job.objects.create(**i)
-
-
+        try:
+            sql = obj.value.format(i["studyuid"])
+            result = connect_to_postgres(server, sql)
+            modelname = result.to_dict(orient='records')[0]["modelname"]
+            dx = dictionary.objects.get(key=modelname)
+            # lung 等数据获取张数和 层厚
+            if dx.id in [4, 5, 7, 8, 10, 9, 12]:
+                vote, images, slicenumber = voteData(i["studyuid"], server, int(dx.id), kc)
+            data ={
+                "studyuid": i["studyuid"],
+                "job_id": i["job_id"],
+                "start": str(i["startjobts"])[:19],
+                "end": str(i["endjobts"])[:19],
+                "sec": str(i["sec"]),
+                "modelname":dx.id,
+                "version":version,
+                "type":'job',
+                "stressid":id,
+                "images":images,
+                "slicenumber":slicenumber
+            }
+            stress_job.objects.create(**data)
+        except Exception as e:
+            continue
 
 # 求预测影像 平均值 最大值  最小值
 def image(server,modelname,checkdate,kc):
@@ -134,9 +154,14 @@ def image(server,modelname,checkdate,kc):
                 continue
             else:
                 datalist.append(int(imagecount))
-        return str('%.2f' % np.mean(datalist)),str(np.max(datalist)),str(np.min(datalist))
+        try:
+            return str('%.2f' % np.mean(datalist)),str(np.max(datalist)),str(np.min(datalist))
+        except Exception as e:
+            logger.error(e)
+            return None,None,None
     else:
         return None,None,None
+
 
 def jmetersave(server, version):
     task_content = ""

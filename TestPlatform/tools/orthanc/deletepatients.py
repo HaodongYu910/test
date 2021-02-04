@@ -1,30 +1,30 @@
 # coding=utf-8
 
 from ...common.regexUtil import *
-from ...models import dicom,GlobalHost
+from ...models import dicom,GlobalHost,dictionary
 from ...utils.keycloak.login_kc import *
 import logging
 logger = logging.getLogger(__name__)
 
 def delete_patients_duration(key, serverID,type,fuzzy):
     Hostobj =GlobalHost.objects.get(id=serverID)
-
-    if fuzzy is True:
-        fuzzy='like'
-        key = key+'%'
-    else:
-        fuzzy ='='
-    data={}
-    if type =='error':
-        sql = "select publicid FROM \"Study\"  where \"StudyInstanceUID\" in (select \"StudyInstanceUID\" FROM \"Study\"  GROUP BY \"StudyInstanceUID\" HAVING count(\"StudyInstanceUID\")>1)"
-    elif type =='gold':
+    data = {}
+    sqldict = dictionary.objects.get(key=type,type="sql",status=True)
+    if type =='golddel':
         sqldata =dicom.objects.filter(type='gold')
         strsql ="'"
         for i in sqldata:
             strsql = strsql + str(i.studyinstanceuid)+"','"
-        sql = "select publicid FROM \"Study\"  where \"StudyInstanceUID\" in ({0})".format(strsql[:-2])
+        sql = sqldict.value.format(strsql[:-2])
+    elif type in ["patientid","patientname","studyinstanceuid"]:
+        if fuzzy is True:
+            fuzzy = 'like'
+            key = key + '%'
+        else:
+            fuzzy = '='
+        sql = sqldict.value.format(type,fuzzy,key)
     else:
-        sql="select r.publicid from resources r join \"Study\" s on r.publicid = s.publicid  where s.\"{0}\" {1} '{2}'".format(type,fuzzy,key)
+        sql = sqldict.value
     try:
         result_1 = connect_to_postgres(Hostobj.host,sql)
         _dict1 = result_1.to_dict(orient='records')
@@ -37,7 +37,8 @@ def delete_patients_duration(key, serverID,type,fuzzy):
         try:
             publicid=oid["publicid"]
             kc.delete('/orthanc/studies/{0}'.format(publicid), timeout=120)
+            data[oid["patientname"]]=oid["studyinstanceuid"]
         except Exception as e:
             logger.error("failed to delete patientv [{0}]: error[{1}]".format(oid, e))
             return False
-    return _dict1
+    return data

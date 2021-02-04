@@ -7,7 +7,7 @@
 import os
 import logging
 import subprocess as sp
-from ...models import GlobalHost,dicom
+from ...models import GlobalHost
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -25,7 +25,6 @@ def sync_send_file(serverID,file_name):
         file_name
     ]
     try:
-        logger.info(commands)
         popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
         popen.communicate()
     except Exception as e:

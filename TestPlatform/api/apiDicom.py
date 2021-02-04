@@ -89,17 +89,17 @@ class dicomData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
         slicenumber = request.GET.get("slicenumber")
-        type = request.GET.get("type")
-        if diseases is not None and slicenumber is None:
-            obi = dicom.objects.filter(diseases__contains=diseases, type=type).order_by("-id")
-        elif diseases is None and slicenumber is None:
-            obi = dicom.objects.filter( type=type).order_by("-id")
-        elif diseases is not None and slicenumber is None:
-            obi = dicom.objects.filter(type=type, diseases__contains=diseases).order_by("-id")
+        dicomtype = request.GET.get("type")
+        if diseases == slicenumber:
+            obi = dicom.objects.all().order_by("-id")
+        elif diseases is None and slicenumber is None and dicomtype != None:
+            obi = dicom.objects.filter(type=dicomtype).order_by("-id")
+        elif diseases != None and slicenumber is None and dicomtype != None:
+            obi = dicom.objects.filter(type=dicomtype, diseases__contains=diseases).order_by("-id")
         elif slicenumber is not None:
-            obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=type).order_by("-id")
-        elif type is not None:
-            obi = dicom.objects.filter(type=type).order_by("-id")
+            obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
+        elif diseases != None and slicenumber is None and dicomtype is None:
+            obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
         else:
             obi = dicom.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -421,58 +421,6 @@ class dicomcsv(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
-
-
-
-class Update_base_Data(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["id"], int):
-                return JsonResponse(code="999996", msg="参数有误！")
-            # 必传参数 content, status , type
-            if not data["content"] or not data["type"] or not data["status"]:
-                return JsonResponse(code="999996", msg="参数有误！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        修改基础数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        #
-        try:
-            obj = stress.objects.get(id=data["id"])
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称
-        pro_name = stress.objects.filter(content=data["content"]).exclude(id=data["id"])
-        if len(pro_name):
-            return JsonResponse(code="999997", msg="存在相同内容数据")
-        else:
-            serializer = stress_Deserializer(data=data)
-            with transaction.atomic():
-                if serializer.is_valid():
-                    # 修改数据
-                    serializer.update(instance=obj, validated_data=data)
-                    return JsonResponse(code="0", msg="成功")
-                else:
-                    return JsonResponse(code="999998", msg="失败")
 
 
 

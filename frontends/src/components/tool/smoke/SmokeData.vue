@@ -125,7 +125,7 @@
                         </el-col>
                     </el-row>
                     <el-form-item label="挂载">
-                        <el-input v-model="editForm.vote" :disabled="true" auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -263,7 +263,9 @@
             gethost() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     self.listLoading = false
@@ -450,9 +452,11 @@
                         self.listLoading = false
                         const {msg, code, data} = res
                         if (code === '0') {
-                            self.total = data.total
-                            self.page = data.page
-                            self.stresslist = data.data
+                            self.$message.info({
+                                message: "同步成功",
+                                center: true
+                            })
+                            self.getdata()
                         } else {
                             self.$message.error({
                                 message: msg,

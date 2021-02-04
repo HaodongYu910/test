@@ -10,7 +10,7 @@ import 'element-ui/lib/theme-chalk/index.css'; // 默认主题
 // import './assets/css/theme-green/index.css';       // 浅绿色主题
 import './assets/icons/iconfont.css'
 import './assets/css/icon.css';
-import './components/common/directives';
+import './utils/directives';
 // import 'normalize.css/normalize.css' // a modern alternative to CSS resets
 import './styles/element-variables.scss'
 import './styles/index.scss' // global css
