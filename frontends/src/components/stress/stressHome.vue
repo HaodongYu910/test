@@ -20,12 +20,12 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="version" label="项目" min-width="12%" sortable>
+            <el-table-column prop="version" label="项目" min-width="10%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.projectname }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
+            <el-table-column prop="version" label="版本" min-width="10%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
                     <router-link v-if="scope.row.status" :to="{ version: '概况', params: {id: scope.row.id}}"
@@ -35,7 +35,7 @@
                     {{ !scope.row.status?scope.row.version:""}}
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="服务" min-width="12%" sortable>
+            <el-table-column prop="version" label="服务" min-width="15%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
                 </template>
@@ -45,17 +45,17 @@
                     <span style="margin-left: 10px">{{ scope.row.thread }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="type" label="规则" min-width="30%">
+            <el-table-column prop="type" label="规则" min-width="20%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="16%" sortable>
+            <el-table-column label="开始时间" min-width="10%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="结束时间" min-width="16%" sortable>
+            <el-table-column label="结束时间" min-width="10%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
@@ -68,7 +68,7 @@
                          src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="20%">
+            <el-table-column label="操作" min-width="25%">
                 <template slot-scope="scope">
                     <el-row>
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看
@@ -503,7 +503,9 @@
             gethost() {
                 this.listLoading = true
                 let self = this;
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     this.listLoading = false

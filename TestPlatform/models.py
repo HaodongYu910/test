@@ -1199,23 +1199,6 @@ class dictionary(models.Model):
         verbose_name_plural = "dictionary表"
         db_table = 'dictionary'
 
-
-class dds_host(models.Model):
-    """
-    dicommaster host record model class. class name is not the database name, they can be different.
-    """
-    # attributes
-    id = models.AutoField(primary_key=True)
-    dds_ip = models.CharField(max_length=30, blank=True, null=True, verbose_name="dds_ip")
-
-    def __unicode__(self):
-        return self.version
-
-    class Meta:
-        verbose_name = "dicommaster_host_record"
-        verbose_name_plural = "dicommaster_host_record"
-        db_table = 'DDS_host'    #database name
-
 class dds_data(models.Model):
     """
           dds_data_record table
@@ -1230,7 +1213,6 @@ class dds_data(models.Model):
     orthancImageCount = models.IntegerField(blank=True, null=True, verbose_name="orthancImageCount")
     orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageInsertionTime")
     orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
-
 
     def __unicode__(self):
         return self.id

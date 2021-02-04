@@ -476,7 +476,7 @@ class stressResult(APIView):
             type = data["type"]
             if type == 'jz':
                 prediction = stress_result.objects.filter(version=data['version'],
-                                                          type__in=['predictionJZ', 'lung_JZ'])
+                                                          type__in=['predictionJZ', 'lung_prediction'])
                 job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_jobJZ'])
 
                 predictionb = stress_result.objects.filter(version=data['checkversion'],
@@ -616,9 +616,10 @@ class stressRun(APIView):
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                anonymousSend(data['id'], 'stress')
                 Auto = threading.Thread(target=AutoPrediction, args=(obj.hostid, server, obj.testdata, obj.loop_count))
+                anonymous = threading.Thread(target=anonymousSend, args=(data['id'], 'stress'))
                 Auto.start()
+                anonymous.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)

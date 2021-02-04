@@ -14,7 +14,7 @@ from ..tools.dicom.anonymization import onlyDoAnonymization
 from ..tools.orthanc.deletepatients import *
 from ..tools.dicom.duration_verify import *
 from ..tools.stress.PerformanceResult import *
-from ..tools.dicom.dicomdetail import anonymousSend,normalSend
+from ..tools.dicom.dicomdetail import anonymousSend,normalSend,durationStop
 from ..common.dicomBase import verifyDuration,durationtotal,baseTransform
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -264,23 +264,8 @@ class DisableDuration(APIView):
         if result:
             return result
         try:
-            # 查找pid
-            obj = pid.objects.filter(durationid=data["id"])
-            okj = duration.objects.get(id=data["id"])
-
-            for i in obj:
-                cmd = 'kill -9 {0}'.format(int(i.pid))
-                logger.info(cmd)
-                os.system(cmd)
-                i.delete()
-
-            okj.sendstatus = False
-            okj.save()
-            # 删除 文件夹
-            folder="/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(okj.patientname),str(okj.patientid),str(obj.id))
-            if os.path.exists(folder):
-                shutil.rmtree(folder)
-
+            durationThread=threading.Thread(target=durationStop,args=(data["id"]))
+            durationThread.start()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")

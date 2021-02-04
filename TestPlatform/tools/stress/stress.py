@@ -53,18 +53,37 @@ def delreport(kc, studyinstanceuid):
         logger.error("删除失败{0}".format(studyinstanceuid))
 
 
+
+# 保存数据
+def saveData(**kwargs):
+    try:
+        if kwargs["type"] in ["predictionJZ","lung_prediction"]:
+            sql=dictionary.objects.get(key="predictionJZ",type="sql",status=True)
+            result = connect_to_postgres(kwargs["ip"],sql.value.format(kwargs["studyuid"],kwargs["count"]))
+            datatest = kwargs["datatest"]
+            datatest["type"] = kwargs["type"]
+            datatest["avg"] = str(result.to_dict(orient='records')[0]["avg"])
+            datatest["median"] =str( result.to_dict(orient='records')[0]["median"])
+            datatest["min"] = str( result.to_dict(orient='records')[0]["min"])
+            datatest["max"] = str( result.to_dict(orient='records')[0]["max"])
+        else:
+            datatest = kwargs["datatest"]
+            datatest["type"]= kwargs["type"]
+        stress_result.objects.create(**datatest)
+    except Exception as e:
+        logger.error("保存预测基准测试数据失败：{0}".format(e))
+
 #  基准/单一手动预测
-def Manual(serverID, serverIP, version,id,count,data):
+def Manual(serverID, serverIP, version,id,count,testdata):
     kc = login_keycloak(serverID)
     try:
-        startdate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        for i in data.split(","):
-            stressdata = stress_record.objects.filter(diseases=i,benchmarkstatus=True)
+        for i in testdata.split(","):
+            stressdata = stress_record.objects.filter(diseases=i.strip(),benchmarkstatus=True)
             for k in stressdata:
                 avglist = []
                 checkuid(serverID, serverIP, str(k.stressid))
                 obj = dictionary.objects.get(id=k.diseases)
-                if str(k.diseases) == "9":
+                if str(k.diseases) in ["9","8"]:
                     manager = "\",\"artifacts_manager\"]])"
                 else:
                     manager = "\"]])"
@@ -87,6 +106,7 @@ def Manual(serverID, serverIP, version,id,count,data):
                         ai_biomind = result['ai_biomind']
                         avgtime = time.time() - starttime
                         avglist.append(avgtime)
+                        time.sleep(10)
                     except Exception as e:
                         logger.error("执行预测失败：{0}".format(k.studyuid))
                         continue
@@ -96,50 +116,49 @@ def Manual(serverID, serverIP, version,id,count,data):
                 else:
                     jobtype = 'jobJZ'
                     predictiontype = 'predictionJZ'
-                    avgtime =str('%.2f' % np.mean(avglist))
-                data = {
+                avgtime = str('%.2f' % np.mean(avglist))
+                datatest = {
                     "stressid": id,
                     "version": version,
-                    "type": jobtype,
-                    "count": 1,
+                    "count": count,
                     "modelname": k.diseases,
                     "slicenumber": k.slicenumber,
                     "avg": avgtime,
-                    "single": avgtime,
-                    "median": avgtime,
-                    "min": avgtime,
-                    "max": avgtime,
+                    "min": str('%.2f' % min(avglist)),
+                    "max": str('%.2f' % max(avglist)),
                     "minimages": k.imagecount,
                     "maximages": k.imagecount,
-                    "avgimages": k.imagecount,
+                    "avgimages": k.imagecount
                 }
-                stress_result.objects.create(**data)
+                saveData(datatest=datatest,
+                         type=jobtype
+                         )
+                saveData(datatest=datatest,
+                         type=predictiontype,
+                         ip = serverIP,
+                         studyuid = k.studyuid,
+                         count =count
+                         )
+
     except Exception as e:
         logger.error("执行预测基准测试数据失败：{0}".format(e))
-    try:
-        enddate = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sql = dictionary.objects.get(key='prediction', type='sql')
-        strsql = sql.value.format(startdate, enddate)
-        saveResult(serverIP, version, predictiontype, [startdate, enddate], strsql, [],kc)
-        lung([startdate, enddate], serverIP, version, 9,kc)
-    except Exception as e:
-        logger.error("保存预测基准测试数据失败：{0}".format(e))
+
 
 
 # 自动预测压测循环
 def AutoPrediction(serverID, serverIP, testdata, count):
-    diseases = []
-    for i in testdata.split(","):
-        diseases.append(i)
+    # diseases = []
+    # for i in testdata.split(","):
+    #     diseases.append(i)
     stressdata = stress_record.objects.filter(diseases__in=testdata)
     kc = login_keycloak(serverID)
-
+    for j in stressdata:
+        # 检查是否有压测数据
+        checkuid(serverID, serverIP, j.stressid)
+        delreport(kc, j.studyuid)
     # 循环调用graphql 自动预测
     for i in range(int(count)):
         for k in stressdata:
-            # 检查是否有压测数据
-            checkuid(serverID, serverIP, k.stressid)
-            delreport(kc, k.studyuid)
             graphql_query = '{ ' \
                             'ai_biomind(' \
                             'block : false' \
@@ -157,9 +176,7 @@ def AutoPrediction(serverID, serverIP, testdata, count):
                                                                 '}'
 
             graphql_Interface(graphql_query, kc)
-            time.sleep(2)
-            # info[k.slicenumber] = info[k.slicenumber] + 1
-
+        time.sleep(1)
 
 # 生成自动预测测试数据
 def stresscache(stressid):

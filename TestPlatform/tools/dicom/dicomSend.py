@@ -102,7 +102,7 @@ def get_fake_accession_number(acc_number, rand_uid):
     return norm_string(str, 16)
 
 
-def get_study_fakeinfo(studyuid, acc_number,study_fakeinfos):
+def get_study_fakeinfo(studyuid, acc_number, study_fakeinfos):
     if not study_fakeinfos.get(studyuid):
         rand_uid = get_rand_uid()
         # "fake_name": get_fake_name(rand_uid, keyword),
@@ -129,14 +129,10 @@ def delayed(Seriesinstanceuid, image, CONFIG):
 
 
 # 保存发送记录
-def add_record(study_infos, study_uid, sqldata, influxdata):
+def add_record(study_infos, study_uid, sqldata, ):
     try:
         if study_infos.get(study_uid):
             study_infos[study_uid] = study_infos[study_uid] + 1
-            # try:
-            #     connect_to_influx(influxdata)
-            # except Exception as e:
-            #     logging.error("更新influedb失败：{0}".format(e))
         else:
             study_infos[study_uid] = 1
             try:
@@ -148,7 +144,7 @@ def add_record(study_infos, study_uid, sqldata, influxdata):
 
 
 # 匿名数据
-def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
+def anonymization(full_fn, full_fn_fake, diseases, CONFIG):
     study_uid = ''
     series_uid = ''
     try:
@@ -190,12 +186,12 @@ def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
         if CONFIG["patientid"] == 'None':
             CONFIG["patientid"] = ''
         ds.PatientID = norm_string(
-            '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientid"]), rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), str(CONFIG["patientid"]), rand_uid), 24)
     if CONFIG["patientname"]:
         if CONFIG["patientname"] == 'None':
             CONFIG["patientname"] = ''
         ds.PatientName = norm_string(
-            '{0}{1}{2}'.format(str(diseases),str(CONFIG["patientname"]), rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), str(CONFIG["patientname"]), rand_uid), 24)
 
     ds.AccessionNumber = fake_acc_number
 
@@ -219,7 +215,8 @@ def anonymization(full_fn,full_fn_fake,diseases,CONFIG):
     logging.info("ds.AccessionNumber:{0}".format(ds.AccessionNumber))
     logging.info("ds.studyolduid:{0}".format(studyolduid))
     logging.info("ds.Seriesinstanceuid:{0}".format(Seriesinstanceuid))
-    return ds.StudyInstanceUID,ds.PatientID,ds.PatientName,studyolduid,ds.AccessionNumber,Seriesinstanceuid
+    return ds.StudyInstanceUID, ds.PatientID, ds.PatientName, studyolduid, ds.AccessionNumber, Seriesinstanceuid
+
 
 # 遍历文件夹
 def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseases, CONFIG):
@@ -241,7 +238,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             ds = pydicom.dcmread(full_fn, force=True)
             newstudyuid = ds.StudyInstanceUID
             newpatientid = 'newpatientid'
-            newpatientname =' PatientName'
+            newpatientname = ' PatientName'
             studyolduid = ds.StudyInstanceUID
             accessionNumber = 'AccessionNumber'
             Seriesinstanceuid = ''
@@ -249,7 +246,8 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             # logging.info(full_fn_fake)
         else:
             try:
-                newstudyuid,newpatientid,newpatientname,studyolduid,accessionNumber,Seriesinstanceuid = anonymization(full_fn, full_fn_fake,diseases, CONFIG)
+                newstudyuid, newpatientid, newpatientname, studyolduid, accessionNumber, Seriesinstanceuid = anonymization(
+                    full_fn, full_fn_fake, diseases, CONFIG)
             except Exception as e:
                 logging.error("匿名错误 {}".format(e))
                 continue
@@ -270,13 +268,11 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', NULL, NULL,NULL, NULL, \'{4}\',\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\')".format(
                 newpatientid, accessionNumber, newstudyuid, studyolduid, CONFIG['ip'], start,
                 CONFIG.get('durationid', ''), start, start, end, diff, newpatientname)
-            influxdata = "dicom,studyinstanceuid={0},studyolduid={1},duration_id={2},starttime={3},endtime={4},time={5} value=1".format(
-                newstudyuid, studyolduid, CONFIG.get('durationid', ''), start, end, diff)
+
             add_record(
                 study_infos=study_infos,
                 study_uid=newstudyuid,
-                sqldata=sqldata,
-                influxdata=influxdata
+                sqldata=sqldata
             )
         except Exception as e:
             logging.error('errormsg: failed to save_send_record file [{0}][[1]]'.format(full_fn, e))
@@ -289,11 +285,12 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             continue
 
 
+#  参数
 def prepare_config(argv):
     CONFIG = {}
     try:
         opts, args = getopt.getopt(argv, "h",
-                                   ["aet=", "ip=", "port=", "patientid=","patientname=", "folderid=", "durationid=",
+                                   ["aet=", "ip=", "port=", "patientid=", "patientname=", "folderid=", "durationid=",
                                     "end=", "sleepcount=", "sleeptime=", "series="])
         for opt, arg in opts:
             if opt == '-h':
@@ -325,7 +322,7 @@ def prepare_config(argv):
 
     except Exception as e:
         logging.error("error: failed to get args", e)
-    CONFIG["keyword"] = str(CONFIG["patientname"])+str(CONFIG["patientid"])+str(CONFIG["durationid"])
+    CONFIG["keyword"] = str(CONFIG["patientname"]) + str(CONFIG["patientid"]) + str(CONFIG["durationid"])
     log_path = "{0}/{1}".format('/home/biomind/Biomind_Test_Platform/logs', CONFIG["keyword"])
     if not os.path.exists(log_path):
         os.makedirs(log_path)
@@ -334,7 +331,7 @@ def prepare_config(argv):
     logging.basicConfig(filename=log_file, filemode='a+',
                         format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                         datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
-    return CONFIG,log_path
+    return CONFIG, log_path
 
 
 # 修改影像数量
@@ -389,7 +386,8 @@ if __name__ == '__main__':
         logging.error("failed to start:{}".format(e))
         sys.exit(0)
     if str(CONFIG["sleepcount"]) == '8787':
-        sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases ='{0}'".format(CONFIG["folderid"])
+        sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases in ({0})".format(
+            CONFIG["folderid"])
     else:
         sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
     image = {}

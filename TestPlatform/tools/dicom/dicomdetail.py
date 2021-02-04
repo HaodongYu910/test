@@ -7,6 +7,7 @@ from ...tools.dicom.SendDicom import Send
 from ...tools.dicom.duration_verify import *
 from ...tools.stress.PerformanceResult import savecsv
 from ...tools.orthanc.deletepatients import delete_patients_duration
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -67,20 +68,13 @@ def normalSend(id):
 
 
 # 匿名化发送数据
-def anonymousSend(id, type):
+def anonymousSend(id,type):
     a = 0
     nom = 0
+    obj = stress.objects.get(id=id)
     try:
+        # 持续话匿名发送数据
         if type != "stress":
-            durationid = id
-            obj = duration.objects.get(id=id)
-            testdata = obj.dicom
-            server = obj.server
-            aet = obj.aet
-            port = obj.port
-            patientid = obj.patientid
-            patientname = obj.patientname
-            series = obj.series
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
             if obj.sendcount is None and obj.end_time is None:
@@ -94,43 +88,45 @@ def anonymousSend(id, type):
                 imod = divmod(int(obj.sendcount), nom)
                 if imod[0] < 1:
                     return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
+            for i in obj.dicom.split(","):
+                if nom != 0:
+                    end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
+                    a = a + 1
+                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       '--ip {0} --aet {1} '
+                       '--port {2} '
+                       '--patientid {3} '
+                       '--patientname {4} '
+                       '--folderid {5} '
+                       '--durationid {6} '
+                       '--end {7} '
+                       '--sleepcount {8} '
+                       '--sleeptime {9} '   
+                       '--series {10} &').format(obj.server, obj.aet, obj.port, obj.patientid, obj.patientname, i, id,
+                                                 end, sleepcount, sleeptime, obj.series)
+                logger.info(cmd)
+                os.system(cmd)
+                time.sleep(1)
+        # 性能发送数据
         else:
-            obj = stress.objects.get(id=id)
             hostobj = GlobalHost.objects.get(id=obj.hostid)
-            testdata = obj.testdata
-            server = hostobj.host
-            aet = hostobj.description
-            port = hostobj.port
-            patientid = 'stress'
-            patientname = 'stress'
-            series = 0
-            sleepcount = 8787
-            sleeptime = 0
-            end = int(obj.loop_count)
-            durationid = '0{}'.format(id)
-
-        for i in testdata.split(","):
-            if nom != 0:
-                end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
-                a = a + 1
-            cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                   ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
-                   '--ip {0} --aet {1} '
-                   '--port {2} '
-                   '--patientid {3} '
-                   '--patientname {4} '
-                   '--folderid {5} '
-                   '--durationid {6} '
-                   '--end {7} '
-                   '--sleepcount {8} '
-                   '--sleeptime {9} '
-                   '--series {10} &').format(server, aet, port, patientid, patientname, i, durationid,
-                                             end, sleepcount, sleeptime, series)
-
-            logger.info(cmd)
-            os.system(cmd)
-            time.sleep(1)
-
+            for i in range(int(obj.ramp)):
+                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       '--ip {0} --aet {1} '
+                       '--port {2} '
+                       '--patientid {3} '
+                       '--patientname {4} '
+                       '--folderid {5} '
+                       '--durationid {6} '
+                       '--end {7} '
+                       '--sleepcount {8} '
+                       '--sleeptime {9} '
+                       '--series {10} &').format(hostobj.host, hostobj.description, hostobj.port,"stress{}".format(i),"stress{}".format(i),obj.testdata, '0{}'.format(id),
+                                                 int(obj.loop_count),8787,0,0)
+                os.system(cmd)
+                logger.info(cmd)
         obj.sendstatus = True
         obj.save()
         return True
@@ -138,6 +134,30 @@ def anonymousSend(id, type):
         return False
         logger.error("发送失败：{0}".format(e))
 
+
+def durationStop(durationid):
+    # 查找pid
+    obj = pid.objects.filter(durationid=durationid)
+    okj = duration.objects.get(id=durationid)
+    drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
+    # kill 线程
+    for i in obj:
+        cmd = 'kill -9 {0}'.format(int(i.pid))
+        logger.info(cmd)
+        os.system(cmd)
+        i.delete()
+    # 改变状态
+    okj.sendstatus = False
+    okj.save()
+    # 删除错误数据
+    for j in drobj:
+        delete_patients_duration(j.studyinstanceuid, okj.hostid, "studyinstanceuid", False)
+    drobj.delete()
+    # 删除 文件夹
+    folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(okj.patientname), str(okj.patientid),
+                                                                         str(obj.id))
+    if os.path.exists(folder):
+        shutil.rmtree(folder)
 
 # 检查是否数据
 def checkuid(serverID, serverIP, dicomid):
@@ -187,7 +207,7 @@ def Slice(kc, Seriesuid):
 # 查询挂载 张数 层厚
 def voteData(uid, orthanc_ip, diseases, kc):
     vote = ''
-    version ='new'
+    version ='old'
     try:
         if version =="old":
             Series = 'select "SeriesInstanceUID" as "seriesinstanceuid" from "Series" where "StudyInstanceUID" =\'{0}\''
