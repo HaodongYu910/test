@@ -52,28 +52,21 @@
                     </el-row>
                 </el-form>
                 <div>
-                    <el-table :data="delresult" style="width: 50%">
-                        <el-table-column label="结果显示" width="180">
-                            <template slot-scope="scope">
-                                <el-popover trigger="hover" placement="top">
-                                    <p>标签: {{ scope.row }}</p>
-                                    <div slot="reference" class="name-wrapper">
-                                        <el-tag size="medium">{{ scope.row }}</el-tag>
-                                    </div>
-                                </el-popover>
+                    <template v-for="(item,index) of delresult">
+                                <li>:{{ item }}  Name:{{index}}</li>
                             </template>
+                     <!--工具条-->
+                    <el-table :data="delresult" style="width: 200%">
+                        <el-table-column label="结果显示" width="180">
                         </el-table-column>
                     </el-table>
-                </div>
-
-                <!--工具条-->
-                <!--列表-->
-                <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
+                    <!--列表-->
+                    <el-table :data="delresult" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
                           style="width: 200%">
 
                 </el-table>
-
+                </div>
             </el-col>
         </div>
     </div>
@@ -111,6 +104,7 @@
         },
         methods: {
             deldicom(formName) {
+                this.listLoading =true
                 this.tableData = null
                 this.$refs[formName].validate((valid) => {
                     if (valid) {
@@ -141,8 +135,11 @@
                             // for (var i = 0; i < mydata.length; i++) {
                             //     tableData.push({'name': mydata[i]})
                             // }
+                            this.listLoading = false
                             var del = JSON.stringify(data)
                             this.delresult = JSON.parse(del)
+                            console.log(this.delresult)
+                            this.$message.error("删除成功")
                         })
                     } else {
                         console.log('error submit')

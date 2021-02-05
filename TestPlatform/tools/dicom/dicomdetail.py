@@ -71,10 +71,10 @@ def normalSend(id):
 def anonymousSend(id,type):
     a = 0
     nom = 0
-    obj = stress.objects.get(id=id)
     try:
         # 持续话匿名发送数据
         if type != "stress":
+            obj = duration.objects.get(id=id)
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
             if obj.sendcount is None and obj.end_time is None:
@@ -110,6 +110,7 @@ def anonymousSend(id,type):
                 time.sleep(1)
         # 性能发送数据
         else:
+            obj = stress.objects.get(id=id)
             hostobj = GlobalHost.objects.get(id=obj.hostid)
             for i in range(int(obj.ramp)):
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
