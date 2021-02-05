@@ -9,14 +9,15 @@ logger = logging.getLogger(__name__)
 def delete_patients_duration(key, serverID,type,fuzzy):
     Hostobj =GlobalHost.objects.get(id=serverID)
     data = {}
-    sqldict = dictionary.objects.get(key=type,type="sql",status=True)
-    if type =='golddel':
+    if type =='gold':
+        sqldict = dictionary.objects.get(key=type, type="sql", status=True)
         sqldata =dicom.objects.filter(type='gold')
         strsql ="'"
         for i in sqldata:
             strsql = strsql + str(i.studyinstanceuid)+"','"
         sql = sqldict.value.format(strsql[:-2])
     elif type in ["patientid","patientname","studyinstanceuid"]:
+        sqldict = dictionary.objects.get(key='publicid', type="sql", status=True)
         if fuzzy is True:
             fuzzy = 'like'
             key = key + '%'
@@ -24,6 +25,7 @@ def delete_patients_duration(key, serverID,type,fuzzy):
             fuzzy = '='
         sql = sqldict.value.format(type,fuzzy,key)
     else:
+        sqldict = dictionary.objects.get(key=type, type="sql", status=True)
         sql = sqldict.value
     try:
         result_1 = connect_to_postgres(Hostobj.host,sql)
