@@ -965,6 +965,7 @@ class dicom(models.Model):
     slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
     vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
+    graphql = models.TextField(max_length=5000, blank=True, null=True, verbose_name="graphql")
     fileid =  models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")
     diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")

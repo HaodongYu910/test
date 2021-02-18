@@ -13,7 +13,7 @@
                   </el-form-item>
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-                    <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="getsmokeList"></el-input>
+                    <el-input v-model="filters.name" placeholder="版本" @keyup.enter.native="getsmokeList"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getsmokeList">查询</el-button>
@@ -43,7 +43,7 @@
                     <span style="margin-left: 10px">{{ scope.row.hostid }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="diseases" label="规则" min-width="30%">
+            <el-table-column prop="diseases" label="规则" min-width="30%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
                 </template>

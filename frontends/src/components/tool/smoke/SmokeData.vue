@@ -6,6 +6,7 @@
                 <el-form label="过滤器" :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
+                            <el-option key="" label="" value=""></el-option>
                             <el-option v-for="(item,index) in tags"
                                        :key="item.remarks"
                                        :label="item.remarks"
@@ -15,6 +16,7 @@
                     </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
+                            <el-option key="" label="" value=""></el-option>
                             <el-option key="1.0" label="1.0" value="1.0"/>
                             <el-option key="1.25" label="1.25" value="1.25"/>
                             <el-option key="1.5" label="1.5" value="1.5"/>
@@ -66,9 +68,9 @@
                         <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="挂载" min-width="15%">
+                <el-table-column label="Graphql" min-width="15%" show-overflow-tooltip>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.vote }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.graphql }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="标准诊断" min-width="15   %">
@@ -124,8 +126,8 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-form-item label="挂载">
-                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
+                    <el-form-item label="Graphql">
+                        <el-input type="textarea" :rows="10" v-model="editForm.graphql"  auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -209,8 +211,9 @@
         data() {
             return {
                 filters: {
-                    diseases: null,
-                    slicenumber: null
+                    diseases: '',
+                    slicenumber: '',
+                    type:''
                 },
                 total: 0,
                 page: 1,

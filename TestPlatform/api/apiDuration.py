@@ -32,7 +32,11 @@ class getDuration(APIView):
         :return:
         """
         # ','.join(data['dicom'])
-        obi = duration.objects.filter().order_by("server")
+        server = request.GET.get("server")
+        if server:
+            obi = duration.objects.filter(hostid=server).order_by("-sendstatus")
+        else:
+            obi = duration.objects.all().order_by("server").order_by("-sendstatus")
         dataSerializer = duration_Serializer(obi, many=True)
 
         for i in dataSerializer.data:
@@ -264,8 +268,15 @@ class DisableDuration(APIView):
         if result:
             return result
         try:
-            durationThread=threading.Thread(target=durationStop,args=(data["id"]))
-            durationThread.start()
+            obj = pid.objects.filter(durationid=data["id"])
+            # kill 线程
+            for i in obj:
+                cmd = 'kill -9 {0}'.format(int(i.pid))
+                logger.info(cmd)
+                os.system(cmd)
+                i.delete()
+            Threadstop = threading.Thread(target=durationStop,args=(data["id"]))
+            Threadstop.start()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")

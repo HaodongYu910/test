@@ -83,7 +83,7 @@ def Manual(serverID, serverIP, version,id,count,testdata):
                 avglist = []
                 checkuid(serverID, serverIP, str(k.stressid))
                 obj = dictionary.objects.get(id=k.diseases)
-                if str(k.diseases) in ["9","8"]:
+                if str(k.diseases) in ["9","6","8"]:
                     manager = "\",\"artifacts_manager\"]])"
                 else:
                     manager = "\"]])"

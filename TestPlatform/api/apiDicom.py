@@ -59,10 +59,15 @@ class dicomDetail(APIView):
                 for i in dicomdata:
                     try:
                         obj = GlobalHost.objects.get(id=data['server'])
-                        diseasesobj =base_data.objects.get(id=i.fileid)
-                        i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid,obj.host, diseasesobj.predictor,kc)
+                        objbase = base_data.objects.get(id=i.fileid)
+                        objdictionary = dictionary.objects.get(id=objbase.predictor)
+                        if i.vote is None:
+                            i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid,obj.host, objbase.predictor,kc)
+                        vote = i.vote
+                        i.graphql = graphql_query(i.studyinstanceuid,vote,objbase.predictor,objdictionary.value)
                         i.save()
                     except Exception as e:
+                        logger.error(e)
                         continue
 
             except ObjectDoesNotExist:
@@ -90,18 +95,25 @@ class dicomData(APIView):
         diseases = request.GET.get("diseases")
         slicenumber = request.GET.get("slicenumber")
         dicomtype = request.GET.get("type")
-        if diseases == slicenumber:
-            obi = dicom.objects.all().order_by("-id")
-        elif diseases is None and slicenumber is None and dicomtype != None:
-            obi = dicom.objects.filter(type=dicomtype).order_by("-id")
-        elif diseases != None and slicenumber is None and dicomtype != None:
-            obi = dicom.objects.filter(type=dicomtype, diseases__contains=diseases).order_by("-id")
-        elif slicenumber is not None:
-            obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
-        elif diseases != None and slicenumber is None and dicomtype is None:
-            obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
+        if dicomtype:
+            if diseases =='' and slicenumber !='':
+                obi = dicom.objects.filter(slicenumber__contains=slicenumber,type=dicomtype).order_by("-id")
+            elif diseases !='' and slicenumber =='':
+                obi = dicom.objects.filter(diseases__contains=diseases,type=dicomtype).order_by("-id")
+            elif diseases !='' and slicenumber !='':
+                obi = dicom.objects.filter(diseases__contains=diseases,slicenumber__contains=slicenumber,type=dicomtype).order_by("-id")
+            else:
+                obi = dicom.objects.filter(type=dicomtype).order_by("-id")
         else:
-            obi = dicom.objects.all().order_by("-id")
+            if diseases =='' and slicenumber !='':
+                obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
+            elif diseases !='' and slicenumber =='':
+                obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
+            elif diseases !='' and slicenumber !='':
+                obi = dicom.objects.filter(diseases__contains=diseases,slicenumber__contains=slicenumber).order_by("-id")
+            else:
+                obi = dicom.objects.all().order_by("-id")
+
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
