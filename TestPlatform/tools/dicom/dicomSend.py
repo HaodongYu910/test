@@ -18,6 +18,7 @@ import time, datetime
 import random
 import math
 import pymysql
+import socket
 
 
 # import requests
@@ -234,30 +235,19 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
         elif (os.path.isdir(full_fn)):
             fake_folder(full_fn, full_fn_fake, study_fakeinfos, study_infos, image, diseases, CONFIG)
             continue
-        if CONFIG['patientname'] == 'patientname' and CONFIG['patientid'] == 'patientid':
-            ds = pydicom.dcmread(full_fn, force=True)
-            newstudyuid = ds.StudyInstanceUID
-            newpatientid = 'newpatientid'
-            newpatientname = ' PatientName'
-            studyolduid = ds.StudyInstanceUID
-            accessionNumber = 'AccessionNumber'
-            Seriesinstanceuid = ''
-            full_fn_fake = full_fn
-            # logging.info(full_fn_fake)
-        else:
-            try:
-                newstudyuid, newpatientid, newpatientname, studyolduid, accessionNumber, Seriesinstanceuid = anonymization(
-                    full_fn, full_fn_fake, diseases, CONFIG)
-            except Exception as e:
-                logging.error("匿名错误 {}".format(e))
-                continue
+        try:
+            newstudyuid, newpatientid, newpatientname, studyolduid, accessionNumber, Seriesinstanceuid = anonymization(
+                full_fn, full_fn_fake, diseases, CONFIG)
+        except Exception as e:
+            logging.error("匿名错误 {}".format(e))
+            continue
         try:
             commands = [
                 "storescu",
                 CONFIG["ip"],
                 CONFIG["port"],
                 "-aec", CONFIG["aet"],
-                "-aet", 'QA38',
+                "-aet", CONFIG["local_aet"],
                 full_fn_fake
             ]
             start, end, diff = sync_send_file(full_fn_fake, commands)
@@ -340,6 +330,7 @@ def ImageUpdate(study_infos):
         for k, v in study_infos.items():
             sql = 'UPDATE duration_record set imagecount =\'{0}\' where studyinstanceuid =\'{1}\''.format(v, k)
             sqlDB(sql, [], 'update')
+        logging.info("发送成功{}".format(study_infos))
     except Exception as e:
         logging.error("更新影像张数失败studyinstanceuid：{0}，张数：{1}---错误{2}".format(k, v, e))
 
@@ -377,27 +368,37 @@ def sendtime(sql, image, CONFIG):
 
 if __name__ == '__main__':
     try:
+        image = {}
+        image["count"] = 0
+        count = 1
+        # 获取进程ID
         ospid = os.getpid()
         CONFIG, log_path = prepare_config(sys.argv[1:])
+        # 查询发送数据sql
+        if str(CONFIG["sleepcount"]) == '8787':
+            sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases in ({0})".format(
+                CONFIG["folderid"])
+        else:
+            sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
+        # 获取local_aet名称
+        if socket.gethostname() == "biomindqa38":
+            CONFIG["local_aet"] = 'QA38'
+        else:
+            CONFIG["local_aet"] = 'QA120'
         folder_fake = "{0}/{1}".format(log_path, str(CONFIG.get('keyword', '')))
         # 添加 pid号
         sqlDB('INSERT INTO pid values(%s,%s,%s)', [None, ospid, CONFIG['durationid']], 'INSERT')
     except Exception as e:
         logging.error("failed to start:{}".format(e))
         sys.exit(0)
-    if str(CONFIG["sleepcount"]) == '8787':
-        sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases in ({0})".format(
-            CONFIG["folderid"])
-    else:
-        sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
-    image = {}
-    image["count"] = 0
+    # 按时间发送
     if len(str(CONFIG["end"])) > 10:
         sendtime(sql, image, CONFIG)
+    # 按数量发送
     else:
-        count = 1
         end = int(CONFIG["end"])
         data = sqlDB(sql, [], 'select')
+        # 循环发送
         for i in range(end):
             if count <= end and count > len(data):
                 data = sqlDB(sql, [], 'select')
@@ -410,7 +411,6 @@ if __name__ == '__main__':
                         src_folder = src_folder[0:-1]
                     study_fakeinfos = {}
                     study_infos = {}
-
                     fake_folder(
                         folder=src_folder,
                         folder_fake=folder_fake,
@@ -420,11 +420,11 @@ if __name__ == '__main__':
                         diseases=j[1],
                         CONFIG=CONFIG
                     )
-                    logging.info("发送成功{}".format(study_infos))
                     ImageUpdate(study_infos)
                     count = count + 1
             if count > end:
                 break
+        # 执行状态判断
         pid = sqlDB('select count(1) from pid where pid ="{0}"'.format(ospid), [], 'select')
         if int(pid[0][0]) == 1:
             sqlDB('UPDATE duration set sendstatus = 0 where id ={0}'.format(CONFIG["durationid"]), [], 'update')

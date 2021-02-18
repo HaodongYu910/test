@@ -8,12 +8,17 @@ import os
 import logging
 import subprocess as sp
 from ...models import GlobalHost
-
+import socket
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
+
 def sync_send_file(serverID,file_name):
-    local_aet='QA38'
+    # 获取计算机名称
+    if socket.gethostname() =="biomindqa38":
+        local_aet = 'QA38'
+    else:
+        local_aet = 'QA120'
     Hostobj = GlobalHost.objects.get(id=serverID)
     # logging.info('send file: [{0}]'.format(file_name))
     commands = [

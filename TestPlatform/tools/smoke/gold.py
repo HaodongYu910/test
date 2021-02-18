@@ -146,41 +146,14 @@ class SmokeThread(threading.Thread):
                     # 修改执行进度
                     self.count = self.count + 1
                     updatesmoke(self.id, self.count)
-                    objbase = base_data.objects.get(id=i.fileid)
-                    objdictionary = dictionary.objects.get(id=objbase.predictor)
-                    data = {
-                        "version": self.smobj.version,
-                        "patientid": i.patientid,
-                        "patientname": i.patientname,
-                        "studyinstanceuid": i.studyinstanceuid,
-                        "diseases": i.diseases,
-                        "slicenumber": i.slicenumber,
-                        "diagnosis": i.diagnosis,
-                        "type": "gold",
-                        "status": False,
-                        "smokeid": self.id,
-                        "result":"匹配成功"
-                    }
-                    if str(objbase.predictor) =="9":
-                        manager ="\",\"artifacts_manager\"]])"
-                    else:
-                        manager = "\"]])"
-                    graphql_query = "{ ai_biomind (" \
-                                    "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
-                                                                               "{ pothers: " \
-                                                                               "{ disable_negative_voting:false} " \
-                                                                               "penable_cached_results:false pconfig:{} " \
-                                                                               "planguage:\"zh-cn\" " \
-                                                                               " puser_id:\"biomind\" " \
-                                                                               "pseries_classifier:" + str(
-                        i.vote) + "}" \
-                                  "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                        objdictionary.value) + manager +"{ pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-                    logger.info("请求graphql_query：{0}".format(graphql_query))
-                    data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    data = {"version": self.smobj.version, "patientid": i.patientid, "patientname": i.patientname,
+                            "studyinstanceuid": i.studyinstanceuid, "diseases": i.diseases,
+                            "slicenumber": i.slicenumber, "diagnosis": i.diagnosis, "type": "gold", "status": False,
+                            "smokeid": self.id, "result": "匹配成功",
+                            "starttime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                     # 调用 手动预测接口
                     try:
-                        prediction = graphql_Interface(graphql_query, self.kc)
+                        prediction = graphql_Interface(i.graphql, self.kc)
                     except Exception as e:
                         predictionCheck(prediction, data, e)
                         continue

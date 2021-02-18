@@ -138,25 +138,18 @@ def anonymousSend(id,type):
 
 def durationStop(durationid):
     # 查找pid
-    obj = pid.objects.filter(durationid=durationid)
     okj = duration.objects.get(id=durationid)
-    drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
-    # kill 线程
-    for i in obj:
-        cmd = 'kill -9 {0}'.format(int(i.pid))
-        logger.info(cmd)
-        os.system(cmd)
-        i.delete()
     # 改变状态
     okj.sendstatus = False
     okj.save()
+    drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
     # 删除错误数据
     for j in drobj:
         delete_patients_duration(j.studyinstanceuid, okj.hostid, "studyinstanceuid", False)
     drobj.delete()
     # 删除 文件夹
     folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(okj.patientname), str(okj.patientid),
-                                                                         str(obj.id))
+                                                                         str(okj.id))
     if os.path.exists(folder):
         shutil.rmtree(folder)
 
@@ -208,7 +201,7 @@ def Slice(kc, Seriesuid):
 # 查询挂载 张数 层厚
 def voteData(uid, orthanc_ip, diseases, kc):
     vote = ''
-    version ='old'
+    version ='new'
     try:
         if version =="old":
             Series = 'select "SeriesInstanceUID" as "seriesinstanceuid" from "Series" where "StudyInstanceUID" =\'{0}\''
@@ -230,7 +223,7 @@ def voteData(uid, orthanc_ip, diseases, kc):
                     if str(i['seriesinstanceuid']) in str(pseries[key]):
                         vote = vote + '{0}: \"{1}\",'.format(str(key), str(i['seriesinstanceuid']))
                         SeriesInstanceUID = str(i['seriesinstanceuid'])
-        if int(diseases) in [4, 5, 8, 9, 10,12]:
+        if int(diseases) in [4, 5, 8, 9, 10, 12]:
             imagecount, slicenumber, = Slice(kc, SeriesInstanceUID)
         else:
             imagecount, slicenumber = None, None
@@ -238,3 +231,23 @@ def voteData(uid, orthanc_ip, diseases, kc):
     except Exception as e:
         return vote, None, None
     return str(vote), imagecount, slicenumber
+
+# 生成graphql 接口 json
+def graphql_query(studyuid,vote,predictorid,predictor):
+    if str(predictorid) in ["9", "6", "8"]:
+        manager = "\",\"artifacts_manager\"]])"
+    else:
+        manager = "\"]])"
+
+    graphql_query = "{ ai_biomind (" \
+                    "study_uid:\"" + str(studyuid) + "\", protocols:" \
+                                                               "{ pothers: " \
+                                                               "{ disable_negative_voting:false} " \
+                                                               "penable_cached_results:false pconfig:{} " \
+                                                               "planguage:\"zh-cn\" " \
+                                                               " puser_id:\"biomind\" " \
+                                                               "pseries_classifier:" + str(vote) + "}" \
+                  "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
+        predictor) + manager + "{ pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
+    logger.info("请求graphql_query：{0}".format(graphql_query))
+    return graphql_query

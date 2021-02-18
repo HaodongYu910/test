@@ -236,7 +236,7 @@ class DisableSmoke(APIView):
             testThread = SmokeThread(data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
-            print(testThread.is_alive())
+
             obj.status = False
             obj.save()
             return JsonResponse(code="0", msg="成功")

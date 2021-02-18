@@ -52,14 +52,10 @@
                     </el-row>
                 </el-form>
                 <div>
-                    <template v-for="(item,index) of delresult">
-                                <li>:{{ item }}  Name:{{index}}</li>
-                            </template>
                      <!--工具条-->
-                    <el-table :data="delresult" style="width: 200%">
-                        <el-table-column label="结果显示" width="180">
-                        </el-table-column>
-                    </el-table>
+                    <template v-for="(item,index) of delresult">
+                                <li>StudyUID : {{ item }}       PatientName: {{index}} </li>
+                            </template>
                     <!--列表-->
                     <el-table :data="delresult" highlight-current-row v-loading="listLoading"
                           @selection-change="selsChange"
