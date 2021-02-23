@@ -87,7 +87,6 @@ def predictionCheck(result, data, error):
         smoke_record.objects.create(**data)
         logger.error("比对失败:{0},预测结果:{1}".format(e, result))
 
-
 # 预测结论转换
 def KeyChange(key):
     try:
