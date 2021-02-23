@@ -121,7 +121,8 @@ urlpatterns = [
     url(r'delupload', DelUpload.as_view()),# 文件上传
     url(r'upload', getUpload.as_view()),  # 文件列表
     url(r'stress/version', stressversion.as_view()),
-    url(r'stress/tool', stressRun.as_view()),
+    url(r'stress/run', stressRun.as_view()),
+    url(r'stress/stop', stressStop.as_view()),
     url(r'stress/Detail', stressDetail.as_view()),
     url(r'stress/result', stressResult.as_view()),
     url(r'stress/figure', reportfigure.as_view()),

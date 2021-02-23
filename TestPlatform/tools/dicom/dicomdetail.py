@@ -77,6 +77,8 @@ def anonymousSend(id,type):
             obj = duration.objects.get(id=id)
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
+            patientid = obj.patientid if obj.patientid is not None else '_'
+            patientname = obj.patientname if obj.patientname is not None else '_'
             if obj.sendcount is None and obj.end_time is None:
                 end = 1
             elif obj.sendcount is None and obj.end_time is not None:
@@ -103,31 +105,11 @@ def anonymousSend(id,type):
                        '--end {7} '
                        '--sleepcount {8} '
                        '--sleeptime {9} '   
-                       '--series {10} &').format(obj.server, obj.aet, obj.port, obj.patientid, obj.patientname, i, id,
+                       '--series {10} &').format(obj.server, obj.aet, obj.port,patientid,patientname, i, id,
                                                  end, sleepcount, sleeptime, obj.series)
                 logger.info(cmd)
                 os.system(cmd)
                 time.sleep(1)
-        # 性能发送数据
-        else:
-            obj = stress.objects.get(id=id)
-            hostobj = GlobalHost.objects.get(id=obj.hostid)
-            for i in range(int(obj.ramp)):
-                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
-                       '--ip {0} --aet {1} '
-                       '--port {2} '
-                       '--patientid {3} '
-                       '--patientname {4} '
-                       '--folderid {5} '
-                       '--durationid {6} '
-                       '--end {7} '
-                       '--sleepcount {8} '
-                       '--sleeptime {9} '
-                       '--series {10} &').format(hostobj.host, hostobj.description, hostobj.port,"stress{}".format(i),"stress{}".format(i),obj.testdata, '0{}'.format(id),
-                                                 int(obj.loop_count),8787,0,0)
-                os.system(cmd)
-                logger.info(cmd)
         obj.sendstatus = True
         obj.save()
         return True

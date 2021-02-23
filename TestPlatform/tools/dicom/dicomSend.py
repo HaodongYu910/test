@@ -183,17 +183,11 @@ def anonymization(full_fn, full_fn_fake, diseases, CONFIG):
             'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
     ds.SOPInstanceUID = norm_string(
         '{0}.{1}'.format(instance_uid, rand_uid), 64)
-    if CONFIG["patientid"]:
-        if CONFIG["patientid"] == 'None':
-            CONFIG["patientid"] = ''
-        ds.PatientID = norm_string(
+    ds.PatientID = norm_string(
             '{0}{1}{2}'.format(str(diseases), str(CONFIG["patientid"]), rand_uid), 24)
-    if CONFIG["patientname"]:
-        if CONFIG["patientname"] == 'None':
-            CONFIG["patientname"] = ''
-        ds.PatientName = norm_string(
-            '{0}{1}{2}'.format(str(diseases), str(CONFIG["patientname"]), rand_uid), 24)
 
+    ds.PatientName = norm_string(
+            '{0}{1}{2}'.format(str(diseases), str(CONFIG["patientname"]), rand_uid), 24)
     ds.AccessionNumber = fake_acc_number
 
     ds.StudyDate = cur_date

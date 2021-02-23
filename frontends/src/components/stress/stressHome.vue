@@ -28,7 +28,7 @@
             <el-table-column prop="version" label="版本" min-width="10%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {id: scope.row.id}}"
+                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {stressid: scope.row.stressid}}"
                                  style='text-decoration: none;color: #000000;'>
                         {{ scope.row.version }}
                     </router-link>
@@ -74,17 +74,21 @@
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看
                         </el-button>
                         <el-button type="info" size="small" @click="stressJz(scope.$index, scope.row)">基准</el-button>
-                        <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">运行
+                        <el-button type="danger" size="small" @click="stressDY(scope.$index, scope.row)">单一
+                        </el-button>
+                        <el-button type="primary" size="small" @click="stressRun(scope.$index, scope.row)">混合
                         </el-button>
                     </el-row>
                     <el-row>
-                        <el-button type="primary" size="small"
+                        <el-button type="info" size="small"
                                    @click="checkExpress(scope.row.start_date,scope.row.end_date, scope.row.loadserver)">
                             监控
                         </el-button>
-                        <el-button type="warning" size="small" @click="handleSave(scope.$index, scope.row)">结果
+                        <el-button type="primary" size="small" @click="handleSave(scope.$index, scope.row)">结果
                         </el-button>
-                        <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">报告
+                        <el-button type="warning" size="small" @click="handleSave(scope.$index, scope.row)">报告
+                        </el-button>
+                        <el-button type="danger" size="small" @click="stopstress(scope.$index, scope.row)">停止
                         </el-button>
                     </el-row>
                     <!--                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">-->
@@ -121,38 +125,30 @@
                             <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
+
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="editForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
-                                <el-option
-                                        v-for="(item,index) in hosts"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id"
-                                />
-                            </el-select>
+                        <el-form-item label="开始时间">
+                            <el-date-picker v-model="editForm.start_date" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="结束时间" prop='api_date'>
+                            <el-date-picker v-model="editForm.end_date" type="datetime"
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
                     <el-col :span="6">
-                        <el-form-item label="时间" prop='loop_time'>
+                        <el-form-item label="持续时间" prop='loop_time'>
                             <el-input v-model.trim="editForm.loop_time" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="editForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
-                                <el-option v-for="(item,index) in model"
-                                           :key="item.id"
-                                           :label="item.value"
-                                           :value="item.id"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
                 </el-row>
                 <el-divider>参数配置</el-divider>
                 <el-row :gutter="24">
@@ -214,16 +210,9 @@
                     <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
                 </el-row>
                 <el-divider>-</el-divider>
-                <el-row>
-                    <el-form-item label="基准测试" prop="switch">
-                        <el-switch v-model="editForm.type" active-color="#13ce66"
-                                   inactive-color="#ff4949"></el-switch>
-                    </el-form-item>
-                </el-row>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editFormVisible = false">关闭</el-button>
-                <el-button type="primary" @click.native="run" :loading="editLoading">运行</el-button>
                 <el-button type="primary" @click.native="editSubmit" :loading="editLoading">修改</el-button>
             </div>
         </el-dialog>
@@ -262,7 +251,7 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
-                        <el-form-item label="时间" prop='loop_time' auto-complete="off">
+                        <el-form-item label="持续时间" prop='loop_time' auto-complete="off">
                             <el-input v-model.trim="addForm.loop_time" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
@@ -346,7 +335,7 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        stresslist, delStress, disableStress, enableStress,
+        stresslist, delStress, disableStress, enableStress,stressStop,
         updateStress, addStress, stresssave, getHost, getDictionary, stressTool, addupload, delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
@@ -371,9 +360,6 @@
                     projectname: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
-                    testdata: [
-                        {required: true, message: '请选择模型', trigger: 'blur'}
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
@@ -406,7 +392,6 @@
                 //新增界面数据
                 addForm: {
                     projectname: '晨曦',
-                    hostid: '1',
                     version: '',
                     type: '',
                     jmeterstatus: false
@@ -416,13 +401,22 @@
         methods: {
             //展示监控
             checkExpress: function (start_date, end_date, loadserver) {
-                var startdate = start_date.replace(/-/g, '/');
-                var startstamp = new Date(startdate).getTime();
-
-                var enddate = end_date.replace(/-/g, '/');
-                var endstamp = new Date(enddate).getTime();
+                if (start_date === null) {
+                    var startstamp = new Date().getTime();
+                }
+                else {
+                    var startdate = start_date.replace(/-/g, '/');
+                    var startstamp = new Date(startdate).getTime();
+                }
+                if (end_date === null) {
+                    var endstamp = new Date().getTime();
+                }
+                else {
+                    var enddate = end_date.replace(/-/g, '/');
+                    var endstamp = new Date(enddate).getTime();
+                }
                 {
-                    window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/docker-and-os-metrics-test?orgId=1&from=" +
+                    window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
                         startstamp + "&to=" + endstamp + "&var-host_name=" +
                         loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
                 }
@@ -494,7 +488,7 @@
                 this.$router.push({
                     path: '/stressdetail',
                     query: {
-                        id: row.id,
+                        stressid: row.stressid,
                         name: row.name
                     }
                 });
@@ -548,15 +542,47 @@
                     }
                 })
             },
-            stressJz: function (index, row) {
-                this.$confirm('确认执行测试?', '提示', {
+            stopstress: function (index, row) {
+                this.$confirm('停止测试?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        id: row.id,
+                        stressid: row.stressid
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressStop(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '已停止',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
+                })
+            },
+            stressJz: function (index, row) {
+                this.$confirm('确认执行基准测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        stressid: row.stressid,
                         type: true
                     };
                     let header = {
@@ -567,7 +593,40 @@
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
-                                message: '成功',
+                                message: '执行成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
+                })
+            },
+            stressDY: function (index, row) {
+                this.$confirm('确认执行单一模型测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        stressid: row.stressid,
+                        type: null
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressTool(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '执行成功',
                                 center: true,
                                 type: 'success'
                             })
@@ -583,14 +642,14 @@
             },
             // 运行压力测试
             stressRun: function (index, row) {
-                this.$confirm('确认执行测试?', '提示', {
+                this.$confirm('确认执行混合场景测试?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        id: row.id,
+                        stressid: row.stressid,
                         type: false
                     };
                     let header = {
@@ -647,7 +706,7 @@
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
-                    let params = {id: row.id};
+                    let params = {stressid: row.stressid};
                     let header = {
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
@@ -678,7 +737,7 @@
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
-                    let params = {ids: [row.id,]};
+                    let params = {ids: [row.stressid,]};
                     let header = {
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
@@ -708,7 +767,7 @@
             handleChangeStatus: function (index, row) {
                 let self = this;
                 this.listLoading = true;
-                let params = {project_id: row.id};
+                let params = {project_id: row.stressid};
                 let headers = {
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
@@ -766,56 +825,11 @@
                 this.addForm = {
                     version: null,
                     projectname: "晨曦",
-                    hostid: '1',
                     thread: 1,
                     synchroniz: 0,
                     ramp: 0,
                     loop_count: 1
                 };
-            },
-            //run 性能测试
-            run: function () {
-                let self = this;
-                this.$refs.editForm.validate((valid) => {
-                    if (valid) {
-                        this.$confirm('确认执行？', '提示', {}).then(() => {
-                            self.editLoading = true;
-                            //NProgress.start();
-                            let params = {
-                                id: self.editForm.id,
-                                type: self.editForm.type
-                            };
-                            let header = {
-                                "Content-Type": "application/json",
-                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                            };
-                            stressTool(header, params).then(_data => {
-                                let {msg, code, data} = _data;
-                                self.editLoading = false;
-                                if (code === '0') {
-                                    self.$message({
-                                        message: '已执行',
-                                        center: true,
-                                        type: 'success'
-                                    });
-                                    self.$refs['editForm'].resetFields();
-                                    self.editFormVisible = false;
-                                    self.stresslistList()
-                                } else if (code === '999997') {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true,
-                                    })
-                                } else {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true,
-                                    })
-                                }
-                            });
-                        });
-                    }
-                });
             },
             //编辑修改
             editSubmit: function () {
@@ -826,19 +840,17 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                id: self.editForm.id,
+                                stressid: self.editForm.stressid,
                                 projectname: self.editForm.projectname,
                                 version: self.editForm.version,
-                                testdata: self.editForm.testdata,
                                 thread: this.editForm.thread,
                                 synchroniz: this.editForm.synchroniz,
                                 ramp: this.editForm.ramp,
                                 loop_count: this.editForm.loop_count,
                                 loop_time: this.editForm.loop_time,
-                                filedict: this.filedict,
-                                hostid: this.editForm.hostid,
-                                status: true,
-                                jmeterstatus: false,
+                                start_date: this.editForm.start_date,
+                                end_date: this.editForm.end_date,
+                                filedict: this.filedict
                             };
                             let header = {
                                 "Content-Type": "application/json",
@@ -934,7 +946,7 @@
             },
             //批量删除
             batchRemove: function () {
-                let ids = this.sels.map(item => item.id);
+                let ids = this.sels.map(item => item.stressid);
                 let self = this;
                 this.$confirm('确认删除选中记录吗？', '提示', {
                     type: 'warning'

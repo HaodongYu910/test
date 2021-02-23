@@ -275,7 +275,7 @@ class DisableDuration(APIView):
                 logger.info(cmd)
                 os.system(cmd)
                 i.delete()
-            Threadstop = threading.Thread(target=durationStop,args=(data["id"]))
+            Threadstop = threading.Thread(target=durationStop,args=(str(data["id"])))
             Threadstop.start()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:

@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 
 #
-
 def norm_string(str):
     str_dest = str
     while len(str_dest) > 16 or str_dest[0] == '.':
@@ -22,7 +21,7 @@ def norm_string(str):
 
 
 # 更新文件到 测试目录 安装类型分类重新命名
-def updateFolder(src_folder, study_infos, diseases, type, id):
+def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
     file_names = os.listdir(src_folder)
     file_names.sort()
     for fn in tqdm(file_names):
@@ -30,7 +29,7 @@ def updateFolder(src_folder, study_infos, diseases, type, id):
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            updateFolder(full_fn, study_infos, diseases, type, id)
+            updateFolder(full_fn, study_infos, diseases, type, id,predictor)
             continue
 
         try:
@@ -83,6 +82,7 @@ def updateFolder(src_folder, study_infos, diseases, type, id):
                             "type": type,
                             "route": folder_fake,
                             "fileid": id,
+                            "predictor": predictor,
                             "status": True
                         }
                         dicom.objects.create(**data)
@@ -113,7 +113,8 @@ def fileUpdate(id):
         study_infos=study_infos,
         diseases=obj.remarks,
         type=obj.type,
-        id=id
+        id=id,
+        predictor=obj.predictor
     )
     obj.other = int(len(study_infos)) - 1
     obj.save()
