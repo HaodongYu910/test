@@ -362,7 +362,7 @@
                             //NProgress.start();
                             let params = {
                                 key: self.addForm.key,
-                                value: self.addForm.key,
+                                value: self.addForm.value,
                                 type: self.addForm.type,
                                 remarks: self.addForm.remarks,
                                 status:true

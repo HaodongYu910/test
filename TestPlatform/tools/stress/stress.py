@@ -1,16 +1,20 @@
-from TestPlatform.models import dicom_record, dictionary, stress_record, stress_result, uploadfile, stress
-from django.db import transaction
-from TestPlatform.serializers import dicomrecord_Serializer
-from ..dicom.dicomdetail import voteData
-from ..stress.PerformanceResult import saveResult
-from .PerformanceResult import lung
-from ..dicom.dicomdetail import checkuid
-from ...utils.keycloak.login_kc import *
-from TestPlatform.utils.graphql.graphql import *
-from TestPlatform.common.regexUtil import *
-import os, time
+import datetime
+import os
 import shutil
+import threading
+import time
+
 import numpy as np
+from django.db import connection
+from django.db import transaction
+
+from TestPlatform.common.regexUtil import connect_to_postgres, csv
+from TestPlatform.models import stress_job, duration_record, dicom, GlobalHost, dicom_record, dictionary, stress_record, \
+    stress_result, uploadfile, stress, base_data
+from TestPlatform.serializers import stress_result_Deserializer, dicomrecord_Serializer
+from TestPlatform.utils.graphql.graphql import *
+from ..dicom.dicomdetail import checkuid, voteData
+from ...utils.keycloak.login_kc import login_keycloak
 
 logger = logging.getLogger(__name__)
 
@@ -53,134 +57,29 @@ def delreport(kc, studyinstanceuid):
         logger.error("删除失败{0}".format(studyinstanceuid))
 
 
-
 # 保存数据
 def saveData(**kwargs):
     try:
-        if kwargs["type"] in ["predictionJZ","lung_prediction"]:
-            sql=dictionary.objects.get(key="predictionJZ",type="sql",status=True)
-            result = connect_to_postgres(kwargs["ip"],sql.value.format(kwargs["studyuid"],kwargs["count"]))
+        if kwargs["type"] in ["predictionJZ", "lung_prediction"]:
+            sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
+            result = connect_to_postgres(kwargs["ip"], sql.value.format(kwargs["studyuid"], kwargs["count"]))
             datatest = kwargs["datatest"]
             datatest["type"] = kwargs["type"]
             datatest["avg"] = str(result.to_dict(orient='records')[0]["avg"])
-            datatest["median"] =str( result.to_dict(orient='records')[0]["median"])
-            datatest["min"] = str( result.to_dict(orient='records')[0]["min"])
-            datatest["max"] = str( result.to_dict(orient='records')[0]["max"])
+            datatest["median"] = str(result.to_dict(orient='records')[0]["median"])
+            datatest["min"] = str(result.to_dict(orient='records')[0]["min"])
+            datatest["max"] = str(result.to_dict(orient='records')[0]["max"])
         else:
             datatest = kwargs["datatest"]
-            datatest["type"]= kwargs["type"]
+            datatest["type"] = kwargs["type"]
         stress_result.objects.create(**datatest)
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
-#  基准/单一手动预测
-def Manual(serverID, serverIP, version,id,count,testdata):
-    kc = login_keycloak(serverID)
-    try:
-        for i in testdata.split(","):
-            stressdata = stress_record.objects.filter(diseases=i.strip(),benchmarkstatus=True)
-            for k in stressdata:
-                avglist = []
-                checkuid(serverID, serverIP, str(k.stressid))
-                obj = dictionary.objects.get(id=k.diseases)
-                if str(k.diseases) in ["9","6","8"]:
-                    manager = "\",\"artifacts_manager\"]])"
-                else:
-                    manager = "\"]])"
-                graphql_query = "{ ai_biomind (" \
-                                "study_uid:\"" + str(k.studyuid) + "\", protocols:" \
-                                                                   "{ pothers: " \
-                                                                   "{ disable_negative_voting:false} " \
-                                                                   "penable_cached_results:false pconfig:{} " \
-                                                                   "planguage:\"zh-cn\" " \
-                                                                   " puser_id:\"biomind\" " \
-                                                                   "pseries_classifier:" + str(k.graphql) + "}" \
-                                                                                                            "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                    obj.value) + manager +" { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-                # 循环 测试基准数据
-                for j in range(count):
-                    try:
-                        # 开始时间
-                        starttime = time.time()
-                        result = graphql_Interface(graphql_query, kc)
-                        ai_biomind = result['ai_biomind']
-                        avgtime = time.time() - starttime
-                        avglist.append(avgtime)
-                        time.sleep(10)
-                    except Exception as e:
-                        logger.error("执行预测失败：{0}".format(k.studyuid))
-                        continue
-                if int(k.diseases) in [9, 12]:
-                    jobtype = 'lung_jobJZ'
-                    predictiontype ='lung_prediction'
-                else:
-                    jobtype = 'jobJZ'
-                    predictiontype = 'predictionJZ'
-                avgtime = str('%.2f' % np.mean(avglist))
-                datatest = {
-                    "stressid": id,
-                    "version": version,
-                    "count": count,
-                    "modelname": k.diseases,
-                    "slicenumber": k.slicenumber,
-                    "avg": avgtime,
-                    "min": str('%.2f' % min(avglist)),
-                    "max": str('%.2f' % max(avglist)),
-                    "minimages": k.imagecount,
-                    "maximages": k.imagecount,
-                    "avgimages": k.imagecount
-                }
-                saveData(datatest=datatest,
-                         type=jobtype
-                         )
-                saveData(datatest=datatest,
-                         type=predictiontype,
-                         ip = serverIP,
-                         studyuid = k.studyuid,
-                         count =count
-                         )
-
-    except Exception as e:
-        logger.error("执行预测基准测试数据失败：{0}".format(e))
-
-
-
-# 自动预测压测循环
-def AutoPrediction(serverID, serverIP, testdata, count):
-    # diseases = []
-    # for i in testdata.split(","):
-    #     diseases.append(i)
-    stressdata = stress_record.objects.filter(diseases__in=testdata)
-    kc = login_keycloak(serverID)
-    for j in stressdata:
-        # 检查是否有压测数据
-        checkuid(serverID, serverIP, j.stressid)
-        delreport(kc, j.studyuid)
-    # 循环调用graphql 自动预测
-    for i in range(int(count)):
-        for k in stressdata:
-            graphql_query = '{ ' \
-                            'ai_biomind(' \
-                            'block : false' \
-                            ' study_uid: "' + str(k.studyuid) + '"' \
-                                                                ' protocols: {' \
-                                                                ' penable_cached_results: false' \
-                                                                ' }' \
-                                                                '){' \
-                                                                '  pprediction' \
-                                                                '  preport' \
-                                                                '  pcontour' \
-                                                                '  pmodels' \
-                                                                '  pstudy_uid' \
-                                                                '}' \
-                                                                '}'
-
-            graphql_Interface(graphql_query, kc)
-        time.sleep(1)
 
 # 生成自动预测测试数据
 def stresscache(stressid):
-    obj = stress.objects.get(id=stressid)
+    obj = stress.objects.get(stressid=stressid)
     # 循环病种存储 测试数据
     for i in obj.testdata.split(","):
         dictobj = dictionary.objects.get(id=i)
@@ -230,8 +129,8 @@ def savecsv(path, graphql_query):
     f.close()
 
 
-def saveStressddt(id, path):
-    obj = stress.objects.get(id=id)
+def saveStressddt(stressid, path):
+    obj = stress.objects.get(stressid=stressid)
     savecsv('{}/logs/stress/config.csv'.format(path),
             [obj.loadserver, 'biomind3d', 'engine3D.', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,
              obj.loop_count])
@@ -244,7 +143,7 @@ def saveStressddt(id, path):
             sql = sqlobj.value.format(obd.key, obj.thread)
             stressdict = connect_to_postgres(obj.loadserver, sql)
             stressdata = stressdict.to_dict(orient='records')
-        elif int(i) in [9,12]:
+        elif int(i) in [9, 12]:
             continue
         try:
             for k in stressdata:
@@ -254,23 +153,243 @@ def saveStressddt(id, path):
             continue
 
 
-# 执行 jmeter 脚本
-def jmeterStress(id):
-    jmeterobj = uploadfile.objects.filter(fileid=id)
-    path = os.path.join(os.getcwd())
-    if not os.path.exists('{}/logs/stress'.format(path)):
-        os.mkdir('{}/logs/stress'.format(path))
-    else:
-        shutil.rmtree('{}/logs/stress'.format(path))
-        os.mkdir('{}/logs/stress'.format(path))
-    saveStressddt(id, path)
-    # 执行jmeter
-    try:
-        for j in jmeterobj:
-            start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
-            cmd = 'nohup jmeter -n -t {0}/{1} -l /home/biomind/logs/{2}.jtl -j /home/biomind/logs/jmeter{3}.log &'.format(
-                j.fileurl, j.filename, start_time, start_time)
-            logger.info(cmd)
-            os.system(cmd)
-    except Exception as e:
-        logger.error("执行jmeter失败{0}".format(e))
+# 性能测试
+
+class StressThread(threading.Thread):
+    def __init__(self, *args, **kwargs):
+        threading.Thread.__init__(self)
+        self.Flag = True  # 停止标志位
+        # self.count = kwargs["count"]  # 可用来被外部访问的
+        # 性能测试id
+        self.stressid = kwargs["stressid"]
+        self.obj = stress.objects.get(stressid=self.stressid)
+        self.Hostobj = GlobalHost.objects.get(id=self.obj.hostid)
+        self.server = self.Hostobj.host
+        self.testdata = self.obj.testdata
+        self.kc = login_keycloak(self.obj.hostid)
+
+    #  基准测试
+    def Manual(self):
+        count = int(self.obj.ramp)
+        try:
+            for i in self.obj.testdata.split(","):
+                stressdata = dicom.objects.filter(predictor=i.strip(), stressstatus=2)
+                for k in stressdata:
+                    avglist = []
+                    checkuid(self.obj.hostid, self.server, str(k.id))
+                    delreport(self.kc, str(k.studyinstanceuid))
+                    # 循环 测试基准数据
+                    for j in range(count):
+                        try:
+                            if self.Flag is False:
+                                break
+                            # 开始时间
+                            starttime = time.time()
+                            result = graphql_Interface(k.graphql, self.kc)
+                            ai_biomind = result['ai_biomind']
+                            avgtime = time.time() - starttime
+                            avglist.append(avgtime)
+                            time.sleep(10)
+                        except Exception as e:
+                            logger.error("执行预测失败：{0}".format(k.studyuid))
+                            continue
+
+                    jobtype = 'jobJZ'
+                    predictiontype = 'predictionJZ'
+                    avgtime = str('%.2f' % np.mean(avglist))
+                    datatest = {
+                        "stressid": self.stressid,
+                        "version": self.obj.version,
+                        "count": count,
+                        "modelname": k.predictor,
+                        "slicenumber": k.slicenumber,
+                        "avg": avgtime,
+                        "min": str('%.2f' % min(avglist)),
+                        "max": str('%.2f' % max(avglist)),
+                        "minimages": k.imagecount,
+                        "maximages": k.imagecount,
+                        "avgimages": k.imagecount
+                    }
+                    saveData(datatest=datatest,
+                             type=jobtype
+                             )
+                    saveData(datatest=datatest,
+                             type=predictiontype,
+                             ip=self.server,
+                             studyuid=k.studyuid,
+                             count=count
+                             )
+
+        except Exception as e:
+            logger.error("执行预测基准测试数据失败：{0}".format(e))
+
+    # 混合预测压测循环
+    def AutoPrediction(self,type):
+        self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        self.obj.save()
+        try:
+            # 已有数据 循环预测
+            if type != "send":
+                # 查询测试数据
+                for i in self.obj.testdata.split(","):
+                    stressdata = dicom.objects.filter(predictor=i.strip())
+                    for j in stressdata:
+                        checkuid(self.server, self.obj.hostid, j.id)
+                        delreport(self.kc, j.studyuid)
+                    # 循环调用graphql 自动预测
+                    for k in stressdata:
+                        graphql_query = '{ ' \
+                                        'ai_biomind(' \
+                                        'block : false' \
+                                        ' study_uid: "' + str(k.studyuid) + '"' \
+                                                                            ' protocols: {' \
+                                                                            ' penable_cached_results: false' \
+                                                                            ' }' \
+                                                                            '){' \
+                                                                            '  pprediction' \
+                                                                            '  preport' \
+                                                                            '  pcontour' \
+                                                                            '  pmodels' \
+                                                                            '  pstudy_uid' \
+                                                                            '}' \
+                                                                            '}'
+
+                        graphql_Interface(graphql_query, self.kc)
+                        time.sleep(1)
+            # 发送dicom数据 预测
+            else:
+                for i in self.obj.testdata.split(","):
+                    cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
+                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                           '--ip {0} --aet {1} '
+                           '--port {2} '
+                           '--patientid {3} '
+                           '--patientname {4} '
+                           '--folderid {5} '
+                           '--durationid {6} '
+                           '--end {7} '
+                           '--sleepcount {8} '
+                           '--sleeptime {9} '
+                           '--series {10} &').format(self.server, self.Hostobj.description, self.Hostobj.port,
+                                                     "ST{}".format(str(i).strip()), "st{}".format(str(i).strip()),
+                                                     str(i).strip(), '0{}'.format(self.stressid),
+                                                     int(self.obj.loop_count), 8787, 0, 0)
+                    os.system(cmd)
+                    logger.info(cmd)
+            self.obj.status = True
+            self.obj.save()
+            return True
+        except Exception as e:
+            return False
+            logger.error("性能测试启动失败：{0}".format(e))
+
+    # 执行 jmeter 脚本
+    def jmeterStress(self):
+        jmeterobj = uploadfile.objects.filter(fileid=self.stressid)
+        path = os.path.join(os.getcwd())
+        if not os.path.exists('{}/logs/stress'.format(path)):
+            os.mkdir('{}/logs/stress'.format(path))
+        else:
+            shutil.rmtree('{}/logs/stress'.format(path))
+            os.mkdir('{}/logs/stress'.format(path))
+        saveStressddt(self.stressid, path)
+        # 执行jmeter
+        try:
+            for j in jmeterobj:
+                start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
+                cmd = 'nohup jmeter -n -t {0}/{1} -l /home/biomind/logs/{2}.jtl -j /home/biomind/logs/jmeter{3}.log &'.format(
+                    j.fileurl, j.filename, start_time, start_time)
+                logger.info(cmd)
+                os.system(cmd)
+        except Exception as e:
+            logger.error("执行jmeter失败{0}".format(e))
+
+    # 测试结果
+    def SaveResult(self):
+        # 模型预测时间 job时间
+        for type in ['prediction', 'job']:
+            obj = dictionary.objects.get(key="prediction", status=1, remarks='stress', type='sql')
+            # 测试模型数据查询
+            for i in self.testdata.split(","):
+                infos = {}
+                sql = 'SELECT dr.studyinstanceuid ,d.imagecount,d.slicenumber FROM duration_record dr JOIN dicom d ON dr.studyolduid = d.studyinstanceuid WHERE dr.duration_id = \'0{0}\'AND d.predictor ={1}'.format(
+                    str(self.stressid), i)
+                cursor = connection.cursor()
+                cursor.execute(sql)
+                ret = cursor.fetchall()
+                # 生成查询数据
+                for j in ret:
+                    if infos.__contains__(j[2]) is False:
+                        infos = {
+                            j[2]: {"uids": '\'' + str(j[0]) + '\',',
+                                   "image": [j[1]]
+                                   }
+                        }
+                    else:
+                        infos[j[2]]["uids"] = infos[j[2]]["uids"] + '\'' + str(j[0]) + '\','
+                        infos[j[2]]["image"].append(j[1])
+                try:
+                    # 循环查询结果
+                    for k, v in infos.items():
+                        result = connect_to_postgres(self.server,
+                                                     obj.value.format(v["uids"][:-1], self.obj.start_date,
+                                                                      self.obj.end_date))
+                        dict = result.to_dict(orient='records')
+                        try:
+                            dict[0]["avgimages"], dict[0]["maximages"], dict[0]["minimages"] = str(
+                                '%.2f' % np.mean(v["image"])), str(
+                                np.max(v["image"])), str(np.min(v["image"]))
+                        except:
+                            dict[0]["avgimages"], dict[0]["maximages"], dict[0]["minimages"] = None, None, None
+                        dict[0]["version"] = self.obj.version
+                        dict[0]["modelname"] = i
+                        dict[0]["type"] = type
+                        dict[0]["slicenumber"] = k
+
+                        stressserializer = stress_result_Deserializer(data=dict[0])
+                        with transaction.atomic():
+                            stressserializer.is_valid()
+                            stressserializer.save()
+                except:
+                    logger.error("数据写入失败{}".format(e))
+                    continue
+
+    # 保存 job 结果数据
+    def SaveRecord(self):
+        # 查询测试时间 job 数据
+        for j in ["predictionrecord", "jobmetrics"]:
+            sqlobj = dictionary.objects.get(key=j)
+            sql = sqlobj.value.format(self.obj.start_date, self.obj.end_date)
+            result = connect_to_postgres(self.server, sql)
+            dict = result.to_dict(orient='records')
+            # 循环数据保存
+            for i in dict:
+                try:
+                    drobj = duration_record.objects.get(studyinstanceuid=i["studyuid"])
+                    dicomobj = dicom.objects.get(studyinstanceuid=drobj.studyolduid)
+                    data = {
+                        "studyuid": i["studyuid"],
+                        "job_id": self.server,
+                        "start": str(i["start"])[:19],
+                        "end": str(i["end"])[:19],
+                        "sec": str(i["sec"]),
+                        "modelname": dicomobj.predictor,
+                        "version": self.obj.version,
+                        "type": 'job',
+                        "stressid": self.stressid,
+                        "images": dicomobj.imagecount,
+                        "slicenumber": dicomobj.slicenumber,
+                        "type": j
+                    }
+                    stress_job.objects.create(**data)
+                except Exception as e:
+                    continue
+
+    def setFlag(self, parm):  # 外部停止线程的操作函数
+        self.Flag = parm  # boolean
+
+    def setParm(self, parm):  # 外部修改内部信息函数
+        self.Parm = parm
+
+    def getParm(self):  # 外部获得内部信息函数
+        return self.parm

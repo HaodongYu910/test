@@ -250,9 +250,13 @@ export const disableStress = (headers, params) => {
 export const StressDetail = (headers, params) => {
   return axios.get(`${test}/api/stress/Detail `, { params: params }, headers).then(res => res.data)
 }
-// 手动调用压测脚本
+// 运行压力测试
 export const stressTool = (headers, params) => {
-  return axios.post(`${test}/api/stress/tool`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/stress/run`, params, headers).then(res => res.data)
+}
+// 停止压力测试
+export const stressStop = (headers, params) => {
+  return axios.post(`${test}/api/stress/stop`, params, headers).then(res => res.data)
 }
 // 压测数据
 export const getVersion = (headers, params) => {

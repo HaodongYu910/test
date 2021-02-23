@@ -783,7 +783,7 @@ class stress(models.Model):
     """
       性能测试记录表
     """
-    id = models.AutoField(primary_key=True)
+    stressid = models.AutoField(primary_key=True)
     projectname = models.CharField(max_length=20, blank=True, null=True, verbose_name="项目名称")
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试版本")
     loadserver = models.CharField(max_length=40, blank=True, null=True, verbose_name="测试环境")
@@ -816,7 +816,7 @@ class stress_record(models.Model):
     """
       性能测试数据表
     """
-    id = models.AutoField(primary_key=True)
+    recordid = models.AutoField(primary_key=True)
     stressid = models.CharField(max_length=5, blank=True, null=True, verbose_name="stress表ID")
     studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="测试环境")
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
@@ -833,6 +833,7 @@ class stress_record(models.Model):
         verbose_name = "性能测试数据表"
         verbose_name_plural = "性能测试数据表"
         db_table = 'stress_record'
+
 class stress_job(models.Model):
     """
           压测job记录表
@@ -849,6 +850,7 @@ class stress_job(models.Model):
     images = models.CharField(max_length=30, blank=True, null=True, verbose_name="张数")
     slicenumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="层厚")
     stressid = models.IntegerField(blank=True, null=True, verbose_name="stressID")
+    aistatus = models.CharField(max_length=30, blank=True, null=True, verbose_name="预测状态")
 
     def __unicode__(self):
         return self.version
@@ -968,7 +970,7 @@ class dicom(models.Model):
     graphql = models.TextField(max_length=5000, blank=True, null=True, verbose_name="graphql")
     fileid =  models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")
     diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
-    server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
+    predictor = models.CharField(max_length=5, blank=True, null=True, verbose_name="模型")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
     status = models.BooleanField(default=False, verbose_name='状态')

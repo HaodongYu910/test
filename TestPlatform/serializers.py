@@ -730,20 +730,10 @@ class stress_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress
         fields = (
-        'id', 'projectname', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
+        'stressid', 'projectname', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
         'dicom_send',
-        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date','jmeterstatus', 'status', 'update_time', 'create_time')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
-
+        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date','jmeterstatus', 'status','hostid', 'update_time', 'create_time')
+        read_only_fields = ('stressid',)  # 指定只读的 field
 
 class stress_Deserializer(serializers.ModelSerializer):
     """
@@ -753,9 +743,9 @@ class stress_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress
         fields = (
-        'id', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
+        'stressid', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
         'duration', 'start_delay', 'dicom_send',
-        'loop_time', 'start_date', 'end_date','jmeterstatus', 'status')
+        'loop_time', 'start_date', 'end_date','jmeterstatus', 'status','hostid')
 
 
 class stress_result_Serializer(serializers.ModelSerializer):
@@ -770,15 +760,16 @@ class stress_result_Serializer(serializers.ModelSerializer):
                   'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
 
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
+class stress_result_Deserializer(serializers.ModelSerializer):
+    """
+    性能测试数据记录表反序列化
+    """
 
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
-
+    class Meta:
+        model = stress_result
+        fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
+                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages')
 
 class stress_record_Deserializer(serializers.ModelSerializer):
     """
@@ -786,7 +777,7 @@ class stress_record_Deserializer(serializers.ModelSerializer):
     """
     class Meta:
         model = stress_record
-        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'imagecount', 'diseases',
+        fields = ('recordid', 'stressid', 'studyuid', 'slicenumber', 'imagecount', 'diseases',
                   'graphql', 'benchmarkstatus', 'status')
 
 class stress_record_Serializer(serializers.ModelSerializer):
@@ -809,16 +800,34 @@ class stress_record_Serializer(serializers.ModelSerializer):
     def get_memberCount(self, obj):
         return obj.member_project.all().count()
 
+class stress_job_Deserializer(serializers.ModelSerializer):
+    """
+    性能测试记录反序列化
+    """
+    class Meta:
+        model = stress_job
+        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'image', 'version',
+                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
 
-class stress_result_Deserializer(serializers.ModelSerializer):
+class stress_job_Serializer(serializers.ModelSerializer):
     """
-    性能测试数据记录表反序列化
-    """
+    性能测试记录序列化
+     """
 
     class Meta:
-        model = stress_result
-        fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages')
+        model = stress_job
+        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'image', 'version',
+                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+    def get_apiCount(self, obj):
+        return obj.api_project.all().count()
+
+    def get_dynamicCount(self, obj):
+        return obj.dynamic_project.all().count()
+
+    def get_memberCount(self, obj):
+        return obj.member_project.all().count()
 
 class dicomdata_Deserializer(serializers.ModelSerializer):
     """
@@ -828,7 +837,7 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = dicom
         fields = (
-        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','graphql', 'server', 'imagecount', 'fileid',
+        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','graphql', 'predictor', 'imagecount', 'fileid',
         'diagnosis', 'type', 'route','status','stressstatus')
 
 class dicomrecord_Serializer(serializers.ModelSerializer):
