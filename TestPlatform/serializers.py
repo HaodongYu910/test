@@ -820,6 +820,17 @@ class stress_result_Deserializer(serializers.ModelSerializer):
         fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
                   'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages')
 
+class dicomdata_Deserializer(serializers.ModelSerializer):
+    """
+    dicom数据表反序列化
+    """
+
+    class Meta:
+        model = dicom
+        fields = (
+        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','graphql', 'server', 'imagecount', 'fileid',
+        'diagnosis', 'type', 'route','status','stressstatus')
+
 class dicomrecord_Serializer(serializers.ModelSerializer):
     """
     测试数据记录表序列化
@@ -923,18 +934,6 @@ class duration_Deserializer(serializers.ModelSerializer):
         fields = (
         'server', 'port', 'aet', 'patientname','patientid', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series', 'anonymous',
         'sendstatus','status', 'sendcount', 'dds','hostid')
-
-
-class dicomdata_Deserializer(serializers.ModelSerializer):
-    """
-    dicom数据表反序列化
-    """
-
-    class Meta:
-        model = dicom
-        fields = (
-        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote', 'server', 'imagecount', 'fileid',
-        'diagnosis', 'type', 'route','status','stressstatus')
 
 
 class dictionary_Serializer(serializers.ModelSerializer):

@@ -15,9 +15,9 @@
                 <el-form-item>
                     <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
                                     <el-option v-for="(item,index) in filetype"
-                                               :key="item.value"
+                                               :key="item.id"
                                                :label="item.remarks"
-                                               :value="item.value"
+                                               :value="item.id"
                                     />
                                 </el-select>
                 </el-form-item>
@@ -171,9 +171,9 @@
                         <el-form-item label="数据类型" prop="environment">
                                 <el-select v-model="addForm.type" placeholder="请选择类型" @click.native="getfile()">
                                     <el-option v-for="(item,index) in filetype"
-                                               :key="item.value"
+                                               :key="item.id"
                                                :label="item.remarks"
-                                               :value="item.value"
+                                               :value="item.id"
                                     />
                                 </el-select>
                         </el-form-item>
@@ -272,7 +272,9 @@
             gethost() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     self.listLoading = false

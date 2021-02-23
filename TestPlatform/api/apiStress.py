@@ -121,6 +121,8 @@ class AddStressData(APIView):
         try:
             for i in data["ids"]:
                 obj = dicom.objects.get(id=i)
+                obj.stressstatus =1
+                obj.save()
                 baseobj = base_data.objects.get(id=obj.fileid)
                 try:
                     stress_record.objects.get(studyuid=obj.studyinstanceuid)
@@ -173,13 +175,16 @@ class SynchroStressData(APIView):
             return result
         try:
             kc = login_keycloak(1)
-            for i in data["ids"]:
-                obj = stress_record.objects.get(id=i)
+            objr = stress_record.objects.filter(benchmarkstatus=True,graphql=None)
+            # for i in data["ids"]:
+            for i in objr:
+                # obj = stress_record.objects.get(id=i)
+                obj = stress_record.objects.get(id=i.id)
                 try:
-                    checkuid(1, '192.168.1.208', obj.stressid)
+                    checkuid(27, '192.168.1.176', obj.stressid)
                 except ObjectDoesNotExist:
                     logger.error("数据问题{0}".format(obj.studyuid))
-                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid, '192.168.1.208', obj.diseases, kc)
+                obj.graphql, obj.imagecount, obj.slicenumber = voteData(obj.studyuid, '192.168.1.176', obj.diseases, kc)
                 obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -471,7 +476,7 @@ class stressResult(APIView):
             type = data["type"]
             if type == 'jz':
                 prediction = stress_result.objects.filter(version=data['version'],
-                                                          type__in=['predictionJZ', 'lung_JZ'])
+                                                          type__in=['predictionJZ', 'lung_prediction'])
                 job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_jobJZ'])
 
                 predictionb = stress_result.objects.filter(version=data['checkversion'],
@@ -549,6 +554,7 @@ class stressResultsave(APIView):
             checkdate = [obj.start_date, obj.end_date]
             kc = login_keycloak(obj.hostid)
             if obj.projectname == '晨曦':
+                #jobsaveResult(data['id'], obj.loadserver, obj.version, checkdate, kc)
                 for i in ['job', 'prediction']:
                     sql = dictionary.objects.get(key=i, type='sql')
                     strsql = sql.value.format(checkdate[0], checkdate[1])
@@ -605,91 +611,19 @@ class stressRun(APIView):
                 obj.update_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 obj.save()
             if data['type'] is True:
-                manual = threading.Thread(target=Manual, args=(obj.hostid, server, obj.version, data['id']))
+                manual = threading.Thread(target=Manual, args=(obj.hostid, server, obj.version, data['id'],int(obj.ramp),obj.testdata))
                 manual.start()
             else:
                 if obj.jmeterstatus is True:
                     jmeterStress(data['id'])
-                anonymousSend(data['id'], 'stress')
                 Auto = threading.Thread(target=AutoPrediction, args=(obj.hostid, server, obj.testdata, obj.loop_count))
+                anonymous = threading.Thread(target=anonymousSend, args=(data['id'], 'stress'))
                 Auto.start()
+                anonymous.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
-
-
-class Update_base_Data(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["id"], int):
-                return JsonResponse(code="999996", msg="参数有误！")
-            # 必传参数 content, status , type
-            if not data["content"] or not data["type"] or not data["status"]:
-                return JsonResponse(code="999996", msg="参数有误！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        修改基础数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        #
-        try:
-            obj = stress.objects.get(id=data["id"])
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
-        # 查找是否相同名称
-        pro_name = stress.objects.filter(content=data["content"]).exclude(id=data["id"])
-        if len(pro_name):
-            return JsonResponse(code="999997", msg="存在相同内容数据")
-        else:
-            serializer = stress_Deserializer(data=data)
-            with transaction.atomic():
-                if serializer.is_valid():
-                    # 修改数据
-                    serializer.update(instance=obj, validated_data=data)
-                    return JsonResponse(code="0", msg="成功")
-                else:
-                    return JsonResponse(code="999998", msg="失败")
-
-
-class Updatedata(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 service,type,showid,
-            if not data["service"] or not data["showid"] or not data["type"]:
-                return JsonResponse(code="999996", msg="必传参数有误！")
-            # 环境 类型 online，Autotest
-            if data["service"] not in ["staging", "Autotest"]:
-                return JsonResponse(code="999996", msg="service参数有误！staging，Autotest")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
 
 
 # 性能测试数据

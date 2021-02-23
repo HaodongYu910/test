@@ -9,7 +9,7 @@ import threading
 from django.db import transaction
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
-from ..tools.smoke.gold import goldSmoke,SmokeThread
+from ..tools.smoke.gold import SmokeThread
 from ..tools.orthanc.deletepatients import *
 from ..models import smoke_record,smoke
 from ..common.dicomBase import baseTransform
@@ -236,7 +236,7 @@ class DisableSmoke(APIView):
             testThread = SmokeThread(data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
-            print(testThread.is_alive())
+
             obj.status = False
             obj.save()
             return JsonResponse(code="0", msg="成功")
@@ -308,20 +308,25 @@ class smokeRecord(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
         smokeid = request.GET.get("smokeid")
-
-        if request.GET.get("status") == 'true':
-            status = 1
-        elif request.GET.get("status") == 'False':
-            status = 0
-        else:
-            status = ''
+        status = request.GET.get("status")
 
         if diseases != '' and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
-                "-id")
+            if status in ["0","1"]:
+                obi = smoke_record.objects.filter(diseases=diseases, status=int(status), smokeid=smokeid).order_by(
+                    "-id")
+            else:
+                obi = smoke_record.objects.filter(diseases=diseases, result=status, smokeid=smokeid).order_by(
+                    "-id")
         elif diseases == '' and status != '':
-            obi = smoke_record.objects.filter(diseases__contains=diseases, status=status, smokeid=smokeid).order_by(
-                "-id")
+            if status in ["0","1"]:
+                obi = smoke_record.objects.filter(status=int(status), smokeid=smokeid).order_by(
+                    "-id")
+            else:
+                obi = smoke_record.objects.filter(result=status, smokeid=smokeid).order_by(
+                    "-id")
+        elif diseases != '' and status == '':
+            obi = smoke_record.objects.filter(diseases=diseases, smokeid=smokeid).order_by(
+                    "-id")
         else:
             obi = smoke_record.objects.filter(smokeid=smokeid).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象

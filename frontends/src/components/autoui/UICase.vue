@@ -342,7 +342,9 @@
             gethost() {
                 this.listLoading = true
                 let self = this;
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     this.listLoading = false

@@ -4,10 +4,16 @@
             <!--工具条-->
             <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item>
-                        <el-input v-model="filters.name" placeholder="名称"
-                                  @keyup.enter.native="getDurationlist"></el-input>
-                    </el-form-item>
+                   <el-form-item label="服务器" prop="server">
+                  <el-select v-model="filters.server"  placeholder="请选择服务" @click.native="gethost()">
+                      <el-option key="" label="" value=""></el-option>
+                    <el-option v-for="(item,index) in tags"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id"
+                              />
+                    </el-select>
+                  </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="getDurationlist">查询</el-button>
                     </el-form-item>
@@ -19,22 +25,22 @@
                     </el-form-item>
                 </el-form>
             </el-col>
-
             <!--列表-->
             <el-table :data="durationlist" highlight-current-row v-loading="listLoading"
                       @selection-change="selsChange"
                       width="120%">
-                <el-table-column prop="anonymous" label="匿名状态" min-width="12%">
+                <el-table-column type="selection" min-width="5%"></el-table-column>
+                <el-table-column prop="anonymous" label="匿名" min-width="9%">
                 <template slot-scope="scope">
                         <img v-show="scope.row.anonymous"
                              style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
-                             src="../../../assets/img/qidong.png"/>
+                             src="../../../assets/img/niming-2.png"/>
                         <img v-show="!scope.row.anonymous"
                              style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
-                             src="../../../assets/img/fou.png"/>
+                             src="../../../assets/img/niming-3.png"/>
                     </template>
             </el-table-column>
-                <el-table-column prop="type" label="服务器" min-width="20%">
+                <el-table-column prop="type" label="服务" min-width="20%" sortable>
                     <template slot-scope="scope">
                         <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
                                      style='text-decoration: none;color: #0000ff;'>
@@ -42,12 +48,12 @@
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="25%">
+                <el-table-column prop="type" label="匿名名称" min-width="20%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="发送类型" min-width="20%" sortable show-overflow-tooltip>
+                <el-table-column prop="type" label="发送类型" min-width="20%" show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                     </template>
@@ -88,7 +94,7 @@
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="sendstatus" label="运行状态" min-width="10%">
+                <el-table-column prop="sendstatus" label="状态" min-width="10%" sortable>
                     <template slot-scope="scope">
                         <img v-show="scope.row.sendstatus"
                              style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
@@ -322,12 +328,12 @@
                     <el-row :gutter="24">
                         <el-col :span="8">
                             <el-form-item label="匿名姓名" prop='patientname'>
-                                 <el-input label="匿名名称" id="patientname" v-model="addForm.patientname" placeholder="patientname"/>
+                                 <el-input label="匿名名称" id="name" v-model="addForm.patientname" placeholder="patientname"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="匿名ID" prop='patientid'>
-                                <el-input label="匿名名称" id="patientid" v-model="addForm.patientid" placeholder="patientid"/>
+                                <el-input label="匿名名称" id="id" v-model="addForm.patientid" placeholder="patientid"/>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -465,7 +471,8 @@
                     ]
                 },
                 filters: {
-                    diseases: ''
+                    diseases: '',
+                    server:''
                 },
                 durationlist: {},
                 total: 0,
@@ -684,7 +691,9 @@
             gethost() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     self.listLoading = false
@@ -707,7 +716,9 @@
             getDurationlist() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    server:this.filters.server
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getduration(headers, params).then((res) => {
                     self.listLoading = false

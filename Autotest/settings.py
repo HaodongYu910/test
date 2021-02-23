@@ -94,7 +94,7 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
             'filename': os.path.join(BASE_LOG_DIR, "test_info.log"),  # 日志文件
-            'maxBytes': 1024 * 1024 * 100,  # 日志大小 100 M
+            'maxBytes': 1024 * 1024 * 500,  # 日志大小 100 M
             'backupCount': 3,  # 最多备份几个
             'formatter': 'standard',
             'encoding': 'utf-8',
@@ -128,7 +128,7 @@ LOGGING = {
         'django': {
             'handlers': ['default', 'console'] if DEBUG else ["default"],
             'level': 'ERROR',
-            'propagate': False
+            'propagate': True
         },
         '': {
             'handlers': ['default', 'console'] if DEBUG else ["default"],

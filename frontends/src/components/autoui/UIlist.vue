@@ -91,7 +91,7 @@
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
                     <el-button type="primary" size="small" @click="autotest(scope.$index, scope.row)">测试</el-button>
-                    <el-button type="danger" size="small" @click="handleReport(scope.$index, scope.row)">报告</el-button>
+                    <el-button type="danger" size="small" @click="showReport(scope.$index, scope.row)">报告</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -311,12 +311,12 @@
             this.getBase()
         },
         methods: {
-            showdetail(index, row) {
+            showReport(index, row) {
                 this.$router.push({
-                    path: '/stressdetail',
+                    path: '/html',
                     query: {
                         id: row.id,
-                        name: row.name
+                        type: "uiReport"
                     }
                 });
             },
@@ -396,7 +396,9 @@
             gethost() {
                 this.listLoading = true
                 let self = this;
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     this.listLoading = false

@@ -2,19 +2,11 @@
     <div class="app-container">
         <div class="filter-container">
             <!--工具条-->
-            <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
+            <el-col :span="22" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item label="过滤器" prop="server">
-                        <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.host"
-                                       :label="item.name"
-                                       :value="item.host"
-                            />
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item>
+                    <el-form-item label="筛选">
                     <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
+                        <el-option key="" label="" value=""></el-option>
                                     <el-option v-for="(item,index) in filetype"
                                                :key="item.value"
                                                :label="item.remarks"
@@ -24,6 +16,7 @@
                 </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
+                            <el-option key="" label="" value=""></el-option>
                             <el-option v-for="(item,index) in tags"
                                        :key="item.remarks"
                                        :label="item.remarks"
@@ -33,6 +26,7 @@
                     </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
+                            <el-option key="" label="" value=""></el-option>
                             <el-option key="1.0" label="1.0" value="1.0"/>
                             <el-option key="1.25" label="1.25" value="1.25"/>
                             <el-option key="1.5" label="1.5" value="1.5"/>
@@ -44,8 +38,17 @@
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
                     <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
-                    <el-button type="primary" @click="getdetail">同步</el-button>
                     <el-button type="danger" :disabled="this.sels.length===0" @click="stressD">压测数据</el-button>
+                    <el-form-item label="同步" prop="server">
+                        <el-select v-model="filters.server" placeholder="请选择同步的服务" @click.native="gethost()">
+                            <el-option v-for="(item,index) in tags"
+                                       :key="item.host"
+                                       :label="item.name"
+                                       :value="item.host"
+                            />
+                        </el-select>
+                    </el-form-item>
+                    <el-button type="primary" @click="getdetail">同步</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -148,7 +151,10 @@
                         </el-col>
                     </el-row>
                     <el-form-item label="挂载">
-                        <el-input v-model="editForm.vote" :disabled="true" auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Graphql">
+                        <el-input type="textarea" :rows="10" v-model="editForm.graphql"  auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -235,8 +241,9 @@
         data() {
             return {
                 filters: {
-                    diseases: null,
-                    slicenumber: null
+                    diseases: '',
+                    slicenumber: '',
+                    type:''
                 },
                 total: 0,
                 page: 1,
@@ -313,7 +320,9 @@
             gethost() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    page_size:100
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
                     self.listLoading = false

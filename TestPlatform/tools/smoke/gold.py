@@ -46,12 +46,14 @@ def checkdata(data, kc):
             airesult = result['studyView'][0]
             if airesult['aistatus'] in [2, 3]:
                 data["status"] = True
+                # 判断标准结果是否在本次预测结果 中
                 if str(airesult['diagnosis']).find(data["diagnosis"]) >= 0:
+                    # if data["diseases"] == "Breast":
+                    #
+                    # else:
                     aidiagnosis = KeyChange(data["diagnosis"])
-                    data["result"] = '匹配成功'
                 elif data["diagnosis"] == 'normal':
                     if len(airesult['diagnosis'][0]) == 0:
-                        data["result"] = '匹配成功'
                         aidiagnosis = data["diagnosis"]
                     else:
                         for i in airesult['diagnosis'][0]:
@@ -113,75 +115,7 @@ def delresult(serverID, ids):
             logger.error("删除失败{0}".format(obj.studyinstanceuid))
             continue
 
-
-# 冒烟接口请求
-def goldSmoke(id):
-    # for i in obj: ids.append(i.id)
-    count = 0
-    smobj = smoke.objects.get(id=id)
-    smobj.starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    kc = login_keycloak(smobj.hostid)
-    Hostobj = GlobalHost.objects.get(id=smobj.hostid)
-    serverIP = Hostobj.host
-    # 循环测试数据
-    for k in smobj.diseases.split(","):
-        try:
-            dicomobj = dicom.objects.filter(fileid=k.strip())
-        except Exception as e:
-            logger.error("数据错误")
-            continue
-        for i in dicomobj:
-            try:
-                # 验证数据cunz
-                datacheck(serverIP, i.studyinstanceuid, i.route, smobj.hostid)
-                # 修改执行进度
-                count = count + 1
-                updatesmoke(id, count)
-                objbase = base_data.objects.get(id=i.fileid)
-                objdictionary = dictionary.objects.get(id=objbase.predictor)
-                data = {
-                    "version": smobj.version,
-                    "patientid": i.patientid,
-                    "patientname": i.patientname,
-                    "studyinstanceuid": i.studyinstanceuid,
-                    "diseases": i.diseases,
-                    "slicenumber": i.slicenumber,
-                    "diagnosis": i.diagnosis,
-                    "type": "gold",
-                    "status": False,
-                    "smokeid": id
-                }
-                graphql_query = "{ ai_biomind (" \
-                                "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
-                                                                           "{ pothers: " \
-                                                                           "{ disable_negative_voting:false} " \
-                                                                           "penable_cached_results:false pconfig:{} " \
-                                                                           "planguage:\"zh-cn\" " \
-                                                                           " puser_id:\"biomind\" " \
-                                                                           "pseries_classifier:" + str(i.vote) + "}" \
-                                                                                                                 "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                    objdictionary.value) + "\"]])" \
-                                           " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-                data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                # 调用 手动预测接口
-                try:
-                    prediction = graphql_Interface(graphql_query, kc)
-                except Exception as e:
-                    predictionCheck(prediction, data, e)
-                    continue
-                data["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                Check = predictionCheck(prediction, data, '')
-                if Check is True:
-                    checkdata(data, kc)
-            except Exception as e:
-                logger.error("error:{0}".format(e))
-                data["result"] = str(e)[:500]
-                smoke_record.objects.create(**data)
-                continue
-    smobj.completiontime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    smobj.save()
-
-
+# 执行冒烟测试
 class SmokeThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self)
@@ -198,7 +132,7 @@ class SmokeThread(threading.Thread):
         # 循环测试数据
         for k in self.smobj.diseases.split(","):
             try:
-                dicomobj = dicom.objects.filter(fileid=k.strip())
+                dicomobj = dicom.objects.filter(fileid=k.strip(),status=True)
             except Exception as e:
                 logger.error("数据错误")
                 continue
@@ -211,40 +145,19 @@ class SmokeThread(threading.Thread):
                     # 修改执行进度
                     self.count = self.count + 1
                     updatesmoke(self.id, self.count)
-                    objbase = base_data.objects.get(id=i.fileid)
-                    objdictionary = dictionary.objects.get(id=objbase.predictor)
-                    data = {
-                        "version": self.smobj.version,
-                        "patientid": i.patientid,
-                        "patientname": i.patientname,
-                        "studyinstanceuid": i.studyinstanceuid,
-                        "diseases": i.diseases,
-                        "slicenumber": i.slicenumber,
-                        "diagnosis": i.diagnosis,
-                        "type": "gold",
-                        "status": False,
-                        "smokeid": self.id
-                    }
-                    graphql_query = "{ ai_biomind (" \
-                                    "study_uid:\"" + str(i.studyinstanceuid) + "\", protocols:" \
-                                                                               "{ pothers: " \
-                                                                               "{ disable_negative_voting:false} " \
-                                                                               "penable_cached_results:false pconfig:{} " \
-                                                                               "planguage:\"zh-cn\" " \
-                                                                               " puser_id:\"biomind\" " \
-                                                                               "pseries_classifier:" + str(
-                        i.vote) + "}" \
-                                  "routes: [[\"generate_series\",\"series_classifier\",\"" + str(
-                        objdictionary.value) + "\"]])" \
-                                               " { pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
-                    data["starttime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    data = {"version": self.smobj.version, "patientid": i.patientid, "patientname": i.patientname,
+                            "studyinstanceuid": i.studyinstanceuid, "diseases": i.diseases,
+                            "slicenumber": i.slicenumber, "diagnosis": i.diagnosis, "type": "gold", "status": False,
+                            "smokeid": self.id, "result": "匹配成功",
+                            "starttime": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
                     # 调用 手动预测接口
                     try:
-                        prediction = graphql_Interface(graphql_query, self.kc)
+                        prediction = graphql_Interface(i.graphql, self.kc)
                     except Exception as e:
                         predictionCheck(prediction, data, e)
                         continue
                     data["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    # 断言
                     Check = predictionCheck(prediction, data, '')
                     if Check is True:
                         checkdata(data, self.kc)
