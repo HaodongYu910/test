@@ -181,6 +181,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'TestPlatform',
+    'AutoUI',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',

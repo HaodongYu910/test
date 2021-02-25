@@ -66,7 +66,7 @@ def get_time():
 
 
 def get_rand_uid():
-    rand_val = random.randint(1, math.pow(10, 8) - 1)
+    rand_val = random.randint(1, math.pow(10, 16) - 1)
     return "%08d" % rand_val
 
 
@@ -419,7 +419,7 @@ if __name__ == '__main__':
             if count > end:
                 break
         # 执行状态判断
-        pid = sqlDB('select count(1) from pid where pid ="{0}"'.format(ospid), [], 'select')
+        pid = sqlDB('select count(1) from pid where durationid ="{0}"'.format(CONFIG["durationid"]), [], 'select')
         if int(pid[0][0]) == 1:
             sqlDB('UPDATE duration set sendstatus = 0 where id ={0}'.format(CONFIG["durationid"]), [], 'update')
             sqlDB('DELETE from pid where pid ="{0}"'.format(ospid), [], 'DELETE')

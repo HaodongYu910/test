@@ -106,10 +106,10 @@
                 </el-table-column>
                 <el-table-column label="操作" min-width="30%">
                     <template slot-scope="scope">
-                        <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        <el-button :type="typestatus(scope.row.sendstatus)" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                             {{scope.row.sendstatus===false?'启用':'停用'}}
                         </el-button>
-                        <el-button type="danger" size="small" @click="showDetail(scope.$index, scope.row)">数据
+                        <el-button type="info" size="small" @click="showDetail(scope.$index, scope.row)">数据
                         </el-button>
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                         </el-button>
@@ -556,6 +556,14 @@
             this.durationVerifyData()
         },
         methods: {
+            typestatus: function (i) {
+                if (i ===true) {
+                    return 'danger'
+                } else {
+                    return 'primary'
+                }
+
+            },
             showDetail(index, row) {
                 this.$router.push({
                     path: '/durationData',

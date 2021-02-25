@@ -68,7 +68,8 @@ class durationData(APIView):
         type = request.GET.get("type")
         durationid = int(request.GET.get("id"))
         try:
-            verifyDuration(durationid)
+            verifythread = threading.Thread(target=verifyDuration(int(durationid)))
+            verifythread.start()
         except Exception as e:
             logger.error(e)
         datalist = {}

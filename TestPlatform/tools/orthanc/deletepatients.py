@@ -1,7 +1,7 @@
 # coding=utf-8
 
 from ...common.regexUtil import *
-from ...models import dicom,GlobalHost,dictionary
+from ...models import dicom,dictionary
 from ...utils.keycloak.login_kc import *
 import logging
 logger = logging.getLogger(__name__)
@@ -9,10 +9,10 @@ logger = logging.getLogger(__name__)
 def delete_patients_duration(key, serverID,type,fuzzy):
     Hostobj =GlobalHost.objects.get(id=serverID)
     data = {}
-    if type =='gold':
+    if type == 'gold':
         sqldict = dictionary.objects.get(key=type, type="sql", status=True)
-        sqldata =dicom.objects.filter(type='gold')
-        strsql ="'"
+        sqldata = dicom.objects.filter(type='gold')
+        strsql = "'"
         for i in sqldata:
             strsql = strsql + str(i.studyinstanceuid)+"','"
         sql = sqldict.value.format(strsql[:-2])
@@ -37,7 +37,7 @@ def delete_patients_duration(key, serverID,type,fuzzy):
 
     for oid in _dict1:
         try:
-            publicid=oid["publicid"]
+            publicid = oid["publicid"]
             kc.delete('/orthanc/studies/{0}'.format(publicid), timeout=120)
             data[oid["patientname"]]=oid["studyinstanceuid"]
         except Exception as e:

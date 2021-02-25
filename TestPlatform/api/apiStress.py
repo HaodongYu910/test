@@ -112,25 +112,8 @@ class AddStressData(APIView):
         try:
             for i in data["ids"]:
                 obj = dicom.objects.get(id=i)
-                obj.stressstatus =1
+                obj.stressstatus = 1
                 obj.save()
-                baseobj = base_data.objects.get(id=obj.fileid)
-                try:
-                    stress_record.objects.get(studyuid=obj.studyinstanceuid)
-                    continue
-                except ObjectDoesNotExist:
-                    data = {
-                        "stressid": i,
-                        "studyuid": obj.studyinstanceuid,
-                        "imagecount": obj.imagecount,
-                        "graphql": obj.vote,
-                        "diseases": baseobj.predictor,
-                        "slicenumber": obj.slicenumber,
-                        "benchmarkstatus": False,
-                        "status": True,
-                        "fileurl": obj.route
-                    }
-                    stress_record.objects.create(**data)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -212,87 +195,14 @@ class DelStressData(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    obj = stress_record.objects.filter(recordid=j)
-                    obj.delete()
+                    obj = dicom.objects.get(id=j)
+                    obj.stressstatus = 0
+                    obj.save()
                 except Exception as e:
-                    return JsonResponse(code="999998", msg="失败")
+                    return JsonResponse(code="999998", msg="删除失败")
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
-
-class DisableData(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["id"], int):
-                return JsonResponse(code="999996", msg="参数有误！")
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        禁用项目
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        # 查找是否存在
-        try:
-            obj = stress.objects.get(stressid=data["stressid"])
-            obj.status = False
-            obj.save()
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="不存在！")
-
-
-class EnableData(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 校验project_id类型为int
-            if not isinstance(data["id"], int):
-                return JsonResponse(code="999996", msg="参数有误！")
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        启用项目
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        # 查找项目是否存在
-        try:
-            obj = stress.objects.get(stressid=data["stressid"])
-            obj.status = True
-            obj.save()
-
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="不存在！")
+            return JsonResponse(code="999995", msg="数据不存在！")
 
 #  Disable基准数据
 class DisableBenchmarkStatus(APIView):
@@ -324,8 +234,8 @@ class DisableBenchmarkStatus(APIView):
             return result
         # 查找是否存在
         try:
-            obj = stress_record.objects.get(recordid=data["id"])
-            obj.benchmarkstatus = False
+            obj = dicom.objects.get(id=data["id"])
+            obj.stressstatus = 1
             obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -362,8 +272,8 @@ class EnableBenchmarkStatus(APIView):
             return result
         # 查找项目是否存在
         try:
-            obj = stress_record.objects.get(recordid=data["id"])
-            obj.benchmarkstatus = True
+            obj = dicom.objects.get(id=data["id"])
+            obj.stressstatus = 2
             obj.save()
 
             return JsonResponse(code="0", msg="成功")

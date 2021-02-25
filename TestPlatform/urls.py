@@ -16,7 +16,6 @@ from .api.apiStress import *
 from .api.user_permission import *
 from .api.apiDicom import *
 from .api.apiSmoke import *
-from .api.apiTest import *
 from .api.apiDictionary import *
 from .api.apiUpload import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
@@ -136,8 +135,6 @@ urlpatterns = [
     url(r'stress/StressDataAdd', AddStressData.as_view()),
     url(r'stress/StressDataDel', DelStressData.as_view()),
     url(r'stress/SynchroStressData',SynchroStressData.as_view()),
-    url(r'stress/disableData', DisableData.as_view()),
-    url(r'stress/enableData', EnableData.as_view()),
     url(r'stress/disablebenchmarkstatus', DisableBenchmarkStatus.as_view()),
     url(r'stress/enablebenchmarkstatus', EnableBenchmarkStatus.as_view()),
     url(r'stress/Data', stressData.as_view()),
@@ -173,21 +170,6 @@ urlpatterns = [
     url(r'smoke/record', smokeRecord.as_view()),
     url(r'smoke/figure', smokefigure.as_view()),
     url(r'smoke/smokelist', getSmoke.as_view()),
-    url(r'auto/addauto', AddAutoTest.as_view()),
-    url(r'auto/updateauto', UpdateAutoTest.as_view()),
-    url(r'auto/delauto', DelAutoTest.as_view()),
-    url(r'auto/disableauto', DisableAutoTest.as_view()),
-    url(r'auto/enableauto', EnableAutoTest.as_view()),
-    url(r'auto/record', AutoRecord.as_view()),
-    url(r'auto/autotest', AutoRunTest.as_view()),
-    url(r'auto/figure', Autofigure.as_view()),
-    url(r'auto/autolist', getAutoTest.as_view()),
-    url(r'auto/addcase', AddAutoCase.as_view()),
-    url(r'auto/updatecase', UpdateAutoCase.as_view()),
-    url(r'auto/delcase', DelAutoCase.as_view()),
-    url(r'auto/disablecase', DisableAutoCase.as_view()),
-    url(r'auto/enablecase', EnableAutoCase.as_view()),
-    url(r'auto/case', getAutoCase.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
     url(r'dicomurl',dicomUrl.as_view()),

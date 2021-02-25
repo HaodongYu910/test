@@ -278,23 +278,15 @@ export const addStressData = (headers, params) => {
 export const DelStressData = (headers, params) => {
   return axios.post(`${test}/api/stress/StressDataDel`, params, headers).then(res => res.data)
 }
-// 删除压测数据
+// 同步压测数据挂载信息
 export const StressSynchro = (headers, params) => {
   return axios.post(`${test}/api/stress/SynchroStressData`, params, headers).then(res => res.data)
 }
-// 禁用测试地址列表
-export const disableStressData = (headers, params) => {
-  return axios.post(`${test}/api/stress/disableData`, params, { headers }).then(res => res.data)
-}
-// 启用测试地址列表
-export const enableStressData = (headers, params) => {
-  return axios.post(`${test}/api/stress/enableData`, params, { headers }).then(res => res.data)
-}
-// 禁用测试地址列表
+// disable基准数据
 export const disableBenchmarkstatus = (headers, params) => {
   return axios.post(`${test}/api/stress/disablebenchmarkstatus`, params, { headers }).then(res => res.data)
 }
-// 启用测试地址列表
+// enable基准数据
 export const enableBenchmarkstatus = (headers, params) => {
   return axios.post(`${test}/api/stress/enablebenchmarkstatus`, params, { headers }).then(res => res.data)
 }
@@ -330,7 +322,7 @@ export const getdicomdata = (headers, params) => {
 export const dicomcsv = (headers, params) => {
   return axios.post(`${test}/api/dicom/dicomcsv`, params, headers).then(res => res.data)
 }
-//删除报告
+// 删除报告
 export const deldicomreport = (headers, params) => {
   return axios.post(`${test}/api/dicom/delreport`, params, headers).then(res => res.data)
 }
@@ -485,61 +477,57 @@ export const DisableDictionary = (headers, params) => {
 export const DelDictionary = (headers, params) => {
   return axios.post(`${test}/api/dictionary/del`, params, headers).then(res => res.data)
 }
-// 自动测试列表
+// UI测试用例列表
 export const getAutoCase = (headers, params) => {
-  return axios.get(`${test}/api/auto/case`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/ui/auto/case`, { params: params }, { headers }).then(res => res.data)
 }
-// 添加自动测试
+// 添加UI测试用例
 export const addAutoCase = (headers, params) => {
-  return axios.post(`${test}/api/auto/addcase`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/addcase`, params, headers).then(res => res.data)
 }
-// 修改自动测试
+// 修改UI测试用例
 export const UpdateAutoCase = (headers, params) => {
-  return axios.post(`${test}/api/auto/updatecase`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/updatecase`, params, headers).then(res => res.data)
 }
-// 启用自动测试
+// 启用UI测试用例
 export const EnableAutoCase = (headers, params) => {
-  return axios.post(`${test}/api/auto/enablecase`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/enablecase`, params, headers).then(res => res.data)
 }
-// 禁用自动测试
+// 禁用UI测试用例
 export const DisableAutoCase = (headers, params) => {
-  return axios.post(`${test}/api/auto/disablecase`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/disablecase`, params, headers).then(res => res.data)
 }
-// 删除自动测试记录
+// 删除UI测试用例
 export const DelAutoCase = (headers, params) => {
-  return axios.post(`${test}/api/auto/delcase`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/delcase`, params, headers).then(res => res.data)
 }
-// 自动测试列表
+// UI测试列表
 export const getAuto = (headers, params) => {
-  return axios.get(`${test}/api/auto/autolist`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/ui/auto/autolist`, { params: params }, { headers }).then(res => res.data)
 }
-// 添加自动测试
+// 添加UI测试
 export const addAuto = (headers, params) => {
-  return axios.post(`${test}/api/auto/addauto`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/addauto`, params, headers).then(res => res.data)
 }
-// 修改自动测试
+// 修改UI测试
 export const UpdateAuto = (headers, params) => {
-  return axios.post(`${test}/api/auto/updateauto`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/updateauto`, params, headers).then(res => res.data)
 }
-// 启用自动测试
+// 启用UI测试
 export const EnableAuto = (headers, params) => {
-  return axios.post(`${test}/api/auto/enableauto`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/enableauto`, params, headers).then(res => res.data)
 }
-// 禁用自动测试
+// 停止UI测试
 export const DisableAuto = (headers, params) => {
-  return axios.post(`${test}/api/auto/disableauto`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/disableauto`, params, headers).then(res => res.data)
 }
-// 删除自动测试记录
+// 删除UI测试
 export const DelAuto = (headers, params) => {
-  return axios.post(`${test}/api/auto/delauto`, params, headers).then(res => res.data)
+  return axios.post(`${test}/ui/auto/delauto`, params, headers).then(res => res.data)
 }
-// 自动测试记录
+// UI测试记录
 export const getAutorecord = (headers, params) => {
-  return axios.get(`${test}/api/auto/record`, { params: params }, { headers }).then(res => res.data)
-}
-// 启动自动测试
-export const getAutoTest = (headers, params) => {
-  return axios.post(`${test}/api/auto/autotest`, params, headers).then(res => res.data)
+  return axios.get(`${test}/ui/auto/record`, { params: params }, { headers }).then(res => res.data)
 }
 // 自动测试图表
 export const getAutofigure = (headers, params) => {

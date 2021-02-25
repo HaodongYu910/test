@@ -21,6 +21,7 @@ from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from TestPlatform import urls
+from AutoUI import autourls
 from TestPlatform.api.ApiDoc import MockRequest
 
 
@@ -32,6 +33,7 @@ urlpatterns = [
     path('admin/', admin.site.urls), #back login
     url(r'^$', TemplateView.as_view(template_name="index.html")), #home api
     url(r'^api/', include(urls)),
+    url(r'^ui/', include(autourls)),
     path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]
 

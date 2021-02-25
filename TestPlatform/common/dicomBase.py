@@ -2,13 +2,10 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db.models import Avg
 
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.parsers import JSONParser
-from rest_framework.views import APIView
-import shutil, threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost,auto_case
+from TestPlatform.models import base_data, pid, GlobalHost
+from AutoUI.models import auto_uicase
 from TestPlatform.serializers import duration_Deserializer
 from ..tools.dicom.SendDicom import Send
 from ..tools.orthanc.deletepatients import *
@@ -31,7 +28,7 @@ def baseTransform(basedata,basetype):
                 obj = GlobalHost.objects.get(id=i)
                 result = obj.host
             elif basetype == 'case':
-                obj = auto_case.objects.get(id=i)
+                obj = auto_uicase.objects.get(caseid=i)
                 result = result + obj.name + ","
         return result
     except Exception as e:

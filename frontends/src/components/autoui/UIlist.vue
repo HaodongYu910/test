@@ -25,18 +25,17 @@
         </el-col>
 
         <!--列表-->
-        <el-table :data="Smokelist" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
+        <el-table :data="UIlist" highlight-current-row v-loading="listLoading" @selection-change="selsChange"
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
             <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ name: 'UI自动化详情', params: {UIid: scope.row.id}}"
-                                 style='text-decoration: none;color: #000000;'>
+                    <router-link :to="{ name: 'UI自动化详情', params: {autoid: scope.row.autoid}}"
+                                 style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.version }}
                     </router-link>
-                    {{ !scope.row.status?scope.row.version:""}}
                 </template>
             </el-table-column>
             <el-table-column prop="hostid" label="服务" min-width="12%" sortable>
@@ -89,11 +88,10 @@
             </el-table-column>
             <el-table-column label="操作" min-width="45%">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
-                    <el-button type="primary" size="small" @click="autotest(scope.$index, scope.row)">测试</el-button>
-                    <el-button type="danger" size="small" @click="showReport(scope.$index, scope.row)">报告</el-button>
-                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                        {{scope.row.status===false?'启用':'禁用'}}
+                    <el-button type="info" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告</el-button>
+                    <el-button :type="typestatus(scope.row.status)" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        {{scope.row.status===false?'启动':'停止'}}
                     </el-button>
                 </template>
             </el-table-column>
@@ -131,9 +129,9 @@
                         <el-form-item label="setUp" prop='setUp'>
                             <el-select v-model="editForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -142,9 +140,9 @@
                         <el-form-item label="case" prop='case'>
                             <el-select v-model="editForm.testdata" multiple placeholder="请选择" @click.native="getCase()">
                                 <el-option v-for="(item,index) in testcase"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -153,9 +151,9 @@
                         <el-form-item label="tearDown" prop='tearDown'>
                             <el-select v-model="editForm.tearDown" multiple placeholder="请选择" @click.native="gettearDown()">
                                 <el-option v-for="(item,index) in tearDown"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -204,9 +202,9 @@
                         <el-form-item label="setUp" prop='setUp'>
                             <el-select v-model="addForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -215,9 +213,9 @@
                         <el-form-item label="case" prop='case'>
                             <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getCase()">
                                 <el-option v-for="(item,index) in testcase"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -226,9 +224,9 @@
                         <el-form-item label="tearDown" prop='tearDown'>
                             <el-select v-model="addForm.tearDown" multiple placeholder="请选择" @click.native="gettearDown()">
                                 <el-option v-for="(item,index) in tearDown"
-                                           :key="item.id"
+                                           :key="item.caseid"
                                            :label="item.name"
-                                           :value="item.id"
+                                           :value="item.caseid"
                                 />
                             </el-select>
                         </el-form-item>
@@ -247,7 +245,7 @@
     //import NProgress from 'nprogress'
     import {
         getAuto, DelAuto, DisableAuto, EnableAuto,
-        UpdateAuto, addAuto, stresssave, getHost, getbase, getAutoTest, getAutoCase
+        UpdateAuto, addAuto, stresssave, getHost, getbase, getAutoCase
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -257,7 +255,7 @@
                 filters: {
                     name: ''
                 },
-                Smokelist: [],
+                UIlist: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -300,8 +298,10 @@
                 addForm: {
                     hostid: '',
                     version: '',
-                    testdata: [],
-                    status: true
+                    setup:[],
+                    cases: [],
+                    tearDown:[],
+                    status: false
                 }
             }
         },
@@ -311,6 +311,14 @@
             this.getBase()
         },
         methods: {
+            typestatus: function (i) {
+                if (i ===true) {
+                    return 'danger'
+                } else {
+                    return 'primary'
+                }
+
+            },
             showReport(index, row) {
                 this.$router.push({
                     path: '/html',
@@ -455,7 +463,7 @@
                     let {msg, code, data} = res;
                     if (code === '0') {
                         self.total = data.total;
-                        self.Smokelist = data.data
+                        self.UIlist = data.data
                     } else {
                         self.$message.error({
                             message: msg,
@@ -502,7 +510,7 @@
             handleChangeStatus: function (index, row) {
                 let self = this;
                 this.listLoading = true;
-                let params = {id: row.id};
+                let params = {autoid: row.autoid};
                 let headers = {
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
@@ -564,40 +572,6 @@
                     thread: 1
                 };
             },
-            //smoke测试
-            autotest: function (index, row) {
-                this.$confirm('执行测试?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {
-                        id: row.id,
-                        type: true
-                    };
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    getAutoTest(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.getAutoList()
-                    });
-                })
-            },
             //编辑修改
             editSubmit: function () {
                 let self = this;
@@ -607,7 +581,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                id: self.editForm.id,
+                                autoid: self.editForm.autoid,
                                 version: self.editForm.version,
                                 setup: self.editForm.setup,
                                 cases: self.editForm.cases,
@@ -663,7 +637,7 @@
                                 thread: this.addForm.thread,
                                 type:"UI",
                                 progress: 0,
-                                status: true,
+                                status: false,
                             });
                             let header = {
                                 "Content-Type": "application/json",
@@ -705,7 +679,7 @@
             },
             //批量删除
             batchRemove: function () {
-                let ids = this.sels.map(item => item.id);
+                let ids = this.sels.map(item => item.autoid);
                 let self = this;
                 this.$confirm('确认删除选中记录吗？', '提示', {
                     type: 'warning'
