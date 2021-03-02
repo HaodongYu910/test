@@ -36,7 +36,7 @@ class AutoRecord(APIView):
         diseases = request.GET.get("diseases")
         autoid = request.GET.get("autoid")
 
-        if  request.GET.get("status")=='true':
+        if request.GET.get("status")=='true':
             status = 1
         elif request.GET.get("status")=='False':
             status = 0
@@ -69,6 +69,56 @@ class AutoRecord(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
+class getUIReport(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取错误截图 url
+        :param request:
+        :return:
+        """
+        try:
+            autoid = request.GET.get("autoid", 0)
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="autoid must be integer!")
+        data = []
+        srcList = {}
+        folder = '/home/biomind/Biomind_Test_Platform/static/UI/{}/report/'.format(str(autoid))
+        file_names = os.listdir(folder)
+        file_names.sort()
+        for fn in file_names:
+            data.append(fn)
+            srcList[fn] = 'http://192.168.1.121/static/UI/{0}/report/{1}'.format(str(autoid),str(fn))
+        return JsonResponse(data={"reports": data,
+                                  "reportList": srcList}, code="0", msg="成功")
+
+class getUIimage(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取错误截图 url
+        :param request:
+        :return:
+        """
+        try:
+            autoid = request.GET.get("autoid", 0)
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="autoid must be integer!")
+        data = {}
+        srcList = []
+        folder = '/home/biomind/Biomind_Test_Platform/static/UI/{}/errorimage/'.format(str(autoid))
+        file_names = os.listdir(folder)
+        file_names.sort()
+        for fn in file_names:
+            url ='http://192.168.1.121/static/UI/{0}/errorimage/{1}'.format(str(autoid),str(fn))
+            data[fn] = url
+            srcList.append(url)
+        return JsonResponse(data={"fits": data,
+                                  "srcList": srcList}, code="0", msg="成功")
 
 class getCaseFile(APIView):
     authentication_classes = (TokenAuthentication,)

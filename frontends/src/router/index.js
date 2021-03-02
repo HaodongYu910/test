@@ -82,13 +82,6 @@ export default new Router({
 
                 },
                 {
-                    // dds监控界面
-                    path: '/html',
-                    component: resolve => require(['../components/html/HtmlPanel.vue'], resolve),
-                    meta: { title: '详情' }
-
-                },
-                {
                     // UICase 用例
                     path: '/UICase',
                     component: resolve => require(['../components/autoui/UICase.vue'], resolve),

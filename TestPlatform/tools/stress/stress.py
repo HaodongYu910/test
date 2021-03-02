@@ -10,7 +10,7 @@ from django.db import transaction
 
 from TestPlatform.common.regexUtil import connect_to_postgres, csv
 from TestPlatform.models import stress_job, duration_record, dicom, GlobalHost, dicom_record, dictionary, stress_record, \
-    stress_result, uploadfile, stress, base_data
+    stress_result, uploadfile, stress
 from TestPlatform.serializers import stress_result_Deserializer, dicomrecord_Serializer
 from TestPlatform.utils.graphql.graphql import *
 from ..dicom.dicomdetail import checkuid, voteData

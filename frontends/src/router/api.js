@@ -525,6 +525,14 @@ export const DisableAuto = (headers, params) => {
 export const DelAuto = (headers, params) => {
   return axios.post(`${test}/ui/auto/delauto`, params, headers).then(res => res.data)
 }
+// UI测试报告
+export const getReport = (headers, params) => {
+  return axios.get(`${test}/ui/auto/report`, { params: params }, { headers }).then(res => res.data)
+}
+// UI测试错误截图
+export const getImage = (headers, params) => {
+  return axios.get(`${test}/ui/auto/image`, { params: params }, { headers }).then(res => res.data)
+}
 // UI测试记录
 export const getAutorecord = (headers, params) => {
   return axios.get(`${test}/ui/auto/record`, { params: params }, { headers }).then(res => res.data)

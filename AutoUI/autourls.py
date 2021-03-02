@@ -29,4 +29,7 @@ urlpatterns = [
     url(r'auto/disablecase', DisableUICase.as_view()),
     url(r'auto/enablecase', EnableUICase.as_view()),
     url(r'auto/case', getUICase.as_view()),
+    url(r'auto/image', getUIimage.as_view()),
+    url(r'auto/report', getUIReport.as_view()),
+
 ]

@@ -1,6 +1,7 @@
 import os
 from TestPlatform.common.regexUtil import savecsv
 from TestPlatform.models import GlobalHost, dicom ,dictionary
+from TestPlatform.tools.dicom.dicomdetail import checkuid
 from ..models import auto_uicase, autoui, auto_uirecord
 import datetime
 import os
@@ -25,13 +26,17 @@ class AutoUiThread(threading.Thread):
         self.obj = autoui.objects.get(autoid=self.autoid)
         self.Hostobj = GlobalHost.objects.get(id=self.obj.hostid)
         self.server = self.Hostobj.host
-        # self.kc = login_keycloak(self.obj.hostid)
+        # self.kc =
 
     #  UI 测试
     def Uitest(self):
         self.obj.starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         try:
-            print("测试")
+            obj = auto_uirecord.objects.filter(autoid=self.autoid)
+            for i in obj:
+                checkuid(self.obj.hostid, self.server, str(i.dicomid))
+                # delreport(login_keycloak(self.obj.hostid), str(i.studyuid))
+
         except Exception as e:
             logger.error("执行预测基准测试数据失败：{0}".format(e))
         self.obj.status = True
@@ -65,6 +70,7 @@ class AutoUiThread(threading.Thread):
                             except:
                                 diagnosis = k.diagnosis
                             data = {
+                                "dicomid": k.id,
                                 "studyuid": k.studyinstanceuid,
                                 "vote": vote,
                                 "expect": diagnosis,

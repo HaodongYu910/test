@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+    <html xmlns="http://www.w3.org/1999/html">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+        <title>AI-Engine 2.8.0 Test Report</title>
+        <!-- <link rel="stylesheet" href="css/style.css" type="text/css"> -->
+        <style type="text/css">
+            *{
+                font-family:Helvetica;
+            }
+            html, body{
+                padding:0;
+                margin:0;
+                position:relative;
+                background:url(../img/body.jpg);
+                background-repeat:repeat;
+                color:#fff;
+                letter-spacing:1px;
+                font-family:Georgia, "Times New Roman", Times, serif;
+                }
+
+            #container{
+                width:960px;
+                margin:0 auto;
+            }
+
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+                width:100%;
+                -webkit-box-shadow:  0px 2px 1px 5px rgba(242, 242, 242, 0.1);
+                box-shadow:  0px 2px 1px 5px rgba(242, 242, 242, 0.1);
+            }
+
+            .zebra {
+                border: 1px solid #555;
+                font-size: 8pt;
+            }
+
+            .zebra td {
+                border-left: 1px solid #555;
+                border-top: 1px solid #555;
+                padding: 10px;
+                text-align: left;
+            }
+
+            .zebra th, .zebra th:hover {
+                border-left: 1px solid #555;
+                border-bottom: 1px solid #828282;
+                padding: 10px;
+                background-color:#ddd !important;
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#ddd), to(#eee)) !important;
+                background-image: -webkit-linear-gradient(top, #ddd, #eee) !important;
+                background-image:    -moz-linear-gradient(top, #ddd, #eee) !important;
+                background-image:     -ms-linear-gradient(top, #ddd, #eee) !important;
+                background-image:      -o-linear-gradient(top, #ddd, #eee) !important;
+                background-image:         linear-gradient(top, #ddd, #eee) !important;
+                color:#000 !important;
+                font-weight:normal;
+            }
+            .zebra{
+                width: 720px;
+                margin-left:50px;
+            }
+            .trend{
+                width: 820px;
+                margin-left:50px;
+            }
+
+            .zebra tbody tr:nth-child(even) {
+                background: #fff !important;
+                color:#000;
+            }
+
+            .zebra tr:hover *{
+                background: #eeeeee;
+                color: #555;
+            }
+
+            .zebra tr {
+                background:#fff;
+                color:#000;
+            }
+            tbody td{
+                height: 20px;
+                width: 920px;
+            }
+        </style>
+        <style type="text/css">
+            html, body{
+                padding:0;
+                margin:0;
+                position:relative;
+                background:url(../img/body.jpg);
+                background-repeat:repeat;
+                color:#fff;
+                letter-spacing:1px;
+                font-family:Georgia, "Times New Roman", Times, serif;
+                }
+
+            #container{
+                width:960px;
+                margin:0 auto;
+            }
+
+            table {
+                border-collapse: collapse;
+                border-spacing: 0;
+                width:100%;
+                -webkit-box-shadow:  0px 2px 1px 5px rgba(242, 242, 242, 0.1);
+                box-shadow:  0px 2px 1px 5px rgba(242, 242, 242, 0.1);
+            }
+
+            .bug {
+                border: 1px solid #555;
+                font-size: 8pt;
+            }
+
+            .bug td {
+                border-left: 1px solid #555;
+                border-top: 1px solid #555;
+                padding: 5px;
+                text-align: left;
+            }
+
+            .bug th, .bug th:hover {
+                border-left: 1px solid #555;
+                border-bottom: 1px solid #828282;
+                padding: 5px;
+                background-color:#ddd !important;
+                background-image: -webkit-gradient(linear, left top, left bottom, from(#ddd), to(#eee)) !important;
+                background-image: -webkit-linear-gradient(top, #ddd, #eee) !important;
+                background-image:    -moz-linear-gradient(top, #ddd, #eee) !important;
+                background-image:     -ms-linear-gradient(top, #ddd, #eee) !important;
+                background-image:      -o-linear-gradient(top, #ddd, #eee) !important;
+                background-image:         linear-gradient(top, #ddd, #eee) !important;
+                color:#000 !important;
+                font-weight:normal;
+            }
+            .bug{
+                width: 920px;
+                margin-left:50px;
+            }
+
+            .bug tbody tr:nth-child(even) {
+                background: #fff !important;
+                color:#000;
+            }
+
+            .bug tr:hover *{
+                background: #eeeeee;
+                color: #555;
+            }
+
+            .bug tr {
+                background:#fff;
+                color:#000;
+            }
+            tbody td{
+                height: 20px;
+                width: 920px;
+            }
+        </style>
+        <style type="text/css">
+            body{
+                padding: 0 5%;
+            }
+            .font-color{
+                color: black;
+            }
+            .font-color-red{
+                color: red;
+            }
+            .font-color-darkblue{
+                color: darkblue;
+            }
+            .sj{
+                color: black;
+                text-indent: 5%;
+            }
+            .db{
+                color: green;
+                text-indent:9% ;
+            }
+            .ndb{
+                color: red;
+                text-indent:9% ;
+            }
+            .bdb{
+                color: black;
+                text-indent:9% ;
+            }
+            .image{
+                width: 620px;
+                height: 220px;
+            }
+        </style>
+    </head>
+    <body>
+    <h1 style="color:black;width: auto"> AI-Engine  版本压测报告</h1>
+    <div id="chapter1">
+        <h2 style="color: red">一、测试服务器</h2>
+        <article>
+            <h3 style="color: red">1.1、项目风险周知：</h3>
+            """+risk(bishijie_version,CoinNess_version) +"""
+            <h3 style="color: #000000">1.2、项目进度</h3>
+            """+ project() +"""
+            <h3 style="color: #000000">1.3、上线标准</h3>
+           """+ standard()  +"""
+        </article>
+    </div>
+    <div id="chapter4">
+        <h2 class="font-color">二、Model Results</h2>
+        <h3 class="font-color">2.1、缺陷收敛图表</h3>
+        <table width="600">
+            <tbody>
+            <tr>
+            """+ data_figure("Boimind-APP-缺陷",bishijie_version) +"""
+            </tr>
+            </tbody>
+        </table>
+        <table width="600">
+            <tbody>
+            <tr>
+                """+ data_figure("CoinNess-APP-缺陷",CoinNess_version) +"""
+            </tr>
+            </tbody>
+        </table>
+        <table width="600">
+            <tbody>
+            <tr>
+            """+ data_figure("Server-缺陷",str(bishijie_version)+","+str(CoinNess_version))+"""
+            </tr>
+            </tbody>
+        </table>
+        <p> </p>
+        <p class="sj"\>2.1.1 未解决缺陷明细</p>
+        """+Bug("Boimind",bishijie_version)+"""<p></p>"""+Bug("CoinNess",CoinNess_version)+"""</p>"""+Bug("信息服务",bishijie_version+','+CoinNess_version)+"""
+        <p> </p>
+        <h3 class="font-color">2.2 线上缺陷情况</h3>
+        """+ Bug("online",'')  +"""
+    </div>
+     <div id="chapter2">
+        <h2 class="font-color">三、LOG 日志</h2>
+        """+ crash()  +"""
+    </div>
+
+
+    <div id="chapter3">
+        <h2 class="font-color">四、Study Results</h2>
+        <p class="font-color">QA测试计划排期详见：</p>
+        <a href="http://wiki.bishijie.com/pages/viewpage.action?pageId=3914265">查看排期点击这里</a><br/>
+    </div>
+    <br><br>
+    <div class="font-color">
+    <p>________________________</p>
+    <p><b>测试组 | QA</b></p>
+    <p><img src="https://img.bishijie.com/news_154268282784004.jpg" style="height: 100px; width: 100px"></img></p>
+    <p>邮 箱：hang.yin@biomind.ai</p>
+    <p>地 址：北京市顺义区</p>
+    </div>
+    </body>
+    </html>

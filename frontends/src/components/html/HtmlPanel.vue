@@ -59,7 +59,7 @@
                     if (code === '0') {
                         this.loading = false
                         // 处理HTML显示
-                        this.html = data.data
+                        this.html = 'http://192.168.1.121/static/test.html'
                     } else {
                         self.$message.error({
                             message: "加载失败",

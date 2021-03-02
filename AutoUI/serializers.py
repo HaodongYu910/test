@@ -36,7 +36,7 @@ class autorecord_Serializer(serializers.ModelSerializer):
     class Meta:
         model = auto_uirecord
         fields = ('recordid', 'studyuid',  'vote', 'expect','actual', 'aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','server', 'autoid','update_time', 'create_time')
+                  'result', 'status','caseid','server','dicomid', 'autoid','update_time', 'create_time')
         read_only_fields = ('recordid',)  # 指定只读的 field
 
 
@@ -48,7 +48,7 @@ class autorecord_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = auto_uirecord
         fields = ('studyuid',  'vote', 'expect','actual', 'aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','server', 'autoid')
+                  'result', 'status','caseid','server', 'autoid','dicomid')
 
 class autocase_Serializer(serializers.ModelSerializer):
     """
