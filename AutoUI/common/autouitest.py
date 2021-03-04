@@ -1,7 +1,7 @@
 import os
 from TestPlatform.common.regexUtil import savecsv
 from TestPlatform.models import GlobalHost, dicom ,dictionary
-from TestPlatform.tools.dicom.dicomdetail import checkuid
+from Dicom.common.dicomdetail import checkuid
 from ..models import auto_uicase, autoui, auto_uirecord
 import datetime
 import os

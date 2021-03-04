@@ -7,7 +7,7 @@
 import os
 import logging
 import subprocess as sp
-from ...models import GlobalHost
+from TestPlatform.models import GlobalHost
 import socket
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

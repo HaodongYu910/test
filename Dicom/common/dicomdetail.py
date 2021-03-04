@@ -1,12 +1,10 @@
 from TestPlatform.utils.graphql.graphql import *
-from ...utils.keycloak.login_kc import *
+from TestPlatform.utils.keycloak.login_kc import *
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost, stress, dictionary, dicom
-from TestPlatform.serializers import duration_Deserializer
-from ...tools.dicom.SendDicom import Send
-from ...tools.dicom.duration_verify import *
-from ...tools.stress.PerformanceResult import savecsv
-from ...tools.orthanc.deletepatients import delete_patients_duration
+from TestPlatform.models import GlobalHost, dictionary, dicom
+from .SendDicom import Send
+from .duration_verify import *
+from .deletepatients import delete_patients_duration
 import shutil
 
 logger = logging.getLogger(__name__)
@@ -46,7 +44,7 @@ def normalSend(id):
         for j in dicomobj:
             delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-               ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+               ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
                '--ip {0} --aet {1} '
                '--port {2} '
                '--patientid {3} '
@@ -73,7 +71,7 @@ def anonymousSend(id,type):
     nom = 0
     try:
         # 持续话匿名发送数据
-        if type != "stress":
+        if type != "data":
             obj = duration.objects.get(id=id)
             sleepcount = obj.sleepcount if obj.sleepcount is not None else 9999
             sleeptime = obj.sleeptime if obj.sleeptime is not None else 0
@@ -95,7 +93,7 @@ def anonymousSend(id,type):
                     end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
                     a = a + 1
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--patientid {3} '

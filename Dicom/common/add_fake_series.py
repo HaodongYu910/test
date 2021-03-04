@@ -11,7 +11,7 @@ import os
 import pydicom
 import logging
 from tqdm import tqdm
-from TestPlatform.tools.dicom.stopwatch import stopwatch
+from .stopwatch import stopwatch
 import time
 import random
 import math

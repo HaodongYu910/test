@@ -6,12 +6,9 @@ from django.db.models import Count
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import threading
 
 from TestPlatform.common.api_response import JsonResponse
 from ..serializers import autorecord_Serializer
-from TestPlatform.tools.orthanc.deletepatients import *
-from ..models import autoui,auto_uirecord
 from TestPlatform.models import uploadfile
 from AutoUI.common.autouitest import *
 

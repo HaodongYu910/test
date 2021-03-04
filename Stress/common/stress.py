@@ -7,42 +7,17 @@ import time
 import numpy as np
 from django.db import connection
 from django.db import transaction
-
+from ..models import stress_record,stress_result, stress
+from ..serializers import stress_result_Deserializer
+from .loganalys import errorLogger
 from TestPlatform.common.regexUtil import connect_to_postgres, csv
-from TestPlatform.models import stress_job, duration_record, dicom, GlobalHost, dicom_record, dictionary, stress_record, \
-    stress_result, uploadfile, stress
-from TestPlatform.serializers import stress_result_Deserializer, dicomrecord_Serializer
+from TestPlatform.models import  duration_record, dicom, GlobalHost, dictionary,uploadfile
 from TestPlatform.utils.graphql.graphql import *
-from ..dicom.dicomdetail import checkuid, voteData
-from ...utils.keycloak.login_kc import login_keycloak
+from Dicom.common.dicomdetail import checkuid, voteData
+from TestPlatform.utils.keycloak.login_kc import login_keycloak
+from TestPlatform.common.transport import SSHConnection
 
 logger = logging.getLogger(__name__)
-
-
-# 修改数据
-def update_data(data):
-    obj = dicom_record.objects.get(testid=data["testid"])
-    serializer = dicomrecord_Serializer(data=data)
-    with transaction.atomic():
-        if serializer.is_valid():
-            serializer.update(instance=obj, validated_data=data)
-
-
-# 调用graphql 存储记录接口
-def graphql_prediction(data, kc):
-    try:
-        start_time = time.time()
-        results = graphql_Interface(data, kc)
-        data['duration'] = time.time() - start_time
-        data['report'] = str(results['ai_biomind']['preport'])
-        stress_detailserializer = dicomrecord_Serializer(data=data)
-        with transaction.atomic():
-            stress_detailserializer.is_valid()
-            stress_detailserializer.save()
-    except Exception as e:
-        logger.error('Query failed: {0}'.format(e))
-        return e
-    return True
 
 
 # 删除dicom报告
@@ -131,7 +106,7 @@ def savecsv(path, graphql_query):
 
 def saveStressddt(stressid, path):
     obj = stress.objects.get(stressid=stressid)
-    savecsv('{}/logs/stress/config.csv'.format(path),
+    savecsv('{}/logs/data/config.csv'.format(path),
             [obj.loadserver, 'biomind3d', 'engine3D.', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,
              obj.loop_count])
 
@@ -147,7 +122,7 @@ def saveStressddt(stressid, path):
             continue
         try:
             for k in stressdata:
-                savecsv('{}/logs/stress/data.csv'.format(path, str(i)),
+                savecsv('{}/logs/data/data.csv'.format(path, str(i)),
                         [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks])
         except Exception as e:
             continue
@@ -186,7 +161,7 @@ class StressThread(threading.Thread):
                             # 开始时间
                             starttime = time.time()
                             result = graphql_Interface(k.graphql, self.kc)
-                            ai_biomind = result['ai_biomind']
+                            ai_biomind = result['ai_biomind']['preport']
                             avgtime = time.time() - starttime
                             avglist.append(avgtime)
                             time.sleep(10)
@@ -260,7 +235,7 @@ class StressThread(threading.Thread):
             else:
                 for i in self.obj.testdata.split(","):
                     cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/dicom/dicomSend.py '
+                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
                            '--ip {0} --aet {1} '
                            '--port {2} '
                            '--patientid {3} '
@@ -287,11 +262,11 @@ class StressThread(threading.Thread):
     def jmeterStress(self):
         jmeterobj = uploadfile.objects.filter(fileid=self.stressid)
         path = os.path.join(os.getcwd())
-        if not os.path.exists('{}/logs/stress'.format(path)):
-            os.mkdir('{}/logs/stress'.format(path))
+        if not os.path.exists('{}/logs/data'.format(path)):
+            os.mkdir('{}/logs/data'.format(path))
         else:
-            shutil.rmtree('{}/logs/stress'.format(path))
-            os.mkdir('{}/logs/stress'.format(path))
+            shutil.rmtree('{}/logs/data'.format(path))
+            os.mkdir('{}/logs/data'.format(path))
         saveStressddt(self.stressid, path)
         # 执行jmeter
         try:
@@ -308,7 +283,7 @@ class StressThread(threading.Thread):
     def SaveResult(self):
         # 模型预测时间 job时间
         for type in ['prediction', 'job']:
-            obj = dictionary.objects.get(key="prediction", status=1, remarks='stress', type='sql')
+            obj = dictionary.objects.get(key="prediction", status=1, remarks='data', type='sql')
             # 测试模型数据查询
             for i in self.testdata.split(","):
                 infos = {}
@@ -350,7 +325,7 @@ class StressThread(threading.Thread):
                         with transaction.atomic():
                             stressserializer.is_valid()
                             stressserializer.save()
-                except:
+                except Exception as e:
                     logger.error("数据写入失败{}".format(e))
                     continue
 
@@ -381,9 +356,17 @@ class StressThread(threading.Thread):
                         "slicenumber": dicomobj.slicenumber,
                         "type": j
                     }
-                    stress_job.objects.create(**data)
+                    stress_record.objects.create(**data)
                 except Exception as e:
                     continue
+
+    def errorlog(self):
+        ssh = SSHConnection(host=self.server, port=22, user='biomind', pwd='biomind')
+        ssh.cmd("rm -rf /home/biomind/pm2.zip")
+        downpath = '/home/biomind/.biomind/lib/versions/{}/logs/pm2'.format(self.obj.version)
+        ospath = '/home/biomind/Biomind_Test_Platform/logs/pm2.zip'
+        ssh.download(ospath,downpath)
+        errorLogger(self.stressid,self.obj.version,ospath)
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

@@ -10,7 +10,7 @@ from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import base_data,dictionary,dicom
 from TestPlatform.serializers import base_data_Serializer, base_data_Deserializer
 from TestPlatform.common.regexUtil import *
-from TestPlatform.tools.dicom.dicomfile import fileUpdate
+from Dicom.common.dicomfile import fileUpdate
 import threading
 
 

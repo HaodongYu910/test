@@ -5,17 +5,16 @@ from django.db.models import Avg
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import shutil,threading
+import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost
+from TestPlatform.models import pid
 from TestPlatform.serializers import duration_Deserializer
-from ..tools.dicom.anonymization import onlyDoAnonymization
-from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.duration_verify import *
-from ..tools.stress.PerformanceResult import *
-from ..tools.dicom.dicomdetail import anonymousSend,normalSend,durationStop
-from ..common.dicomBase import verifyDuration,durationtotal,baseTransform
+from ..common.anonymization import onlyDoAnonymization
+from ..common.deletepatients import *
+from ..common.duration_verify import *
+from ..common.dicomdetail import anonymousSend,normalSend,durationStop
+from Dicom.common.dicomBase import verifyDuration,durationtotal,baseTransform
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

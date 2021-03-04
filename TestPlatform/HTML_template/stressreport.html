@@ -2,7 +2,7 @@
     <html xmlns="http://www.w3.org/1999/html">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-        <title>AI-Engine 2.8.0 Test Report</title>
+        <title>AI-Engine 2.8.0 Stress Test Report</title>
         <!-- <link rel="stylesheet" href="css/style.css" type="text/css"> -->
         <style type="text/css">
             *{
@@ -197,20 +197,32 @@
         </style>
     </head>
     <body>
-    <h1 style="color:black;width: auto"> AI-Engine  版本压测报告</h1>
+    <h1 style="color:black;width: auto"> AI-Engine 版本压测报告</h1>
     <div id="chapter1">
-        <h2 style="color: red">一、测试服务器</h2>
+        <h2 style="color: red">一、基本信息</h2>
         <article>
-            <h3 style="color: red">1.1、项目风险周知：</h3>
-            """+risk(bishijie_version,CoinNess_version) +"""
-            <h3 style="color: #000000">1.2、项目进度</h3>
-            """+ project() +"""
-            <h3 style="color: #000000">1.3、上线标准</h3>
+            <h3 style="color: #000000">·测试场景：</h3>
+            <h4 style="color: #000000">· 本次性能 基于接口脚本 jmeter进行测试。</h4>
+            <h3 style="color: #000000">·测试数据:</h3>
+            <h4 style="color: #000000">·基于PM 数据</h4>
+            <h3 style="color: #000000">·负载服务：  </h3>
+            <table  width="600" border="1" cellspacing="0"  text-align="center">
+                    <tr  bgcolor ="#B0C4DE">
+                            <td text-align="center"></td>
+                            <td text-align="center">服务</td>
+                            <td>配置信息</td>
+                    </tr>
+                    <tr  bgcolor ="#B0C4DE">
+                            <td text-align="center"></td>
+                            <td text-align="center">服务</td>
+                            <td>配置信息</td>
+                    </tr></table>
+             """+risk(bishijie_version,CoinNess_version) +"""
            """+ standard()  +"""
         </article>
     </div>
     <div id="chapter4">
-        <h2 class="font-color">二、Model Results</h2>
+        <h2 class="font-color">二、Study Model Results:</h2>
         <h3 class="font-color">2.1、缺陷收敛图表</h3>
         <table width="600">
             <tbody>
@@ -241,15 +253,15 @@
         """+ Bug("online",'')  +"""
     </div>
      <div id="chapter2">
-        <h2 class="font-color">三、LOG 日志</h2>
+        <h2 class="font-color">三、结果分析（Model Results）：</h2>
         """+ crash()  +"""
     </div>
 
 
     <div id="chapter3">
-        <h2 class="font-color">四、Study Results</h2>
+        <h2 class="font-color">四、LOG 日志</h2>
         <p class="font-color">QA测试计划排期详见：</p>
-        <a href="http://wiki.bishijie.com/pages/viewpage.action?pageId=3914265">查看排期点击这里</a><br/>
+        <a href="http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=1614162448000&to=1614330537000&var-host_name=192.168.1.170&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080">查看详细监控结果</a><br/>
     </div>
     <br><br>
     <div class="font-color">

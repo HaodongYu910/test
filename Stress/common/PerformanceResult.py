@@ -1,13 +1,10 @@
 from TestPlatform.common.regexUtil import *
-from TestPlatform.utils.graphql.graphql_utils import GraphQLDriver
-from TestPlatform.models import stress_job, stress_record, dictionary, duration_record, dicom,stress,GlobalHost
-from TestPlatform.serializers import stress_result_Deserializer, stress_result_Serializer
+from TestPlatform.models import dictionary
+from ..serializers import stress_result_Deserializer
 from django.db import transaction
-from ..dicom.dicomdetail import voteData
+from Dicom.common.dicomdetail import voteData
 import numpy as np
-import threading
-from django.db import connection
-from ...utils.keycloak.login_kc import login_keycloak
+
 
 logger = logging.getLogger(__name__)
 

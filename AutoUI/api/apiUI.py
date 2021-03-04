@@ -1,19 +1,14 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db import transaction
-from django.db.models import Max
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import threading
 
 from TestPlatform.common.api_response import JsonResponse
-from ..serializers import autoui_Serializer, autoui_Deserializer, autorecord_Serializer
-from TestPlatform.tools.orthanc.deletepatients import *
-from ..models import autoui, auto_uirecord
-from TestPlatform.models import uploadfile
-from TestPlatform.common.dicomBase import baseTransform
+from ..serializers import autoui_Serializer, autoui_Deserializer
+from Dicom.common.deletepatients import *
+from Dicom.common.dicomBase import baseTransform
 from AutoUI.common.autouitest import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置

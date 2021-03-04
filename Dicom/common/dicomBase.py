@@ -1,20 +1,13 @@
-from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Avg
-
-
-from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import base_data, pid, GlobalHost
+from TestPlatform.models import base_data
 from AutoUI.models import auto_uicase
-from TestPlatform.serializers import duration_Deserializer
-from ..tools.dicom.SendDicom import Send
-from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.duration_verify import *
-from ..tools.stress.PerformanceResult import *
-from ..tools.orthanc.deletepatients import delete_patients_duration
+from .SendDicom import Send
+from .deletepatients import *
+from .duration_verify import *
+from .deletepatients import delete_patients_duration
+
 
 # id 转换成病种文案
-def baseTransform(basedata,basetype):
+def baseTransform(basedata, basetype):
     result = ''
     try:
         for i in basedata.split(","):
@@ -50,19 +43,21 @@ def checkuid(serverID, serverIP, studyuid):
         delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
         Send(serverID, obj.route)
 
+
 #  duration 统计数据
 def durationtotal(durationid):
-    notsent = duration_record.objects.filter(duration_id=durationid,aistatus=None)
-    ai_true = duration_record.objects.filter(duration_id=durationid,aistatus__in=['1','2'])
-    ai_false = duration_record.objects.filter(duration_id=durationid,aistatus__in=['3','-2'])
-    notai = duration_record.objects.filter(duration_id=durationid,aistatus__in=['-1'])
-    datalist ={
-        'notai':notai.count(),
-        'ai_true':ai_true.count(),
-        'ai_false':ai_false.count(),
-        'notsent':notsent.count()
+    notsent = duration_record.objects.filter(duration_id=durationid, aistatus=None)
+    ai_true = duration_record.objects.filter(duration_id=durationid, aistatus__in=['1', '2'])
+    ai_false = duration_record.objects.filter(duration_id=durationid, aistatus__in=['3', '-2'])
+    notai = duration_record.objects.filter(duration_id=durationid, aistatus__in=['-1'])
+    datalist = {
+        'notai': notai.count(),
+        'ai_true': ai_true.count(),
+        'ai_false': ai_false.count(),
+        'notsent': notsent.count()
     }
     return datalist
+
 
 #  duration 数据结果更新
 def verifyDuration(durationid):

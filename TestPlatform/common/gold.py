@@ -1,15 +1,15 @@
 from TestPlatform.common.regexUtil import savecsv, connect_to_postgres
-from ...utils.keycloak.login_kc import *
+from TestPlatform.utils.keycloak.login_kc import *
 from TestPlatform.models import dicom, base_data, dictionary, smoke
-from ...utils.graphql.graphql import *
-from ..dicom.SendDicom import Send
-from ...models import smoke_record, dictionary, pid
-from ...tools.orthanc.deletepatients import delete_patients_duration
-from ...utils.graphql.graphql_ai_status import graphql_ai_status
+from TestPlatform.utils.graphql.graphql import *
+from TestPlatform.models import smoke_record, dictionary, pid
+from Dicom.common.SendDicom import Send
+from Dicom.common.deletepatients import delete_patients_duration
+from TestPlatform.utils.graphql.graphql_ai_status import graphql_ai_status
 
 import os, datetime
 import threading
-import time
+
 
 logger = logging.getLogger(__name__)
 

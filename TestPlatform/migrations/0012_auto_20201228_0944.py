@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             field=models.IntegerField(default=True, verbose_name='HOST id'),
         ),
         migrations.AddField(
-            model_name='stress',
+            model_name='data',
             name='hostid',
             field=models.IntegerField(default=True, verbose_name='HOST id'),
         ),

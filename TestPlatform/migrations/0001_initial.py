@@ -572,7 +572,7 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='stress',
+            name='data',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('projectname', models.CharField(blank=True, max_length=20, null=True, verbose_name='项目名称')),
@@ -596,7 +596,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': '性能测试记录表',
                 'verbose_name_plural': '性能测试记录表',
-                'db_table': 'stress',
+                'db_table': 'data',
             },
         ),
         migrations.CreateModel(

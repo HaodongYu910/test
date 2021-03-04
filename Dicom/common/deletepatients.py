@@ -1,8 +1,8 @@
 # coding=utf-8
 
-from ...common.regexUtil import *
-from ...models import dicom,dictionary
-from ...utils.keycloak.login_kc import *
+from TestPlatform.common.regexUtil import *
+from TestPlatform.models import dicom,dictionary
+from TestPlatform.utils.keycloak.login_kc import *
 import logging
 logger = logging.getLogger(__name__)
 

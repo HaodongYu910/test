@@ -9,12 +9,8 @@ from .api.global_parameter import *
 from .api.projectTitle import ProjectInfo
 from .api.Jiradata import *
 from .api.Sendmail import *
-from .api.basedata import *
 from .api.test_report import *
-from .api.apiDuration import *
-from .api.apiStress import *
 from .api.user_permission import *
-from .api.apiDicom import *
 from .api.apiSmoke import *
 from .api.apiDictionary import *
 from .api.apiUpload import *
@@ -108,54 +104,10 @@ urlpatterns = [
     url(r'risk', Testrisk.as_view()),
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
-    url(r'base/getdata', getBase.as_view()),
-    url(r'base/addData', AddbaseData.as_view()),
-    url(r'base/updateData', UpdatebaseData.as_view()),
-    url(r'base/disablebase', Disablebase.as_view()),
-    url(r'base/enablebase', Enablebase.as_view()),
-    url(r'base/delbasedata', Delbasedata.as_view()),
-    url(r'base/dicom', getDicomfile.as_view()),
     url(r'send', sendmail.as_view()),
     url(r'addupload', AddUpload.as_view()),# 文件上传
     url(r'delupload', DelUpload.as_view()),# 文件上传
     url(r'upload', getUpload.as_view()),  # 文件列表
-    url(r'stress/version', stressversion.as_view()),
-    url(r'stress/run', stressRun.as_view()),
-    url(r'stress/stop', stressStop.as_view()),
-    url(r'stress/Detail', stressDetail.as_view()),
-    url(r'stress/result', stressResult.as_view()),
-    url(r'stress/figure', reportfigure.as_view()),
-    url(r'stress/save', stressResultsave.as_view()),
-    url(r'stress/list', stressList.as_view()),
-    url(r'stress/add', addStress.as_view()),
-    url(r'stress/update', updateStress.as_view()),
-    url(r'stress/del', delStress.as_view()),
-    url(r'stress/disable', DisableStress.as_view()),
-    url(r'stress/enable', EnableStress.as_view()),
-    url(r'stress/StressDataAdd', AddStressData.as_view()),
-    url(r'stress/StressDataDel', DelStressData.as_view()),
-    url(r'stress/SynchroStressData',SynchroStressData.as_view()),
-    url(r'stress/disablebenchmarkstatus', DisableBenchmarkStatus.as_view()),
-    url(r'stress/enablebenchmarkstatus', EnableBenchmarkStatus.as_view()),
-    url(r'stress/Data', stressData.as_view()),
-    url(r'dicom/dicomData', dicomData.as_view()),
-    url(r'dicom/dicomdetail', dicomDetail.as_view()),
-    url(r'dicom/add_dicomData', adddicomdata.as_view()),
-    url(r'dicom/update', dicomUpdate.as_view()),
-    url(r'dicom/del_dicomData', deldicomdata.as_view()),
-    url(r'dicom/dicomcsv', dicomcsv.as_view()),
-    url(r'dicom/dicomSend', dicomSend.as_view()),
-    url(r'dicom/delete_patients', delete_patients.as_view()),
-    url(r'dicom/disabledicom', DisableDicom.as_view()),
-    url(r'dicom/enabledicom', EnableDicom.as_view()),
-    url(r'duration/durationData', durationData.as_view()),
-    url(r'duration/getduration', getDuration.as_view()),
-    url(r'duration/add_duration', add_duration.as_view()),
-    url(r'duration/update_duration', update_duration.as_view()),
-    url(r'duration/del_duration', del_duration.as_view()),
-    url(r'duration/duration_verify', duration_verify.as_view()),
-    url(r'duration/disable_duration', DisableDuration.as_view()),
-    url(r'duration/enable_duration', EnableDuration.as_view()),
     url(r'dictionary/list', Dictionary.as_view()),
     url(r'dictionary/add', AddDictionary.as_view()),
     url(r'dictionary/update', UpdateDictionary.as_view()),
@@ -170,9 +122,6 @@ urlpatterns = [
     url(r'smoke/record', smokeRecord.as_view()),
     url(r'smoke/figure', smokefigure.as_view()),
     url(r'smoke/smokelist', getSmoke.as_view()),
-    url(r'updatedata', Updatedata.as_view()),
     url(r'todo', todo.as_view()),
-    url(r'dicomurl',dicomUrl.as_view()),
-    url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
     url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]

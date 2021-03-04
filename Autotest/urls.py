@@ -22,6 +22,8 @@ from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from TestPlatform import urls
 from AutoUI import autourls
+from Stress import stressurls
+from Dicom import dicomurls
 from TestPlatform.api.ApiDoc import MockRequest
 
 
@@ -34,6 +36,8 @@ urlpatterns = [
     url(r'^$', TemplateView.as_view(template_name="index.html")), #home api
     url(r'^api/', include(urls)),
     url(r'^ui/', include(autourls)),
+    url(r'^stress/', include(stressurls)),
+    url(r'^dicom/', include(dicomurls)),
     path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]
 

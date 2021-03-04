@@ -6,15 +6,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
-from ..common.api_response import JsonResponse
-from ..models import stress, dicom, base_data, pid, GlobalHost, dicom_record, duration_record
-from ..serializers import stress_Deserializer, \
-    dicomdata_Deserializer, duration_Deserializer
-from ..tools.smoke.gold import *
-from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.dicomdetail import listUrl
-from ..tools.stress.stress import updateStressData
-from ..tools.dicom.dicomdetail import *
+from TestPlatform.common.api_response import JsonResponse
+from TestPlatform.models import dicom_record
+from TestPlatform.serializers import dicomdata_Deserializer
+# from .smoke.gold import *
+from ..common.deletepatients import *
+from ..common.dicomdetail import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

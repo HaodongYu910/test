@@ -182,6 +182,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'TestPlatform',
     'AutoUI',
+    'Stress',
+    'Dicom',
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',

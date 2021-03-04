@@ -153,8 +153,8 @@ export default new Router({
 
                 },
                 {
-                    path: '/stress',
-                    component: resolve => require(['../components/stress/stress.vue'], resolve),
+                    path: '/stressdata',
+                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
                     meta: {title: '性能测试'}
                 },
                 {
@@ -168,7 +168,7 @@ export default new Router({
                     meta: {title: '性能报告'}
                 },
                 {
-                    path: '/stressdata',
+                    path: '/data',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
                     meta: {title: '性能数据'}
                 },
@@ -177,6 +177,12 @@ export default new Router({
                     path: '/mailconfig',
                     component: resolve => require(['../components/report/Mailset.vue'], resolve),
                     meta: {title: '邮件配置'}
+                },
+                {
+                    //安装部署
+                    path: '/deploy',
+                    component: resolve => require(['../components/deploy/deploylist.vue'], resolve),
+                    meta: {title: '安装部署'}
                 },
                 //邮件詳情頁面
                 {
