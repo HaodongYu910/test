@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='stress',
+            model_name='data',
             name='jmeterstatus',
             field=models.BooleanField(default=True, verbose_name='jmeter状态'),
         ),

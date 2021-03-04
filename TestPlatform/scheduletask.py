@@ -5,7 +5,7 @@ from TestPlatform.HTML_template.test_html import html
 from TestPlatform.common.sendmail import send_mail
 from TestPlatform.models import test_report,base_data
 from django.conf import settings
-from TestPlatform.tools.dicom.duration_verify import *
+from Dicom.common.duration_verify import *
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ def duration(durationid):
             else:
                 sendcount = imod[0]
             cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                   ' /home/biomind/Biomind_Test_Platform/TestPlatform/tools/duration/durationcmd.py '
+                   ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/duration/durationcmd.py '
                    '--ip {0} --aet {1} '
                    '--port {2} '
                    '--keyword {3} '

@@ -45,12 +45,25 @@
                     },
                     {
                         icon: 'el-icon-s-platform',
+                        index: 'deploy',
+                        title: '安装部署',
+                    },
+                    {
+                        icon: 'el-icon-s-flag',
                         index: 'project',
                         title: '接口自动化',
                         subs: [
                             {
                                 index: 'project',
                                 title: '项目列表'
+                            },
+                            {
+                                index: 'SmokeData',
+                                title: '金标准数据'
+                            },
+                            {
+                                index: 'SmokeList',
+                                title: '金标准测试'
                             },
                             {
                                 index: 'ProjectReport',
@@ -121,21 +134,6 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-s-flag',
-                        index: '5',
-                        title: '金标准验证',
-                        subs: [
-                             {
-                                index: 'SmokeData',
-                                title: '金标准数据'
-                            },
-                            {
-                                index: 'SmokeList',
-                                title: '金标准测试'
-                            }
-                        ]
-                    },
-                    {
                         icon: 'el-icon-s-promotion',
                         index: 'host',
                         title: 'Host配置'
@@ -156,7 +154,7 @@
                     //     ]
                     // },
                     {
-                        icon: 'el-icon-s-tools',
+                        icon: 'el-icon-s-install',
                         index: '7',
                         title: '系统设置',
                         subs: [

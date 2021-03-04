@@ -640,15 +640,6 @@ class test_report_Serializer(serializers.ModelSerializer):
             'update_time', 'create_time')
         read_only_fields = ('report_id',)  # 指定只读的 field
 
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
-
 
 class test_report_Deserializer(serializers.ModelSerializer):
     """
@@ -670,15 +661,6 @@ class test_risk_Serializer(serializers.ModelSerializer):
         fields = ('risk_id', 'project_id', 'risk', 'development', 'delay', 'solution_status', 'status',
                   'update_time', 'create_time')
         read_only_fields = ('owner',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
 
 
 class test_risk_Deserializer(serializers.ModelSerializer):
@@ -702,15 +684,6 @@ class base_data_Serializer(serializers.ModelSerializer):
         'id', 'content', 'type', 'select_type', 'status', 'predictor', 'remarks', 'other', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
-
 
 class base_data_Deserializer(serializers.ModelSerializer):
     """
@@ -722,112 +695,6 @@ class base_data_Deserializer(serializers.ModelSerializer):
         fields = ('content', 'type', 'select_type', 'status', 'remarks', 'other')
 
 
-class stress_Serializer(serializers.ModelSerializer):
-    """
-    性能测试记录表序列化
-     """
-
-    class Meta:
-        model = stress
-        fields = (
-        'stressid', 'projectname', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
-        'dicom_send',
-        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date','jmeterstatus', 'status','hostid', 'update_time', 'create_time')
-        read_only_fields = ('stressid',)  # 指定只读的 field
-
-class stress_Deserializer(serializers.ModelSerializer):
-    """
-    性能测试记录表反序列化
-    """
-
-    class Meta:
-        model = stress
-        fields = (
-        'stressid', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
-        'duration', 'start_delay', 'dicom_send',
-        'loop_time', 'start_date', 'end_date','jmeterstatus', 'status','hostid')
-
-
-class stress_result_Serializer(serializers.ModelSerializer):
-    """
-    性能测试数据记录表序列化
-     """
-
-    class Meta:
-        model = stress_result
-        fields = ('id', 'version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages',
-                  'update_time', 'create_time')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-
-class stress_result_Deserializer(serializers.ModelSerializer):
-    """
-    性能测试数据记录表反序列化
-    """
-
-    class Meta:
-        model = stress_result
-        fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages')
-
-class stress_record_Deserializer(serializers.ModelSerializer):
-    """
-    性能测试数据反序列化
-    """
-    class Meta:
-        model = stress_record
-        fields = ('recordid', 'stressid', 'studyuid', 'slicenumber', 'imagecount', 'diseases',
-                  'graphql', 'benchmarkstatus', 'status')
-
-class stress_record_Serializer(serializers.ModelSerializer):
-    """
-    性能测试数据序列化
-     """
-
-    class Meta:
-        model = stress_record
-        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'imagecount', 'diseases',
-                  'graphql', 'benchmarkstatus', 'status')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
-
-class stress_job_Deserializer(serializers.ModelSerializer):
-    """
-    性能测试记录反序列化
-    """
-    class Meta:
-        model = stress_job
-        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'image', 'version',
-                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
-
-class stress_job_Serializer(serializers.ModelSerializer):
-    """
-    性能测试记录序列化
-     """
-
-    class Meta:
-        model = stress_job
-        fields = ('id', 'stressid', 'studyuid', 'slicenumber', 'image', 'version',
-                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
 
 class dicomdata_Deserializer(serializers.ModelSerializer):
     """
@@ -852,15 +719,6 @@ class dicomrecord_Serializer(serializers.ModelSerializer):
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'report', 'status','hostid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
 
 
 class dicomrecord_Deserializer(serializers.ModelSerializer):
@@ -888,14 +746,6 @@ class duration_record_Serializer(serializers.ModelSerializer):
             'diagnosis', 'sendserver', 'duration_id', 'sendtime','time','endtime', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
 
 
 class duration_record_Deserializer(serializers.ModelSerializer):
@@ -923,15 +773,6 @@ class duration_Serializer(serializers.ModelSerializer):
             'anonymous','sendstatus','status', 'sendcount', 'dds','hostid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
-    def get_apiCount(self, obj):
-        return obj.api_duration.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_duration.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_duration.all().count()
-
 
 class duration_Deserializer(serializers.ModelSerializer):
     """
@@ -953,17 +794,6 @@ class dictionary_Serializer(serializers.ModelSerializer):
         model = dictionary
         fields = ('id', 'key', 'value', 'remarks', 'type', 'status')
         read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_project.all().count()
-
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_project.all().count()
-
-
-    def get_memberCount(self, obj):
-        return obj.member_project.all().count()
 
 
 class dictionary_Deserializer(serializers.ModelSerializer):
@@ -1039,96 +869,6 @@ class smokerecord_Deserializer(serializers.ModelSerializer):
         fields = ('version', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'result', 'status','smokeid')
-
-class autotest_Serializer(serializers.ModelSerializer):
-    """
-    自动化测试列表列化
-     """
-    class Meta:
-        model = autotest
-        fields = ('id', 'version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','hostid','report','type','status')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_autotest.all().count()
-
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_autotest.all().count()
-
-
-    def get_memberCount(self, obj):
-        return obj.member_autotest.all().count()
-
-class autotest_Deserializer(serializers.ModelSerializer):
-    """
-    自动化测试列表反序列化
-    """
-
-    class Meta:
-        model = autotest
-        fields = ('version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','status','hostid','report','type')
-
-
-class autorecord_Serializer(serializers.ModelSerializer):
-    """
-    autotest测试数据记录表序列化
-
-     """
-
-    class Meta:
-        model = auto_record
-        fields = ('id', 'aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','testid', 'autoid','update_time', 'create_time')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.api_smoke.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_smoke.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_smoke.all().count()
-
-
-class autorecord_Deserializer(serializers.ModelSerializer):
-    """
-    autotest测试数据记录表反序列化
-    """
-    class Meta:
-        model = auto_record
-        fields = ('aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','testid', 'autoid')
-
-class autocase_Serializer(serializers.ModelSerializer):
-    """
-    auto_case表序列化
-
-     """
-
-    class Meta:
-        model = auto_case
-        fields = ('id', 'name',  'testdata', 'type','status','update_time', 'create_time')
-        read_only_fields = ('id',)  # 指定只读的 field
-
-    def get_apiCount(self, obj):
-        return obj.auto_case.all().count()
-
-    def get_dynamicCount(self, obj):
-        return obj.dynamic_case.all().count()
-
-    def get_memberCount(self, obj):
-        return obj.member_case.all().count()
-
-
-class autocase_Deserializer(serializers.ModelSerializer):
-    """
-    auto_case表反序列化
-    """
-    class Meta:
-        model = auto_case
-        fields = ('name',  'testdata', 'type','status')
 
 
 class uploadfile_Deserializer(serializers.ModelSerializer):

@@ -39,7 +39,7 @@ def get_series_id_by_series_uid(kc, series_uid):
     }
     try:
         res = kc.post(
-            "/orthanc/tools/find",
+            "/orthanc/install/find",
             json=json_data,
             timeout=CONFIG.orthanc_timeout,
             verify=False)

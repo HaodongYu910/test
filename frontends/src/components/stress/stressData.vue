@@ -197,14 +197,14 @@
         dicomdetail,
         getHost,
         getdicomdata,
-        updateStressdata,
+        updatedicomdata,
         StressData,
         getbase,
         addStressData,
         DelStressData,
-      disableStressData,
+      DisableDicom,
       disableBenchmarkstatus,
-      enableStressData,
+      EnableDicom,
         StressSynchro,
       enableBenchmarkstatus
     } from '@/router/api'
@@ -400,7 +400,7 @@
                     Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    disableStressData(headers, params).then(_data => {
+                    DisableDicom(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -419,7 +419,7 @@
                         }
                     });
                 } else {
-                    enableStressData(headers, params).then(_data => {
+                    EnableDicom(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {

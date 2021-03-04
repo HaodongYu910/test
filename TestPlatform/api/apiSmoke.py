@@ -5,14 +5,13 @@ from django.db.models import Count
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-import threading
 from django.db import transaction
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
-from ..tools.smoke.gold import SmokeThread
-from ..tools.orthanc.deletepatients import *
+from TestPlatform.common.gold import SmokeThread
+from Dicom.common.deletepatients import *
 from ..models import smoke_record,smoke
-from ..common.dicomBase import baseTransform
+from Dicom.common.dicomBase import baseTransform
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
