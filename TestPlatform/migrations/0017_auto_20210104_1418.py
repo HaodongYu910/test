@@ -11,16 +11,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RemoveField(
-            model_name='smoke',
+            model_name='gold',
             name='aistatus',
         ),
         migrations.AddField(
-            model_name='smoke',
+            model_name='gold',
             name='progress',
             field=models.CharField(blank=True, max_length=5, null=True, verbose_name='进度'),
         ),
         migrations.AddField(
-            model_name='smoke',
+            model_name='gold',
             name='thread',
             field=models.CharField(blank=True, max_length=5, null=True, verbose_name='线程数'),
         ),

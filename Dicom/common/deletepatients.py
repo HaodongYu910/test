@@ -1,6 +1,6 @@
 # coding=utf-8
 
-from TestPlatform.common.regexUtil import *
+from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.models import dicom,dictionary
 from TestPlatform.utils.keycloak.login_kc import *
 import logging
@@ -28,7 +28,7 @@ def delete_patients_duration(key, serverID,type,fuzzy):
         sqldict = dictionary.objects.get(key=type, type="sql", status=True)
         sql = sqldict.value
     try:
-        result_1 = connect_to_postgres(Hostobj.host,sql)
+        result_1 = connect_postgres(host=Hostobj.host,sql=sql)
         _dict1 = result_1.to_dict(orient='records')
         kc = login_keycloak(serverID)
     except Exception as e:

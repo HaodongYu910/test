@@ -19,7 +19,7 @@ from email import encoders
 # import email.mime.text
 # from email.mime.image import MIMEImage
 # from email.mime.application import MIMEApplication
-# from TestPlatform.HTML_template.test_html import html
+# from TestPlatform.HtmlTemplate.test_html import html
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)
@@ -98,7 +98,7 @@ def exchange_email():
     # )
 
     # 此处为用来发送html格式邮件的文件路径
-    with open(r'/Users/yin/PycharmProjects/Test_platform/TestPlatform/HTML_template/stressreport.html') as f:
+    with open(r'/Users/yin/PycharmProjects/Test_platform/TestPlatform/HtmlTemplate/stressreport.html') as f:
         msg = f.read().decode('utf-8')
 
     m = Message(

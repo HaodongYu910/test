@@ -44,21 +44,6 @@ def Weekdays(str):
         return False
 
 
-# """链接数据库"""
-def connect_postgres(*args):
-    conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=args[0], port="5432")
-    result = pd.read_sql(args[1], conn)
-    conn.close()
-    return result
-
-def connect_to_postgres(orthanc_ip,sql):
-    conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=orthanc_ip, port="5432")
-    result = pd.read_sql(sql, conn)
-    conn.close()
-    return result
-
-
-
 def get_tc_perf():
     pid = os.getpid()
     logger.info("pid: {}".format(pid))
@@ -69,7 +54,7 @@ def get_tc_perf():
 
 
 # 链接InfluxDB时序数据库
-def connect_to_influx(server,database, task_type, task_content):
+def connect_influx(server,database, task_type, task_content):
     client = InfluxDBClient(host=server, port='8086',database=database)
     if task_type == 'insert':
         result = client.write_points(task_content)

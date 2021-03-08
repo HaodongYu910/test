@@ -21,6 +21,9 @@
                 <el-form-item>
                     <el-button type="primary" @click="handleAdd">创建测试</el-button>
                 </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="showData">查看数据</el-button>
+                </el-form-item>
             </el-form>
         </el-col>
 
@@ -448,6 +451,15 @@
             handleEdit: function (index, row) {
                 this.editFormVisible = true;
                 this.editForm = Object.assign({}, row);
+            },
+            //展示风险项
+            showData(index,row){
+             this.$router.push({
+                    path:'/dicom',
+                    query:{
+                        type:"gold"
+                    }
+                });
             },
             //显示新增界面
             handleAdd: function () {

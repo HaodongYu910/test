@@ -879,3 +879,12 @@ class uploadfile_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = uploadfile
         fields = ('id', 'filename', 'fileurl', 'fileid', 'type', 'status', 'update_time', 'create_time')
+
+class install_Deserializer(serializers.ModelSerializer):
+    """
+    安装反序列化
+    """
+
+    class Meta:
+        model = install
+        fields = ('id', 'server', 'testcase', 'fileid', 'version', 'starttime', 'hosdid', 'type','status')

@@ -10,12 +10,14 @@ from django.db import transaction
 from ..models import stress_record,stress_result, stress
 from ..serializers import stress_result_Deserializer
 from .loganalys import errorLogger
-from TestPlatform.common.regexUtil import connect_to_postgres, csv
-from TestPlatform.models import  duration_record, dicom, GlobalHost, dictionary,uploadfile
+from TestPlatform.common.PostgreSQL import connect_postgres
+from TestPlatform.common.regexUtil import csv
+from TestPlatform.models import duration_record, dicom, GlobalHost, dictionary,uploadfile
 from TestPlatform.utils.graphql.graphql import *
 from Dicom.common.dicomdetail import checkuid, voteData
 from TestPlatform.utils.keycloak.login_kc import login_keycloak
 from TestPlatform.common.transport import SSHConnection
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +39,7 @@ def saveData(**kwargs):
     try:
         if kwargs["type"] in ["predictionJZ", "lung_prediction"]:
             sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
-            result = connect_to_postgres(kwargs["ip"], sql.value.format(kwargs["studyuid"], kwargs["count"]))
+            result = connect_postgres(host=kwargs["ip"],sql= sql.value.format(kwargs["studyuid"], kwargs["count"]))
             datatest = kwargs["datatest"]
             datatest["type"] = kwargs["type"]
             datatest["avg"] = str(result.to_dict(orient='records')[0]["avg"])
@@ -61,7 +63,7 @@ def stresscache(stressid):
         # 查询预测成功的数据 作为压测数据
         # sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname =\'brainctp\' ORDER BY modelname';
         sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format(dictobj.key)
-        results = connect_to_postgres(obj.loadserver, sql).to_dict(orient='records')
+        results = connect_postgres(host=obj.loadserver, sql=sql).to_dict(orient='records')
         # 循环插入数据
         for j in results:
             logger.info(j['studyuid'])
@@ -80,11 +82,11 @@ def stresscache(stressid):
 # 修改数据
 def updateStressData(uid, orthanc_ip):
     vote = ''
-    Series = connect_to_postgres(orthanc_ip,
-                                 "select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
+    Series = connect_postgres(host=orthanc_ip,
+                                 sql="select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
                                      uid)).to_dict(orient='records')
-    pseries_classifier = connect_to_postgres(orthanc_ip,
-                                             "select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
+    pseries_classifier = connect_postgres(host=orthanc_ip,
+                                             sql="select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
                                                  uid)).to_dict(orient='records')
 
     pseries = pseries_classifier[0]['pseries']
@@ -105,31 +107,35 @@ def savecsv(path, graphql_query):
 
 
 def saveStressddt(stressid, path):
+    imagelist = []
+    ii = 0
+    # 查询测试配置
     obj = stress.objects.get(stressid=stressid)
-    savecsv('{}/logs/data/config.csv'.format(path),
+    savecsv('{}/data/config.csv'.format(path),
             [obj.loadserver, 'biomind3d', 'engine3D.', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,
              obj.loop_count])
-
+    # 影像id
+    image = connect_postgres(host=obj.loadserver, sql='select publicid from image ORDER BY internalid desc LIMIT 100')
+    imagedata = image.to_dict(orient='records')
+    for j in imagedata:
+        imagelist.append(j["publicid"])
     # 循环生成压测数据
     for i in obj.testdata.split(","):
         if int(i) in [4, 7, 8, 10]:
             obd = dictionary.objects.get(id=i)
             sqlobj = dictionary.objects.get(type='sql', key='3d')
             sql = sqlobj.value.format(obd.key, obj.thread)
-            stressdict = connect_to_postgres(obj.loadserver, sql)
+            stressdict = connect_postgres(host=obj.loadserver, sql=sql)
             stressdata = stressdict.to_dict(orient='records')
-        elif int(i) in [9, 12]:
-            continue
-        try:
-            for k in stressdata:
-                savecsv('{}/logs/data/data.csv'.format(path, str(i)),
-                        [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks])
-        except Exception as e:
-            continue
-
+            try:
+                for k in stressdata:
+                    savecsv('{}/data/data.csv'.format(path, str(i)),
+                            [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks,imagelist[ii]])
+                    ii = ii + 1
+            except Exception as e:
+                continue
 
 # 性能测试
-
 class StressThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self)
@@ -161,12 +167,12 @@ class StressThread(threading.Thread):
                             # 开始时间
                             starttime = time.time()
                             result = graphql_Interface(k.graphql, self.kc)
-                            ai_biomind = result['ai_biomind']['preport']
+                            ai_biomind = result['ai_biomind']
                             avgtime = time.time() - starttime
                             avglist.append(avgtime)
                             time.sleep(10)
                         except Exception as e:
-                            logger.error("执行预测失败：{0}".format(k.studyuid))
+                            logger.error("执行预测失败：{0}".format(k.studyinstanceuid))
                             continue
 
                     jobtype = 'jobJZ'
@@ -235,7 +241,7 @@ class StressThread(threading.Thread):
             else:
                 for i in self.obj.testdata.split(","):
                     cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                           ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
+                           ' /home/biomind/Biomind_Test_Platform/Dicom/common/dicomSend.py '
                            '--ip {0} --aet {1} '
                            '--port {2} '
                            '--patientid {3} '
@@ -248,7 +254,7 @@ class StressThread(threading.Thread):
                            '--series {10} &').format(self.server, self.Hostobj.description, self.Hostobj.port,
                                                      "ST{}".format(str(i).strip()), "st{}".format(str(i).strip()),
                                                      str(i).strip(), '0{}'.format(self.stressid),
-                                                     int(self.obj.loop_count), 8787, 0, 0)
+                                                     int(self.obj.loop_count),8787,0,0)
                     os.system(cmd)
                     logger.info(cmd)
             self.obj.status = True
@@ -261,12 +267,12 @@ class StressThread(threading.Thread):
     # 执行 jmeter 脚本
     def jmeterStress(self):
         jmeterobj = uploadfile.objects.filter(fileid=self.stressid)
-        path = os.path.join(os.getcwd())
-        if not os.path.exists('{}/logs/data'.format(path)):
-            os.mkdir('{}/logs/data'.format(path))
+        path = settings.LOG_PATH
+        if not os.path.exists('{}/data'.format(path)):
+            os.mkdir('{}/data'.format(path))
         else:
-            shutil.rmtree('{}/logs/data'.format(path))
-            os.mkdir('{}/logs/data'.format(path))
+            shutil.rmtree('{}/data'.format(path))
+            os.mkdir('{}/data'.format(path))
         saveStressddt(self.stressid, path)
         # 执行jmeter
         try:
@@ -306,8 +312,8 @@ class StressThread(threading.Thread):
                 try:
                     # 循环查询结果
                     for k, v in infos.items():
-                        result = connect_to_postgres(self.server,
-                                                     obj.value.format(v["uids"][:-1], self.obj.start_date,
+                        result = connect_postgres(host=self.server,
+                                                     sql=obj.value.format(v["uids"][:-1], self.obj.start_date,
                                                                       self.obj.end_date))
                         dict = result.to_dict(orient='records')
                         try:
@@ -335,7 +341,7 @@ class StressThread(threading.Thread):
         for j in ["predictionrecord", "jobmetrics"]:
             sqlobj = dictionary.objects.get(key=j)
             sql = sqlobj.value.format(self.obj.start_date, self.obj.end_date)
-            result = connect_to_postgres(self.server, sql)
+            result = connect_postgres(host=self.server, sql=sql)
             dict = result.to_dict(orient='records')
             # 循环数据保存
             for i in dict:
@@ -367,6 +373,7 @@ class StressThread(threading.Thread):
         ospath = '/home/biomind/Biomind_Test_Platform/logs/pm2.zip'
         ssh.download(ospath,downpath)
         errorLogger(self.stressid,self.obj.version,ospath)
+        ssh.close()
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

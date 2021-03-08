@@ -1,9 +1,9 @@
-from TestPlatform.common.regexUtil import savecsv, connect_to_postgres
+from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.utils.keycloak.login_kc import *
 from TestPlatform.models import dicom, base_data, dictionary, smoke
 from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.models import smoke_record, dictionary, pid
-from Dicom.common.SendDicom import Send
+from Dicom.common.Dicom import Send
 from Dicom.common.deletepatients import delete_patients_duration
 from TestPlatform.utils.graphql.graphql_ai_status import graphql_ai_status
 
@@ -25,7 +25,7 @@ def updatesmoke(id, count):
 def datacheck(serverIP, uid, route, hostid):
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         uid)
-    result_db = connect_to_postgres(serverIP, sql)
+    result_db = connect_postgres(host=serverIP,sql= sql)
     # 无此数据，发送
     if len(result_db) == 0:
         Send(hostid, route)

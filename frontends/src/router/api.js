@@ -350,15 +350,15 @@ export const getdurationData = (headers, params) => {
 }
 //添加duration
 export const addduration = (headers, params) => {
-  return axios.post(`${test}/dicom/duration/add_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/duration/add`, params, headers).then(res => res.data)
 }
 // 修改duration
 export const updateduration = (headers, params) => {
-  return axios.post(`${test}/dicom/duration/update_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/duration/up`, params, headers).then(res => res.data)
 }
 // 删除duration
 export const delduration = (headers, params) => {
-  return axios.post(`${test}/dicom/duration/del_duration`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/duration/del`, params, headers).then(res => res.data)
 }
 // 启动匿名化
 export const anonStart = (headers, params) => {
@@ -375,7 +375,7 @@ export const disable_duration = (headers, params) => {
 
 // 持续化数据验证
 export const getdurationverify = (headers, params) => {
-      return axios.get(`${test}/dicom/duration/duration_verify`, { params: params }, { headers }).then(res => res.data)
+      return axios.get(`${test}/dicom/duration/verify`, { params: params }, { headers }).then(res => res.data)
 }
 // 持续化数据验证统计
 export const durationverifydata = (headers, params) => {

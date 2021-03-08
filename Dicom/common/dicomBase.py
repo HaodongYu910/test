@@ -1,6 +1,6 @@
 from TestPlatform.models import base_data
 from AutoUI.models import auto_uicase
-from .SendDicom import Send
+from .Dicom import Send
 from .deletepatients import *
 from .duration_verify import *
 from .deletepatients import delete_patients_duration
@@ -34,7 +34,7 @@ def checkuid(serverID, serverIP, studyuid):
     obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         studyuid)
-    result_db = connect_to_postgres(serverIP, sql)
+    result_db = connect_postgres(host=serverIP, sql=sql)
     # 无此数据，发送
     if len(result_db) == 0:
         Send(serverID, obj.route)
@@ -71,7 +71,7 @@ def verifyDuration(durationid):
         data = {'studyinstanceuid': i.studyinstanceuid}
         sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
             i.studyinstanceuid)
-        result_1 = connect_to_postgres(serverip, sql)
+        result_1 = connect_postgres(host=serverip, sql=sql)
         sqldata = result_1.to_dict(orient='records')
 
         if sqldata == []:

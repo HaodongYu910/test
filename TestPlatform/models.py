@@ -926,7 +926,7 @@ class smoke(models.Model):
     class Meta:
         verbose_name = "smoke测试表"
         verbose_name_plural = "smoke测试表"
-        db_table = 'smoke'
+        db_table = 'gold'
 
 class smoke_record(models.Model):
     """
@@ -1062,3 +1062,25 @@ class uploadfile(models.Model):
         verbose_name = "uploadfile"
         verbose_name_plural = "uploadfile"
         db_table = 'uploadfile'
+
+class install(models.Model):
+    """
+          部署安装信息表
+        """
+    id = models.AutoField(primary_key=True)
+    server = models.CharField(max_length=30, blank=True, null=True, verbose_name="服务地址")
+    testcase = models.CharField(max_length=30, blank=True, null=True, verbose_name="测试数据")
+    version = models.CharField(max_length=30, blank=True, null=True, verbose_name="部署版本")
+    starttime = models.CharField(max_length=30, blank=True, null=True, verbose_name="部署时间")
+    hosdid = models.IntegerField(blank=True, null=True, verbose_name="hostid")
+    type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "install"
+        verbose_name_plural = "install"
+        db_table = 'install'

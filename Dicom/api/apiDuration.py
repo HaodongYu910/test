@@ -9,12 +9,14 @@ import threading
 
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import pid
-from TestPlatform.serializers import duration_Deserializer
+from TestPlatform.serializers import duration_Deserializer,duration_Serializer
 from ..common.anonymization import onlyDoAnonymization
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.dicomdetail import anonymousSend,normalSend,durationStop
 from Dicom.common.dicomBase import verifyDuration,durationtotal,baseTransform
+import datetime,os
+
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -131,9 +133,7 @@ class durationData(APIView):
                                   "count": count
                                   }, code="0", msg="成功")
 
-
-# 保存dicom 发送记录
-class add_duration(APIView):
+class addDuration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -153,7 +153,7 @@ class add_duration(APIView):
 
     def post(self, request):
         """
-        send数据
+        添加send数据
         :param request:
         :return:
         """
@@ -186,9 +186,7 @@ class add_duration(APIView):
             print(e)
             return JsonResponse(code="999995", msg="数据不存在！")
 
-
-# 修改duration
-class update_duration(APIView):
+class updateDuration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -199,8 +197,8 @@ class update_duration(APIView):
         :return:
         """
         try:
-            # 必传参数 key, server_ip , type
-            if not data["dicom"]:
+            # 必传参数 dicom
+            if not data["id"]:
                 return JsonResponse(code="999996", msg="参数有误,必传参数 dicom！")
 
         except KeyError:
@@ -208,7 +206,7 @@ class update_duration(APIView):
 
     def post(self, request):
         """
-        send数据
+        修改持续化数据
         :param request:
         :return:
         """
@@ -323,8 +321,8 @@ class EnableDuration(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
-# 删除dicom 发送记录
-class del_duration(APIView):
+
+class delDuration(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -346,7 +344,7 @@ class del_duration(APIView):
 
     def post(self, request):
         """
-        删除项目
+        删除dicom 发送记录
         :param request:
         :return:
         """
@@ -371,7 +369,7 @@ class del_duration(APIView):
 
 
 # 删除dicom 数据
-class delete_patients(APIView):
+class deletePatients(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
@@ -407,7 +405,7 @@ class delete_patients(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-class duration_verify(APIView):
+class durationVerify(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 

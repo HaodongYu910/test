@@ -2,10 +2,14 @@ from TestPlatform.utils.graphql.graphql import *
 from TestPlatform.utils.keycloak.login_kc import *
 from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import GlobalHost, dictionary, dicom
-from .SendDicom import Send
+from .Dicom import Send
 from .duration_verify import *
 from .deletepatients import delete_patients_duration
+from TestPlatform.common.PostgreSQL import connect_postgres
+from TestPlatform.common.regexUtil import savecsv
+import os
 import shutil
+import time,datetime
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +48,7 @@ def normalSend(id):
         for j in dicomobj:
             delete_patients_duration(j.studyinstanceuid, obj.hostid, 'StudyInstanceUID', False)
         cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-               ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
+               ' /home/biomind/Biomind_Test_Platform/Dicom/common/dicomSend.py '
                '--ip {0} --aet {1} '
                '--port {2} '
                '--patientid {3} '
@@ -93,7 +97,7 @@ def anonymousSend(id,type):
                     end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
                     a = a + 1
                 cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/dicom/dicomSend.py '
+                       ' /home/biomind/Biomind_Test_Platform/Dicom/common/dicomSend.py '
                        '--ip {0} --aet {1} '
                        '--port {2} '
                        '--patientid {3} '
@@ -138,7 +142,7 @@ def checkuid(serverID, serverIP, dicomid):
     obj = dicom.objects.get(id=dicomid)
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         obj.studyinstanceuid)
-    result_db = connect_to_postgres(serverIP, sql)
+    result_db = connect_postgres(host=serverIP, sql=sql)
     # 无此数据，发送
     if len(result_db) == 0:
         Send(serverID, obj.route)
@@ -152,8 +156,8 @@ def checkuid(serverID, serverIP, dicomid):
 def listUrl(hostid, studyuid):
     obj = GlobalHost.objects.get(id=hostid)
     kc = login_keycloak(hostid)
-    result_db = connect_to_postgres(obj.host,
-                                    'select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
+    result_db = connect_postgres(host=obj.host,
+                                    sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
     url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
     return kc.raw_token, url
@@ -188,8 +192,8 @@ def voteData(uid, orthanc_ip, diseases, kc):
         else:
             Series = dictionary.objects.get(type='sql', key='Series').value
         protocol = dictionary.objects.get(type='sql', key='protocol')
-        Series = connect_to_postgres(orthanc_ip, Series.format(uid)).to_dict(orient='records')
-        pseries_classifier = connect_to_postgres(orthanc_ip, protocol.value.format(uid)).to_dict(orient='records')
+        Series = connect_postgres(host=orthanc_ip, sql=Series.format(uid)).to_dict(orient='records')
+        pseries_classifier = connect_postgres(host=orthanc_ip, sql=protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))

@@ -26,7 +26,7 @@ import socket
 #
 # # 链接InfluxDB时序数据库
 #
-# def connect_to_influx(data):
+# def connect_influx(data):
 #     posturl = 'http://127.0.0.1:8086/write?db=autotest'
 #     requests.post(posturl, data=data)
 
@@ -370,7 +370,7 @@ if __name__ == '__main__':
         CONFIG, log_path = prepare_config(sys.argv[1:])
         # 查询发送数据sql
         if str(CONFIG["sleepcount"]) == '8787':
-            sql = "select d.route,d.diseases from stress_record sr join dicom d on sr.stressid = d.id  where sr.diseases in ({0})".format(
+            sql = "select route,diseases from dicom  where predictor in ({0})".format(
                 CONFIG["folderid"])
         else:
             sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])

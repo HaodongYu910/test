@@ -1,10 +1,10 @@
-from TestPlatform.common.regexUtil import *
+from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.models import dictionary
 from ..serializers import stress_result_Deserializer
 from django.db import transaction
 from Dicom.common.dicomdetail import voteData
 import numpy as np
-
+import logging
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ def lung(checkdate, server, version, lungid, kc):
     # db_query = 'select studyinstanceuid as studyuid  from study_view where aistatus =\'3\''
     db_query = sql.value.format(dise.key, checkdate[0], checkdate[1])
 
-    result_db = connect_to_postgres(server, db_query).to_dict(orient='records')
+    result_db = connect_postgres(host=server, sql=db_query).to_dict(orient='records')
     for u in result_db:
         vote, imagecount, SliceThickness = voteData(u["studyuid"], server, int(lungid), kc)
         if SliceThickness is None:
@@ -80,7 +80,7 @@ def dataCheck(dataA, dataB):
 # 预测数据保存
 def saveResult(server, version, type, checkdate, sql, imagedata, kc):
     imagelist = []
-    result = connect_to_postgres(server, sql)
+    result = connect_postgres(host=server, sql=sql)
     dict = result.to_dict(orient='records')
     for i in dict:
         if type == 'lung_job':
@@ -116,7 +116,7 @@ def image(server, modelname, checkdate, kc):
         obj = dictionary.objects.get(id=modelname)
         sql = dictionary.objects.get(key='predictionuid', type='sql')
         sqldata = sql.value.format(obj.key, checkdate[0], checkdate[1])
-        dict = connect_to_postgres(server, sqldata).to_dict(orient='records')
+        dict = connect_postgres(host=server, sql=sqldata).to_dict(orient='records')
         for i in dict:
             vote, imagecount, slicenumber = voteData(i['studyuid'], server, modelname, kc)
             if imagecount is None:
@@ -134,7 +134,7 @@ def image(server, modelname, checkdate, kc):
 #
 # def jmetersave(server, version):
 #     task_content = ""
-#     result = connect_to_influx('192.168.1.120', 'Jmeter_DB', 'query', task_content)
+#     result = connect_influx('192.168.1.120', 'Jmeter_DB', 'query', task_content)
 #     _num1 = len(result)
 #     _dict1 = result.to_dict(orient='records')
 #     for i in _dict1:
