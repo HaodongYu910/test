@@ -2,9 +2,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from TestPlatform.common.api_response import JsonResponse
-from ..tools.orthanc.deletepatients import *
-from ..tools.dicom.duration_verify import *
-from ..tools.stress.PerformanceResult import *
+from Dicom.common.deletepatients import *
+from Dicom.common.duration_verify import *
 
 class ddsData(APIView):
     authentication_classes = (TokenAuthentication,)

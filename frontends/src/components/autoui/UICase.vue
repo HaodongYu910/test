@@ -20,9 +20,9 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="id" label="id" min-width="12%" sortable>
+            <el-table-column prop="id" label="caseid" min-width="12%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.caseid }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="filename" label="用例名称" min-width="12%" sortable show-overflow-tooltip>
@@ -662,7 +662,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                id: self.editForm.id,
+                                caseid: self.editForm.caseid,
                                 name: self.editForm.name,
                                 testdata: self.editForm.testdata,
                                 type: this.editForm.type,

@@ -42,19 +42,19 @@
                         <span style="margin-left: 10px">{{ scope.row.id }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientid" label="patientid" min-width="15%">
+                <el-table-column prop="patientid" label="patientid" min-width="12%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientname" label="patientname" min-width="15%">
+                <el-table-column prop="patientname" label="patientname" min-width="12%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="studyinstanceuid" label="Studyinstanceuid" min-width="25%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.studyuid }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="类型" min-width="10%" sortable>
@@ -72,15 +72,15 @@
                         <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="挂载" min-width="15   %">
+                <el-table-column label="graphql" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.graphql }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="20px">
+                <el-table-column label="操作" min-width="25%">
                     <template slot-scope="scope">
-                      <el-button type="warning" size="small" @click="handleChange(scope.$index, scope.row)">{{scope.row.benchmarkstatus===false?'正常':'基准'}}</el-button>
-                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                      <el-button type="primary" size="small" @click="handleChange(scope.$index, scope.row)">{{scope.row.benchmarkstatus===false?'正常':'基准'}}</el-button>
+                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
                     <el-button type="danger" size="small" @click="handleTB(scope.$index, scope.row)">同步</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
                     </template>
@@ -126,7 +126,10 @@
                         </el-col>
                     </el-row>
                     <el-form-item label="挂载">
-                        <el-input v-model="editForm.vote" :disabled="true" auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
+                    </el-form-item>
+                    <el-form-item label="Graphql">
+                        <el-input type="textarea" :rows="10" v-model="editForm.graphql"  auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -194,14 +197,14 @@
         dicomdetail,
         getHost,
         getdicomdata,
-        updateStressdata,
+        updatedicomdata,
         StressData,
         getbase,
         addStressData,
         DelStressData,
-      disableStressData,
+      DisableDicom,
       disableBenchmarkstatus,
-      enableStressData,
+      EnableDicom,
         StressSynchro,
       enableBenchmarkstatus
     } from '@/router/api'
@@ -397,7 +400,7 @@
                     Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    disableStressData(headers, params).then(_data => {
+                    DisableDicom(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -416,7 +419,7 @@
                         }
                     });
                 } else {
-                    enableStressData(headers, params).then(_data => {
+                    EnableDicom(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {

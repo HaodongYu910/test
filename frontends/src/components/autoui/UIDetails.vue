@@ -31,35 +31,30 @@
                     @selection-change="selsChange">
                 <el-table-column prop="ID" label="ID" min-width="4%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.recordid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientid" label="patientid" min-width="10%">
+                <el-table-column prop="studyuid" label="studyuid" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.studyuid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientname" label="patientname" min-width="8%" sortable>
+                <el-table-column prop="vote" label="vote" min-width="8%" sortable>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.vote }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="diseases" label="病种" min-width="8%" sortable>
+                <el-table-column prop="caseid" label="病种" min-width="8%" sortable>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.caseid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="studyinstanceuid" label="Studyinstanceuid" min-width="25%">
+                <el-table-column prop="aistatus" label="预测状态" min-width="8%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="sendstatus" label="预测状态" min-width="8%">
-                    <template slot-scope="scope">
-                        <img v-show="scope.row.status"
+                        <img v-show="scope.row.aistatus"
                              style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                              src="../../assets/img/qiyong.png"/>
-                        <img v-show="!scope.row.status"
+                        <img v-show="!scope.row.aistatus"
                              style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
                              src="../../assets/img/shibai.png"/>
                     </template>
@@ -69,25 +64,15 @@
                         <span style="margin-left: 10px">{{ scope.row.time }} 秒</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="slice" min-width="8%" sortable>
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="预测张数" min-width="5%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
-                    </template>
-                </el-table-column>
                 <el-table-column label="标准" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.result)">{{ scope.row.diagnosis }}</span>
+                              :class="valuestatus(scope.row.result)">{{ scope.row.expect }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="实际" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px" :class="valuestatus(scope.row.result)">{{ scope.row.aidiagnosis }}</span>
+                        <span style="margin-left: 10px" :class="valuestatus(scope.row.result)">{{ scope.row.actual }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="结果" min-width="8%">
@@ -101,7 +86,7 @@
                         <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
                         <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
                         <el-button type="warning" size="small" @click="handleR(scope.$index, scope.row)">重测</el-button>
-                        <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>
+<!--                        <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>-->
                     </template>
                 </el-table-column>
             </el-table>
@@ -122,7 +107,7 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, deldicomresult, getdicomurl
+        getHost, getAutorecord, getsmokestart, getbase, deldicomresult, getdicomurl
     } from '@/router/api'
     import {stresssave} from "../../router/api";
 
@@ -132,8 +117,6 @@
         data() {
             return {
                 filters: {
-                    diseases: null,
-                    slicenumber: null,
                     diseases: '',
                     server: '',
                     version: '',
@@ -178,7 +161,7 @@
         methods: {
             getParams() {
                 this.routerParams = this.$route.query;
-                this.smokeid = this.$route.params.smokeid
+                this.autoid = this.$route.params.autoid
             },
             valuestatus: function (a) {
                 if (a === "匹配成功") {
@@ -266,10 +249,12 @@
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.smokeid
+                    autoid: this.autoid,
+                    diseases:this.filters.diseases,
+                    status:this.filters.status
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getsmokerecord(headers, params).then((res) => {
+                getAutorecord(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {

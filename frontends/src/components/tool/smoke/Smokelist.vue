@@ -38,7 +38,7 @@
                     </router-link>
                 </template>
             </el-table-column>
-            <el-table-column prop="hostid" label="服务" min-width="12%" sortable>
+            <el-table-column prop="hostid" label="服务" min-width="15%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.hostid }}</span>
                 </template>
@@ -48,12 +48,12 @@
                     <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="16%" sortable>
+            <el-table-column label="开始时间" min-width="18%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.starttime  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="结束时间" min-width="16%" sortable>
+            <el-table-column label="结束时间" min-width="18%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.completiontime  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
@@ -86,13 +86,13 @@
                          src="../../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="30%">
+            <el-table-column label="操作" min-width="20%">
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
 <!--                    <el-button type="primary" size="small" @click="smoketest(scope.$index, scope.row)">测试</el-button>-->
 <!--                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">定时</el-button>-->
-                    <el-button type="danger" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                        {{scope.row.status===false?'启用测试':'停止测试'}}
+                    <el-button :type="typestatus(scope.row.status)" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        {{scope.row.status===false?'启用':'停止'}}
                     </el-button>
                 </template>
             </el-table-column>
@@ -269,6 +269,14 @@
             this.getBase()
         },
         methods: {
+            typestatus: function (i) {
+                if (i ===true) {
+                    return 'danger'
+                } else {
+                    return 'primary'
+                }
+
+            },
             showdetail(index, row) {
                 this.$router.push({
                     path: '/stressdetail',

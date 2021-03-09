@@ -90,7 +90,7 @@ export default {
     editPermission: 'ロール変更',
     roles: 'ロール',
     switchRoles: 'ロール切替',
-    tips: 'v-permissionは使えない時があります。例えば: Element-UI の el-stress、 el-table-column 及び他の dom。v-ifを使う必要があります。',
+    tips: 'v-permissionは使えない時があります。例えば: Element-UI の el-data、 el-table-column 及び他の dom。v-ifを使う必要があります。',
     delete: '削除',
     confirm: '確認',
     cancel: 'キャンセル'
