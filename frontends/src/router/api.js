@@ -383,39 +383,39 @@ export const durationverifydata = (headers, params) => {
 }
 // 冒烟测试列表
 export const getsmoke = (headers, params) => {
-  return axios.get(`${test}/api/smoke/smokelist`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/gold/smokelist`, { params: params }, { headers }).then(res => res.data)
 }
 // 添加冒烟测试
 export const addSmoke = (headers, params) => {
-  return axios.post(`${test}/api/smoke/addsmoke`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/addsmoke`, params, headers).then(res => res.data)
 }
 // 修改冒烟测试
 export const UpdateSmoke = (headers, params) => {
-  return axios.post(`${test}/api/smoke/updatesmoke`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/updatesmoke`, params, headers).then(res => res.data)
 }
 // 启用冒烟测试
 export const EnableSmoke = (headers, params) => {
-  return axios.post(`${test}/api/smoke/enablesmoke`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/enablesmoke`, params, headers).then(res => res.data)
 }
 // 禁用冒烟测试
 export const DisableSmoke = (headers, params) => {
-  return axios.post(`${test}/api/smoke/disablesmoke`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/disablesmoke`, params, headers).then(res => res.data)
 }
 // 删除冒烟测试记录
 export const DelSmoke = (headers, params) => {
-  return axios.post(`${test}/api/smoke/delsmoke`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/delsmoke`, params, headers).then(res => res.data)
 }
 // 冒烟测试记录
 export const getsmokerecord = (headers, params) => {
-  return axios.get(`${test}/api/smoke/record`, { params: params }, { headers }).then(res => res.data)
+  return axios.get(`${test}/api/gold/record`, { params: params }, { headers }).then(res => res.data)
 }
 // 金标准冒烟测试
 export const getsmokestart = (headers, params) => {
-  return axios.post(`${test}/api/smoke/test`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/test`, params, headers).then(res => res.data)
 }
 // 金标准图表
 export const getsmokefigure = (headers, params) => {
-  return axios.post(`${test}/api/smoke/figure`, params, headers).then(res => res.data)
+  return axios.post(`${test}/api/gold/figure`, params, headers).then(res => res.data)
 }
 
 // 获取基础数据
@@ -545,4 +545,29 @@ export const delupload = (headers, params) => {
 // 自动测试记录
 export const getupload = (headers, params) => {
   return axios.get(`${test}/api/upload`, { params: params }, { headers }).then(res => res.data)
+}
+
+// get install 列表
+export const getInstall = (headers, params) => {
+  return axios.get(`${test}/api/install/list`, params, headers).then(res => res.data)
+}
+// 添加 安装部署任务
+export const addInstall = (headers, params) => {
+  return axios.post(`${test}/api/install/add`, params, headers).then(res => res.data)
+}
+// 修改 安装部署任务
+export const updateInstall = (headers, params) => {
+  return axios.post(`${test}/api/install/update`, params, headers).then(res => res.data)
+}
+// 删除 安装部署任务
+export const delInstall = (headers, params) => {
+  return axios.post(`${test}/api/install/del`, params, headers).then(res => res.data)
+}
+// 启用 安装部署任务
+export const EnableInstall = (headers, params) => {
+  return axios.post(`${test}/api/install/enable`, params, headers).then(res => res.data)
+}
+// 停止 安装部署任务
+export const DisableInstall = (headers, params) => {
+  return axios.post(`${test}/api/install/disable`, params, headers).then(res => res.data)
 }

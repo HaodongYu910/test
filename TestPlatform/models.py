@@ -926,7 +926,7 @@ class smoke(models.Model):
     class Meta:
         verbose_name = "smoke测试表"
         verbose_name_plural = "smoke测试表"
-        db_table = 'gold'
+        db_table = 'smoke'
 
 class smoke_record(models.Model):
     """
@@ -1073,6 +1073,8 @@ class install(models.Model):
     version = models.CharField(max_length=30, blank=True, null=True, verbose_name="部署版本")
     starttime = models.CharField(max_length=30, blank=True, null=True, verbose_name="部署时间")
     hosdid = models.IntegerField(blank=True, null=True, verbose_name="hostid")
+    smokeid = models.IntegerField(blank=True, null=True, verbose_name="smokeid")
+    uid = models.IntegerField(blank=True, null=True, verbose_name="UIuid")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
 

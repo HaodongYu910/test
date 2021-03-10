@@ -13,7 +13,7 @@ from TestPlatform.serializers import duration_Deserializer,duration_Serializer
 from ..common.anonymization import onlyDoAnonymization
 from ..common.deletepatients import *
 from ..common.duration_verify import *
-from ..common.dicomdetail import anonymousSend,normalSend,durationStop
+from ..common.Dicom import DicomThread
 from Dicom.common.dicomBase import verifyDuration,durationtotal,baseTransform
 import datetime,os
 
@@ -273,8 +273,8 @@ class DisableDuration(APIView):
                 logger.info(cmd)
                 os.system(cmd)
                 i.delete()
-            Threadstop = threading.Thread(target=durationStop,args=(str(data["id"])))
-            Threadstop.start()
+            Threadstop = DicomThread(type="duration",id=data["id"])
+            Threadstop.durationStop()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")
@@ -311,13 +311,12 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             if obj.anonymous is True:
-                result= anonymousSend(data["id"], "type")
+                dicomsend = DicomThread(type='duration',id=data["id"])
+                dicomsend.anonymousSend()
             else:
-                result = normalSend(data["id"])
-            if result is True:
-                return JsonResponse(code="0", msg="成功")
-            else:
-                return JsonResponse(code="999995", msg="失败！")
+                dicomsend = DicomThread(type='duration', id=data["id"])
+                dicomsend.normalSend()
+            return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 

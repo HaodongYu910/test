@@ -14,7 +14,7 @@ from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.common.regexUtil import csv
 from TestPlatform.models import duration_record, dicom, GlobalHost, dictionary,uploadfile
 from TestPlatform.utils.graphql.graphql import *
-from Dicom.common.dicomdetail import checkuid, voteData
+from Dicom.common.dicomBase import checkuid, voteData
 from TestPlatform.utils.keycloak.login_kc import login_keycloak
 from TestPlatform.common.transport import SSHConnection
 from django.conf import settings
@@ -39,7 +39,7 @@ def saveData(**kwargs):
     try:
         if kwargs["type"] in ["predictionJZ", "lung_prediction"]:
             sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
-            result = connect_postgres(host=kwargs["ip"],sql= sql.value.format(kwargs["studyuid"], kwargs["count"]))
+            result = connect_postgres(host=kwargs["ip"],sql= sql.value.format(kwargs["studyuid"], kwargs["startdate"]))
             datatest = kwargs["datatest"]
             datatest["type"] = kwargs["type"]
             datatest["avg"] = str(result.to_dict(orient='records')[0]["avg"])
@@ -77,26 +77,6 @@ def stresscache(stressid):
                     "graphql": None
                     }
             stress_record.objects.create(**data)
-
-
-# 修改数据
-def updateStressData(uid, orthanc_ip):
-    vote = ''
-    Series = connect_postgres(host=orthanc_ip,
-                                 sql="select \"SeriesInstanceUID\" from \"Series\" where \"StudyInstanceUID\" ='{0}'".format(
-                                     uid)).to_dict(orient='records')
-    pseries_classifier = connect_postgres(host=orthanc_ip,
-                                             sql="select protocol->'pseries_classifier' as \"pseries\" from hanalyticsprotocol where studyuid ='{0}' LIMIT 1;".format(
-                                                 uid)).to_dict(orient='records')
-
-    pseries = pseries_classifier[0]['pseries']
-    for key in pseries:
-        for i in Series:
-            if str(i['SeriesInstanceUID']) in str(pseries[key]):
-                vote = vote + '{0}: \\"{1}\\",'.format(str(key), str(i['SeriesInstanceUID']))
-                SeriesInstanceUID = str(i['SeriesInstanceUID'])
-    vote = "{" + vote + "}"
-    return str(vote), SeriesInstanceUID
 
 
 def savecsv(path, graphql_query):
@@ -160,6 +140,7 @@ class StressThread(threading.Thread):
                     checkuid(self.obj.hostid, self.server, str(k.id))
                     delreport(self.kc, str(k.studyinstanceuid))
                     # 循环 测试基准数据
+                    startdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
                     for j in range(count):
                         try:
                             if self.Flag is False:
@@ -197,8 +178,8 @@ class StressThread(threading.Thread):
                     saveData(datatest=datatest,
                              type=predictiontype,
                              ip=self.server,
-                             studyuid=k.studyuid,
-                             count=count
+                             studyuid=k.studyinstanceuid,
+                             startdate=startdate
                              )
 
         except Exception as e:
@@ -289,7 +270,7 @@ class StressThread(threading.Thread):
     def SaveResult(self):
         # 模型预测时间 job时间
         for type in ['prediction', 'job']:
-            obj = dictionary.objects.get(key="prediction", status=1, remarks='data', type='sql')
+            obj = dictionary.objects.get(key=type, status=1, type='stresssql')
             # 测试模型数据查询
             for i in self.testdata.split(","):
                 infos = {}

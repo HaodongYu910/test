@@ -2,7 +2,7 @@ from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.models import dictionary
 from ..serializers import stress_result_Deserializer
 from django.db import transaction
-from Dicom.common.dicomdetail import voteData
+from Dicom.common.dicomBase import voteData
 import numpy as np
 import logging
 

@@ -17,7 +17,6 @@ router = routers.DefaultRouter()
 urlpatterns = [
     url(r'dicomData', dicomData.as_view()),
     url(r'dicomdetail', dicomDetail.as_view()),
-    url(r'add_dicomData', adddicomdata.as_view()),
     url(r'update', dicomUpdate.as_view()),
     url(r'del_dicomData', deldicomdata.as_view()),
     url(r'dicomcsv', dicomcsv.as_view()),
@@ -42,5 +41,5 @@ urlpatterns = [
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
-    # url(r'updatedata', Updatedata.as_view()),
+    url(r'updatedata', Updatedata.as_view()),
 ]

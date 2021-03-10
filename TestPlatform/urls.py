@@ -14,6 +14,7 @@ from .api.user_permission import *
 from .api.apiSmoke import *
 from .api.apiDictionary import *
 from .api.apiUpload import *
+from .api.apInstall import *
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -122,6 +123,12 @@ urlpatterns = [
     url(r'gold/record', smokeRecord.as_view()),
     url(r'gold/figure', smokefigure.as_view()),
     url(r'gold/smokelist', getSmoke.as_view()),
+    url(r'install/add', AddInstall.as_view()),
+    url(r'install/update', UpdateInstall.as_view()),
+    url(r'install/del', DelInstall.as_view()),
+    url(r'install/disable', DisableInstall.as_view()),
+    url(r'install/enable', EnableInstall.as_view()),
+    url(r'install/list', getInstall.as_view()),
     url(r'todo', todo.as_view()),
     url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]

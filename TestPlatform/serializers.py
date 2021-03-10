@@ -887,4 +887,4 @@ class install_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = install
-        fields = ('id', 'server', 'testcase', 'fileid', 'version', 'starttime', 'hosdid', 'type','status')
+        fields = ('id', 'server', 'testcase', 'version', 'starttime', 'hosdid','smokeid','uid','type','status')

@@ -370,7 +370,7 @@ if __name__ == '__main__':
         CONFIG, log_path = prepare_config(sys.argv[1:])
         # 查询发送数据sql
         if str(CONFIG["sleepcount"]) == '8787':
-            sql = "select route,diseases from dicom  where predictor in ({0})".format(
+            sql = "select route,diseases from dicom  where predictor in ({0}) and stressstatus in (1,2)".format(
                 CONFIG["folderid"])
         else:
             sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])

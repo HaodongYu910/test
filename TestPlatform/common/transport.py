@@ -65,7 +65,6 @@ class SSHConnection:
         ssh._transport = self.__transport
         stdin, stdout, stderr = ssh.exec_command(command)
         result = stdout.read()
-        print(str(result,encoding='utf-8'))
         return result
 
 # import os

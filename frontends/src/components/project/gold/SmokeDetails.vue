@@ -126,7 +126,7 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, deldicomresult, getdicomurl
+        getHost, getsmokerecord, getsmokestart, getbase, getdicomurl
     } from '@/router/api'
     import {stresssave} from "../../../router/api";
 
@@ -395,39 +395,6 @@
                         }
                         self.getdata()
                     });
-                })
-            },
-            // 批量删除报告
-            batchDel: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认删除选中记录的报告吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    deldicomresult(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '删除成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
                 })
             }
         }
