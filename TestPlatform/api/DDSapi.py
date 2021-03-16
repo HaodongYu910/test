@@ -83,8 +83,8 @@ class ddsData(APIView):
                                       }, code="0", msg="测试环境数据库连接失败")
         for i in rdata:
             try:
-                dbresult = connect_to_postgres(server,
-                                               "SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
+                dbresult = connect_postgres(host=server,
+                                               sql="SELECT aistatus,diagnosis,imagecount,insertiontime FROM study_view WHERE studyinstanceuid =\'{0}\'".format(
                                                    i["studyinstanceuid"]))
                 _dict = dbresult.to_dict(orient='records')
             except Exception as e:

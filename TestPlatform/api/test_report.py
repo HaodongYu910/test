@@ -12,7 +12,7 @@ from TestPlatform.models import test_report,test_risk
 from TestPlatform.serializers import test_risk_Serializer,test_risk_Deserializer,test_report_Deserializer,test_report_Serializer
 from rest_framework.authentication import TokenAuthentication
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.HTML_template.testreport_html import report_html
+from HtmlTemplate.testreport_html import report_html
 
 
 class loadReport(APIView):

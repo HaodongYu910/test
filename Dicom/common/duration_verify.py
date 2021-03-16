@@ -1,11 +1,13 @@
 # coding = utf-8
-from TestPlatform.common.regexUtil import *
+from TestPlatform.common.PostgreSQL import connect_postgres
 
-from TestPlatform.models import duration_record,duration
+from TestPlatform.models import duration_record, duration
 from django.db import transaction
-from TestPlatform.serializers import duration_record_Deserializer,duration_record_Serializer,duration_Serializer
+from TestPlatform.serializers import duration_record_Deserializer
 import logging
+
 logger = logging.getLogger(__name__)
+
 
 def update_data(data):
     obj = duration_record.objects.get(studyinstanceuid=data["studyinstanceuid"])
@@ -14,7 +16,8 @@ def update_data(data):
         if serializer.is_valid():
             serializer.update(instance=obj, validated_data=data)
 
-def ai_result(kc,patientid):
+
+def ai_result(kc, patientid):
     study_query = " \
                     {{\
                       studyViewFlexible(\
@@ -35,9 +38,10 @@ def ai_result(kc,patientid):
     )
     return res_study
 
+
 def verifyData(id):
     duration_data = duration_record.objects.filter(duration_id=id)
-    obj =duration.objects.get(id=id)
+    obj = duration.objects.get(id=id)
     if obj.dds is not None:
         serverip = obj.dds
     else:
@@ -46,10 +50,10 @@ def verifyData(id):
         if i.imagecount == i.imagecount_server:
             continue
         else:
-            data = {'studyinstanceuid':i.studyinstanceuid}
+            data = {'studyinstanceuid': i.studyinstanceuid}
             sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
-                    i.studyinstanceuid)
-            result_1 = connect_to_postgres(serverip, sql)
+                i.studyinstanceuid)
+            result_1 = connect_postgres(host=serverip, sql=sql)
             sqldata = result_1.to_dict(orient='records')
 
             if sqldata == []:
@@ -59,7 +63,7 @@ def verifyData(id):
                 data['diagnosis'] = sqldata[0]['diagnosis']
                 data['imagecount_server'] = sqldata[0]['imagecount']
                 if str(data['imagecount_server']) == str(i.imagecount):
-                        data['studyolduid'] = '1'
+                    data['studyolduid'] = '1'
             update_data(data)
     # kc = use_keycloak_bmutils(serverip, 'test', 'Asd@123456')
     # for i in duration_data:
@@ -80,26 +84,25 @@ def verifyData(id):
     #                 data['studyolduid']='1'
 
 
-
 def verify():
     duration_data = duration_record.objects.filter()
     for i in duration_data:
         if i.imagecount == i.imagecount_server:
             continue
         else:
-            obn= duration.objects.get(id=i.duration_id)
-            data = {'studyinstanceuid':i.studyinstanceuid}
+            obn = duration.objects.get(id=i.duration_id)
+            data = {'studyinstanceuid': i.studyinstanceuid}
             if obn.dds is not None:
-                serverip=obn.dds
+                serverip = obn.dds
             else:
-                serverip=i.sendserver
+                serverip = i.sendserver
 
             sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
                 i.studyinstanceuid)
-            result_1 = connect_to_postgres(serverip, sql)
+            result_1 = connect_postgres(host=serverip, sql=sql)
             sqldata = result_1.to_dict(orient='records')
 
-            if sqldata ==[]:
+            if sqldata == []:
                 continue
             else:
 
@@ -107,6 +110,5 @@ def verify():
                 data['diagnosis'] = sqldata[0]['diagnosis']
                 data['imagecount_server'] = sqldata[0]['imagecount']
                 if str(data['imagecount_server']) == str(i.imagecount):
-                    data['studyolduid']='1'
+                    data['studyolduid'] = '1'
             update_data(data)
-

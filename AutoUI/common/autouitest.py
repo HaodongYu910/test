@@ -1,17 +1,10 @@
-import os
-from TestPlatform.common.regexUtil import savecsv
 from TestPlatform.models import GlobalHost, dicom ,dictionary
-from Dicom.common.dicomdetail import checkuid
+from Dicom.common.dicomBase import checkuid
 from ..models import auto_uicase, autoui, auto_uirecord
 import datetime
-import os
-import shutil
 import threading
-import time
 import logging
-import numpy as np
-from django.db import connection
-from django.db import transaction
+
 
 logger = logging.getLogger(__name__)
 

@@ -4,16 +4,16 @@
             <!--工具条-->
             <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                   <el-form-item label="服务器" prop="server">
-                  <el-select v-model="filters.server"  placeholder="请选择服务" @click.native="gethost()">
-                      <el-option key="" label="" value=""></el-option>
-                    <el-option v-for="(item,index) in tags"
-                                :key="item.id"
-                                :label="item.name"
-                                :value="item.id"
-                              />
-                    </el-select>
-                  </el-form-item>
+                    <el-form-item label="服务器" prop="server">
+                        <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
+                            <el-option key="" label="" value=""></el-option>
+                            <el-option v-for="(item,index) in tags"
+                                       :key="item.id"
+                                       :label="item.name"
+                                       :value="item.id"
+                            />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="getDurationlist">查询</el-button>
                     </el-form-item>
@@ -31,7 +31,7 @@
                       width="120%">
                 <el-table-column type="selection" min-width="5%"></el-table-column>
                 <el-table-column prop="anonymous" label="匿名" min-width="9%">
-                <template slot-scope="scope">
+                    <template slot-scope="scope">
                         <img v-show="scope.row.anonymous"
                              style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                              src="../../../assets/img/niming-2.png"/>
@@ -39,7 +39,7 @@
                              style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
                              src="../../../assets/img/niming-3.png"/>
                     </template>
-            </el-table-column>
+                </el-table-column>
                 <el-table-column prop="type" label="服务" min-width="20%" sortable>
                     <template slot-scope="scope">
                         <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
@@ -106,7 +106,8 @@
                 </el-table-column>
                 <el-table-column label="操作" min-width="30%">
                     <template slot-scope="scope">
-                        <el-button :type="typestatus(scope.row.sendstatus)" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
+                        <el-button :type="typestatus(scope.row.sendstatus)" size="small"
+                                   @click="handleChangeStatus(scope.$index, scope.row)">
                             {{scope.row.sendstatus===false?'启用':'停用'}}
                         </el-button>
                         <el-button type="info" size="small" @click="showDetail(scope.$index, scope.row)">数据
@@ -134,35 +135,38 @@
                     <el-divider>基本配置</el-divider>
                     <el-row :gutter="32">
                         <el-col :span="20">
-                                <el-form-item label="数据类型" prop="senddata">
-                                    <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
-                                                 @click.native="getBase()"></el-cascader>
-                                </el-form-item>
-                            </el-col>
+                            <el-form-item label="数据类型" prop="senddata">
+                                <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
+                                             @click.native="getBase()"></el-cascader>
+                            </el-form-item>
+                        </el-col>
                         <el-col :span="6">
-                                <el-form-item label="匿名" prop="anonymous">
-                                    <el-switch v-model="editForm.anonymous" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
+                            <el-form-item label="匿名" prop="anonymous">
+                                <el-switch v-model="editForm.anonymous" active-color="#13ce66"
+                                           inactive-color="#ff4949"></el-switch>
+                            </el-form-item>
+                        </el-col>
                     </el-row>
                     <el-divider>匿名配置</el-divider>
                     <el-row :gutter="24">
                         <el-col :span="8">
                             <el-form-item label="匿名姓名" prop='patientname'>
-                                 <el-input label="匿名名称" id="patientname" v-model="editForm.patientname" placeholder="patientname"/>
+                                <el-input label="匿名名称" id="patientname" v-model="editForm.patientname"
+                                          placeholder="patientname"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="匿名ID" prop='patientid'>
-                                <el-input label="匿名名称" id="patientid" v-model="editForm.patientid" placeholder="patientid"/>
+                                <el-input label="匿名名称" id="patientid" v-model="editForm.patientid"
+                                          placeholder="patientid"/>
                             </el-form-item>
                         </el-col>
                     </el-row>
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0" :max="100000"
+                                <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0"
+                                                 :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
@@ -184,7 +188,8 @@
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="editForm.sleeptime" @change="handleChange" :min="0" :max="5000"
+                                <el-input-number v-model="editForm.sleeptime" @change="handleChange" :min="0"
+                                                 :max="5000"
                                                  label="延时时间（秒）"></el-input-number>
                             </el-form-item>
                         </el-col>
@@ -192,18 +197,18 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="15">
-                                    <el-form-item label="DDS服务" prop="dds">
-                                        <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
-                                                   @click.native="gethost()">
-                                            <el-option
-                                                    v-for="(item,index) in tags"
-                                                    :key="item.host"
-                                                    :label="item.name"
-                                                    :value="item.host"
-                                            />
-                                        </el-select>
-                                    </el-form-item>
-                                </el-col>
+                                <el-form-item label="DDS服务" prop="dds">
+                                    <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
+                                               @click.native="gethost()">
+                                        <el-option
+                                                v-for="(item,index) in tags"
+                                                :key="item.host"
+                                                :label="item.name"
+                                                :value="item.host"
+                                        />
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
                             <el-col :span="6">
                                 <el-form-item label="series延时" prop="series">
                                     <el-switch v-model="editForm.series" active-color="#13ce66"
@@ -211,15 +216,15 @@
                                 </el-form-item>
                             </el-col>
                         </el-row>
-                    <el-row>
-                        <el-col :span="4">
-                            <el-form-item label="操作" prop="keyword">
-                                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
-                                </el-button>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                </el-form>
+                        <el-row>
+                            <el-col :span="4">
+                                <el-form-item label="操作" prop="keyword">
+                                    <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存
+                                    </el-button>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                    </el-form>
                 </el-form>
             </el-dialog>
 
@@ -312,23 +317,24 @@
                     </el-row>
                     <el-row :gutter="32">
                         <el-col :span="20">
-                                <el-form-item label="数据类型" prop="senddata">
-                                    <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
-                                                 @click.native="getBase()"></el-cascader>
-                                </el-form-item>
-                            </el-col>
+                            <el-form-item label="数据类型" prop="senddata">
+                                <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
+                                             @click.native="getBase()"></el-cascader>
+                            </el-form-item>
+                        </el-col>
                         <el-col :span="6">
-                                <el-form-item label="匿名" prop="anonymous">
-                                    <el-switch v-model="addForm.anonymous" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
+                            <el-form-item label="匿名" prop="anonymous">
+                                <el-switch v-model="addForm.anonymous" active-color="#13ce66"
+                                           inactive-color="#ff4949"></el-switch>
+                            </el-form-item>
+                        </el-col>
                     </el-row>
                     <el-divider>匿名配置</el-divider>
                     <el-row :gutter="24">
                         <el-col :span="8">
                             <el-form-item label="匿名姓名" prop='patientname'>
-                                 <el-input label="匿名名称" id="name" v-model="addForm.patientname" placeholder="patientname"/>
+                                <el-input label="匿名名称" id="name" v-model="addForm.patientname"
+                                          placeholder="patientname"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
@@ -340,7 +346,8 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0" :max="100000"
+                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0"
+                                                 :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
@@ -370,18 +377,18 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="15">
-                                    <el-form-item label="DDS服务" prop="dds">
-                                        <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
-                                                   @click.native="gethost()">
-                                            <el-option
-                                                    v-for="(item,index) in tags"
-                                                    :key="item.host"
-                                                    :label="item.name"
-                                                    :value="item.host"
-                                            />
-                                        </el-select>
-                                    </el-form-item>
-                                </el-col>
+                                <el-form-item label="DDS服务" prop="dds">
+                                    <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
+                                               @click.native="gethost()">
+                                        <el-option
+                                                v-for="(item,index) in tags"
+                                                :key="item.host"
+                                                :label="item.name"
+                                                :value="item.host"
+                                        />
+                                    </el-select>
+                                </el-form-item>
+                            </el-col>
                             <el-col :span="6">
                                 <el-form-item label="series延时" prop="series">
                                     <el-switch v-model="addForm.series" active-color="#13ce66"
@@ -472,11 +479,12 @@
                 },
                 filters: {
                     diseases: '',
-                    server:''
+                    server: ''
                 },
                 durationlist: {},
                 total: 0,
                 page: 1,
+                page_size:10,
                 listLoading: true,
                 sels: [], // 列表选中列
 
@@ -529,7 +537,7 @@
                 addForm: {
                     port: '4242',
                     anonymous: true,
-                    sendcount:0
+                    sendcount: 0
 
                 },
                 addFormVisible: false, // 新增界面是否显示
@@ -549,15 +557,27 @@
                 }
             }
         },
+        created() {
+            // 实现轮询
+             this.clearTimeSet=window.setInterval(() => {
+              setTimeout(this.getDurationlist(), 0);
+            }, 20000);
+          },
+        beforeDestroy() {    //页面关闭时清除定时器
+            clearInterval(this.clearTimeSet);
+        },
         mounted() {
             this.getDurationlist()
             this.gethost()
             this.getBase()
             this.durationVerifyData()
         },
+        beforeDestroy() {    //页面关闭时清除定时器
+            clearInterval(this.clearTimeSet);
+        },
         methods: {
             typestatus: function (i) {
-                if (i ===true) {
+                if (i === true) {
                     return 'danger'
                 } else {
                     return 'primary'
@@ -700,7 +720,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    page_size:100
+                    page_size: 100
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -725,7 +745,9 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    server:this.filters.server
+                    page:self.page,
+                    page_size:self.page_size,
+                    server: this.filters.server
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getduration(headers, params).then((res) => {
@@ -849,7 +871,7 @@
                     status: false,
                     sleepcount: null,
                     sleeptime: 0,
-                    sendcount:0,
+                    sendcount: 0,
                     anonymous: true,
                     series: false
                 }
@@ -861,7 +883,7 @@
                 this.anonForm = {
                     anon_addr: '',
                     anon_disease: '',
-                    appointed_addr:'',
+                    appointed_addr: '',
                     wPN: true,
                     wPID: true
                 }

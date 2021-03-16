@@ -1,0 +1,1383 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Biomind Smoke Test Report</title>
+    <style type="text/css">
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            /* do not increase min-width as some may use split screens */
+            min-width: 800px;
+            color: #999;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: black;
+        }
+
+        h2 {
+            font-size: 16px;
+            color: black;
+        }
+
+        p {
+            color: black;
+        }
+
+        a {
+            color: #999;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        /******************************
+         * SUMMARY INFORMATION
+         ******************************/
+
+        #environment td {
+            padding: 5px;
+            border: 1px solid #E6E6E6;
+        }
+
+        #environment tr:nth-child(odd) {
+            background-color: #f6f6f6;
+        }
+
+        /******************************
+         * TEST RESULT COLORS
+         ******************************/
+        span.passed, .passed .col-result {
+            color: green;
+        }
+
+        span.skipped, span.xfailed, span.rerun, .skipped .col-result, .xfailed .col-result, .rerun .col-result {
+            color: orange;
+        }
+
+        span.error, span.failed, span.xpassed, .error .col-result, .failed .col-result, .xpassed .col-result {
+            color: red;
+        }
+
+
+        /******************************
+         * RESULTS TABLE
+         *
+         * 1. Table Layout
+         * 2. Extra
+         * 3. Sorting items
+         *
+         ******************************/
+
+        /*------------------
+         * 1. Table Layout
+         *------------------*/
+
+        #results-table {
+            border: 1px solid #e6e6e6;
+            color: #999;
+            font-size: 12px;
+            width: 100%
+        }
+
+        #results-table th, #results-table td {
+            padding: 5px;
+            border: 1px solid #E6E6E6;
+            text-align: left
+        }
+
+        #results-table th {
+            font-weight: bold
+        }
+
+        /*------------------
+         * 2. Extra
+         *------------------*/
+
+        .log:only-child {
+            height: inherit
+        }
+
+        .log {
+            background-color: #e6e6e6;
+            border: 1px solid #e6e6e6;
+            color: black;
+            display: block;
+            font-family: "Courier New", Courier, monospace;
+            height: 230px;
+            overflow-y: scroll;
+            padding: 5px;
+            white-space: pre-wrap
+        }
+
+        div.image {
+            border: 1px solid #e6e6e6;
+            float: right;
+            height: 240px;
+            margin-left: 5px;
+            overflow: hidden;
+            width: 320px
+        }
+
+        div.image img {
+            width: 320px
+        }
+
+        div.video {
+            border: 1px solid #e6e6e6;
+            float: right;
+            height: 240px;
+            margin-left: 5px;
+            overflow: hidden;
+            width: 320px
+        }
+
+        div.video video {
+            overflow: hidden;
+            width: 320px;
+            height: 240px;
+        }
+
+        .collapsed {
+            display: none;
+        }
+
+        .expander::after {
+            content: " (show details)";
+            color: #BBB;
+            font-style: italic;
+            cursor: pointer;
+        }
+
+        .collapser::after {
+            content: " (hide details)";
+            color: #BBB;
+            font-style: italic;
+            cursor: pointer;
+        }
+
+        /*------------------
+         * 3. Sorting items
+         *------------------*/
+        .sortable {
+            cursor: pointer;
+        }
+
+        .sort-icon {
+            font-size: 0px;
+            float: left;
+            margin-right: 5px;
+            margin-top: 5px;
+            /*triangle*/
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+        }
+
+        .inactive .sort-icon {
+            /*finish triangle*/
+            border-top: 8px solid #E6E6E6;
+        }
+
+        .asc.active .sort-icon {
+            /*finish triangle*/
+            border-bottom: 8px solid #999;
+        }
+
+        .desc.active .sort-icon {
+            /*finish triangle*/
+            border-top: 8px solid #999;
+        }
+
+    </style>
+<body onLoad="init()">
+<script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function find_all(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sort_column(elem) {
+    toggle_sort_states(elem);
+    var colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    var key;
+    if (elem.classList.contains('numeric')) {
+        key = key_num;
+    } else if (elem.classList.contains('result')) {
+        key = key_result;
+    } else {
+        key = key_alpha;
+    }
+    sort_table(elem, key(colIndex));
+}
+
+function show_all_extras() {
+    find_all('.col-result').forEach(show_extras);
+}
+
+function hide_all_extras() {
+    find_all('.col-result').forEach(hide_extras);
+}
+
+function show_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.remove("collapsed");
+    expandcollapse.classList.remove("expander");
+    expandcollapse.classList.add("collapser");
+}
+
+function hide_extras(colresult_elem) {
+    var extras = colresult_elem.parentNode.nextElementSibling;
+    var expandcollapse = colresult_elem.firstElementChild;
+    extras.classList.add("collapsed");
+    expandcollapse.classList.remove("collapser");
+    expandcollapse.classList.add("expander");
+}
+
+function show_filters() {
+    var filter_items = document.getElementsByClassName('filter');
+    for (var i = 0; i < filter_items.length; i++)
+        filter_items[i].hidden = false;
+}
+
+function add_collapse() {
+    // Add links for show/hide all
+    var resulttable = find('table#results-table');
+    var showhideall = document.createElement("p");
+    showhideall.innerHTML = '<a href="javascript:show_all_extras()">Show all details</a> / ' +
+        '<a href="javascript:hide_all_extras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    find_all('.col-result').forEach(function (elem) {
+        var collapsed = get_query_parameter('collapsed') || 'Passed';
+        var extras = elem.parentNode.nextElementSibling;
+        var expandcollapse = document.createElement("span");
+        if (extras.classList.contains("collapsed")) {
+            expandcollapse.classList.add("expander")
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add("collapsed");
+            expandcollapse.classList.add("expander");
+        } else {
+            expandcollapse.classList.add("collapser");
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener("click", function (event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains("collapsed")) {
+                show_extras(event.currentTarget);
+            } else {
+                hide_extras(event.currentTarget);
+            }
+        });
+    })
+}
+
+function get_query_parameter(name) {
+    var match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init() {
+    reset_sort_headers();
+
+    add_collapse();
+
+    show_filters();
+
+    sort_column(find('.initial-sort'));
+
+    find_all('.sortable').forEach(function (elem) {
+        elem.addEventListener("click",
+            function (event) {
+                sort_column(elem);
+            }, false)
+    });
+
+};
+
+function sort_table(clicked, key_func) {
+    var rows = find_all('.results-table-row');
+    var reversed = !clicked.classList.contains('asc');
+    var sorted_rows = sort(rows, key_func, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    var thead = document.getElementById("results-table-head");
+    document.getElementById('results-table').remove();
+    var parent = document.createElement("table");
+    parent.id = "results-table";
+    parent.appendChild(thead);
+    sorted_rows.forEach(function (elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName("BODY")[0].appendChild(parent);
+}
+
+function sort(items, key_func, reversed) {
+    var sort_array = items.map(function (item, i) {
+        return [key_func(item), i];
+    });
+
+    sort_array.sort(function (a, b) {
+        var key_a = a[0];
+        var key_b = b[0];
+
+        if (key_a == key_b) return 0;
+
+        if (reversed) {
+            return (key_a < key_b ? 1 : -1);
+        } else {
+            return (key_a > key_b ? 1 : -1);
+        }
+    });
+
+    return sort_array.map(function (item) {
+        var index = item[1];
+        return items[index];
+    });
+}
+
+function key_alpha(col_index) {
+    return function (elem) {
+        return elem.childNodes[1].childNodes[col_index].firstChild.data.toLowerCase();
+    };
+}
+
+function key_num(col_index) {
+    return function (elem) {
+        return parseFloat(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function key_result(col_index) {
+    return function (elem) {
+        var strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[col_index].firstChild.data);
+    };
+}
+
+function reset_sort_headers() {
+    find_all('.sort-icon').forEach(function (elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    find_all('.sortable').forEach(function (elem) {
+        var icon = document.createElement("div");
+        icon.className = "sort-icon";
+        icon.textContent = "vvv";
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove("desc", "active");
+        elem.classList.add("asc", "inactive");
+    });
+}
+
+function toggle_sort_states(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        reset_sort_headers();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function is_all_rows_hidden(value) {
+    return value.hidden == false;
+}
+
+function filter_table(elem) {
+    var outcome_att = "data-test-result";
+    var outcome = elem.getAttribute(outcome_att);
+    class_outcome = outcome + " results-table-row";
+    var outcome_rows = document.getElementsByClassName(class_outcome);
+
+    for (var i = 0; i < outcome_rows.length; i++) {
+        outcome_rows[i].hidden = !elem.checked;
+    }
+
+    var rows = find_all('.results-table-row').filter(is_all_rows_hidden);
+    var all_rows_hidden = rows.length == 0 ? true : false;
+    var not_found_message = document.getElementById("not-found-message");
+    not_found_message.hidden = !all_rows_hidden;
+}
+</script>
+<h1 style="color:black;width: auto">Biomind Smoke Test Report</h1>
+<p>Report generated on 01-Sep-2020 at 17:23:01 by <a href="http://192.168.1.121/#/deploy">Quality control platform</a>
+    v2.1.1</p>
+<h2>Environment</h2>
+<table id="environment">
+    <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "0.13.1", "py": "1.8.1", "pytest": "5.4.2"}</td>
+    </tr>
+    <tr>
+        <td>Platform</td>
+        <td>Darwin-19.5.0-x86_64-i386-64bit</td>
+    </tr>
+    <tr>
+        <td>Plugins</td>
+        <td>{"allure-pytest": "2.8.13", "forked": "1.1.3", "html": "2.1.1", "metadata": "1.9.0", "rerunfailures": "9.0",
+            "xdist": "1.32.0"}
+        </td>
+    </tr>
+    <tr>
+        <td>Python</td>
+        <td>3.7.3</td>
+    </tr>
+</table>
+<h2>Summary</h2>
+<p>3 tests ran in 0.64 seconds. </p>
+<p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter"
+                                                                                     data-test-result="passed"
+                                                                                     disabled="true" hidden="true"
+                                                                                     name="filter_checkbox"
+                                                                                     onChange="filter_table(this)"
+                                                                                     type="checkbox"/><span
+        class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true"
+                                               hidden="true" name="filter_checkbox" onChange="filter_table(this)"
+                                               type="checkbox"/><span class="skipped">0 skipped</span>, <input
+        checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox"
+        onChange="filter_table(this)" type="checkbox"/><span class="failed">3 failed</span>, <input checked="true"
+                                                                                                    class="filter"
+                                                                                                    data-test-result="error"
+                                                                                                    disabled="true"
+                                                                                                    hidden="true"
+                                                                                                    name="filter_checkbox"
+                                                                                                    onChange="filter_table(this)"
+                                                                                                    type="checkbox"/><span
+        class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true"
+                                              hidden="true" name="filter_checkbox" onChange="filter_table(this)"
+                                              type="checkbox"/><span class="xfailed">0 expected failures</span>, <input
+        checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox"
+        onChange="filter_table(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>, <input
+        checked="true" class="filter" data-test-result="rerun" hidden="true" name="filter_checkbox"
+        onChange="filter_table(this)" type="checkbox"/><span class="rerun">3 rerun</span>
+<h2>Results</h2>
+<table id="results-table">
+    <thead id="results-table-head">
+    <tr>
+        <th class="sortable result initial-sort" col="result">Result</th>
+        <th class="sortable" col="name">Test</th>
+        <th class="sortable numeric" col="duration">Duration</th>
+        <th>Links</th>
+    </tr>
+    <tr hidden="true" id="not-found-message">
+        <th colspan="4">No results found. Try to check the filters</th>
+    </tr>
+    </thead>
+    <tbody class="failed results-table-row">
+    <tr>
+        <td class="col-result">Failed</td>
+        <td class="col-name">TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail</td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x10201fb38&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x10201fba8&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63690&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...AY_PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x10201fba8&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63690&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...AY_PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_login.Test_Login testMethod=test_login_fail&gt;<br/><br/> def setUp(self):<br/>&gt;
+                self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_login.py:11:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x10201fb38&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+    <tbody class="failed results-table-row">
+    <tr>
+        <td class="col-result">Failed</td>
+        <td class="col-name">TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success</td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x102486e80&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102486eb8&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63693&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102486eb8&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63693&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_login.Test_Login testMethod=test_login_success&gt;<br/><br/> def setUp(self):<br/>&gt;
+                self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_login.py:11:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x102486e80&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+    <tbody class="failed results-table-row">
+    <tr>
+        <td class="col-result">Failed</td>
+        <td class="col-name">
+            TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+        </td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x10279b400&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x10279b470&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63697&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...URRENT_TEST&#x27;:
+                &#x27;TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x10279b470&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63697&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...URRENT_TEST&#x27;:
+                &#x27;TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_prediction_brain.Test_Prediction_Brain testMethod=test_perdiction_brain&gt;<br/><br/> def
+                setUp(self):<br/>&gt; self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_prediction_brain.py:13:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x10279b400&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+    <tbody class="rerun results-table-row">
+    <tr>
+        <td class="col-result">Rerun</td>
+        <td class="col-name">TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail</td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x102533048&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102533080&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63689&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...AY_PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102533080&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63689&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...AY_PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_fail
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_login.Test_Login testMethod=test_login_fail&gt;<br/><br/> def setUp(self):<br/>&gt;
+                self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_login.py:11:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x102533048&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+    <tbody class="rerun results-table-row">
+    <tr>
+        <td class="col-result">Rerun</td>
+        <td class="col-name">TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success</td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x1024cadd8&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x1024cae48&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63691&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x1024cae48&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63691&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...PORT&#x27;:
+                &#x27;63342&#x27;, &#x27;PYTEST_CURRENT_TEST&#x27;: &#x27;TestCases/test_ui/cases/test_login.py::Test_Login::test_login_success
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_login.Test_Login testMethod=test_login_success&gt;<br/><br/> def setUp(self):<br/>&gt;
+                self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_login.py:11:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x1024cadd8&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+    <tbody class="rerun results-table-row">
+    <tr>
+        <td class="col-result">Rerun</td>
+        <td class="col-name">
+            TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+        </td>
+        <td class="col-duration">0.00</td>
+        <td class="col-links"></td>
+    </tr>
+    <tr>
+        <td class="extra" colspan="4">
+            <div class="log">self = &lt;selenium.webdriver.chrome.service.Service object at 0x102735160&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/>&gt; stdin=PIPE)<br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:76:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102735208&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63695&#x27;]<br/>bufsize = -1, executable = None, stdin = -1, stdout = -3, stderr = -3<br/>preexec_fn
+                = None, close_fds = True, shell = False, cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...URRENT_TEST&#x27;:
+                &#x27;TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+                (call)&#x27;})<br/>universal_newlines = None, startupinfo = None, creationflags = 0<br/>restore_signals
+                = True, start_new_session = False, pass_fds = ()<br/><br/> def __init__(self, args, bufsize=-1,
+                executable=None,<br/> stdin=None, stdout=None, stderr=None,<br/> preexec_fn=None, close_fds=True,<br/>
+                shell=False, cwd=None, env=None, universal_newlines=None,<br/> startupinfo=None, creationflags=0,<br/>
+                restore_signals=True, start_new_session=False,<br/> pass_fds=(), *, encoding=None, errors=None,
+                text=None):<br/> &quot;&quot;&quot;Create new Popen instance.&quot;&quot;&quot;<br/> _cleanup()<br/> #
+                Held while anything is calling waitpid before returncode has been<br/> # updated to prevent clobbering
+                returncode if wait() or poll() are<br/> # called from multiple threads at once. After acquiring the
+                lock,<br/> # code must re-check self.returncode to see if another thread just<br/> # finished a
+                waitpid() call.<br/> self._waitpid_lock = threading.Lock()<br/> <br/> self._input = None<br/>
+                self._communication_started = False<br/> if bufsize is None:<br/> bufsize = -1 # Restore default<br/> if
+                not isinstance(bufsize, int):<br/> raise TypeError(&quot;bufsize must be an integer&quot;)<br/> <br/> if
+                _mswindows:<br/> if preexec_fn is not None:<br/> raise ValueError(&quot;preexec_fn is not supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> else:<br/> # POSIX<br/> if pass_fds and not
+                close_fds:<br/> warnings.warn(&quot;pass_fds overriding close_fds.&quot;, RuntimeWarning)<br/> close_fds
+                = True<br/> if startupinfo is not None:<br/> raise ValueError(&quot;startupinfo is only supported on
+                Windows &quot;<br/> &quot;platforms&quot;)<br/> if creationflags != 0:<br/> raise ValueError(&quot;creationflags
+                is only supported on Windows &quot;<br/> &quot;platforms&quot;)<br/> <br/> self.args = args<br/>
+                self.stdin = None<br/> self.stdout = None<br/> self.stderr = None<br/> self.pid = None<br/>
+                self.returncode = None<br/> self.encoding = encoding<br/> self.errors = errors<br/> <br/> # Validate the
+                combinations of text and universal_newlines<br/> if (text is not None and universal_newlines is not None<br/>
+                and bool(universal_newlines) != bool(text)):<br/> raise SubprocessError(&#x27;Cannot disambiguate when
+                both text &#x27;<br/> &#x27;and universal_newlines are supplied but &#x27;<br/> &#x27;different. Pass
+                one or the other.&#x27;)<br/> <br/> # Input and output objects. The general principle is like<br/> #
+                this:<br/> #<br/> # Parent Child<br/> # ------ -----<br/> # p2cwrite ---stdin---&gt; p2cread<br/> #
+                c2pread &lt;--stdout--- c2pwrite<br/> # errread &lt;--stderr--- errwrite<br/> #<br/> # On POSIX, the
+                child objects are file descriptors. On<br/> # Windows, these are Windows file handles. The parent
+                objects<br/> # are file descriptors on both platforms. The parent objects<br/> # are -1 when not using
+                PIPEs. The child objects are -1<br/> # when not redirecting.<br/> <br/> (p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite) = self._get_handles(stdin, stdout, stderr)<br/> <br/> # We
+                wrap OS handles *before* launching the child, otherwise a<br/> # quickly terminating child could make
+                our fds unwrappable<br/> # (see #8458).<br/> <br/> if _mswindows:<br/> if p2cwrite != -1:<br/> p2cwrite
+                = msvcrt.open_osfhandle(p2cwrite.Detach(), 0)<br/> if c2pread != -1:<br/> c2pread =
+                msvcrt.open_osfhandle(c2pread.Detach(), 0)<br/> if errread != -1:<br/> errread =
+                msvcrt.open_osfhandle(errread.Detach(), 0)<br/> <br/> self.text_mode = encoding or errors or text or
+                universal_newlines<br/> <br/> # How long to resume waiting on a child after the first ^C.<br/> # There
+                is no right value for this. The purpose is to be polite<br/> # yet remain good for interactive users
+                trying to exit a tool.<br/> self._sigint_wait_secs = 0.25 # 1/xkcd221.getRandomNumber()<br/> <br/>
+                self._closed_child_pipe_fds = False<br/> <br/> try:<br/> if p2cwrite != -1:<br/> self.stdin =
+                io.open(p2cwrite, &#x27;wb&#x27;, bufsize)<br/> if self.text_mode:<br/> self.stdin =
+                io.TextIOWrapper(self.stdin, write_through=True,<br/> line_buffering=(bufsize == 1),<br/>
+                encoding=encoding, errors=errors)<br/> if c2pread != -1:<br/> self.stdout = io.open(c2pread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stdout = io.TextIOWrapper(self.stdout,<br/>
+                encoding=encoding, errors=errors)<br/> if errread != -1:<br/> self.stderr = io.open(errread, &#x27;rb&#x27;,
+                bufsize)<br/> if self.text_mode:<br/> self.stderr = io.TextIOWrapper(self.stderr,<br/>
+                encoding=encoding, errors=errors)<br/> <br/> self._execute_child(args, executable, preexec_fn,
+                close_fds,<br/> pass_fds, cwd, env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/>
+                c2pread, c2pwrite,<br/> errread, errwrite,<br/>&gt; restore_signals, start_new_session)<br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:775:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self =
+                &lt;subprocess.Popen object at 0x102735208&gt;<br/>args = [&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;,
+                &#x27;--port=63695&#x27;]<br/>executable = b&#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;<br/>preexec_fn
+                = None, close_fds = True, pass_fds = (), cwd = None<br/>env = environ({&#x27;PATH&#x27;: &#x27;/Users/yin/.local/share/virtualenvs/test_locust-W6f75iWw/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:...URRENT_TEST&#x27;:
+                &#x27;TestCases/test_ui/cases/test_prediction_brain.py::Test_Prediction_Brain::test_perdiction_brain
+                (call)&#x27;})<br/>startupinfo = None, creationflags = 0, shell = False, p2cread = 11<br/>p2cwrite = 12,
+                c2pread = -1, c2pwrite = 13, errread = -1, errwrite = 13<br/>restore_signals = True, start_new_session =
+                False<br/><br/> def _execute_child(self, args, executable, preexec_fn, close_fds,<br/> pass_fds, cwd,
+                env,<br/> startupinfo, creationflags, shell,<br/> p2cread, p2cwrite,<br/> c2pread, c2pwrite,<br/>
+                errread, errwrite,<br/> restore_signals, start_new_session):<br/> &quot;&quot;&quot;Execute program
+                (POSIX version)&quot;&quot;&quot;<br/> <br/> if isinstance(args, (str, bytes)):<br/> args = [args]<br/>
+                else:<br/> args = list(args)<br/> <br/> if shell:<br/> # On Android the default shell is at &#x27;/system/bin/sh&#x27;.<br/>
+                unix_shell = (&#x27;/system/bin/sh&#x27; if<br/> hasattr(sys, &#x27;getandroidapilevel&#x27;) else
+                &#x27;/bin/sh&#x27;)<br/> args = [unix_shell, &quot;-c&quot;] + args<br/> if executable:<br/> args[0] =
+                executable<br/> <br/> if executable is None:<br/> executable = args[0]<br/> orig_executable = executable<br/>
+                <br/> # For transferring possible exec failure from child to parent.<br/> # Data format: &quot;exception
+                name:hex errno:description&quot;<br/> # Pickle is not used; it is complex and involves memory
+                allocation.<br/> errpipe_read, errpipe_write = os.pipe()<br/> # errpipe_write must not be in the
+                standard io 0, 1, or 2 fd range.<br/> low_fds_to_close = []<br/> while errpipe_write &lt; 3:<br/>
+                low_fds_to_close.append(errpipe_write)<br/> errpipe_write = os.dup(errpipe_write)<br/> for low_fd in
+                low_fds_to_close:<br/> os.close(low_fd)<br/> try:<br/> try:<br/> # We must avoid complex work that could
+                involve<br/> # malloc or free in the child process to avoid<br/> # potential deadlocks, thus we do all
+                this here.<br/> # and pass it to fork_exec()<br/> <br/> if env is not None:<br/> env_list = []<br/> for
+                k, v in env.items():<br/> k = os.fsencode(k)<br/> if b&#x27;=&#x27; in k:<br/> raise ValueError(&quot;illegal
+                environment variable name&quot;)<br/> env_list.append(k + b&#x27;=&#x27; + os.fsencode(v))<br/>
+                else:<br/> env_list = None # Use execv instead of execve.<br/> executable = os.fsencode(executable)<br/>
+                if os.path.dirname(executable):<br/> executable_list = (executable,)<br/> else:<br/> # This matches the
+                behavior of os._execvpe().<br/> executable_list = tuple(<br/> os.path.join(os.fsencode(dir), executable)<br/>
+                for dir in os.get_exec_path(env))<br/> fds_to_keep = set(pass_fds)<br/>
+                fds_to_keep.add(errpipe_write)<br/> self.pid = _posixsubprocess.fork_exec(<br/> args,
+                executable_list,<br/> close_fds, tuple(sorted(map(int, fds_to_keep))),<br/> cwd, env_list,<br/> p2cread,
+                p2cwrite, c2pread, c2pwrite,<br/> errread, errwrite,<br/> errpipe_read, errpipe_write,<br/>
+                restore_signals, start_new_session, preexec_fn)<br/> self._child_created = True<br/> finally:<br/> # be
+                sure the FD is closed no matter what<br/> os.close(errpipe_write)<br/> <br/> # self._devnull is not
+                always defined.<br/> devnull_fd = getattr(self, &#x27;_devnull&#x27;, None)<br/> if p2cread != -1 and
+                p2cwrite != -1 and p2cread != devnull_fd:<br/> os.close(p2cread)<br/> if c2pwrite != -1 and c2pread !=
+                -1 and c2pwrite != devnull_fd:<br/> os.close(c2pwrite)<br/> if errwrite != -1 and errread != -1 and
+                errwrite != devnull_fd:<br/> os.close(errwrite)<br/> if devnull_fd is not None:<br/>
+                os.close(devnull_fd)<br/> # Prevent a double close of these fds from __init__ on error.<br/>
+                self._closed_child_pipe_fds = True<br/> <br/> # Wait for exec to fail or succeed; possibly raising
+                an<br/> # exception (limited in size)<br/> errpipe_data = bytearray()<br/> while True:<br/> part =
+                os.read(errpipe_read, 50000)<br/> errpipe_data += part<br/> if not part or len(errpipe_data) &gt; 50000:<br/>
+                break<br/> finally:<br/> # be sure the FD is closed no matter what<br/> os.close(errpipe_read)<br/>
+                <br/> if errpipe_data:<br/> try:<br/> pid, sts = os.waitpid(self.pid, 0)<br/> if pid == self.pid:<br/>
+                self._handle_exitstatus(sts)<br/> else:<br/> self.returncode = sys.maxsize<br/> except
+                ChildProcessError:<br/> pass<br/> <br/> try:<br/> exception_name, hex_errno, err_msg = (<br/>
+                errpipe_data.split(b&#x27;:&#x27;, 2))<br/> # The encoding here should match the encoding<br/> # written
+                in by the subprocess implementations<br/> # like _posixsubprocess<br/> err_msg = err_msg.decode()<br/>
+                except ValueError:<br/> exception_name = b&#x27;SubprocessError&#x27;<br/> hex_errno =
+                b&#x27;0&#x27;<br/> err_msg = &#x27;Bad exception data from child: {!r}&#x27;.format(<br/>
+                bytes(errpipe_data))<br/> child_exception_type = getattr(<br/> builtins, exception_name.decode(&#x27;ascii&#x27;),<br/>
+                SubprocessError)<br/> if issubclass(child_exception_type, OSError) and hex_errno:<br/> errno_num =
+                int(hex_errno, 16)<br/> child_exec_never_called = (err_msg == &quot;noexec&quot;)<br/> if
+                child_exec_never_called:<br/> err_msg = &quot;&quot;<br/> # The error must be from chdir(cwd).<br/>
+                err_filename = cwd<br/> else:<br/> err_filename = orig_executable<br/> if errno_num != 0:<br/> err_msg =
+                os.strerror(errno_num)<br/> if errno_num == errno.ENOENT:<br/> err_msg += &#x27;: &#x27; +
+                repr(err_filename)<br/>&gt; raise child_exception_type(errno_num, err_msg, err_filename)<br/><span
+                        class="error">E               FileNotFoundError: [Errno 2] No such file or directory: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;: &#x27;/Users/yin/PycharmProjects/Biomind_Automated_Test/drivers\\mac\\chrome\\chromedriver&#x27;</span><br/><br/>/Library/Developer/CommandLineTools/Library/Frameworks/Python3.framework/Versions/3.7/lib/python3.7/subprocess.py:1522:
+                FileNotFoundError<br/><br/>During handling of the above exception, another exception occurred:<br/><br/>self
+                = &lt;test_prediction_brain.Test_Prediction_Brain testMethod=test_perdiction_brain&gt;<br/><br/> def
+                setUp(self):<br/>&gt; self.driver = webdriver.Chrome(driverpath(&#x27;chrome&#x27;))<br/><br/>TestCases/test_ui/cases/test_prediction_brain.py:13:
+                <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/chrome/webdriver.py:73:
+                in __init__<br/> self.service.start()<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+                _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;selenium.webdriver.chrome.service.Service object at 0x102735160&gt;<br/><br/>
+                def start(self):<br/> &quot;&quot;&quot;<br/> Starts the Service.<br/> <br/> :Exceptions:<br/> -
+                WebDriverException : Raised either when it can&#x27;t start the service<br/> or when it can&#x27;t
+                connect to the service<br/> &quot;&quot;&quot;<br/> try:<br/> cmd = [self.path]<br/>
+                cmd.extend(self.command_line_args())<br/> self.process = subprocess.Popen(cmd, env=self.env,<br/>
+                close_fds=platform.system() != &#x27;Windows&#x27;,<br/> stdout=self.log_file,<br/>
+                stderr=self.log_file,<br/> stdin=PIPE)<br/> except TypeError:<br/> raise<br/> except OSError as
+                err:<br/> if err.errno == errno.ENOENT:<br/> raise WebDriverException(<br/> &quot;&#x27;%s&#x27;
+                executable needs to be in PATH. %s&quot; % (<br/>&gt; os.path.basename(self.path),
+                self.start_error_message)<br/><span class="error">E                       selenium.common.exceptions.WebDriverException: Message: &#x27;drivers\mac\chrome\chromedriver&#x27; executable needs to be in PATH. Please see https://sites.google.com/a/chromium.org/chromedriver/home</span><br/><br/>../../.local/share/virtualenvs/test_locust-W6f75iWw/lib/python3.7/site-packages/selenium/webdriver/common/service.py:83:
+                WebDriverException<br/></div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
+
+

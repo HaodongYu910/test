@@ -10,5 +10,5 @@ def graphql_pred_influx(orthanc_ip,bodypart,study_uid,patient_id,accession_numbe
               'graphql_duration': float(duration), 'log_msg': msg}
 
     point = {"measurement": 'GraphqlResult', "time": cur_time, "fields": fields, "tags": tags}
-    connect_to_influx('influx', 'influx', 'jenkins_data', 'insert', [point])
+    connect_influx('influx', 'influx', 'jenkins_data', 'insert', [point])
     logger.info(point)

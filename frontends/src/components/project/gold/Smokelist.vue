@@ -21,6 +21,9 @@
                 <el-form-item>
                     <el-button type="primary" @click="handleAdd">创建测试</el-button>
                 </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="showData">查看数据</el-button>
+                </el-form-item>
             </el-form>
         </el-col>
 
@@ -221,6 +224,7 @@
                 Smokelist: [],
                 total: 0,
                 page: 1,
+                page_size:10,
                 listLoading: false,
                 sels: [],//列表选中列
 
@@ -263,8 +267,16 @@
                 }
             }
         },
+        created() {
+            // 实现轮询
+             this.clearTimeSet=window.setInterval(() => {
+              setTimeout(this.getsmokeList(), 0);
+            }, 20000);
+          },
+        beforeDestroy() {    //页面关闭时清除定时器
+            clearInterval(this.clearTimeSet);
+        },
         mounted() {
-            this.getsmokeList()
             this.gethost()
             this.getBase()
         },
@@ -341,6 +353,7 @@
                 let self = this;
                 let params = {
                     page: self.page,
+                    page_size:self.page_size,
                     version: self.filters.version
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
@@ -448,6 +461,15 @@
             handleEdit: function (index, row) {
                 this.editFormVisible = true;
                 this.editForm = Object.assign({}, row);
+            },
+            //展示风险项
+            showData(index,row){
+             this.$router.push({
+                    path:'/dicom',
+                    query:{
+                        type:"gold"
+                    }
+                });
             },
             //显示新增界面
             handleAdd: function () {
