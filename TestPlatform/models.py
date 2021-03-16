@@ -1077,6 +1077,7 @@ class install(models.Model):
     uid = models.IntegerField(blank=True, null=True, verbose_name="UIuid")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
+    installstatus = models.BooleanField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
 
 
     def __unicode__(self):

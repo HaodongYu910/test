@@ -12,6 +12,7 @@ from TestPlatform.common.gold import SmokeThread
 from Dicom.common.deletepatients import *
 from ..models import smoke_record,smoke
 from Dicom.common.dicomBase import baseTransform
+import time
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

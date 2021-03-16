@@ -32,21 +32,35 @@ class getDuration(APIView):
         :param request:
         :return:
         """
-        # ','.join(data['dicom'])
-        server = request.GET.get("server")
+        try:
+            server = request.GET.get("server")
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if server:
             obi = duration.objects.filter(hostid=server).order_by("-sendstatus")
         else:
             obi = duration.objects.all().order_by("server").order_by("-sendstatus")
-        dataSerializer = duration_Serializer(obi, many=True)
 
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
             obj = duration_record.objects.filter(duration_id=i["id"],create_time__gte = i["update_time"])
             i['send'] = str(obj.count())
             i["dicom"] = baseTransform(i["dicom"],'base')
 
-        return JsonResponse(data={"data": dataSerializer.data
+        return JsonResponse(data={"data": dataSerializer.data,
+                                  "page": page,
+                                  "total": total
                                   }, code="0", msg="成功")
 
 

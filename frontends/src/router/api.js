@@ -546,10 +546,13 @@ export const delupload = (headers, params) => {
 export const getupload = (headers, params) => {
   return axios.get(`${test}/api/upload`, { params: params }, { headers }).then(res => res.data)
 }
-
 // get install 列表
 export const getInstall = (headers, params) => {
   return axios.get(`${test}/api/install/list`, params, headers).then(res => res.data)
+}
+// get install 版本
+export const getInstallersion = (headers, params) => {
+  return axios.get(`${test}/api/install/version`, params, headers).then(res => res.data)
 }
 // 添加 安装部署任务
 export const addInstall = (headers, params) => {
@@ -570,4 +573,8 @@ export const EnableInstall = (headers, params) => {
 // 停止 安装部署任务
 export const DisableInstall = (headers, params) => {
   return axios.post(`${test}/api/install/disable`, params, headers).then(res => res.data)
+}
+// 冒烟报告
+export const getInstallReport = (headers, params) => {
+  return axios.post(`${test}/api/install/getReport`, params, headers).then(res => res.data)
 }

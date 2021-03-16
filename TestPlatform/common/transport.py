@@ -63,21 +63,23 @@ class SSHConnection:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command)
+        stdin, stdout, stderr = ssh.exec_command(command,get_pty=True)
+        logger.debug(stdout)
         result = stdout.read()
         return result
 
 # import os
 # name = '2.18.1-radiology'
-# ssh = SSHConnection(host='192.168.1.208',pwd='biomind')
+# ssh = SSHConnection(host='192.168.1.170',pwd='biomind')
+# ssh.cmd("cd 2.17.6/;sshpass -p biomind bash setup_engine.sh;")
 # # ssh.cmd("unzip {}.zip".format(name))
-# BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "../.."))
-# path = os.path.join(BASE_DIR, 'logs')
-# with open("{}/test.sh".format(path), "w",encoding='utf-8') as f:
-#     f.writelines(['cd {}'.format(name),"\nsshpass -p {} bash setup_engine.sh".format('biomind')])
-#
-# ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
-# ssh.cmd("sh test.sh")
+# # BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "../.."))
+# # path = os.path.join(BASE_DIR, 'logs')
+# # with open("{}/test.sh".format(path), "w",encoding='utf-8') as f:
+# #     f.writelines(['cd {}'.format(name),"\nsshpass -p {} bash setup_engine.sh".format('biomind')])
+# #
+# # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
+# print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))
 # ssh.cmd("ls")
 # ssh.cmd("sshpass -p {} bash 2.17.5/setup_engine.sh".format('biomind'))
 # ssh.cmd("sshpass -p {} biomind restart".format('biomind'))

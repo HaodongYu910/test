@@ -29,15 +29,15 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-<!--            <el-table-column prop="ID" label="ID" min-width="12%" sortable>-->
-<!--                <template slot-scope="scope">-->
-<!--                    <span style="margin-left: 10px">{{ scope.row.id }}</span>-->
-<!--                </template>-->
-<!--            </el-table-column>-->
+            <!--            <el-table-column prop="ID" label="ID" min-width="12%" sortable>-->
+            <!--                <template slot-scope="scope">-->
+            <!--                    <span style="margin-left: 10px">{{ scope.row.id }}</span>-->
+            <!--                </template>-->
+            <!--            </el-table-column>-->
             <el-table-column prop="version" label="部署版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link :to="{ name: 'UI自动化详情', params: {autoid: scope.row.uid}}"
+                    <router-link :to="{ name: '冒烟报告', params: {id: scope.row.id}}"
                                  style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.version }}
                     </router-link>
@@ -64,7 +64,15 @@
                     <el-step title="完成"></el-step>
                 </el-steps>
             </el-table-column>
-            <el-table-column prop="status" label="状态" min-width="9%">
+            <el-table-column prop="installstatus" label="全新部署" min-width="8%">
+                <template slot-scope="scope">
+                    <img v-show="scope.row.installstatus" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                         src="../../assets/img/qiyong.png"/>
+                    <img v-show="!scope.row.installstatus" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                         src="../../assets/img/fou.png"/>
+                </template>
+            </el-table-column>
+            <el-table-column prop="status" label="状态" min-width="6%">
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/qiyong.png"/>
@@ -81,11 +89,7 @@
                         </el-button>
                         <el-button type="danger" size="small" @click="showReports(scope.$index, scope.row)">日 志
                         </el-button>
-                    </el-row>
-                    <el-row>
-                        <el-button type="warning" size="small" @click="showUIDetail(scope.$index, scope.row)">UI 详情
-                        </el-button>
-                        <el-button type="warning" size="small" @click="showGoldDetail(scope.$index, scope.row)">金标准详情
+                        <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告
                         </el-button>
                     </el-row>
                 </template>
@@ -170,70 +174,89 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.server" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
-                                        :key="item.id"
+                                        :key="item.host"
                                         :label="item.name"
-                                        :value="item.id"
+                                        :value="item.host"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-switch
+                                style="display: block"
+                                v-model="addForm.installstatus"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                active-text="全新安装"
+                                inactive-text="升级安装">
+                        </el-switch>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="输入版本" prop='content'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="选择版本" prop='version'>
+                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
+                                       @click.native="Installversion()">
+                                <el-option
+                                        v-for="item in versionlist"
+                                        :key="item"
+                                        :label="item"
+                                        :value="item"
                                 />
                             </el-select>
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-divider>冒烟配置</el-divider>
-                <el-row :gutter="36">
-                    <el-col :span="12">
-                        <el-form-item label="setUp" prop='setUp'>
-                            <el-select v-model="addForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
-                                <el-option v-for="(item,index) in setUp"
-                                           :key="item.caseid"
-                                           :label="item.name"
-                                           :value="item.caseid"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="case" prop='case'>
-                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getCase()">
-                                <el-option v-for="(item,index) in testcase"
-                                           :key="item.caseid"
-                                           :label="item.name"
-                                           :value="item.caseid"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="tearDown" prop='tearDown'>
-                            <el-select v-model="addForm.tearDown" multiple placeholder="请选择"
-                                       @click.native="gettearDown()">
-                                <el-option v-for="(item,index) in tearDown"
-                                           :key="item.caseid"
-                                           :label="item.name"
-                                           :value="item.caseid"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
+
+                <!--                <el-divider>冒烟配置</el-divider>-->
+                <!--                <el-row :gutter="36">-->
+                <!--                    <el-col :span="12">-->
+                <!--                        <el-form-item label="setUp" prop='setUp'>-->
+                <!--                            <el-select v-model="addForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">-->
+                <!--                                <el-option v-for="(item,index) in setUp"-->
+                <!--                                           :key="item.caseid"-->
+                <!--                                           :label="item.name"-->
+                <!--                                           :value="item.caseid"-->
+                <!--                                />-->
+                <!--                            </el-select>-->
+                <!--                        </el-form-item>-->
+                <!--                    </el-col>-->
+                <!--                    <el-col :span="12">-->
+                <!--                        <el-form-item label="case" prop='case'>-->
+                <!--                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getCase()">-->
+                <!--                                <el-option v-for="(item,index) in testcase"-->
+                <!--                                           :key="item.caseid"-->
+                <!--                                           :label="item.name"-->
+                <!--                                           :value="item.caseid"-->
+                <!--                                />-->
+                <!--                            </el-select>-->
+                <!--                        </el-form-item>-->
+                <!--                    </el-col>-->
+                <!--                    <el-col :span="12">-->
+                <!--                        <el-form-item label="tearDown" prop='tearDown'>-->
+                <!--                            <el-select v-model="addForm.tearDown" multiple placeholder="请选择"-->
+                <!--                                       @click.native="gettearDown()">-->
+                <!--                                <el-option v-for="(item,index) in tearDown"-->
+                <!--                                           :key="item.caseid"-->
+                <!--                                           :label="item.name"-->
+                <!--                                           :value="item.caseid"-->
+                <!--                                />-->
+                <!--                            </el-select>-->
+                <!--                        </el-form-item>-->
+                <!--                    </el-col>-->
+                <!--                </el-row>-->
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
                 <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
-            </div>
-        </el-dialog>
-        <!--UI测试报告页面-->
-        <el-dialog title="UI测试报告" :visible.sync="reportVisible" :close-on-click-modal="false"
-                   style="width: 75%; left: 12.5%">
-            <div class="block" v-for="(value, key, index) in reportList" :key="key">
-                <span class="demonstration">{{ key }}</span>
-                <el-button type="warning" size="small" @click="showReport(value)">查看报告</el-button>
-            </div>
-
-            <div slot="footer" class="dialog-footer">
-                <el-button @click.native="reportVisible = false">关闭</el-button>
             </div>
         </el-dialog>
         <!--错误图片页面-->
@@ -260,7 +283,7 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        getInstall, delInstall, DisableInstall, EnableInstall,
+        getInstall, delInstall, DisableInstall, EnableInstall, getInstallersion,
         updateInstall, addInstall, getImage, getHost, getbase, getAutoCase, getReport
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
@@ -272,6 +295,7 @@
                     name: ''
                 },
                 UIlist: [],
+                versionlist: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
@@ -284,7 +308,6 @@
                 srcList: [
                     'http://192.168.1.121/static/UI/demo.jpg'
                 ],
-
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
@@ -311,30 +334,25 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    hostid: [
+                    server: [
                         {required: true, message: '请选择服务', trigger: 'blur'}
-                    ],
-                    version: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
                     ]
                 },
                 //新增界面数据
                 addForm: {
-                    hostid: '',
+                    server: '',
                     version: '',
-                    setup: [],
-                    cases: [],
-                    tearDown: [],
-                    status: false
+                    status: false,
+                    installstatus:false
                 }
             }
         },
         created() {
             // 实现轮询
-             this.clearTimeSet=window.setInterval(() => {
-              setTimeout(this.getInstalllist(), 0);
-            }, 5000);
-          },
+            this.clearTimeSet = window.setInterval(() => {
+                setTimeout(this.getInstalllist(), 0);
+            }, 10000);
+        },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
         },
@@ -351,23 +369,18 @@
                 }
 
             },
-            showUIDetail(index, row) {
+            showReport(index, row) {
                 this.$router.push({
-                    path: '/Smoke/smokeid=' + row.uid,
+                    path: '/SmokeReport/reportid=' + row.id,
                 });
             },
-            showGoldDetail(index, row) {
-                this.$router.push({
-                    path: '/Smoke/smokeid=' + row.smokeid,
-                });
-            },
-            showReport: function (url) {
-                {
-                    window.location.href = url
-                }
-                // //刷新当前页面
-                // window.location.reload();
-            },
+            // showReport: function (url) {
+            //     {
+            //         window.location.href = url
+            //     }
+            //     // //刷新当前页面
+            //     // window.location.reload();
+            // },
 
             //显示错误截图
             showReports(index, row) {
@@ -481,6 +494,27 @@
                         this.list = data.data
                         var json = JSON.stringify(this.list)
                         this.tearDown = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
+            // 获取host数据列表
+            Installversion() {
+                this.listLoading = true
+                let self = this;
+                const params = {
+                    page_size: 100
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getInstallersion(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        this.versionlist = data.data
                     } else {
                         self.$message.error({
                             message: msg,
@@ -626,8 +660,7 @@
                 this.addFormVisible = true;
                 this.addForm = {
                     version: null,
-                    hostid: '',
-                    thread: 1
+                    server: '',
                 };
             },
             //编辑修改
@@ -687,15 +720,9 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                hostid: self.addForm.hostid,
+                                server: self.addForm.server,
                                 version: self.addForm.version,
-                                setup: self.addForm.setup,
-                                cases: self.addForm.testdata,
-                                tearDown: self.addForm.tearDown,
-                                thread: this.addForm.thread,
-                                type: "UI",
-                                progress: 0,
-                                status: false,
+                                installstatus: self.addForm.installstatus,
                             });
                             let header = {
                                 "Content-Type": "application/json",
@@ -737,7 +764,7 @@
             },
             //批量删除
             batchRemove: function () {
-                let ids = this.sels.map(item => item.autoid);
+                let ids = this.sels.map(item => item.id);
                 let self = this;
                 this.$confirm('确认删除选中记录吗？', '提示', {
                     type: 'warning'
@@ -750,7 +777,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    DelAuto(header, params).then(_data => {
+                    delInstall(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({

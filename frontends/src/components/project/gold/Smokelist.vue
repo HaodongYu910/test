@@ -224,6 +224,7 @@
                 Smokelist: [],
                 total: 0,
                 page: 1,
+                page_size:10,
                 listLoading: false,
                 sels: [],//列表选中列
 
@@ -270,7 +271,7 @@
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getsmokeList(), 0);
-            }, 5000);
+            }, 20000);
           },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -352,6 +353,7 @@
                 let self = this;
                 let params = {
                     page: self.page,
+                    page_size:self.page_size,
                     version: self.filters.version
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};

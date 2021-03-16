@@ -128,7 +128,9 @@ urlpatterns = [
     url(r'install/del', DelInstall.as_view()),
     url(r'install/disable', DisableInstall.as_view()),
     url(r'install/enable', EnableInstall.as_view()),
+    url(r'install/getReport', getInstallReport.as_view()),
     url(r'install/list', getInstall.as_view()),
+    url(r'install/version', getInstallVersion.as_view()),
     url(r'todo', todo.as_view()),
     url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]

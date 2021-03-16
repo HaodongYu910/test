@@ -10,9 +10,32 @@ from TestPlatform.serializers import install_Deserializer
 from TestPlatform.common.install import InstallThread
 from Dicom.common.deletepatients import *
 from ..models import install
+from ..common.transport import SSHConnection
 from Dicom.common.dicomBase import baseTransform
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
+
+
+class getInstallVersion(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取Install 版本
+        :param request:
+        :return:
+        """
+        try:
+            version = []
+            downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
+            filelist = downssh.cmd("cd /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/;ls -lR |grep -v ^d|awk '{print $9}' |tr -s '\\n';")
+            for i in str(filelist, encoding="utf-8").split('\n'):
+                version.append(i[:-5])
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="获取版本失败!")
+
+        return JsonResponse(data={"data": version}, code="0", msg="成功")
 
 
 class getInstall(APIView):
@@ -63,8 +86,8 @@ class AddInstall(APIView):
         :return:
         """
         try:
-            # 必传参数 name, version, type
-            if not data["hostid"] or not data["version"]:
+            # 必传参数 server
+            if not data["server"]:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -248,27 +271,48 @@ class EnableInstall(APIView):
             return result
         # 查找项目是否存在
         try:
-            obj = install.objects.get(id=data["id"])
-
             testThread = InstallThread(id=data["id"])
             testThread.setDaemon(True)
             # 开始线程
             testThread.start()
-            # # 下载版本
-            # localpath,version = testThread.download()
-            # 安装版本
-            testThread.install()
-            # 重启系统
-            testThread.restart()
-            # 执行 金标准测试
-            testThread.goldsmoke()
-            # 执行 UI测试
-            testThread.UiTest()
-            # 变更状态
-            # obj.status = False
-            # obj.type = 1
-            # obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
+
+
+class getInstallReport(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验id类型为int
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        冒烟测试报告
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            testThread = InstallThread(id=data["id"])
+            data = testThread.report()
+            return JsonResponse(code="0", msg="成功",data=data)
+
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")

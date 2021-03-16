@@ -141,6 +141,12 @@ export default new Router({
                     ]
                 },
                 {
+                    path: '/SmokeReport/reportid=:reportid',
+                    component: resolve => require(['../components/deploy/SmokeReport.vue'], resolve),
+                    meta: {title: '冒烟报告'}
+
+                },
+                {
                     path: '/SmokeResult',
                     component: resolve => require(['../components/project/gold/Smoketest.vue'], resolve),
                     meta: {title: '金标准结果'}
@@ -244,7 +250,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/tool/dicomdata/baseSet.vue'], resolve),
+                    component: resolve => require(['../components/tool/dicomdata/dicomFile.vue'], resolve),
                     meta: {title: 'dicom文件'}
                 },
                 {

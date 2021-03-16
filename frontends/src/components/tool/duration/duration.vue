@@ -484,6 +484,7 @@
                 durationlist: {},
                 total: 0,
                 page: 1,
+                page_size:10,
                 listLoading: true,
                 sels: [], // 列表选中列
 
@@ -560,7 +561,7 @@
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getDurationlist(), 0);
-            }, 10000);
+            }, 20000);
           },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -744,6 +745,8 @@
                 this.listLoading = true
                 const self = this
                 const params = {
+                    page:self.page,
+                    page_size:self.page_size,
                     server: this.filters.server
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}

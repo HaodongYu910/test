@@ -166,15 +166,21 @@
 
             }
         },
+        created() {
+            // 实现轮询
+             this.clearTimeSet=window.setInterval(() => {
+              setTimeout(this.getdata(), 0);
+            }, 10000);
+            this.getParams();
+          },
+        beforeDestroy() {    //页面关闭时清除定时器
+            clearInterval(this.clearTimeSet);
+        },
         mounted() {
             this.gethost();
             this.getParams();
             this.getdata();
         },
-        created(){
-			  this.getParams();
-			  this.getdata();
-			  },
 		activated() {
 			  this.getParams();
 			  this.getdata();
