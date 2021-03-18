@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='smoke',
+            name='gold',
             fields=[
                 ('id', models.AutoField(primary_key=True, serialize=False)),
                 ('version', models.CharField(blank=True, max_length=20, null=True, verbose_name='版本')),
@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
             options={
                 'verbose_name': 'smoke测试表',
                 'verbose_name_plural': 'smoke测试表',
-                'db_table': 'smoke',
+                'db_table': 'gold',
             },
         ),
     ]

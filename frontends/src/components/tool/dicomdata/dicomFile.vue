@@ -219,6 +219,7 @@
                 baseData: [],
                 total: 0,
                 page: 1,
+                page_size: 20,
                 listLoading: false,
                 sels: [],//列表选中列
 
@@ -347,6 +348,7 @@
                 let self = this;
                 let params = {
                     page: self.page,
+                    page_size:self.page_size,
                     remarks: self.filters.remarks,
                     type: self.filters.type,
                     selecttype:"dicom",

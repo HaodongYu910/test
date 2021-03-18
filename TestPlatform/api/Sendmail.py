@@ -5,12 +5,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.common.jenkins_api import get_job_details,disable_job
+from TestPlatform.common.jenkins_api import get_job_details
 from TestPlatform.common.download_mail import download
 from TestPlatform.common.sendmail import send_mail
 from TestPlatform.models import test_report
-from TestPlatform.HTML_template.test_html import html
-from TestPlatform.HTML_template.testreport_html import report_html
+from HtmlTemplate.test_html import html
+from HtmlTemplate.testreport_html import report_html
 from django.conf import settings
 
 

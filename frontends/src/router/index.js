@@ -123,32 +123,32 @@ export default new Router({
                 },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/tool/smoke/Smokelist.vue'], resolve),
+                    component: resolve => require(['../components/project/gold/Smokelist.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
                 {
-                    path: '/smoke/smokeid=:smokeid',
-                    component: resolve => require(['../components/tool/smoke/SmokeDetails.vue'], resolve),
+                    path: '/gold/smokeid=:smokeid',
+                    component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
                     meta: {title: '金标准'},
                     hidden: true,
                     children: [
                         {
                             path: '/Smoke/smokeid=:smokeid',
-                            component: resolve => require(['../components/tool/smoke/SmokeDetails.vue'], resolve),
+                            component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
                             meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
                         }
                     ]
                 },
                 {
-                    path: '/SmokeData',
-                    component: resolve => require(['../components/tool/smoke/SmokeData.vue'], resolve),
-                    meta: {title: '金标准数据'}
+                    path: '/SmokeReport/reportid=:reportid',
+                    component: resolve => require(['../components/deploy/SmokeReport.vue'], resolve),
+                    meta: {title: '冒烟报告'}
 
                 },
                 {
                     path: '/SmokeResult',
-                    component: resolve => require(['../components/tool/smoke/Smoketest.vue'], resolve),
+                    component: resolve => require(['../components/project/gold/Smoketest.vue'], resolve),
                     meta: {title: '金标准结果'}
 
                 },
@@ -250,7 +250,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/tool/dicomdata/baseSet.vue'], resolve),
+                    component: resolve => require(['../components/tool/dicomdata/dicomFile.vue'], resolve),
                     meta: {title: 'dicom文件'}
                 },
                 {

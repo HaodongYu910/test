@@ -1,7 +1,6 @@
 #! /usr/bin/env python
 # coding=utf-8
-import logging
-from TestPlatform.HTML_template.test_html import html
+from HtmlTemplate.test_html import html
 from TestPlatform.common.sendmail import send_mail
 from TestPlatform.models import test_report,base_data
 from django.conf import settings

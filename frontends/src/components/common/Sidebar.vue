@@ -58,10 +58,6 @@
                                 title: '项目列表'
                             },
                             {
-                                index: 'SmokeData',
-                                title: '金标准数据'
-                            },
-                            {
                                 index: 'SmokeList',
                                 title: '金标准测试'
                             },
@@ -106,7 +102,7 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-loading',
+                        icon: 'el-icon-s-ticket',
                         index: '4',
                         title: 'Dicom工具',
                         subs: [
@@ -154,7 +150,7 @@
                     //     ]
                     // },
                     {
-                        icon: 'el-icon-s-install',
+                        icon: 'el-icon-s-tools',
                         index: '7',
                         title: '系统设置',
                         subs: [
@@ -173,7 +169,7 @@
                             },
                             {
                                 index: 'mailconfig',
-                                title: '消息设置'
+                                title: '邮件设置'
                             }
                             ,
                             {

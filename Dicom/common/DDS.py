@@ -6,7 +6,7 @@
 参数说明：
 
 '''
-from TestPlatform.common.regexUtil import connect_to_postgres
+from TestPlatform.common.PostgreSQL import connect_postgres
 from TestPlatform.models import *
 
 
@@ -15,7 +15,7 @@ class getDDSData:
      dds_dic = {}
      def getServer(self):
           getDDSServer_sql = "SELECT DISTINCT dds FROM `duration` WHERE dds is not Null"
-          result_ddsServer = connect_to_postgres("192.168.1.121", getDDSServer_sql)
+          result_ddsServer = connect_postgres(host="192.168.1.121", sql=getDDSServer_sql)
           for i in len(result_ddsServer):
                dds_dic["server"] = {result_ddsServer[i]:""}
 

@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='smoke',
+            model_name='gold',
             name='count',
             field=models.CharField(blank=True, max_length=5, null=True, verbose_name='count'),
         ),

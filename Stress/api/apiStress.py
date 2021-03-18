@@ -11,7 +11,7 @@ from ..common.stress import *
 from ..common.PerformanceResult import *
 from Dicom.common.dicomBase import baseTransform
 from Dicom.common.deletepatients import *
-from Dicom.common.dicomdetail import anonymousSend
+from Dicom.common.Dicom import DicomThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -62,7 +62,7 @@ class stressRun(APIView):
             else:
                 if obj.jmeterstatus is True:
                     St.jmeterStress()
-                anonymous = threading.Thread(target=anonymousSend, args=(data['stressid'], 'data'))
+                anonymous = DicomThread(stressid=data['stressid'], type='stress')
                 anonymous.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:

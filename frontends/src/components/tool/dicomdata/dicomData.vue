@@ -42,9 +42,9 @@
                     <el-form-item label="同步" prop="server">
                         <el-select v-model="filters.server" placeholder="请选择同步的服务" @click.native="gethost()">
                             <el-option v-for="(item,index) in tags"
-                                       :key="item.host"
+                                       :key="item.id"
                                        :label="item.name"
-                                       :value="item.host"
+                                       :value="item.id"
                             />
                         </el-select>
                     </el-form-item>
@@ -456,7 +456,8 @@
                                 slicenumber: self.editForm.slicenumber,
                                 vote: self.editForm.vote,
                                 diagnosis: self.editForm.diagnosis,
-                                imagecount: self.editForm.imagecount
+                                imagecount: self.editForm.imagecount,
+                                graphql: self.editForm.graphql
                             }
                             const header = {
                                 'Content-Type': 'application/json',

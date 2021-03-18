@@ -11,6 +11,7 @@ from TestPlatform.common.api_response import JsonResponse
 from ..serializers import autorecord_Serializer
 from TestPlatform.models import uploadfile
 from AutoUI.common.autouitest import *
+import os,time
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

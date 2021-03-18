@@ -1,17 +1,16 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.db.models import Sum, Min
-
+from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
 from TestPlatform.common.api_response import JsonResponse
-from TestPlatform.models import dicom_record
+from TestPlatform.models import dicom_record,base_data,duration_record
 from TestPlatform.serializers import dicomdata_Deserializer
-# from .smoke.gold import *
 from ..common.deletepatients import *
-from ..common.dicomdetail import *
+from ..common.dicomBase import listUrl,voteData,graphql_query,dicomsavecsv
+from ..common.Dicom import Send
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -46,6 +45,7 @@ class dicomDetail(APIView):
             return result
         try:
             kc = login_keycloak(data['server'])
+            obj = GlobalHost.objects.get(id=data['server'])
             try:
                 if data['ids']:
                     dicomdata = dicom.objects.filter(id__in=data['ids'])
@@ -53,15 +53,15 @@ class dicomDetail(APIView):
                     dicomdata = dicom.objects.filter(diseases=data['diseases'])
                 else:
                     dicomdata = dicom.objects.filter(vote=None)
+
                 for i in dicomdata:
                     try:
-                        obj = GlobalHost.objects.get(id=data['server'])
-                        objbase = base_data.objects.get(id=i.fileid)
-                        objdictionary = dictionary.objects.get(id=objbase.predictor)
+                        objdictionary = dictionary.objects.get(id=i.predictor)
                         if i.vote is None:
-                            i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid,obj.host, objbase.predictor,kc)
+                            i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid, obj.host,
+                                                                           i.predictor, kc)
                         vote = i.vote
-                        i.graphql = graphql_query(i.studyinstanceuid,vote,objbase.predictor,objdictionary.value)
+                        i.graphql = graphql_query(i.studyinstanceuid, vote, i.predictor, objdictionary.value)
                         i.save()
                     except Exception as e:
                         logger.error(e)
@@ -93,21 +93,23 @@ class dicomData(APIView):
         slicenumber = request.GET.get("slicenumber")
         dicomtype = request.GET.get("type")
         if dicomtype:
-            if diseases =='' and slicenumber !='':
-                obi = dicom.objects.filter(slicenumber__contains=slicenumber,type=dicomtype).order_by("-id")
-            elif diseases !='' and slicenumber =='':
-                obi = dicom.objects.filter(diseases__contains=diseases,type=dicomtype).order_by("-id")
-            elif diseases !='' and slicenumber !='':
-                obi = dicom.objects.filter(diseases__contains=diseases,slicenumber__contains=slicenumber,type=dicomtype).order_by("-id")
+            if diseases == '' and slicenumber != '':
+                obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=dicomtype).order_by("-id")
+            elif diseases != '' and slicenumber == '':
+                obi = dicom.objects.filter(diseases__contains=diseases, type=dicomtype).order_by("-id")
+            elif diseases != '' and slicenumber != '':
+                obi = dicom.objects.filter(diseases__contains=diseases, slicenumber__contains=slicenumber,
+                                           type=dicomtype).order_by("-id")
             else:
                 obi = dicom.objects.filter(type=dicomtype).order_by("-id")
         else:
-            if diseases =='' and slicenumber !='':
+            if diseases == '' and slicenumber != '':
                 obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
-            elif diseases !='' and slicenumber =='':
+            elif diseases != '' and slicenumber == '':
                 obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
-            elif diseases !='' and slicenumber !='':
-                obi = dicom.objects.filter(diseases__contains=diseases,slicenumber__contains=slicenumber).order_by("-id")
+            elif diseases != '' and slicenumber != '':
+                obi = dicom.objects.filter(diseases__contains=diseases, slicenumber__contains=slicenumber).order_by(
+                    "-id")
             else:
                 obi = dicom.objects.all().order_by("-id")
 
@@ -125,63 +127,6 @@ class dicomData(APIView):
                                   "total": total
                                   }, code="0", msg="成功")
 
-
-class adddicomdata(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        校验参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 key, server_ip , type
-            if not data["server"] or not data["diseases"]:
-                return JsonResponse(code="999996", msg="参数有误,必传参数 diseases, server！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        send数据
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-        try:
-            server = data['server']
-            if data['studyinstanceuid'] is None:
-                StudyUID = connect_to_postgres(server,
-                                               "select \"StudyInstanceUID\" from \"Study\" where \"PatientID\" ='{0}'".format(
-                                                   data['patientid'])).to_dict(orient='records')
-                if len(StudyUID) > 1:
-                    return JsonResponse(code="999994", msg="数据重复！")
-                else:
-                    data['studyinstanceuid'] = StudyUID[0]['StudyInstanceUID']
-            else:
-                patientid = connect_to_postgres(server,
-                                                "select \"PatientID\" from \"Study\" where \"StudyInstanceUID\" ='{0}'".format(
-                                                    data['studyinstanceuid'])).to_dict(orient='records')
-                data['patientid'] = patientid[0]['PatientID']
-            try:
-                data['vote'], SeriesInstanceUID = updateStressData(data['studyinstanceuid'], server)
-            except ObjectDoesNotExist:
-                return JsonResponse(code="999994", msg="数据未预测，请先预测！")
-
-            dicomdata = dicomdata_Deserializer(data=data)
-
-            with transaction.atomic():
-                dicomdata.is_valid()
-                dicomdata.save()
-            return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="数据不存在！")
 
 
 # 修改duration
@@ -264,6 +209,7 @@ class deldicomdata(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
+
 class DisableDicom(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -338,6 +284,7 @@ class EnableDicom(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
 
+
 class dicomSend(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -379,7 +326,7 @@ class dicomSend(APIView):
                 for i in obj:
                     dicomobj = dicom.objects.filter(fileid=i.id)
                     for j in dicomobj:
-                        delete_patients_duration(j.studyinstanceuid, data["server"], "StudyInstanceUID",False)
+                        delete_patients_duration(j.studyinstanceuid, data["server"], "StudyInstanceUID", False)
                     thread_Send = threading.Thread(target=Send, args=(host.host, i.content))
                     # 启动线程
                     thread_Send.start()
@@ -430,7 +377,6 @@ class dicomcsv(APIView):
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
-
 
 
 class dicomUrl(APIView):
