@@ -32,27 +32,34 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
         full_fn = os.path.join(src_folder, fn)
         if (os.path.isdir(full_fn)):
             onlyDoAnonymization(full_fn, study_infos, diseases, wPN, wPID, anonkey, ap_addr)
+            logging.info('-------------this is a folder,skiping....')
             continue
         else:
             ds = pydicom.dcmread(full_fn, force=True) # 读取该路径文件的dicom信息
             try:
                 if ds.StudyInstanceUID and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
+                    logging.info('1. this is a truly dicom document')
                     if ds.StudyInstanceUID not in study_infos.keys():   # 如果UID没在dic里面
                         study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}  # 在dic里面创建这个UID分支
+                        logging.info('2. insert UID in dic')
                     try:
                         if wPID:
                             # 判断pID是否有值
                             if study_infos[ds.StudyInstanceUID]["patientID"]:  # has value
                                 ds.PatientID = study_infos[ds.StudyInstanceUID]["patientID"]
+                                logging.info('3. has pID [{0}], detect pid from dic'.format(ds.PatientID))
                             elif not study_infos[ds.StudyInstanceUID]["patientID"]:  # no value
                                 ds.PatientID = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum(4)), 32)
                                 study_infos[ds.StudyInstanceUID]["patientID"] = ds.PatientID
+                                logging.info('3. do not have pID [{0}], creating ......'.format(ds.PatientID))
                         if wPN:
                             if study_infos[ds.StudyInstanceUID]["patientName"]:  # PN有值
                                 ds.PatientName = study_infos[ds.StudyInstanceUID]["patientName"]
+                                logging.info('4. has pN [{0}], detect pN from dic'.format(ds.PatientName))
                             elif not study_infos[ds.StudyInstanceUID]["patientName"]:  # PN没有值
                                 ds.PatientName = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum(4)), 32)
                                 study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
+                                logging.info('4. do not has pN [{0}], creating.....'.format(ds.PatientName))
 
                         # # 判断要不要进行pid和pn的匿名化
                         # if wPID:
@@ -85,12 +92,15 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                         #folder_fake = 'C:\\Users\\yuhaodong\\Desktop\\test\\{0}\\{1}'.format(diseases, ds.PatientName)
                         folder_fake = '{0}/{1}/{2}'.format(ap_addr, diseases, ds.PatientName)
                         if not os.path.exists(folder_fake):
-                            logging.info('do not have this path. creating...')
+                            logging.info('5. do not have this path. creating...[{0}]'.format(folder_fake))
                             os.makedirs(folder_fake)
                             # record into db
+                        else:
+                            logging.info('5. path [{0}] is exists, only save'.format(folder_fake))
                         study_infos["No"] = nextNumber(folder_fake)
                         full_fn_fake = '{0}/{1}.dcm'.format(folder_fake, str(study_infos["No"]))
                         ds.save_as(full_fn_fake)
+                        logging.info('6. save complete [{0}]'.format(full_fn_fake))
                     except Exception as e:
                         logging.info(
                             'failed to : file[{0}], error[{1}]'.format(full_fn, e))
