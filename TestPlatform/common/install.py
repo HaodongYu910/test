@@ -6,16 +6,17 @@ from ..models import install, smoke, dictionary, smoke_record, base_data
 import os
 from ..common.gold import SmokeThread
 from AutoUI.models import autoui, auto_uirecord
-import logging
 import time, datetime
+# from ..utils.keycloak.keycloakadmin import KeycloakAdmin
+import logging
+
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
-
 
 def deldata(server):
     ssh = SSHConnection(host=server, pwd='biomind')
     ssh.cmd("sshpass -p biomind biomind stop")
-    ssh.cmd("sshpass -p y docker system prune")
+    ssh.shcmd("sshpass -p y docker system prune")
     ssh.cmd("docker volume rm $(docker volume ls -q)")
     ssh.cmd("sshpass -p biomind sudo rm -rf /lfs/biomind")
     ssh.cmd("sshpass -p biomind sudo rm -rf /lfs/Biomind-3Dserver")
@@ -23,6 +24,7 @@ def deldata(server):
     ssh.cmd("sshpass -p biomind sudo rm -rf /home/biomind/.3D-biomind")
     ssh.cmd("sshpass -p biomind sudo rpm -e supervisor")
     ssh.cmd("sshpass -p biomind sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
+
 
 
 
@@ -81,10 +83,16 @@ class InstallThread(threading.Thread):
             self.obj.save()
             if not os.path.exists("/home/biomind/{}".format(self.obj.version)):
                 self.ssh.upload(self.localpath, "/home/biomind/QaInstall.zip")
+                self.ssh.cmd("sshpass -p biomind sudo rm -rf {}/".format(self.obj.version))
                 self.ssh.cmd("unzip {}".format("QaInstall.zip"))
             self.ssh.cmd("sshpass -p biomind biomind stop;")
             logger.info("biomind stop")
-            self.ssh.cmd("cd {};sshpass -p biomind bash setup_engine.sh;".format(self.obj.version))
+            self.ssh.cmd("cd {0};sshpass -p biomind bash setup_engine.sh;".format(self.obj.version))
+            time.sleep(5)
+            self.ssh.upload("{}/config/orthanc.json".format(settings.BASE_DIR),
+                            "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+            self.ssh.upload("{}/config/classification_votes.json".format(settings.BASE_DIR),
+                            "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
             logger.info("biomind bash setup_engine.sh")
         except Exception as e:
             self.obj.status = False
@@ -93,11 +101,21 @@ class InstallThread(threading.Thread):
 
         # def restart(self):
         try:
+            self.ssh.configure(self.obj.server, 'https')
             self.obj.type = 4
             self.obj.save()
-            self.ssh.cmd("sshpass -p biomind biomind restart")
+            logger.info("sshpass -p biomind biomind start")
+            self.ssh.cmd("sshpass -p biomind biomind start prod master;")
             self.ssh.close()
-            time.sleep(600)
+            time.sleep(300)
+            # try:
+            #     groups = KeycloakAdmin.get_groups()
+            #     KeycloakAdmin.create_user(
+            #     'test', 'Asd@123456', [
+            #         x['id'] for x in groups])  # 获得角色(分组)ID
+
+            # except Exception as e:
+            #     logging.error('Failed to create User: %s!', e)
         except Exception as e:
             self.obj.status = False
             self.obj.save()

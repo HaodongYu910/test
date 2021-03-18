@@ -1076,6 +1076,7 @@ class install(models.Model):
     smokeid = models.IntegerField(blank=True, null=True, verbose_name="smokeid")
     uid = models.IntegerField(blank=True, null=True, verbose_name="UIuid")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    crontab =models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
     installstatus = models.BooleanField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
 

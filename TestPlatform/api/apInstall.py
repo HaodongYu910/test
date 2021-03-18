@@ -12,6 +12,7 @@ from Dicom.common.deletepatients import *
 from ..models import install
 from ..common.transport import SSHConnection
 from Dicom.common.dicomBase import baseTransform
+from ..scheduletask import installtask
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

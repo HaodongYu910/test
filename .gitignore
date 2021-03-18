@@ -106,3 +106,5 @@ ENV/
 *.csv
 
 /migrations
+
+TestPlatform/utils/keycloak/__pycache__/*
