@@ -11,6 +11,7 @@ from TestPlatform.common.api_response import JsonResponse
 from TestPlatform.models import pid
 from TestPlatform.serializers import duration_Deserializer,duration_Serializer
 from ..common.anonymization import onlyDoAnonymization
+from ..common.dds_detect import searchData
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
@@ -458,3 +459,18 @@ class anonymizationAPI_2nd(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
 
+class ddsDataVerifyAPI(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self,request):
+        data = JSONParser.parse(request)
+        try:
+            ip = data['serch_target_ip']
+            time = data['serch_duration']
+
+            t= threading.Thread(target=searchData(ip,time))
+            t.start()
+            return JsonResponse(code="0", msg="开始搜索")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="出问题了....")

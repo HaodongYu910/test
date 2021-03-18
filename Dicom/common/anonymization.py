@@ -37,7 +37,8 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
         else:
             ds = pydicom.dcmread(full_fn, force=True) # 读取该路径文件的dicom信息
             try:
-                if ds.StudyInstanceUID and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
+                if ds.StudyInstanceUID:
+                    # and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
                     logging.info('1. this is a truly dicom document')
                     if ds.StudyInstanceUID not in study_infos.keys():   # 如果UID没在dic里面
                         study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}  # 在dic里面创建这个UID分支
@@ -127,7 +128,7 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                     #     continue
 
             except Exception as e:
-                # logger.error('errormsg: failed to read file [{0}]'.format(full_fn))
+                logger.error('errormsg: failed to read file [{0}], it is not a dicom file'.format(full_fn))
                 continue
 
 
