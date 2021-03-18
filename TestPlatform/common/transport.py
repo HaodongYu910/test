@@ -63,31 +63,58 @@ class SSHConnection:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command,get_pty=True)
+        stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
+        # while not stdout.channel.exit_status_ready():
+        #     result = stdout.readline()
+        #     print(result)
+        #     # 由于在退出时，stdout还是会有一次输出，因此需要单独处理，处理完之后，就可以跳出了
+        #     if stdout.channel.exit_status_ready():
+        #         a = stdout.readlines()
+        #         print(a)
+        #         break
         logger.debug(stdout)
         result = stdout.read()
         return result
 
+    # SSHClient输入命令远程操作主机
+    def shcmd(self, command):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh._transport = self.__transport
+        stdin, stdout, stderr = ssh.exec_command(command,timeout=10)
+        stdin.write("yes\n")
+        out, err = stdout.read(), stderr.read()
+        logger.debug(stdout)
+        result = stdout.read()
+
+        return result
+
+    def configure(self, host, PROTOCOL):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh._transport = self.__transport
+        stdin, stdout, stderr = ssh.exec_command('biomind configure',timeout=10)
+        stdin.write("{}\n".format(host))
+        stdin.write("\n")
+        stdin.write("{}\n".format(PROTOCOL))
+        stdin.write("eno1\n")
+        out, err = stdout.read(), stderr.read()
+        logger.debug(stdout)
+        result = stdout.read()
+        return result
+
+
 # import os
 # name = '2.18.1-radiology'
 # ssh = SSHConnection(host='192.168.1.170',pwd='biomind')
+#
+# ssh.close()
 # ssh.cmd("cd 2.17.6/;sshpass -p biomind bash setup_engine.sh;")
-# # ssh.cmd("unzip {}.zip".format(name))
-# # BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), "../.."))
-# # path = os.path.join(BASE_DIR, 'logs')
-# # with open("{}/test.sh".format(path), "w",encoding='utf-8') as f:
-# #     f.writelines(['cd {}'.format(name),"\nsshpass -p {} bash setup_engine.sh".format('biomind')])
-# #
+
 # # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
 # print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))
-# ssh.cmd("ls")
 # ssh.cmd("sshpass -p {} bash 2.17.5/setup_engine.sh".format('biomind'))
 # ssh.cmd("sshpass -p {} biomind restart".format('biomind'))
 # ssh.cmd("unzip {}".format('zipname'))
 # ssh.cmd("sshpass -p {} bash /home/biomind/{}/".format('zipname'))
 # ssh.cmd("sshpass -p {} biomind restart".format('biomind'))
-# ssh.cmd("echo biomind|sudo -S -u biomind restart")
-# ssh.cmd("zip -r /home/biomind/pm.zip /home/biomind/.biomind/lib/versions/2.18.0-radiology/logs/pm2")
-# # ssh.upload('C:\\Users\\yinhang\\Desktop\\logs\\win.txt', '/home/biomind/win.txt')
-# ssh.download('C:\\Users\\yinhang\\Desktop\\logs\\pm.zip', '/lfs/nextcloud/data/hang.yin@biomind.ai/files/src.zip')
-# ssh.close()
