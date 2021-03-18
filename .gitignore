@@ -27,6 +27,7 @@ wheels/
 *.egg
 
 *migration
+/TestPlatform/migrations/*
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
@@ -105,3 +106,5 @@ ENV/
 *.csv
 
 /migrations
+
+TestPlatform/utils/keycloak/__pycache__/*
