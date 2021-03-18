@@ -107,7 +107,7 @@ def delresult(serverID, ids):
         try:
             obj = dicom.objects.get(id=i)
             graphql_query = 'mutation{ ' \
-                            'deleteresult( stu dyuid:' + str(obj.studyinstanceuid) + ' )' \
+                            'deleteresult( studyuid:' + str(obj.studyinstanceuid) + ' )' \
                                                                                     'deleteProtocol( studyuid:' + str(
                 obj.studyinstanceuid) + ' ) }'
             graphql_Interface(graphql_query, kc)
