@@ -45,17 +45,15 @@ MAIL_USER = "qa@biomind.ai"  #账号
 MAIL_PWD = "Autotest@123"  #密码
 
 # Dicom的路径
-Dicom_PATH = '/home/biomind/testDatas'
+Dicom_PATH = '/home/biomind/'
 
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'logs')
 # 本地
-
 # SITE_DBURL = "rm-2ze7j006i3129ay5vmo.mysql.rds.aliyuncs.com"
 # SITE_JIRAURL = "http://jira.bishijie.com"
 # SITE_JENKINURL = "http://39.105.135.38:8080"
 
-BASE_LOG_DIR = os.path.join(BASE_DIR, "logs")
 
 LOGGING = {
     'version': 1,
@@ -93,7 +91,7 @@ LOGGING = {
         'default': {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_info.log"),  # 日志文件
+            'filename': os.path.join(LOG_PATH, "test_info.log"),  # 日志文件
             'maxBytes': 1024 * 1024 * 500,  # 日志大小 100 M
             'backupCount': 3,  # 最多备份几个
             'formatter': 'standard',
@@ -102,7 +100,7 @@ LOGGING = {
         'error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_error.log"),  # 日志文件
+            'filename': os.path.join(LOG_PATH, "test_error.log"),  # 日志文件
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
             'backupCount': 5,
             'formatter': 'standard',
@@ -112,7 +110,7 @@ LOGGING = {
         'debug': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
-            'filename': os.path.join(BASE_LOG_DIR, "test_collect.log"),
+            'filename': os.path.join(LOG_PATH, "test_collect.log"),
             'maxBytes': 1024 * 1024 * 50,  # 日志大小 50M
             'backupCount': 5,
             'formatter': 'collect',
@@ -253,7 +251,7 @@ STATICFILES_DIRS = (
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
-STATIC_URL = '/static/'
+STATIC_URL = 'static/'
 
 
 WSGI_APPLICATION = 'Autotest.wsgi.application'
@@ -363,7 +361,7 @@ CORS_ALLOW_HEADERS = (
 CRONJOBS = [
     # 表示每天2：01执行
     #('30 19 * * *', 'TestPlatform.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/TestPlatform/logs/job.logs'
-    ('*/20 * * * *', 'TestPlatform.scheduletask.job2_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天09：30 执行同步听云数据
+    ('*/10 * * * *', 'TestPlatform.scheduletask.installtask','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天09：30 执行同步听云数据
 ]
 
 

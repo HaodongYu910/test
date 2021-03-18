@@ -2,15 +2,21 @@
 # coding=utf-8
 from HtmlTemplate.test_html import html
 from TestPlatform.common.sendmail import send_mail
-from TestPlatform.models import test_report,base_data
+from TestPlatform.models import test_report, install, dictionary
 from django.conf import settings
-from Dicom.common.duration_verify import *
+import logging
+import os,re
+import shutil
+import datetime
+from .common.regexUtil import Weekdays
+from .common.transport import SSHConnection
+from .common.install import InstallThread
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)
 
-__author__ = "vte"
-__version__ = "1.0.1"
+__author__ = ""
+__version__ = ""
 
 
 
@@ -42,72 +48,28 @@ def mail_task():
         logger.error('[Error] '+ e)
 
 
-def clean_task():
+def installtask():
+    dobj = dictionary.objects.get(type='install', key='oldversion')
+    oldversion = dobj.value.split(',')
     try:
-        obj = pid.objects.filter(durationid=data["id"])
-        okj = duration.objects.get(id=data["id"])
+        downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
+        filelist = downssh.cmd(
+            "cd /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/;ls -lR |grep -v ^d|awk '{print $9}' |tr -s '\\n';")
+        for i in str(filelist, encoding="utf-8").split('\n'):
+            version = i.replace('\r', "")
+            version = version.replace('\n', "")
+            if version not in oldversion and version:
+                obj = install.objects.filter(status=False,crontab='crontab')
+                for j in obj:
+                    j.version = version[:-5]
+                    obj.save()
+                    testThread = InstallThread(id=j.id)
+                    testThread.setDaemon(True)
+                    # 开始线程
+                    testThread.start()
+                dobj.value = '{},'.format(str(dobj.value),)
+                dobj.save()
 
-        for i in obj:
-            cmd = 'kill -9 {0}'.format(int(i.pid))
-            logger.info(cmd)
-            os.system(cmd)
-            i.delete()
-
-        okj.sendstatus = False
-        okj.save()
-        # 删除 文件夹
-        folder = "/files/logs/{0}".format(str(okj.keyword))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
-    except Exception as e:
-        logger.error("修改失败" % e)
-
-def duration(durationid):
-    try:
-        min = 1000
-        sumdicom = 0
-        obj = duration.objects.get(id=durationid)
-        for j in obj.dicom.split(","):
-            dicom = base_data.objects.get(remarks=j)
-            if dicom.other is None:
-                sumdicom = sumdicom
-            else:
-                if min > int(dicom.other):
-                    min = int(dicom.other)
-                    mindicom = j
-                sumdicom = int(dicom.other) + sumdicom
-
-        imod = divmod(int(obj.sendcount), sumdicom)
-        imin = divmod(int(imod[1]), min)
-        if int(imin[1]) < (int(imin[1]) / 2):
-            mincount = int(imin[0]) + int(imod[0])
-        else:
-            mincount = int(imin[0]) + int(imod[0]) + 1
-
-        for i in obj.dicom.split(","):
-            dicom = base_data.objects.get(remarks=i)
-            folder = dicom.content
-            if i == mindicom:
-                sendcount = mincount
-            else:
-                sendcount = imod[0]
-            cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                   ' /home/biomind/Biomind_Test_Platform/TestPlatform/install/duration/durationcmd.py '
-                   '--ip {0} --aet {1} '
-                   '--port {2} '
-                   '--keyword {3} '
-                   '--dicomfolder {4} '
-                   '--durationid {5} '
-                   '--diseases {6} '
-                   '--end {7} '
-                   '--sendcount {8} &').format(obj.server, obj.aet, obj.port, obj.keyword, folder, durationid, i,
-                                               obj.end_time, sendcount)
-            logger.info(cmd)
-            os.system(cmd)
-            time.sleep(1)
-
-        obj.sendstatus = True
-        obj.save()
     except Exception as e:
         logger.error(e)
 
