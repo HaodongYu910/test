@@ -12,6 +12,7 @@ from AutoTest.models import pid
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
+from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
@@ -458,3 +459,19 @@ class anonymizationAPI_2nd(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
 
+class ddsDataVerifyAPI(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self, request):
+        data = JSONParser().parse(request)
+        try:
+            ip = data['search_target_ip']
+            time = data['search_duration']
+            id = data['id']
+
+            t= threading.Thread(target=dataVerify(ip,id))
+            t.start()
+            return JsonResponse(code="0", msg="开始搜索")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="出问题了....")

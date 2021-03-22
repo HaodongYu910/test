@@ -42,4 +42,5 @@ urlpatterns = [
     url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'updatedata', Updatedata.as_view()),
+    url(r'tool/search_data', ddsDataVerifyAPI.as_view()),
 ]
