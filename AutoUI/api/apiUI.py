@@ -5,10 +5,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from TestPlatform.common.api_response import JsonResponse
+from AutoTest.common.api_response import JsonResponse
 from ..serializers import autoui_Serializer, autoui_Deserializer
-from Dicom.common.deletepatients import *
-from Dicom.common.dicomBase import baseTransform
+from AutoDicom.common.deletepatients import *
+from AutoDicom.common.dicomBase import baseTransform
 from AutoUI.common.autouitest import *
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -59,7 +59,7 @@ class getAutoUI(APIView):
                 # i["success"] = success["result_nums"]
                 # i["fail"] = fail['result_nums']
                 # i["aifail"] = int(count['result_nums']) - int(success["result_nums"]) - int(fail['result_nums'])
-                hostobj = GlobalHost.objects.get(id=i["hostid"])
+                hostobj = Server.objects.get(id=i["hostid"])
                 i["hostid"] = hostobj.host
             except Exception as e:
                 i["host"] = "Null"

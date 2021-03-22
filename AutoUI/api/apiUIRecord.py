@@ -7,9 +7,9 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from TestPlatform.common.api_response import JsonResponse
+from AutoTest.common.api_response import JsonResponse
 from ..serializers import autorecord_Serializer
-from TestPlatform.models import uploadfile
+from AutoTest.models import uploadfile
 from AutoUI.common.autouitest import *
 import os,time
 

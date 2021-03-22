@@ -1,5 +1,6 @@
-from TestPlatform.models import GlobalHost, dicom ,dictionary
-from Dicom.common.dicomBase import checkuid
+from AutoTest.models import Server,dictionary
+from AutoDicom.models import dicom
+from AutoDicom.common.dicomBase import checkuid
 from ..models import auto_uicase, autoui, auto_uirecord
 import datetime
 import threading
@@ -17,7 +18,7 @@ class AutoUiThread(threading.Thread):
         # 性能测试id
         self.autoid = kwargs["autoid"]
         self.obj = autoui.objects.get(autoid=self.autoid)
-        self.Hostobj = GlobalHost.objects.get(id=self.obj.hostid)
+        self.Hostobj = Server.objects.get(id=self.obj.hostid)
         self.server = self.Hostobj.host
         # self.kc =
 

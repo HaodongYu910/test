@@ -1,11 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
-# Create your models here.
-from django.conf import settings
-from django.db.models.signals import post_save
-from django.dispatch import receiver
 from rest_framework.authtoken.models import Token
+from AutoTest.models import Server
 # Create your models here.
 
 
@@ -23,7 +20,7 @@ class autoui(models.Model):
     starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始预测时间")
     completiontime = models.CharField(max_length=20, blank=True, null=True, verbose_name="结束预测时间")
     total = models.CharField(max_length=5, blank=True, null=True, verbose_name="count")
-    hostid = models.IntegerField(default=False, verbose_name='hostid')
+    Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
     report = models.CharField(max_length=80, blank=True, null=True, verbose_name="报告")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
@@ -40,7 +37,7 @@ class auto_uicase(models.Model):
     """
           auto_uicase 用例表
     """
-    caseid = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, blank=True, null=True, verbose_name="名称")
     testdata = models.CharField(max_length=100, blank=True, null=True, verbose_name="关联测试数据")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
@@ -60,7 +57,7 @@ class auto_uirecord(models.Model):
     """
           auto_uirecord记录表
     """
-    recordid = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="studyuid")
     vote = models.TextField(max_length=800, blank=True, null=True, verbose_name="挂载")
     expect = models.CharField(max_length=30, blank=True, null=True, verbose_name="预期结果")
@@ -71,8 +68,8 @@ class auto_uirecord(models.Model):
     result = models.TextField(max_length=2500, blank=True, null=True, verbose_name="结论")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     server = models.CharField(max_length=20, blank=True, null=True, verbose_name="服务")
-    caseid = models.IntegerField(default=False, verbose_name='caseid')
-    autoid = models.IntegerField(default=False, verbose_name='autoid')
+    case = models.ForeignKey(auto_uicase, null=True, on_delete=models.CASCADE, verbose_name='autocaseid')
+    auto = models.ForeignKey(autoui, null=True, on_delete=models.CASCADE, verbose_name='autouiid')
     status = models.BooleanField(default=False, verbose_name='状态')
     dicomid = models.IntegerField(default=False, verbose_name='dicomid')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
