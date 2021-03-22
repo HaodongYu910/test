@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-from TestPlatform.common.DbSql import mysqlDB
+from AutoTest.common.DbSql import mysqlDB
 from jira import JIRA
-from TestPlatform.common.jiraData import Jiradata
-from TestPlatform.common.figure import data_figure,crash
-from TestPlatform.models import test_report,Project
+from AutoTest.common.jiraData import Jiradata
+from AutoTest.common.figure import data_figure,crash
+from AutoTest.models import test_report,Project
 
 
 from django.conf import settings

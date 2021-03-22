@@ -37,7 +37,7 @@
             <el-table-column prop="version" label="部署版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link :to="{ name: '冒烟报告', params: {id: scope.row.id}}"
+                    <router-link :to="{ name: '冒烟报告', params: {reportid: scope.row.id}}"
                                  style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.version }}
                     </router-link>
@@ -66,9 +66,11 @@
             </el-table-column>
             <el-table-column prop="installstatus" label="全新部署" min-width="8%">
                 <template slot-scope="scope">
-                    <img v-show="scope.row.installstatus" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                    <img v-show="scope.row.installstatus"
+                         style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/qiyong.png"/>
-                    <img v-show="!scope.row.installstatus" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
+                    <img v-show="!scope.row.installstatus"
+                         style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
@@ -87,7 +89,7 @@
                                    @click="handleChangeStatus(scope.$index, scope.row)">
                             {{scope.row.status===false?'部 署':'停 止'}}
                         </el-button>
-                        <el-button type="danger" size="small" @click="showReports(scope.$index, scope.row)">日 志
+                        <el-button type="danger" size="small" @click="showJournal(scope.$index, scope.row)">日 志
                         </el-button>
                         <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告
                         </el-button>
@@ -174,12 +176,12 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.server" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.Host" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
-                                        :key="item.host"
+                                        :key="item.id"
                                         :label="item.name"
-                                        :value="item.host"
+                                        :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -276,6 +278,39 @@
                 <el-button @click.native="imageVisible = false">关闭</el-button>
             </div>
         </el-dialog>
+
+        <!--安装日志页面-->
+        <el-dialog  :visible.sync="journalVisible" :close-on-click-modal="false"
+                   style="width: 75%; left: 12.5%">
+            <el-card id="card" class="box-card" style="background:black;color:white;max-height:27.2em;overflow:auto">
+                <div id="text" style="background:black;color:white;" @click="autoFocus()">
+                    <ul id="ulid">
+                        <li style="color:yellow;">安装部署日志：<br/></li>
+                        <li>========================================================================<br/></li>
+                        <li v-for="i in journaldata" :key="i">{{i}}<br/></li>
+                    </ul>
+<!--                    <ul id="ul">-->
+<!--                        <li v-for="(i,b) in total" :key="b">{{i}}<br/></li>-->
+<!--                    </ul>-->
+                    <el-input
+                            v-loading="loading"
+                            type="text"
+                            id="in"
+                            class="input_text"
+                            v-model="command"
+                            resize="none"
+                            @keyup.enter.native="enter()"
+                            autofocus="autofocus">
+                        <span slot="prepend" style="font-size:18px">></span>
+                    </el-input>
+                </div>
+            </el-card>
+
+
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="journalVisible = false">关闭</el-button>
+            </div>
+        </el-dialog>
     </section>
 
 </template>
@@ -284,22 +319,31 @@
     //import NProgress from 'nprogress'
     import {
         getInstall, delInstall, DisableInstall, EnableInstall, getInstallersion,
-        updateInstall, addInstall, getImage, getHost, getbase, getAutoCase, getReport
+        updateInstall, addInstall, getJournal, getImage, getHost, getbase, getAutoCase, getReport
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
             return {
+                log:0,
+                 timerId:1, // 模拟计时器id，唯一性
+                 timerObj :{}, // 计时器存储器
+                command: '',
+                loading: false,
+                total: ['Welcome！You can enter：ping 192.168.1.1', ' '],
                 filters: {
                     name: ''
                 },
+                id:'',
                 UIlist: [],
                 versionlist: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
                 sels: [],//列表选中列
+                journal: '',
+                journalVisible: false, //日志页面是否显示
                 imageVisible: false, //错误图像页面是否显示
                 reportVisible: false, //报告页面是否显示
                 fits: ["暂无图片"],
@@ -316,7 +360,7 @@
                         {required: true, message: '请输入名称', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
-                    hostid: [
+                    Host: [
                         {required: true, message: '请选择服务', trigger: 'blur'}
                     ],
                     version: [
@@ -325,7 +369,7 @@
                 },
                 //编辑界面数据
                 editForm: {
-                    hostid: '',
+                    Host: '',
                     version: '',
                     thread: 1,
                     testdata: []
@@ -334,7 +378,7 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
-                    server: [
+                    Host: [
                         {required: true, message: '请选择服务', trigger: 'blur'}
                     ]
                 },
@@ -343,24 +387,67 @@
                     server: '',
                     version: '',
                     status: false,
-                    installstatus:false
+                    installstatus: false
                 }
             }
         },
         created() {
             // 实现轮询
-            this.clearTimeSet = window.setInterval(() => {
+            this.InstalllTimeSet = window.setInterval(() => {
                 setTimeout(this.getInstalllist(), 0);
             }, 10000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
-            clearInterval(this.clearTimeSet);
+            clearInterval(this.InstalllTimeSet);
+            clearInterval(this.journalTimeSet);
         },
         mounted() {
             this.gethost()
             this.getBase()
         },
+        directives: {
+            focus: {
+                inserted: function (el, {value}) {
+                    console.log(el, {value})
+                    if (value) {
+                        el.focus()
+                    }
+                }
+            }
+        },
+        watch: {
+            loading: {
+                handler(newVal, oldVal) {
+                    if (newVal == false) {
+                        this.scoll()
+                    }
+                },
+                deep: true
+            }
+        },
         methods: {
+            /*
+           * 开始轮训
+           * */
+            startTraining() {
+                let this_ = this;
+                const id = this.timerId++
+                this.timerObj[id] = true
+
+                async function timerFn() {
+                    if (!this_.timerObj[id]) return
+                    await this_.showJournal(this.id);
+                    setTimeout(timerFn, 1 * 1000)
+                }
+
+                timerFn();
+            },
+            /*
+                * 停止轮训
+                * */
+            stopTime() {
+                this.timerObj = {}
+            },
             typestatus: function (i) {
                 if (i === true) {
                     return 'danger'
@@ -381,23 +468,20 @@
             //     // //刷新当前页面
             //     // window.location.reload();
             // },
-
-            //显示错误截图
-            showReports(index, row) {
-                this.reportVisible = true;
+            showJournal(index, row) {
+                this.journalVisible = true;
+                this.listLoading = true
                 let self = this;
                 const params = {
-                    autoid: row.autoid
+                    id: row.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getReport(headers, params).then((res) => {
+                getJournal(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.reportList = data.reportList
-                        this.reports = data.reports
-                        var reportList = JSON.stringify(this.reportList)
-                        // this.tearDown = JSON.parse(json)
+                        this.journaldata = data
+                        console.log(this.journaldata)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -720,7 +804,7 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                server: self.addForm.server,
+                                Host: self.addForm.Host,
                                 version: self.addForm.version,
                                 installstatus: self.addForm.installstatus,
                             });
@@ -805,5 +889,31 @@
 </script>
 
 <style>
+    ul {
+        margin: 0px;
+        padding: 0px;
+        list-style: none;
+    }
+
+    .input_text .el-input__inner:focus {
+        border: 1px solid black;
+    }
+
+    .input_text .el-input__inner:hover {
+        border: 1px solid black;
+    }
+
+    .input_text .el-input__inner {
+        color: green;
+        border: 1px solid black;
+        background-color: black;
+    }
+
+    .input_text .el-input-group__prepend {
+        padding: 0px;
+        color: white;
+        border: 1px solid black;
+        background-color: black;
+    }
 
 </style>

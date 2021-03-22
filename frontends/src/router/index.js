@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 const ProjectInfo = () => import('../components/project/Projectdetail.vue');
-const globalHost = () => import('../components/project/global/Globalhost.vue');
+const Server = () => import('../components/project/global/Server.vue');
 const API = () => import('../components/project/api/API.vue');
 const ApiList = () => import('../components/project/api/ApiList.vue');
 const ApiListGroup = () => import('../components/project/api/ApiListGroup.vue');
@@ -58,26 +58,26 @@ export default new Router({
                 },
                 {
                     path: '/duration',
-                    component: resolve => require(['../components/tool/duration/duration.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/duration.vue'], resolve),
                     meta: {title: 'Dicom工具'}
 
                 },
                 {
                     path: '/dicom',
-                    component: resolve => require(['../components/tool/dicomdata/dicomData.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/dicomdata/dicomData.vue'], resolve),
                     meta: {title: 'Dicom数据'}
 
                 },
                 {
                     path: '/durationData',
-                    component: resolve => require(['../components/tool/duration/durationData.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/durationData.vue'], resolve),
                     meta: {title: '持续化详情'}
 
                 },
                 {
                     // dds监控界面
                     path: '/dds',
-                    component: resolve => require(['../components/tool/DDS/dds.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/DDS/dds.vue'], resolve),
                     meta: { title: 'DDS监控' }
 
                 },
@@ -192,7 +192,7 @@ export default new Router({
                     hidden: true,
                     children: [
                         {path: 'ReportTitle/report=:report_id', component: ReportTitle, name: '邮件详情', leaf: true},
-                        {path: '/ReportTitle/report=:report_id', component: globalHost, name: '邮件详情', leaf: true},
+                        {path: '/ReportTitle/report=:report_id', component: Server, name: '邮件详情', leaf: true},
                     ]
                 },
                 {
@@ -250,13 +250,13 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/tool/dicomdata/dicomFile.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/dicomdata/dicomFile.vue'], resolve),
                     meta: {title: 'dicom文件'}
                 },
                 {
                     //duration 删除
                     path: '/deldicom',
-                    component: resolve => require(['../components/tool/orthanc/deldicom.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/orthanc/deldicom.vue'], resolve),
                     meta: {title: 'dicom删除'}
                 },
                 {
@@ -283,7 +283,7 @@ export default new Router({
                 },
                 {
                     path: '/host',
-                    component: resolve => require(['../components/project/global/Globalhost.vue'], resolve),
+                    component: resolve => require(['../components/project/global/Server.vue'], resolve),
                     meta: {title: 'Host配置'}
                 },
                 // {
@@ -306,8 +306,8 @@ export default new Router({
                             leaf: true
                         },
                         {
-                            path: '/GlobalHost/project=:project_id',
-                            component: globalHost,
+                            path: '/Server/project=:project_id',
+                            component: Server,
                             meta: {title: 'Host配置'},
                             name: 'Host配置',
                             leaf: true
@@ -462,8 +462,8 @@ export default new Router({
 //       leaf: true
 //     },
 //     {
-//       path: '/GlobalHost/project=:project_id',
-//       component: '@/views//project/global/Globalhost.vue',
+//       path: '/Server/project=:project_id',
+//       component: '@/views//project/global/Server.vue',
 //       name: 'Host配置',
 //       leaf: true
 //     },

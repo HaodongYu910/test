@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # coding=utf-8
 
-from TestPlatform.common.DbSql import mysqlDB
+from AutoTest.common.DbSql import mysqlDB
 from jira import JIRA
-from TestPlatform.common.jiraData import Jiradata
-from TestPlatform.common.figure import data_figure,crash
-from TestPlatform.models import test_report,Project
+from AutoTest.common.jiraData import Jiradata
+from AutoTest.common.figure import data_figure,crash
+from AutoTest.models import test_report,Project
 
 
 from django.conf import settings
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 #风险点
 def risk(test_version,cns_version):
-    data_list = mysqlDB().selectDB("SELECT p.`name`,r.risk,r.development,r.delay,r.solution_status FROM Autotest.test_risk r JOIN Autotest.Project p ON r.project_id = p.id WHERE r. STATUS = 0 ORDER BY r.solution_status DESC") #获取项目信息
+    data_list = mysqlDB().selectDB("SELECT p.`name`,r.risk,r.development,r.delay,r.solution_status FROM QualityControl.test_risk r JOIN QualityControl.Project p ON r.project_id = p.id WHERE r. STATUS = 0 ORDER BY r.solution_status DESC") #获取项目信息
     list=""""""
     cn = """"""
     if len(data_list)==0:
@@ -100,7 +100,7 @@ def project_plan():
 def project():
     logger.info('项目进度开始')
     #projectstatus, end_date, version, status, api_date
-    data_list = mysqlDB().selectDB('SELECT name,projectstatus,end_date,version,status,api_date FROM Autotest.Project where `status`="True"') #获取项目信息
+    data_list = mysqlDB().selectDB('SELECT name,projectstatus,end_date,version,status,api_date FROM QualityControl.Project where `status`="True"') #获取项目信息
     list=""""""
 
     for i in data_list:
