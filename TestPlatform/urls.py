@@ -132,5 +132,4 @@ urlpatterns = [
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
     url(r'todo', todo.as_view()),
-    url(r'tool/sync_dds_data', sync_dds_data.as_view())
 ]

@@ -33,3 +33,10 @@ def connect_postgres(**kwargs):
     conn.close()
     return result
 
+def connect_postgres_dicommaster(**kwargs):
+    info = postgresInfo(host=kwargs["host"],pwd="biomind")
+    conn = pc.connect(database="dicommaster", user=info["Username"], password=info["Password"], host=kwargs["host"], port=info["Port"])
+    result = pd.read_sql(kwargs["sql"], conn)
+    conn.close()
+    return result
+

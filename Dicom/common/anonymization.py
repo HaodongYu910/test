@@ -134,6 +134,12 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
 
 # 判断该路径下有多少个文件，并返回n+1
 def nextNumber(addr):
+    """
+    input
+        addr: address of current folder
+    output
+        tmp: next number of files in this folder
+    """
     files = os.listdir(addr)
     if files:
         tmp = list()
@@ -150,6 +156,9 @@ def nextNumber(addr):
 
 # 创建n位随机数
 def randomFourNum(n):
+    """
+    create n-digit random number
+    """
     num_str = ''
     i = 0
     while i<n :
