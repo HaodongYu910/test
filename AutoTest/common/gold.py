@@ -4,9 +4,10 @@ from AutoDicom.models import dicom, dicom_base
 from AutoTest.models import dictionary, smoke
 from AutoTest.utils.graphql.graphql import *
 from AutoTest.models import smoke_record, dictionary, pid
-from AutoDicom.common.Dicom import Send
+from AutoDicom.common.Dicom import DicomThread
 from AutoDicom.common.deletepatients import delete_patients_duration
 from AutoTest.utils.graphql.graphql_ai_status import graphql_ai_status
+from AutoDicom.common.dicomBase import checkuid
 
 import os, datetime
 import threading
@@ -20,20 +21,6 @@ def updatesmoke(id, count):
     obj = smoke.objects.get(id=id)
     obj.progress = count
     obj.save()
-
-
-# 验证测试数据
-def datacheck(serverIP, uid, route, hostid):
-    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        uid)
-    result_db = connect_postgres(host=serverIP,sql= sql)
-    # 无此数据，发送
-    if len(result_db) == 0:
-        Send(hostid, route)
-    # 重复数据 先删除后再发送新数据
-    elif len(result_db) > 2:
-        delete_patients_duration(uid, serverIP, 'StudyInstanceUID', False)
-        Send(hostid, route)
 
 
 # 比对 studyView 接口返回值
@@ -126,7 +113,7 @@ class SmokeThread(threading.Thread):
         self.smobj = smoke.objects.get(id=self.id)
         self.smobj.starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.serverIP = self.smobj.Host.host
-        self.kc = login_keycloak(self.smobj.hostid)
+        self.kc = login_keycloak(self.smobj.Host.id)
 
     def run(self):
         # 循环测试数据
@@ -141,7 +128,7 @@ class SmokeThread(threading.Thread):
                     if self.Flag is False:
                         break
                     # 验证数据是否存在
-                    datacheck(self.serverIP, i.studyinstanceuid, i.route, self.smobj.hostid)
+                    checkuid(self.smobj.Host.id, self.serverIP, i.id )
                     # 修改执行进度
                     self.count = self.count + 1
                     updatesmoke(self.id, self.count)

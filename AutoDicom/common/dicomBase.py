@@ -6,11 +6,11 @@ from AutoTest.utils.graphql.graphql import *
 from AutoTest.utils.keycloak.login_kc import *
 
 from AutoTest.models import Server, dictionary
-from .Dicom import Send
 from .duration_verify import *
 from AutoTest.common.PostgreSQL import connect_postgres
 from AutoTest.common.regexUtil import savecsv
 import os
+from ..common.Dicom import SendQueThread
 
 
 logger = logging.getLogger(__name__)
@@ -37,21 +37,6 @@ def baseTransform(basedata, basetype):
     except Exception as e:
         return 'None'
         logger.error("发送失败：{0}".format(e))
-
-
-# 检查是否数据
-def checkuid(serverID, serverIP, studyuid):
-    obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
-    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        studyuid)
-    result_db = connect_postgres(host=serverIP, sql=sql)
-    # 无此数据，发送
-    if len(result_db) == 0:
-        Send(serverID, obj.route)
-    # 重复数据 先删除后再发送新数据
-    elif len(result_db) > 2:
-        delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
-        Send(serverID, obj.route)
 
 
 #  duration 统计数据
@@ -115,27 +100,21 @@ def dicomsavecsv(ids):
             diseases = obj.diseases
         savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
-
-
-# 匿名化发送数据
-
-
-
-
-
 # 检查是否数据
 def checkuid(serverID, serverIP, dicomid):
     obj = dicom.objects.get(id=dicomid)
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         obj.studyinstanceuid)
     result_db = connect_postgres(host=serverIP, sql=sql)
-    # 无此数据，发送
+    # 无此数据，发送v
     if len(result_db) == 0:
-        Send(serverID, obj.route)
+        thread_Send = SendQueThread(route=obj.route, hostid=serverID)
+        thread_Send.run()
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
         delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
-        Send(serverID, obj.route)
+        thread_Send = SendQueThread(route=obj.route, hostid=serverID)
+        thread_Send.run()
 
 
 # 数据跳转listview url

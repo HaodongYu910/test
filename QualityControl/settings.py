@@ -243,15 +243,13 @@ TEMPLATES = [
 ]
 
 #静态文件主目录
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, '/static/'),
-)
+STATICFILES_DIRS = ['/home/biomind/Biomind_Test_Platform/static']
 
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 
 
 WSGI_APPLICATION = 'QualityControl.wsgi.application'

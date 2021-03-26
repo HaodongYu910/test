@@ -339,6 +339,11 @@ export const getdicomSend = (headers, params) => {
 export const getdicomurl = (headers, params) => {
   return axios.post(`${test}/dicom/dicomurl`, params, headers).then(res => res.data)
 }
+// 获取duration数据报告
+export const getdurationReport = (headers, params) => {
+    return axios.get(`${test}/dicom/report/durationreport`, { params: params }, { headers }).then(res => res.data)
+}
+
 // 获取duration数据
 export const getduration = (headers, params) => {
     return axios.get(`${test}/dicom/duration/getduration`, { params: params }, { headers }).then(res => res.data)

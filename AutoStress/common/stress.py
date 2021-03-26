@@ -130,7 +130,7 @@ class StressThread(threading.Thread):
         self.obj = stress.objects.get(stressid=self.stressid)
         self.server = self.obj.Host.host
         self.testdata = self.obj.testdata
-        self.kc = login_keycloak(self.obj.hostid)
+        self.kc = login_keycloak(self.obj.Host_id)
 
     #  基准测试
     def Manual(self):
@@ -235,10 +235,10 @@ class StressThread(threading.Thread):
                            '--end {7} '
                            '--sleepcount {8} '
                            '--sleeptime {9} '
-                           '--series {10} &').format(self.server, self.Hostobj.description, self.Hostobj.port,
+                           '--series {10} &').format(self.server, self.obj.Host.remarks, self.obj.Host.port,
                                                      "ST{}".format(str(i).strip()), "st{}".format(str(i).strip()),
                                                      str(i).strip(), '0{}'.format(self.stressid),
-                                                     int(self.obj.loop_count),8787,0,0)
+                                                     int(self.obj.loop_count), 8787, 0, 0)
                     os.system(cmd)
                     logger.info(cmd)
             self.obj.status = True

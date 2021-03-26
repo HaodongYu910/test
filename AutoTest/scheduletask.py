@@ -61,10 +61,21 @@ def installtask():
             version = i.replace('\r', "")
             version = version.replace('\n', "")
             if version not in oldversion and version:
-                obj = install.objects.filter(status=False,crontab='crontab')
+                obj = install.objects.filter(status=False, crontab='crontab')
+                downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
+                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}'.format(version)
+                path = '/files/History_version/{0}'.format(version[:-4])
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                    logger.info("Installation定时：创建备份文件夹{}".format(version[:-4]))
+                localpath = '/files/History_version/{0}/{1}'.format(version[:-4], version)
+                logger.info("Installation{定时}：下载备份最新安装包{}.zip".format(version))
+                downssh.download(localpath, downpath)
+                logger.info("Installation{定时}：下载备份最新安装包{}.zip 完成".format(version))
+                downssh.close()
                 for j in obj:
-                    logger.info("安装版本:{}".format(version))
-                    logger.info("version:{0}".format(version[:-4]))
+                    logger.info("Installation 安装版本:{}".format(version))
+                    logger.info("Installation version:{0}".format(version[:-4]))
                     j.version = version[:-4]
                     j.save()
                     testThread = InstallThread(id=j.id)

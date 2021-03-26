@@ -10,7 +10,7 @@ from ..models import dicom_base, duration_record
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
-from ..common.Dicom import Send
+from ..common.Dicom import SendQueThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -327,14 +327,12 @@ class dicomSend(APIView):
                     dicomobj = dicom.objects.filter(fileid=i.id)
                     for j in dicomobj:
                         delete_patients_duration(j.studyinstanceuid, data["server"], "StudyInstanceUID", False)
-                    thread_Send = threading.Thread(target=Send, args=(host.host, i.content))
-                    # 启动线程
+                    thread_Send = SendQueThread(route=i.content,hostid=host.id)
                     thread_Send.start()
             else:
                 obj = dicom.objects.filter(id__in=data['id'])
                 for i in obj:
-                    thread_Send = threading.Thread(target=Send, args=(data["server_ip"], i.route))
-                    # 启动线程
+                    thread_Send = SendQueThread(route=i.route, hostid=host.id)
                     thread_Send.start()
 
             return JsonResponse(code="0", msg="成功")

@@ -57,9 +57,21 @@ export default new Router({
                     meta: {title: '消息中心'}
                 },
                 {
+                    path: '/DicomSend',
+                    component: resolve => require(['../components/DicomTool/duration/DicomSend.vue'], resolve),
+                    meta: {title: 'Dicom发送'}
+
+                },
+                {
                     path: '/duration',
                     component: resolve => require(['../components/DicomTool/duration/duration.vue'], resolve),
-                    meta: {title: 'Dicom工具'}
+                    meta: {title: '持续化工具'}
+
+                },
+                {
+                    path: '/DurationReport/reportid=:reportid',
+                    component: resolve => require(['../components/DicomTool/duration/durationReport.vue'], resolve),
+                    meta: {title: '持续化报告'}
 
                 },
                 {
@@ -260,7 +272,7 @@ export default new Router({
                     meta: {title: 'dicom删除'}
                 },
                 {
-                    //duration 删除
+                    //dictionary 字典
                     path: '/dictionary',
                     component: resolve => require(['../components/settings/dictionary/dictionaryData.vue'], resolve),
                     meta: {title: '字典'}

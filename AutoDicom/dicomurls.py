@@ -4,6 +4,7 @@ from rest_framework import routers
 from .api.apiDicom import *
 from .api.apiDuration import *
 from .api.apiDicombase import *
+from .api.apiDurationReport import DurationReport
 
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
@@ -43,4 +44,5 @@ urlpatterns = [
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'tool/search_data', ddsDataVerifyAPI.as_view()),
+    url(r'report/durationreport', DurationReport.as_view()),
 ]

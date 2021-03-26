@@ -6,9 +6,7 @@ import datetime
 import threading
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 class AutoUiThread(threading.Thread):
     def __init__(self, *args, **kwargs):

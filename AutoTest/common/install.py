@@ -44,55 +44,63 @@ class InstallThread(threading.Thread):
         # 性能测试id
         self.id = kwargs["id"]
         self.obj = install.objects.get(id=self.id)
-        self.user = kwargs["user"]
-        self.pwd = kwargs["pwd"]
+        self.user = self.obj.Host.user
+        self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
         self.dobj = dictionary.objects.get(type='install', key='oldversion')
         self.oldversion = self.dobj.value.split(',')
 
-    def run(self):
+    def downFile(self, version):
         try:
-            self.obj.status =True
-            self.obj.type = 2
-            self.obj.save()
-            if self.obj.installstatus is True:
-                deldata(self.obj.server, self.id, self.pwd)
             downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
-            if self.obj.version:
-                self.localpath = '/files/History_version/{0}/{1}.zip'.format(self.obj.version, self.obj.version)
-                if not os.path.exists(self.localpath):
-                    downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}.zip'.format(
-                        self.obj.version)
-                    path = '/files/History_version/{0}'.format(self.obj.version)
-                    if not os.path.exists(path):
-                        os.makedirs(path)
-                        logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, self.obj.version))
-                    logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, self.obj.version))
-                    downssh.download(self.localpath, downpath)
-                    downssh.close()
+            if version:
+                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}.zip'.format(version)
+                path = '/files/History_version/{0}'.format(version)
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, version))
+                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, version))
+                downssh.download(self.localpath, downpath)
+                downssh.close()
             else:
                 filelist = downssh.cmd("ls /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/")
                 for i in str(filelist, encoding="utf-8").split('\n'):
                     if i not in self.oldversion and i:
-                        name = i
-                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{}'.format(name)
-                path = '/files/History_version/{}/'.format(name[:-4])
-                self.localpath = '/files/History_version/{0}/{1}'.format(name[:-4], name)
+                        version = i
+                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{}'.format(version)
+                path = '/files/History_version/{}/'.format(version[:-4])
+                self.localpath = '/files/History_version/{0}/{1}'.format(version[:-4], version)
                 if not os.path.exists(path):
                     os.makedirs(path)
-                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, name[:-4]))
-                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, name[:-4]))
+                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, version[:-4]))
+                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, version[:-4]))
                 downssh.download(self.localpath, downpath)
                 downssh.close()
-                self.obj.version = name[:-4]
+                self.obj.version = version[:-4]
                 self.obj.save()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             logger.error("Installation{0}：下载最新版本报错{}".format(self.id, e))
 
-        # def install(self):
+    def run(self):
         try:
+            self.obj.starttime = datetime.datetime.now()
+            self.obj.status = True
+            self.obj.type = 1
+            self.obj.save()
+            if self.obj.installstatus is True:
+                deldata(self.obj.server, self.id, self.pwd)
+            if self.obj.version:
+                self.localpath = '/files/History_version/{0}/{1}.zip'.format(self.obj.version, self.obj.version)
+                if not os.path.exists(self.localpath):
+                    self.obj.type = 2
+                    self.obj.save()
+                    self.downFile(version=self.obj.version)
+            else:
+                self.obj.type = 2
+                self.obj.save()
+                self.downFile(version='')
             self.obj.type = 3
             self.obj.save()
             if not os.path.exists("/home/biomind/{}".format(self.obj.version)):
@@ -104,22 +112,37 @@ class InstallThread(threading.Thread):
             logger.info("Installation{}：停止服务".format(self.id))
             self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
             logger.info("Installation{}：安装最新版本".format(self.id))
-            self.ssh.cmd("cd {0};sshpass -p {} bash setup_engine.sh;".format(self.pwd,self.obj.version))
+            self.ssh.cmd("cd {0};sshpass -p {1} bash setup_engine.sh;".format(self.obj.version, self.pwd))
             time.sleep(5)
-            logger.info("Installation{}：更新挂载文件等".format(self.id))
-            self.ssh.upload("{}/config/orthanc.json".format(settings.BASE_DIR),
-                            "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
-            self.ssh.upload("{}/config/classification_votes.json".format(settings.BASE_DIR),
-                            "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
+            try:
+                logger.info("Installation{}：更新orthanc文件".format(self.id))
+                self.ssh.upload("/files1/classifier/orthanc.json".format(settings.BASE_DIR),
+                                "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+
+                logger.info("Installation{}：更新classification_votes文件".format(self.id))
+                self.ssh.upload("/files1/classifier/classification_votes.json".format(settings.BASE_DIR),
+                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
+
+                logger.info("Installation{}：更新predefined_classifier文件".format(self.id))
+                self.ssh.upload("/files1/classifier/predefined_classifier.json".format(settings.BASE_DIR),
+                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/predefined_classifier.json")
+
+                logger.info("Installation{}：更新special_classifier文件".format(self.id))
+                self.ssh.upload("/files1/classifier/special_classifier.json".format(settings.BASE_DIR),
+                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/special_classifier.json")
+            except Exception as e:
+                logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
+            self.restart()
+            self.goldsmoke()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
-            logger.error("Installation{0}：上传部署报错{1}".format(self.id, e))
+            logger.error("Installation{0}：安装{1}版本失败----失败原因：{2}".format(self.id, self.obj.version, e))
 
-        # def restart(self):
+    def restart(self):
         try:
             logger.info("Installation{}：配置 configure".format(self.id))
-            self.ssh.configure(self.obj.server, 'https')
+            self.ssh.configure(self.obj.server, str(self.obj.Host.protocol))
             self.obj.type = 4
             self.obj.save()
             logger.info("Installation{}：重启服务".format(self.id))
@@ -139,12 +162,12 @@ class InstallThread(threading.Thread):
             self.obj.save()
             logger.error("Installation{0}：重启服务失败{1}".format(self.id,e))
 
-        # def goldsmoke(self):
+    def goldsmoke(self):
         try:
             data = {"version": self.obj.version,
                     "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                     "status": True,
-                    "hostid": self.obj.hostid,
+                    "hostid": self.obj.Host_id,
                     "thread": 1,
                     "count": 127
                     }
@@ -165,7 +188,7 @@ class InstallThread(threading.Thread):
             self.obj.save()
             logger.error("Installation{0}：执行金标准测试报错{1}".format(self.id, e))
 
-        # def UiTest(self):
+    def UiTest(self):
 
         try:
             data = {"version": self.obj.version,
@@ -191,7 +214,7 @@ class InstallThread(threading.Thread):
             self.obj.save()
             logger.error("Installation{0}：执行UI自动化报错{1}".format(self.id, e))
 
-        # def finish(self):
+    def finish(self):
         try:
 
             self.obj.starttime = datetime.datetime.time()
