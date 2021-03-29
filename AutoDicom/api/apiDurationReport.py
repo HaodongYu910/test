@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from AutoTest.common.api_response import JsonResponse
 import logging
 from ..common.DurarionReport import ReportThread
+from AutoTest.scheduletask import DurationTask
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -23,6 +24,7 @@ class DurationReport(APIView):
         try:
             duration_id = request.GET.get("id")
             diseases = request.GET.get("diseases")
+            # DurationTask()
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="duration_id 必传字段!")
         try:

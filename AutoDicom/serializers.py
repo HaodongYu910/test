@@ -71,7 +71,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
         model = duration_record
         fields = (
             'id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
-            'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'time', 'endtime', 'diseases', 'jobtime', 'error', 'model','update_time', 'create_time')
+            'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'time', 'starttime', 'endtime', 'diseases', 'jobtime', 'error', 'model','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 class duration_record_Deserializer(serializers.ModelSerializer):
@@ -83,7 +83,7 @@ class duration_record_Deserializer(serializers.ModelSerializer):
         model = duration_record
         fields = (
         'id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
-        'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'time', 'endtime', 'diseases', 'jobtime', 'error', 'model')
+        'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'starttime', 'time', 'endtime', 'diseases', 'jobtime', 'error', 'model')
 
 
 class duration_Serializer(serializers.ModelSerializer):

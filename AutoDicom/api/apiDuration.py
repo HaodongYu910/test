@@ -16,7 +16,7 @@ from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
-from AutoDicom.common.dicomBase import verifyDuration,durationtotal,baseTransform
+from AutoDicom.common.dicomBase import verifyDuration, durationtotal, baseTransform
 from ..common.durarion import DurationThread
 import datetime,os
 

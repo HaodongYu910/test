@@ -248,7 +248,7 @@ def fake_folder(folder, folder_fake, study_fakeinfos, study_infos, image, diseas
             logging.error('errormsg: failed to sync_send [{0}]'.format(full_fn_fake))
             continue
         try:
-            sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', \'{4}\', NULL, NULL,NULL, NULL,\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\',\'{12}\', NULL,NULL, NULL)".format(
+            sqldata = "INSERT INTO duration_record values(NULL,\'{0}\', \'{1}\', \'{2}\', \'{3}\', \'{4}\', NULL, NULL,NULL, NULL,\'{5}\',\'{6}\', \'{7}\', \'{8}\',\'{9}\', \'{10}\',\'{11}\',\'{12}\', NULL,NULL,NULL,NULL)".format(
                 newpatientid, newpatientname, accessionNumber, newstudyuid, studyolduid, CONFIG['ip'], start,
                 start, diff, int(CONFIG.get('durationid', '')), start, end, diseases)
 

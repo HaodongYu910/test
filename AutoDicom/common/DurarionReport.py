@@ -5,7 +5,7 @@ import time, datetime
 import random
 import math
 import time
-
+import json
 import threading
 
 from ..common.duration_verify import *
@@ -61,6 +61,9 @@ class ReportThread(threading.Thread):
                 ModelAvg=Avg('time'),
                 ModelMax=Max('time'),
                 ModelMin=Min('time'),
+                JobAvg=Avg('jobtime'),
+                JobMax=Max('jobtime'),
+                JobMin=Min('jobtime'),
                 success=Count(Case(When(aistatus__in=[2, 3], then=0))),
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
                 count=Count('id'))
@@ -74,6 +77,9 @@ class ReportThread(threading.Thread):
                         "ModelAvg":  '%.2f' % (float(i["ModelAvg"])),
                         "ModelMax": i["ModelMax"],
                         "ModelMin": i["ModelMin"],
+                        "JobAvg": '%.2f' % (float(i["JobAvg"])),
+                        "JobMax": i["JobMax"],
+                        "JobMin": i["JobMin"],
                         "success": i["success"],
                         "fail": i["fail"],
                         "count": i["count"],
@@ -85,31 +91,42 @@ class ReportThread(threading.Thread):
 
             data = {
                 "basedata": basedata,
-                "durationLineData": self.durationLine(diseases=diseases),
+                "durationLineData": self.durationLine(),
                 "durationData": durationData,
                 "diseases": diseases,
-                "model": ['date', self.diseases]
+                "model": ['date', self.diseases],
+                "errorData": self.errorData()
             }
             return data
         except Exception as e:
             logger.error("队列生成失败：{0}".format(e))
 
-    def durationLine(self, diseases):
+    def errorData(self):
         try:
-            durationLineData = []
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, diseases=self.diseases, aistatus__in=[2, 3]).order_by("sendtime")
+            recorddata = {}
+            errorData = []
+            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, create_time__lte=self.statistics_date)
 
             for i in recordDetail:
-                datedata = {}
-                datedata["date"] = i.sendtime[5:]
-                for j in diseases:
-                    if str(j) == str(i.diseases):
-                        datedata[j] = i.time
-                    elif str(j) == 'date':
-                        continue
+                if i.error is not None and i.error != '[]':
+                    error = json.loads(i.error[1:-1])
+                    if recorddata.__contains__(error["code"]) is False:
+                        recorddata[error["code"]] = 1
                     else:
-                        datedata[i.diseases] = 0
-                durationLineData.append(datedata)
+                        recorddata[error["code"]] = recorddata[error["code"]] + 1
+            for k, v in recorddata.items():
+                errorData.append({'状态': k, '数量': v })
+
+            return errorData
+        except Exception as e:
+            logger.error("预测趋势数据生成失败：{0}".format(e))
+
+    def durationLine(self):
+        try:
+            durationLineData = []
+            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, diseases=self.diseases, aistatus__in=[2, 3]).order_by("starttime")
+            for i in recordDetail:
+                durationLineData.append({"date": i.starttime[5:], i.diseases: i.time})
             return durationLineData
         except Exception as e:
             logger.error("预测趋势数据生成失败：{0}".format(e))

@@ -107,18 +107,33 @@
                                         label="发送数量">
                                 </el-table-column>
                                 <el-table-column
-                                        prop="ModelAvg"
-                                        label="平均预测时间">
+                                        prop="ModelMax"
+                                        label="预测最大时间">
                                 </el-table-column>
                                 <el-table-column
                                         prop="ModelMin"
-                                        label="最小预测时间"
+                                        label="预测最小时间"
+                                >
+                                </el-table-column>
+
+                                <el-table-column
+                                        prop="ModelAvg"
+                                        label="预测平均时间">
+                                </el-table-column>
+                                <el-table-column
+                                        prop="JobMax"
+                                        label="Job最大时间">
+                                </el-table-column>
+                                <el-table-column
+                                        prop="JobMin"
+                                        label="Job最小时间"
                                 >
                                 </el-table-column>
                                 <el-table-column
-                                        prop="ModelMax"
-                                        label="最大预测时间">
+                                        prop="JobAvg"
+                                        label="Job平均时间">
                                 </el-table-column>
+
                                 <el-table-column
                                         prop="success"
                                         label="成功数量"
@@ -337,10 +352,8 @@
                     if (code === '0') {
                         this.basedata = data.data.basedata
                         this.durationData = data.data.durationData
-                        const chartData = {"columns": [], "rows": []}
-                        chartData.rows = data.data.durationLineData
+                        const chartData = {"columns": data.data.model , "rows": data.data.durationLineData }
                         this.model = data.data.diseases
-                        chartData.columns = data.data.model
                         this.chartData = chartData
                         this.SummaryData= {
                             columns: ['状态', '数量'],
@@ -351,12 +364,7 @@
                         }
                         this.FailData= {
                             columns: ['状态', '数量'],
-                            rows: [
-                                {'状态': '系统错误', '数量':this.basedata.AISuccess},
-                                {'状态': '预测超时', '数量':this.basedata.AIFail },
-                                {'状态': '序列错误', '数量':this.basedata.AIFail }
-
-                            ]
+                            rows: data.data.errorData
                         }
                     } else {
                         self.$message.error({

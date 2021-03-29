@@ -20,9 +20,6 @@
                     <el-form-item>
                         <el-button type="primary" @click="handleAdd">新增</el-button>
                     </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="handleAnon">匿名化文件夹</el-button>
-                    </el-form-item>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -30,9 +27,9 @@
                       @selection-change="selsChange"
                       width="100%">
                 <el-table-column type="selection" min-width="5%"></el-table-column>
-                <el-table-column prop="type" label="类型" min-width="8%" show-overflow-tooltip sortable>
+                <el-table-column prop="version" label="版本" min-width="8%" show-overflow-tooltip sortable>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.version }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="type" label="服务" min-width="20%" sortable>
@@ -41,11 +38,6 @@
                                      style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="20%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="type" label="数据类型" min-width="20%" show-overflow-tooltip>
@@ -156,20 +148,7 @@
                         </el-col>
                     </el-row>
                     <el-divider>匿名配置</el-divider>
-                    <el-row :gutter="24">
-                        <el-col :span="8">
-                            <el-form-item label="匿名姓名:" prop='patientname'>
-                                <el-input label="匿名名称" id="patientname" v-model="editForm.patientname"
-                                          placeholder="patientname"/>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="8">
-                            <el-form-item label="匿名ID:" prop='patientid'>
-                                <el-input label="匿名名称" id="patientid" v-model="editForm.patientid"
-                                          placeholder="patientid"/>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
+
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
@@ -179,11 +158,10 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                            <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="editForm.loop_time" @change="handleChange" :min="0"
-                                                 :max="100000"
-                                                 label="持续时间（时）"></el-input-number>
-                            </el-form-item>
+                            <el-form-item label="结束时间">
+                            <el-date-picker v-model="editForm.end_time" type="datetime"
+                                            placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
+                        </el-form-item>
                         </el-col>
                     </el-row>
                     <el-row :gutter="24">
@@ -232,65 +210,6 @@
                 </div>
             </el-dialog>
 
-            <!--匿名化文件夹界面-->
-            <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible" :close-on-click-modal="false"
-                       style="width: 75%; left: 12.5%">
-                <el-form :model="anonForm" label-width="80px" :rules="anonFormRules" ref="anonForm">
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="10">
-                                <el-form-item label="匿名名称（以什么开头）" prop="anon-name">
-                                    <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="8">
-                                <el-form-item label="匿名后文件夹名" prop="anon-disease">
-                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-
-                        <el-row>
-                            <el-col :span="10">
-                                <el-form-item label="需要被匿名文件路径" prop="anon_addr">
-                                    <el-input id="anon_addr" v-model="anonForm.anon_addr" placeholder="路径"/>
-                                </el-form-item>
-                            </el-col>
-
-                            <el-col :span="8">
-                                <el-form-item label="匿名后储存路径" prop="appointed_addr">
-                                    <el-input id="appointed_addr" v-model="anonForm.appointed_addr" placeholder="储存路径"/>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-
-                        <el-row>
-
-                            <el-col :span="10">
-                                <el-form-item label="匿名患者姓名？" prop="wPN">
-                                    <el-switch v-model="anonForm.wPN" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-
-                            <el-col :span="8">
-                                <el-form-item label="匿名患者ID？" prop="wPID">
-                                    <el-switch v-model="anonForm.wPID" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="5">
-                                <el-form-item label="" prop="anon_start">
-                                    <el-button type="primary" @click="startAnon('form')">应用并开始匿名</el-button>
-                                </el-form-item>
-                            </el-col>
-
-                        </el-row>
-
-                    </el-form>
-                </el-form>
-
-            </el-dialog>
             <!--新增界面-->
             <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                        style="width: 100%; left: 10%">
@@ -328,41 +247,21 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                            <el-form-item label="发送类型" prop="type">
-                                <el-select v-model="addForm.type" placeholder="请选择类型">
-                                    <el-option
-                                            v-for="item in typeoptions"
-                                            :key="item.value"
-                                            :label="item.label"
-                                            :value="item.value">
-                                    </el-option>
-                                </el-select>
-                            </el-form-item>
+                           <el-form-item label="选择版本" prop='version'>
+                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
+                                       @click.native="Installversion()">
+                                <el-option
+                                        v-for="item in versionlist"
+                                        :key="item"
+                                        :label="item"
+                                        :value="item"
+                                />
+                            </el-select>
+                        </el-form-item>
                         </el-col>
                     </el-row>
                     <el-divider>匿名配置</el-divider>
-                    <el-row :gutter="24">
-                        <el-col :span="2.5">
-                            <el-form-item label="匿名姓名：" prop='patientname'>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="9">
-                            <el-input id="name" v-model="addForm.patientname"
-                                      placeholder="patientname"
-                                      maxlength="10"
-                                      show-word-limit/>
-                        </el-col>
-                        <el-col :span="2.2">
-                            <el-form-item label="匿名ID：" prop='patientid'>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="5">
-                            <el-input id="id" v-model="addForm.patientid"
-                                      placeholder="patientid"
-                                      maxlength="10"
-                                      show-word-limit/>
-                        </el-col>
-                    </el-row>
+
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
@@ -372,11 +271,10 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                            <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="addForm.loop_time" @change="handleChange" :min="0"
-                                                 :max="100000"
-                                                 label="持续时间（时）"></el-input-number>
-                            </el-form-item>
+                            <el-form-item label="结束时间">
+                            <el-date-picker v-model="addForm.end_time" type="datetime"
+                                            placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
+                        </el-form-item>
                         </el-col>
                     </el-row>
                     <el-row :gutter="24">
@@ -432,7 +330,7 @@
 
     import {
         getduration,
-        getdurationverifydata,
+        Installversion,
         addduration,
         delduration,
         updateduration,
@@ -444,7 +342,7 @@
         getbase
     } from '@/router/api'
 
-    import {anonStart} from "../../../router/api";
+    import {anonStart, getInstallersion} from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -500,8 +398,7 @@
                         {required: true, message: '请输入测试服务器', trigger: 'blur'}
                     ],
                     version: [
-                        {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
+                        {required: true, message: '请输入版本号', trigger: 'change'}
                     ]
                 },
                 filters: {
@@ -529,38 +426,15 @@
                 // 编辑界面数据
                 editForm: {
                     loop_time: '',
-                    port: '4242'
-                },
-                // 匿名化界面初始数据
-                anonForm: {
-                    anon_name: '',
-                    anon_addr: '',
-                    anon_disease: '',
-                    wPN: '',
-                    wPID: '',
-                    appointed_addr: '',
-                },
-                anonFormVisible: false, // 匿名化界面是否显示
-                anonLoading: false,
-                anonFormRules: {
-                    anon_name: [
-                        {required: false, message: '请输入匿名名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
-                    anon_addr: [
-                        {required: true, message: '请输入待匿名文件地址', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
-                    anon_disease: [
-                        {required: true, message: '请输入疾病种类', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ],
+                    port: '4242',
+                    end_time:null
                 },
 
                 addForm: {
                     port: '4242',
                     type: '匿名',
-                    sendcount: 0
+                    sendcount: 0,
+                    end_time:null
 
                 },
                 addFormVisible: false, // 新增界面是否显示
@@ -575,7 +449,6 @@
                     ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
-                        {pattern: /^\d+\.\d+\.\d+$/, message: '请输入合法的版本号（x.x.x）'}
                     ]
                 }
             }
@@ -599,6 +472,27 @@
             clearInterval(this.clearTimeSet);
         },
         methods: {
+            // 获取host数据列表
+            Installversion() {
+                this.listLoading = true
+                let self = this;
+                const params = {
+                    page_size: 100
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getInstallersion(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        this.versionlist = data.data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             displaystatus: function (i) {
                 if (i ==='持续化') {
                     return ''
@@ -909,19 +803,8 @@
                     sleeptime: 0,
                     sendcount: 0,
                     type: '匿名',
-                    series: false
-                }
-            }
-            ,
-            //显示匿名化文件夹界面
-            handleAnon: function () {
-                this.anonFormVisible = true
-                this.anonForm = {
-                    anon_addr: '',
-                    anon_disease: '',
-                    appointed_addr: '',
-                    wPN: true,
-                    wPID: true
+                    series: false,
+                    end_time:null
                 }
             }
             ,
@@ -945,6 +828,7 @@
                                 sleeptime: this.editForm.sleeptime,
                                 series: this.editForm.series,
                                 type: this.editForm.type,
+                                end_time:this.editForm.end_time
                             }
                             const header = {
                                 'Content-Type': 'application/json',
@@ -979,54 +863,6 @@
                 })
             }
             ,
-            // 开始匿名
-            startAnon: function () {
-                this.$refs.anonForm.validate((valid) => {
-                    if (valid) {
-                        const self = this
-                        self.addLoading = true
-                        // NProgress.start();
-                        const params = JSON.stringify({
-                            anon_name: self.anonForm.anon_name,
-                            anon_addr: self.anonForm.anon_addr,
-                            anon_disease: self.anonForm.anon_disease,
-                            appointed_addr: self.anonForm.appointed_addr,
-                            wPN: self.anonForm.wPN,
-                            wPID: self.anonForm.wPID
-                        })
-                        const header = {
-                            'Content-Type': 'application/json',
-                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                        }
-                        anonStart(header, params).then(_data => {
-                            const {msg, code, data} = _data
-                            self.addLoading = false
-                            if (code === '0') {
-                                self.$message({
-                                    message: 'anonymization start',
-                                    center: true,
-                                    type: 'success'
-                                })
-                                self.$refs['anonForm'].resetFields()
-                                self.anonFormVisible = false
-                            } else if (code === '999997') {
-                                self.$message.error({
-                                    message: msg,
-                                    center: true
-                                })
-                            } else {
-                                self.$message.error({
-                                    message: msg,
-                                    center: true
-                                })
-                                self.$refs['anonForm'].resetFields()
-                                self.anonFormVisible = false
-                                self.getDurationlist()
-                            }
-                        })
-                    }
-                })
-            },
             // 新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {
@@ -1037,16 +873,18 @@
                             // NProgress.start();
                             const params = JSON.stringify({
                                 port: self.addForm.port,
+                                version: self.addForm.version,
                                 loop_time: self.addForm.loop_time,
-                                patientname: this.addForm.patientname,
-                                patientid: this.addForm.patientid,
+                                patientname: 'duration',
+                                patientid: '',
                                 dicom: this.addForm.senddata,
                                 sendcount: this.addForm.sendcount,
                                 dds: this.addForm.dds,
                                 sleepcount: this.addForm.sleepcount,
                                 sleeptime: this.addForm.sleeptime,
                                 series: this.addForm.series,
-                                type: this.addForm.type,
+                                end_time:this.addForm.end_time,
+                                type: '持续化',
                                 sendstatus: false,
                                 status: false,
                                 Host: this.addForm.Host

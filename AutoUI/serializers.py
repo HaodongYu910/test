@@ -13,7 +13,7 @@ class autoui_Serializer(serializers.ModelSerializer):
      """
     class Meta:
         model = autoui
-        fields = ('autoid', 'version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','hostid','report','type','status')
+        fields = ('autoid', 'version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime', 'total', 'Host', 'report', 'type', 'status')
         read_only_fields = ('autoid',)  # 指定只读的 field
 
 
@@ -24,7 +24,7 @@ class autoui_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = autoui
-        fields = ('version', 'setup','cases','tearDown','progress', 'thread', 'starttime', 'completiontime','total','status','hostid','report','type')
+        fields = ('version', 'setup', 'cases', 'tearDown', 'progress', 'thread', 'starttime', 'completiontime', 'total', 'status', 'Host', 'report', 'type')
 
 
 class autorecord_Serializer(serializers.ModelSerializer):
@@ -35,9 +35,9 @@ class autorecord_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = auto_uirecord
-        fields = ('recordid', 'studyuid',  'vote', 'expect','actual', 'aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','server','dicomid', 'autoid','update_time', 'create_time')
-        read_only_fields = ('recordid',)  # 指定只读的 field
+        fields = ('id', 'studyuid',  'vote', 'expect','actual', 'aistatus',  'starttime', 'completiontime', 'type',
+                  'result', 'status', 'case', 'server', 'dicomid', 'auto', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
 
 
 
@@ -48,7 +48,7 @@ class autorecord_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = auto_uirecord
         fields = ('studyuid',  'vote', 'expect','actual', 'aistatus',  'starttime', 'completiontime', 'type',
-                  'result', 'status','caseid','server', 'autoid','dicomid')
+                  'result', 'status','case', 'server', 'auto', 'dicomid')
 
 class autocase_Serializer(serializers.ModelSerializer):
     """
@@ -58,8 +58,8 @@ class autocase_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = auto_uicase
-        fields = ('caseid', 'name',  'testdata', 'type','status','update_time', 'create_time')
-        read_only_fields = ('caseid',)  # 指定只读的 field
+        fields = ('id', 'name',  'testdata', 'type', 'status','update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field
 
 
 
