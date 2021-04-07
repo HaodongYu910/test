@@ -24,6 +24,9 @@ pip install -r requirements.txt  //导入
 python manage.py makemigrations
 python manage.py migrate
 
+## 创建超级用户 ## 
+python manage.py createsuperuser
+
 ## 本地开发 ##
 python3 manage.py runserver 0.0.0.0:8000 // 起django服务 
 

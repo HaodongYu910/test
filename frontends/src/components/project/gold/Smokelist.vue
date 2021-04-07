@@ -41,9 +41,9 @@
                     </router-link>
                 </template>
             </el-table-column>
-            <el-table-column prop="hostid" label="服务" min-width="15%" sortable>
+            <el-table-column prop="Host" label="服务" min-width="15%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.hostid }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.Host }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="diseases" label="规则" min-width="30%" show-overflow-tooltip>
@@ -120,18 +120,6 @@
                             <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="editForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
-                                <el-option
-                                        v-for="(item,index) in hosts"
-                                        :key="item.id"
-                                        :label="item.name"
-                                        :value="item.id"
-                                />
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
                     <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5"
@@ -173,7 +161,7 @@
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.Host" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
                                         :key="item.id"
@@ -234,16 +222,12 @@
                     diseases: [
                         {required: true, message: '请选择病种', trigger: 'blur'}
                     ],
-                    hostid: [
-                        {required: true, message: '请选择服务', trigger: 'blur'}
-                    ],
                     version: [
                         {required: true, message: '请输入版本号', trigger: 'change'},
                     ]
                 },
                 //编辑界面数据
                 editForm: {
-                    hostid: '',
                     version: '',
                     thread: 1
                 },
@@ -260,7 +244,7 @@
                 },
                 //新增界面数据
                 addForm: {
-                    hostid: '',
+                    Host: '',
                     version: '',
                     diseases: [],
                     status: false
@@ -476,7 +460,7 @@
                 this.addFormVisible = true;
                 this.addForm = {
                     version: null,
-                    hostid: '',
+                    Host: '',
                     thread: 1,
                     diseases: [],
                 };
@@ -525,7 +509,6 @@
                             //NProgress.start();
                             let params = {
                                 id: self.editForm.id,
-                                hostid: self.editForm.hostid,
                                 version: self.editForm.version,
                                 diseases: self.editForm.diseases,
                                 thread: this.editForm.thread,
@@ -573,7 +556,7 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                hostid: self.addForm.hostid,
+                                Host: self.addForm.Host,
                                 version: self.addForm.version,
                                 diseases: self.addForm.diseases,
                                 thread: this.addForm.thread,

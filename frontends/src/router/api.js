@@ -554,6 +554,10 @@ export const getInstall = (headers, params) => {
 export const getInstallersion = (headers, params) => {
   return axios.get(`${test}/api/install/version`, params, headers).then(res => res.data)
 }
+// 安装日志
+export const getJournal = (headers, params) => {
+  return axios.post(`${test}/api/install/journal`, params, headers).then(res => res.data)
+}
 // 添加 安装部署任务
 export const addInstall = (headers, params) => {
   return axios.post(`${test}/api/install/add`, params, headers).then(res => res.data)
@@ -578,3 +582,4 @@ export const DisableInstall = (headers, params) => {
 export const getInstallReport = (headers, params) => {
   return axios.post(`${test}/api/install/getReport`, params, headers).then(res => res.data)
 }
+

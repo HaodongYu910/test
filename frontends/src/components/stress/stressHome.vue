@@ -240,7 +240,7 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="服务器" prop='server'>
-                            <el-select v-model="addForm.hostid" placeholder="请选择服务器" @click.native="gethost()">
+                            <el-select v-model="addForm.Host" placeholder="请选择服务器" @click.native="gethost()">
                                 <el-option
                                         v-for="(item,index) in hosts"
                                         :key="item.id"
@@ -903,7 +903,7 @@
                                 loop_time: this.addForm.loop_time,
                                 jmeterstatus: false,
                                 filedict: this.filedict,
-                                hostid: this.addForm.hostid,
+                                Host: this.addForm.Host,
                                 status: true,
                             });
                             let header = {
