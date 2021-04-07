@@ -11,6 +11,7 @@ from AutoDicom.common.deletepatients import *
 from AutoTest.models import uploadfile
 from AutoDicom.common.dicomBase import baseTransform
 from AutoUI.common.autouitest import *
+from  django.db import transaction
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -32,11 +33,11 @@ class getUICase(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if name:
-            obi = auto_uicase.objects.filter(name=name).order_by("caseid")
+            obi = auto_uicase.objects.filter(name=name).order_by("id")
         elif type:
-            obi = auto_uicase.objects.filter(type=type).order_by("caseid")
+            obi = auto_uicase.objects.filter(type=type).order_by("id")
         else:
-            obi = auto_uicase.objects.all().order_by("-caseid")
+            obi = auto_uicase.objects.all().order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -122,7 +123,7 @@ class UpdateUICase(APIView):
         """
         try:
             # 校验project_id类型为int
-            if not isinstance(data["caseid"], int):
+            if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
             # 必传参数 content, predictor , type
             if not data["caseid"] or not data["name"]or not data["type"]:
@@ -143,7 +144,7 @@ class UpdateUICase(APIView):
             return result
         #
         try:
-            autoobj = auto_uicase.objects.get(id=data["caseid"])
+            autoobj = auto_uicase.objects.get(id=data["id"])
         except Exception as e:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称
@@ -160,7 +161,7 @@ class UpdateUICase(APIView):
                         for k, v in dict.items():
                             try:
                                 obj = uploadfile.objects.get(id=v)
-                                obj.fileid = str(data["caseid"])
+                                obj.fileid = str(data["id"])
                                 obj.save()
                             except Exception as e:
                                 logger.error("更新upload数据失败{0},错误：{1}".format(v, e))
@@ -203,7 +204,7 @@ class DelUICase(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    obj = auto_uicase.objects.filter(caseid=j)
+                    obj = auto_uicase.objects.filter(id=j)
                     obj.delete()
                 except Exception as e:
                     logger.error("删除smoke数据失败")
@@ -224,7 +225,7 @@ class DisableUICase(APIView):
         """
         try:
             # 校验project_id类型为int
-            if not isinstance(data["caseid"], int):
+            if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -241,7 +242,7 @@ class DisableUICase(APIView):
             return result
         # 查找是否存在
         try:
-            obj = auto_uicase.objects.get(caseid=data["caseid"])
+            obj = auto_uicase.objects.get(caseid=data["id"])
             obj.status = False
             obj.save()
             return JsonResponse(code="0", msg="成功")
@@ -261,7 +262,7 @@ class EnableUICase(APIView):
         """
         try:
             # 校验project_id类型为int
-            if not isinstance(data["caseid"], int):
+            if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -278,11 +279,11 @@ class EnableUICase(APIView):
             return result
         # 查找项目是否存在
         try:
-            obj = auto_uicase.objects.get(caseid=data["caseid"])
+            obj = auto_uicase.objects.get(caseid=data["id"])
             obj.status = True
             obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="数据不存在！")
 

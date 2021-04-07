@@ -11,12 +11,12 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
+
 # import ldap
 # from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -28,21 +28,21 @@ SECRET_KEY = 'u_902ri*_wg9^0_xc0@=fvdi4@o0ci)j34t59p3bw#v-rn1cq2'
 DEBUG = False
 
 # 服务器
-SITE_DBURL = "192.168.1.121"      # 数据库 地址
-SITE_JIRAURL = "http://jira.test.com"  #JIRA 地址
-SITE_JENKINURL = "http://192.168.2.58:8080"  #JENKINS 地址
+SITE_DBURL = "192.168.1.121"  # 数据库 地址
+SITE_JIRAURL = "http://jira.test.com"  # JIRA 地址
+SITE_JENKINURL = "http://192.168.2.58:8080"  # JENKINS 地址
 
 # influxdb 数据库
-Influxdb ='192.168.1.121'
-InfluxDataBase ='autotest'
-InfluxdbUser =''
-InfluxdbPassWd =''
+Influxdb = '192.168.1.121'
+InfluxDataBase = 'autotest'
+InfluxdbUser = ''
+InfluxdbPassWd = ''
 
 # 邮箱配置
-MAIL_SERVER = "smtp.exmail.qq.com"  #邮箱地址
-MAIL_PORT = 465  #端口号
-MAIL_USER = "qa@biomind.ai"  #账号
-MAIL_PWD = "QualityControl@123"  #密码
+MAIL_SERVER = "smtp.exmail.qq.com"  # 邮箱地址
+MAIL_PORT = 465  # 端口号
+MAIL_USER = "qa@biomind.ai"  # 账号
+MAIL_PWD = "QualityControl@123"  # 密码
 
 # Dicom的路径
 Dicom_PATH = '/home/biomind/'
@@ -96,7 +96,7 @@ LOGGING = {
             'backupCount': 3,  # 最多备份几个
             'formatter': 'standard',
             'encoding': 'utf-8',
-        },# 专门用来记错误日志
+        },  # 专门用来记错误日志
         'error': {
             'level': 'ERROR',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
@@ -164,7 +164,7 @@ LOGGING = {
 #     "email": "mail"
 # }
 
-ALLOWED_HOSTS = ['*',]
+ALLOWED_HOSTS = ['*', ]
 
 AUTH_PROFILE_MODULE = 'djangoadmin.AutoTest.UserProfile'
 
@@ -188,7 +188,6 @@ INSTALLED_APPS = [
     'rest_framework_swagger',
 ]
 
-
 LOGIN_URL = 'rest_framework:login'
 LOGOUT_URL = 'rest_framework:logout'
 
@@ -204,14 +203,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-#跨域增加忽略
+# 跨域增加忽略
 CORS_ORIGIN_ALLOW_ALL = True
 
-#跨域增加忽略
+# 跨域增加忽略
 CORS_ALLOW_CREDENTIALS = True
 
-#设置白名单
-CORS_ORIGIN_WHITELIST = (  '*')
+# 设置白名单
+CORS_ORIGIN_WHITELIST = ('*')
 
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
@@ -242,20 +241,14 @@ TEMPLATES = [
     },
 ]
 
-#静态文件主目录
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, '/static/'),
-)
-
+# 静态文件主目录
+STATICFILES_DIRS = [os.path.join(BASE_DIR, '/static')]
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
-
-STATIC_URL = 'static/'
-
+STATIC_URL = '/static/'
 
 WSGI_APPLICATION = 'QualityControl.wsgi.application'
-
 
 # Database 服务器环境
 
@@ -288,7 +281,6 @@ DATABASES = {
 # }
 
 
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -304,9 +296,8 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-#设置时区
-LANGUAGE_CODE = 'zh-hans'  #中文
+# 设置时区
+LANGUAGE_CODE = 'zh-hans'  # 中文
 
 TIME_ZONE = 'Asia/Shanghai'
 
@@ -314,7 +305,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False   #默认是Ture，时间是utc时间，由于我们要用本地时间，所用手动修改为false！！！！
+USE_TZ = False  # 默认是Ture，时间是utc时间，由于我们要用本地时间，所用手动修改为false！！！！
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
@@ -327,7 +318,7 @@ REST_FRAMEWORK = {
         'rest_framework.pagination.PageNumberPagination',
     ),
     'EXCEPTION_HANDLER': (
-            'AutoTest.common.common.custom_exception_handler'
+        'AutoTest.common.common.custom_exception_handler'
         # 'EXCEPTION_HANDLER': 'my_project.my_app.utils.custom_exception_handler'
     )
 
@@ -357,12 +348,13 @@ CORS_ALLOW_HEADERS = (
     'Pragma',
 )
 
-#定时配置
+# 定时配置
 CRONJOBS = [
-    # 表示每天2：01执行
-    #('30 19 * * *', 'AutoTest.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoTest/logs/job.logs'
-    ('*/10 * * * *', 'AutoTest.scheduletask.installtask','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天09：30 执行同步听云数据
+    # ('30 19 * * *', 'AutoTest.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoTest/logs/job.logs'
+    ('*/30 * * * *', 'AutoTest.scheduletask.InstallTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟查看是否有新版本部署
+    ('*/30 * * * *', 'AutoTest.scheduletask.DurationTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每天00：30 执行同步持续化数据结果
 ]
-
 
 # 30 09 * * *'

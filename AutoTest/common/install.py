@@ -6,8 +6,10 @@ from ..models import install, smoke, dictionary, smoke_record
 import os
 from ..common.gold import SmokeThread
 from AutoUI.models import autoui, auto_uirecord
-import time, datetime
+import time
+import datetime
 import logging
+# from ..utils.keycloak.keycloakadmin import KeycloakAdmin
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -44,107 +46,140 @@ class InstallThread(threading.Thread):
         # 性能测试id
         self.id = kwargs["id"]
         self.obj = install.objects.get(id=self.id)
-        self.user = kwargs["user"]
-        self.pwd = kwargs["pwd"]
+        self.user = self.obj.Host.user
+        self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
         self.dobj = dictionary.objects.get(type='install', key='oldversion')
         self.oldversion = self.dobj.value.split(',')
 
-    def run(self):
+    def downFile(self, version):
         try:
-            self.obj.status =True
-            self.obj.type = 2
-            self.obj.save()
-            if self.obj.installstatus is True:
-                deldata(self.obj.server, self.id, self.pwd)
             downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
-            if self.obj.version:
-                self.localpath = '/files/History_version/{0}/{1}.zip'.format(self.obj.version, self.obj.version)
-                if not os.path.exists(self.localpath):
-                    downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}.zip'.format(
-                        self.obj.version)
-                    path = '/files/History_version/{0}'.format(self.obj.version)
-                    if not os.path.exists(path):
-                        os.makedirs(path)
-                        logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, self.obj.version))
-                    logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, self.obj.version))
-                    downssh.download(self.localpath, downpath)
-                    downssh.close()
+            if version:
+                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}.zip'.format(version)
+                path = '/files/History_version/{0}'.format(version)
+                if not os.path.exists(path):
+                    os.makedirs(path)
+                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, version))
+                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, version))
+                downssh.download(self.localpath, downpath)
+                downssh.close()
             else:
                 filelist = downssh.cmd("ls /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/")
                 for i in str(filelist, encoding="utf-8").split('\n'):
                     if i not in self.oldversion and i:
-                        name = i
-                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{}'.format(name)
-                path = '/files/History_version/{}/'.format(name[:-4])
-                self.localpath = '/files/History_version/{0}/{1}'.format(name[:-4], name)
+                        version = i
+                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{}'.format(version)
+                path = '/files/History_version/{}/'.format(version[:-4])
+                self.localpath = '/files/History_version/{0}/{1}'.format(version[:-4], version)
                 if not os.path.exists(path):
                     os.makedirs(path)
-                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, name[:-4]))
-                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, name[:-4]))
+                    logger.info("Installation{0}：创建备份文件夹{1}".format(self.id, version[:-4]))
+                logger.info("Installation{0}：下载备份最新安装包{1}.zip".format(self.id, version[:-4]))
                 downssh.download(self.localpath, downpath)
                 downssh.close()
-                self.obj.version = name[:-4]
+                self.obj.version = version[:-4]
                 self.obj.save()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             logger.error("Installation{0}：下载最新版本报错{}".format(self.id, e))
 
-        # def install(self):
+    def run(self):
         try:
+            self.obj.starttime = datetime.datetime.now()
+            self.obj.status = True
+            self.obj.type = 1
+            self.obj.save()
+            if self.obj.installstatus is True:
+                deldata(self.obj.server, self.id, self.pwd)
+            if self.obj.version:
+                if self.Flag is True:
+                    self.localpath = '/files/History_version/{0}/{1}.zip'.format(self.obj.version, self.obj.version)
+                    if not os.path.exists(self.localpath):
+                        self.obj.type = 2
+                        self.obj.save()
+                        self.downFile(version=self.obj.version)
+            else:
+                self.obj.type = 2
+                self.obj.save()
+                self.downFile(version='')
             self.obj.type = 3
             self.obj.save()
             if not os.path.exists("/home/biomind/{}".format(self.obj.version)):
-                logger.info("Installation{0}：上传最新安装包{1}.zip".format(self.id,self.obj.version))
-                self.ssh.upload(self.localpath, "/home/biomind/QaInstall.zip")
-                self.ssh.cmd("sshpass -p {0} sudo rm -rf {1}/".format(self.pwd,self.obj.version))
-                logger.info("Installation{0}：解压安装包 QaInstall.zip".format(self.id))
-                self.ssh.cmd("unzip {}".format("QaInstall.zip"))
+                if self.Flag is True:
+                    logger.info("Installation{0}：上传最新安装包{1}.zip".format(self.id,self.obj.version))
+                    self.ssh.upload(self.localpath, "/home/biomind/QaInstall.zip")
+                    self.ssh.cmd("sshpass -p {0} sudo rm -rf {1}/".format(self.pwd,self.obj.version))
+                    logger.info("Installation{0}：解压安装包 QaInstall.zip".format(self.id))
+                    self.ssh.cmd("unzip {}".format("QaInstall.zip"))
             logger.info("Installation{}：停止服务".format(self.id))
             self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
             logger.info("Installation{}：安装最新版本".format(self.id))
-            self.ssh.cmd("cd {0};sshpass -p {} bash setup_engine.sh;".format(self.pwd,self.obj.version))
+            self.ssh.cmd("cd {0};sshpass -p {1} bash setup_engine.sh;".format(self.obj.version, self.pwd))
             time.sleep(5)
-            logger.info("Installation{}：更新挂载文件等".format(self.id))
-            self.ssh.upload("{}/config/orthanc.json".format(settings.BASE_DIR),
-                            "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
-            self.ssh.upload("{}/config/classification_votes.json".format(settings.BASE_DIR),
-                            "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
+            try:
+                logger.info("Installation{}：更新 orthanc 文件".format(self.id))
+                self.ssh.upload("/files1/classifier/orthanc.json",
+                                "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+
+            except Exception as e:
+                logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
+            self.restart()
+            logger.info("Installation{}：sheep 200 秒".format(self.id))
+            time.sleep(200)
+            self.goldsmoke()
+            self.finish()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
-            logger.error("Installation{0}：上传部署报错{1}".format(self.id, e))
+            logger.error("Installation{0}：安装{1}版本失败----失败原因：{2}".format(self.id, self.obj.version, e))
 
-        # def restart(self):
+    def restart(self):
         try:
-            logger.info("Installation{}：配置 configure".format(self.id))
-            self.ssh.configure(self.obj.server, 'https')
-            self.obj.type = 4
-            self.obj.save()
-            logger.info("Installation{}：重启服务".format(self.id))
-            self.ssh.cmd("sshpass -p {} biomind start prod master;".format(self.pwd))
-            self.ssh.close()
-            time.sleep(200)
-            # try:
-            #     groups = KeycloakAdmin.get_groups()
-            #     KeycloakAdmin.create_user(
-            #     'test', 'Asd@123456', [
-            #         x['id'] for x in groups])  # 获得角色(分组)ID
+            if self.Flag is True:
+                logger.info("Installation{}：配置 configure".format(self.id))
+                self.ssh.configure(self.obj.server, str(self.obj.Host.protocol))
+                self.obj.type = 4
+                self.obj.save()
+                logger.info("Installation{}：重启服务".format(self.id))
+                self.ssh.cmd("nohup sshpass -p {} biomind start >> /home/biomind/Biomind_Test_Platform/logs/restart.log 2>&1 &;".format(self.pwd))
+                try:
+                    logger.info("Installation{}：更新classification_votes文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/classification_votes.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
 
-            # except Exception as e:
-            #     logging.error('Failed to create User: %s!', e)
+                    logger.info("Installation{}：更新predefined_classifier文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/predefined_classifier.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/predefined_classifier.json")
+
+                    logger.info("Installation{}：更新special_classifier文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/special_classifier.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/special_classifier.json")
+                except Exception as e:
+                    logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
+                self.ssh.close()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             logger.error("Installation{0}：重启服务失败{1}".format(self.id,e))
 
-        # def goldsmoke(self):
+    # def createUser(self):
+    #     try:
+    #         if self.Flag is True:
+    #             groups = KeycloakAdmin.get_groups()
+    #             KeycloakAdmin.create_user(
+    #             'test', 'Asd@123456', [
+    #                 x['id'] for x in groups])  # 获得角色(分组)ID
+    #     except Exception as e:
+    #         logging.error('Failed to create User: %s!', e)
+
+    def goldsmoke(self):
         try:
             data = {"version": self.obj.version,
                     "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                     "status": True,
-                    "hostid": self.obj.hostid,
+                    "Host_id": int(self.obj.Host_id),
                     "thread": 1,
                     "count": 127
                     }
@@ -165,7 +200,7 @@ class InstallThread(threading.Thread):
             self.obj.save()
             logger.error("Installation{0}：执行金标准测试报错{1}".format(self.id, e))
 
-        # def UiTest(self):
+    def UiTest(self):
 
         try:
             data = {"version": self.obj.version,
@@ -191,9 +226,8 @@ class InstallThread(threading.Thread):
             self.obj.save()
             logger.error("Installation{0}：执行UI自动化报错{1}".format(self.id, e))
 
-        # def finish(self):
+    def finish(self):
         try:
-
             self.obj.starttime = datetime.datetime.time()
             self.obj.type = 7
             self.obj.status = False
@@ -209,9 +243,10 @@ class InstallThread(threading.Thread):
         goldData = []
         uiData = []
         try:
-            uidiseases = auto_uirecord.objects.filter(autoid=self.obj.uid).values('caseid').annotate(
+            uidiseases = auto_uirecord.objects.filter(auto__autoid=self.obj.uid).values('case_id').annotate(
+
                 success=Count(Case(When(result='匹配成功', then=0))), fail=Count(Case(When(result='匹配失败', then=0))),
-                count=Count('caseid'))
+                count=Count('case_id'))
 
             for i in uidiseases:
                 error = int(i["count"]) - int(i["success"]) - int(i["fail"])
@@ -239,12 +274,12 @@ class InstallThread(threading.Thread):
 
             for k in ['成功', '失败']:
                 smobj = smoke_record.objects.filter(smokeid=self.obj.smokeid, result__contains=k)
-                uiobj = auto_uirecord.objects.filter(autoid=self.obj.uid, result__contains=k)
+                uiobj = auto_uirecord.objects.filter(auto__autoid=self.obj.uid, result__contains=k)
                 result.append(smobj.count())
                 result.append(uiobj.count())
             smerror = int(smoke_record.objects.filter(smokeid=self.obj.smokeid).count()) - int(result[0]) - int(
                 result[2])
-            uierror = int(auto_uirecord.objects.filter(autoid=self.obj.uid).count()) - int(result[1]) - int(
+            uierror = int(auto_uirecord.objects.filter(auto__autoid=self.obj.uid).count()) - int(result[1]) - int(
                 result[3])
             data = {
                 "basedata": [{
@@ -289,6 +324,7 @@ class InstallThread(threading.Thread):
             }
         except Exception as e:
             logger.error("数据报错{}".format(e))
+            return {}
         return data
 
     def setFlag(self, parm):  # 外部停止线程的操作函数

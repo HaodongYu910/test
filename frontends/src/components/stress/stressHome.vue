@@ -117,6 +117,10 @@
                             <el-select v-model="editForm.projectname" placeholder="请选择">
                                 <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
                                 <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                                <el-option key="神内" label="神内" value="神内"></el-option>
+                                <el-option key="神外" label="神外" value="神外"></el-option>
+                                <el-option key="超声" label="超声" value="超声"></el-option>
+                                <el-option key="放射" label="放射" value="放射"></el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>
@@ -228,6 +232,10 @@
                             <el-select v-model="addForm.projectname" placeholder="请选择">
                                 <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
                                 <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                                <el-option key="神内" label="神内" value="神内"></el-option>
+                                <el-option key="神外" label="神外" value="神外"></el-option>
+                                <el-option key="超声" label="超声" value="超声"></el-option>
+                                <el-option key="放射" label="放射" value="放射"></el-option>
                             </el-select>
                         </el-form-item>
                     </el-col>

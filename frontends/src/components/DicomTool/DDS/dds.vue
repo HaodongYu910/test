@@ -22,7 +22,7 @@
 
 <script>
 import echarts from 'echarts'
-import resize from './resize'
+import resize from '../../../utils/resize'
 export default {
   mixins: [resize],
   props: {

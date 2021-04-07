@@ -3,37 +3,81 @@
 
         <div class="filter-container">
             <!--工具条-->
-                <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-                    <el-form :inline="true" :model="filters" @click.native="getreportData()">
-                        <el-select v-model="filters.type" placeholder="类型">
-                            <el-option key="jz" label="基准测试" value="jz"/>
-                            <el-option key="hh" label="混合测试" value="hh"/>
-                            <el-option key="dy" label="单一测试" value="dy"/>
-                        </el-select>
-                        <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
-                            <el-option
-                                    v-for="(item,index) in versions"
-                                    :key="item.version"
-                                    :label="item.version"
-                                    :value="item.version"
-                            />
-                        </el-select>
-                        <el-select v-model="filters.checkversion" placeholder="以前版本" @click.native="getversion()">
-                            <el-option
-                                    v-for="(item,index) in versions"
-                                    :key="item.version"
-                                    :label="item.version"
-                                    :value="item.version"
-                            />
-                        </el-select>
-                        <el-form-item>
-                            <el-button type="primary" @click="getstresslist">查询</el-button>
-                        </el-form-item>
-                        <el-form-item>
-                            <el-button type="primary" @click="handleAdd">生成报告</el-button>
-                        </el-form-item>
-                    </el-form>
+            <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
+                <el-form :inline="true" :model="filters" @click.native="getreportData()">
+                    <el-select v-model="filters.type" placeholder="类型">
+                        <el-option key="jz" label="基准测试" value="jz"/>
+                        <el-option key="hh" label="混合测试" value="hh"/>
+                        <el-option key="dy" label="单一测试" value="dy"/>
+                    </el-select>
+                    <el-select v-model="filters.version" placeholder="当前版本" @click.native="getversion()">
+                        <el-option
+                                v-for="(item,index) in versions"
+                                :key="item.version"
+                                :label="item.version"
+                                :value="item.version"
+                        />
+                    </el-select>
+                    <el-select v-model="filters.checkversion" placeholder="以前版本" @click.native="getversion()">
+                        <el-option
+                                v-for="(item,index) in versions"
+                                :key="item.version"
+                                :label="item.version"
+                                :value="item.version"
+                        />
+                    </el-select>
+                    <el-form-item>
+                        <el-button type="primary" @click="getstresslist">查询</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleAdd">生成报告</el-button>
+                    </el-form-item>
+                </el-form>
+            </el-col>
+            <el-row>
+                <el-col style="width: 100%">
+                    <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">
+                        <span class="bug-ex-item">{{diseases}} -模型各个版本预测时间对比图</span><img
+                                src="../../assets/img/bug-10.png"></p>
+                    <el-row>
+                        <el-col>
+                            <el-cascader :options="modeloptions" v-model="filters.version" clearable :props="props"
+                                         placeholder="请选择模型"
+                                         @click.native="getversion()"></el-cascader>
+                        </el-col>
+                        <el-col>
+                            <el-select v-model="filters.type" placeholder="类型">
+                                <el-option key="jz" label="基准测试" value="jz"/>
+                                <el-option key="hh" label="混合测试" value="hh"/>
+                                <el-option key="dy" label="单一测试" value="dy"/>
+                            </el-select>
+                        </el-col>
+
+                        <el-button
+                                plain
+                                @click="ToUpdate()">
+                            更新
+                        </el-button>
+                        <el-button
+                                plain
+                                @click="SaveReport()">
+                            保存报告
+                        </el-button>
+                        <el-button
+                                plain
+                                @click="checkExpress()">
+                            服务监控
+                        </el-button>
+                    </el-row>
+
+                    <ve-line
+                            :set-option-opts="false"
+                            :data="chartData"
+                            :data-zoom="chartDataZoom">
+                    </ve-line>
+
                 </el-col>
+            </el-row>
             <!--图表-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
                 <el-card shadow="hover" style="width:100%;height:600px;">
@@ -287,16 +331,47 @@
         data() {
             return {
                 filters: {
-                    server:'192.168.1.208',
+                    server: '192.168.1.208',
                     diseases: '',
-                    type:"jz"
+                    type: "jz"
                 },
+                modeloptions: [{
+                    value: '晨曦',
+                    label: '晨曦',
+                    children: [{
+                        value: '2.18.1',
+                        label: '2.18.1',
+                        children: [{
+                        value: 'Brain',
+                        label: 'Brain'
+                    }]
+                    }, {
+                        value: 1,
+                        label: 'Brain'
+                    }, {
+                        value: 13,
+                        label: 'SWI'
+                    }]
+                }, {
+                    value: 'Gold',
+                    label: 'Gold',
+                    children: [{
+                        value: 1,
+                        label: 'Lung'
+                    }, {
+                        value: 1,
+                        label: 'Brain'
+                    }, {
+                        value: 13,
+                        label: 'SWI'
+                    }]
+                }],
                 durationlist: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
                 sels: [], // 列表选中列
-                host:[],
+                host: [],
                 //定义表
                 predictionLine: {},
                 jobLine: {},
@@ -559,7 +634,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    page_size:100
+                    page_size: 100
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -635,59 +710,61 @@
                         this.predictionLineoption.series.push({
                                 name: this.predictionLineoption.legend.data[i],
                                 type: 'line',
-                                data:  this.predictionLineData[(i + 1)],
+                                data: this.predictionLineData[(i + 1)],
                                 markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
+                                    data: [
+                                        {type: 'max', name: '最大值'},
+                                        {type: 'min', name: '最小值'}
+                                    ]
                                 },
                             }
-                            );
+                        );
                         this.jobLineoption.series.push({
                                 name: this.jobLineoption.legend.data[i],
                                 type: 'line',
-                                data:  this.jobLineData[(i + 1)],
+                                data: this.jobLineData[(i + 1)],
                                 markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
+                                    data: [
+                                        {type: 'max', name: '最大值'},
+                                        {type: 'min', name: '最小值'}
+                                    ]
                                 },
                             }
-                            );
-                    };
-                     // lung 数据j
+                        );
+                    }
+                    ;
+                    // lung 数据j
                     for (var j = 0; j < this.lungLineData.length; j++) {
                         this.lungLineoption.series.push({
                                 name: this.lungLineoption.legend.data[j],
                                 type: 'line',
-                                data:  this.lungLineData[(j + 1)],
+                                data: this.lungLineData[(j + 1)],
                                 markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
+                                    data: [
+                                        {type: 'max', name: '最大值'},
+                                        {type: 'min', name: '最小值'}
+                                    ]
                                 },
                             }
-                            );
-                         // job lung
+                        );
+                        // job lung
                         this.lungjobLineoption.series.push({
                                 name: this.lungjobLineoption.legend.data[j],
                                 type: 'line',
-                                data:  this.lungLineData[(j + 1)],
+                                data: this.lungLineData[(j + 1)],
                                 markPoint: {
-                                data: [
-                                    {type: 'max', name: '最大值'},
-                                    {type: 'min', name: '最小值'}
-                                ]
+                                    data: [
+                                        {type: 'max', name: '最大值'},
+                                        {type: 'min', name: '最小值'}
+                                    ]
                                 },
                             }
-                            );
-                    };
+                        );
+                    }
+                    ;
 
 
-                    console.log( this.lungjobLineoption)
+                    console.log(this.lungjobLineoption)
                     this.reportBarData = data.solution_state.sort(function (a, b) {
                         return a.value - b.value;
                     });
@@ -858,6 +935,7 @@
     .statuscssc {
         color: #666666;
     }
+
     .title {
         position: relative;
         box-sizing: border-box;

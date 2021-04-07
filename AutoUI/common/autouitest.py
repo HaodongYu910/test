@@ -6,9 +6,7 @@ import datetime
 import threading
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 class AutoUiThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -18,8 +16,7 @@ class AutoUiThread(threading.Thread):
         # 性能测试id
         self.autoid = kwargs["autoid"]
         self.obj = autoui.objects.get(autoid=self.autoid)
-        self.Hostobj = Server.objects.get(id=self.obj.hostid)
-        self.server = self.Hostobj.host
+        self.server = self.obj.Host.host
         # self.kc =
 
     #  UI 测试

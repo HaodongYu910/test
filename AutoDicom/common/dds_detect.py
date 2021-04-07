@@ -1,9 +1,10 @@
 from pip._internal.utils import logging
 from AutoTest.common.PostgreSQL import *
+from ..models import duration_record
 
 def dataVerify(ip,duration_id):
     UIDsql = getStudyUIDsql(duration_id)
-    print("find uid in testplatform success")
+    logger.info("find uid in testplatform success")
     verify_list = searchDataInDDS(UIDsql,ip)
     a = 0
     for i in verify_list:
@@ -42,7 +43,7 @@ def searchDataInDDS(UIDsql,ip):
         # 查询dds表格的sql语句
         sql = 'select  studyinstanceuid , insertiontime , status , imagecount FROM study where {0}'.format(UIDsql)
         # dds_record = connect_postgres_dicommaster(host=ip, sql=sql)
-        dds_record = connect_postgres(host=ip, sql=sql)
+        dds_record = connect_postgres(host=ip, sql=sql, database="orthanc")
         temp_dic = dds_record.to_dict(orient='records')
     except Exception as e:
         # logging.info("there is no record for data {0} in dds table".format(studyuid))

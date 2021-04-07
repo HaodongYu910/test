@@ -54,7 +54,7 @@ class stress_result_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress_result
         fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages','Stress')
+                  'single', 'median', 'min', 'max', 'coef', 'rate', 'minimages', 'maximages', 'avgimages', 'Stress')
 
 
 

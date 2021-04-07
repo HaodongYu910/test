@@ -502,7 +502,8 @@
                                 slicenumber: self.editForm.slicenumber,
                                 vote: self.editForm.vote,
                                 diagnosis: self.editForm.diagnosis,
-                                imagecount: self.editForm.imagecount
+                                imagecount: self.editForm.imagecount,
+                                graphql:self.editForm.graphql
                             }
                             const header = {
                                 'Content-Type': 'application/json',

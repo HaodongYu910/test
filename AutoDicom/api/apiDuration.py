@@ -10,13 +10,15 @@ import threading
 from AutoTest.common.api_response import JsonResponse
 from AutoTest.models import pid
 from ..models import duration, duration_record
-from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
+from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Serializer
 from ..common.anonymization import onlyDoAnonymization
 from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
-from AutoDicom.common.dicomBase import verifyDuration,durationtotal,baseTransform
+from AutoDicom.common.duration_verify import verifyDuration
+from AutoDicom.common.dicomBase import baseTransform
+from ..common.durarion import DurationThread
 import datetime,os
 
 
@@ -36,14 +38,18 @@ class getDuration(APIView):
         """
         try:
             Host = request.GET.get("server")
+            if request.GET.get("type") != '持续化':
+                type = ["正常", "匿名"]
+            else:
+                type = ["持续化"]
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if Host:
-            obi = duration.objects.filter(Host=Host).order_by("-sendstatus")
+            obi = duration.objects.filter(Host=Host, type__in=type).order_by("-sendstatus")
         else:
-            obi = duration.objects.all().order_by("server").order_by("-sendstatus")
+            obi = duration.objects.filter(type__in=type).order_by("-id").order_by("-sendstatus")
 
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
@@ -56,7 +62,7 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            obj = duration_record.objects.filter(Duration=i["id"],create_time__gte = i["update_time"])
+            obj = duration_record.objects.filter(duration_id=i["id"],create_time__gte = i["update_time"])
             i['send'] = str(obj.count())
             i["dicom"] = baseTransform(i["dicom"],'base')
 
@@ -113,10 +119,10 @@ class durationData(APIView):
             obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         elif type == 'AiTrue':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[1, 2], create_time__lte=enddate,
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[3, 2], create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
         elif type == 'AiFalse':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 3],
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 1],
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         else:
             obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
@@ -132,18 +138,8 @@ class durationData(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
         durationData = serialize.data
-        try:
-            datalist = durationtotal(durationid)
-            datalist['all'] = obi.count()
-            datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])
-            avg = duration_record.objects.filter(duration_id=durationid).aggregate(Avg("time"))
-            datalist['avg'] = 1/avg['time__avg']
-        except ValueError:
-            return JsonResponse(data={"data": datalist
-                                      }, code="0", msg="测试环境数据库连接失败")
 
         return JsonResponse(data={"data": durationData,
-                                  "durationresult": [datalist],
                                   "page": page,
                                   "total": total,
                                   "count": count
@@ -169,7 +165,7 @@ class addDuration(APIView):
 
     def post(self, request):
         """
-        添加send数据
+        添加发送数据
         :param request:
         :return:
         """
@@ -178,10 +174,6 @@ class addDuration(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             dicomdata = ''
             hostobj = Server.objects.get(id=data['Host'])
             data['server']= hostobj.host
@@ -228,10 +220,6 @@ class updateDuration(APIView):
         if result:
             return result
         try:
-            if data['series'] is True:
-                data['series'] = '1'
-            else:
-                data['series'] = '0'
             obj = duration.objects.get(id=data["id"])
             dicomdata=''
             for i in data['dicom']:
@@ -314,7 +302,7 @@ class EnableDuration(APIView):
 
     def post(self, request):
         """
-        启用dicom 发送
+        启用 dicom 发送
         :param request:
         :return:
         """
@@ -325,12 +313,18 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
-            if obj.anonymous is True:
-                dicomsend = DicomThread(type='duration',id=data["id"])
-                dicomsend.anonymousSend()
-            else:
+            if obj.type == "匿名":
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setDaemon(True)
+                # 开始线程
+                durationThread.start()
+            elif obj.type == "正常":
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
+            else:
+                dicomsend = DicomThread(type='duration', id=data["id"])
+                dicomsend.anonymousSend()
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
@@ -430,7 +424,7 @@ class durationVerify(APIView):
         :return:
         """
         id = request.GET.get("id")
-        data = verifyData(id)
+        data = verifyDuration(id)
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 
