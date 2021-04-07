@@ -181,11 +181,6 @@ export const loadtodo = (headers, params) => {
   return axios.get(`${test}/api/todo `, { params: params }, headers).then(res => res.data)
 }
 
-// 修改数据
-export const updatedata = (headers, params) => {
-  return axios.post(`${test}/dicom/updatedata`, params, headers).then(res => res.data)
-}
-
 // 获取邮件配置
 export const loadreport = (headers, params) => {
   return axios.get(`${test}/api/report `, { params: params }, headers).then(res => res.data)
@@ -433,7 +428,7 @@ export const addbaseData = (headers, params) => {
 }
 // 修改基础数据
 export const UpdatebaseData = (headers, params) => {
-  return axios.post(`${test}/dicom/base/updateData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/base/upData`, params, headers).then(res => res.data)
 }
 // 启用基础数据
 export const Enablebase = (headers, params) => {

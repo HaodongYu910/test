@@ -39,7 +39,7 @@ class dicom(models.Model):
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
     vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
     graphql = models.TextField(max_length=5000, blank=True, null=True, verbose_name="graphql")
-    fileid =  models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")
+    fileid = models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")
     diagnosis = models.CharField(max_length=200, blank=True, null=True, verbose_name="诊断结果")
     predictor = models.CharField(max_length=5, blank=True, null=True, verbose_name="模型")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")

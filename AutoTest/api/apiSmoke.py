@@ -10,7 +10,7 @@ from AutoTest.common.api_response import JsonResponse
 from AutoTest.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
 from AutoTest.common.gold import SmokeThread
 from AutoDicom.common.deletepatients import *
-from ..models import smoke_record,smoke
+from ..models import smoke_record, smoke
 from AutoDicom.common.dicomBase import baseTransform
 import time
 

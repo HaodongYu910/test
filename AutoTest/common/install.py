@@ -6,9 +6,10 @@ from ..models import install, smoke, dictionary, smoke_record
 import os
 from ..common.gold import SmokeThread
 from AutoUI.models import autoui, auto_uirecord
-import time, datetime
+import time
+import datetime
 import logging
-from ..utils.keycloak.keycloakadmin import KeycloakAdmin
+# from ..utils.keycloak.keycloakadmin import KeycloakAdmin
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -122,23 +123,13 @@ class InstallThread(threading.Thread):
                 self.ssh.upload("/files1/classifier/orthanc.json",
                                 "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
 
-                logger.info("Installation{}：更新classification_votes文件".format(self.id))
-                self.ssh.upload("/files1/classifier/classification_votes.json",
-                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
-
-                logger.info("Installation{}：更新predefined_classifier文件".format(self.id))
-                self.ssh.upload("/files1/classifier/predefined_classifier.json",
-                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/predefined_classifier.json")
-
-                logger.info("Installation{}：更新special_classifier文件".format(self.id))
-                self.ssh.upload("/files1/classifier/special_classifier.json",
-                                "/home/biomind/.biomind/var/biomind/cache/series_classifier/special_classifier.json")
             except Exception as e:
                 logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
             self.restart()
             logger.info("Installation{}：sheep 200 秒".format(self.id))
             time.sleep(200)
             self.goldsmoke()
+            self.finish()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
@@ -152,29 +143,43 @@ class InstallThread(threading.Thread):
                 self.obj.type = 4
                 self.obj.save()
                 logger.info("Installation{}：重启服务".format(self.id))
-                self.ssh.cmd("sshpass -p {} biomind start prod master;".format(self.pwd))
+                self.ssh.cmd("nohup sshpass -p {} biomind start >> /home/biomind/Biomind_Test_Platform/logs/restart.log 2>&1 &;".format(self.pwd))
+                try:
+                    logger.info("Installation{}：更新classification_votes文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/classification_votes.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
+
+                    logger.info("Installation{}：更新predefined_classifier文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/predefined_classifier.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/predefined_classifier.json")
+
+                    logger.info("Installation{}：更新special_classifier文件".format(self.id))
+                    self.ssh.upload("/files1/classifier/special_classifier.json",
+                                    "/home/biomind/.biomind/var/biomind/cache/series_classifier/special_classifier.json")
+                except Exception as e:
+                    logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
                 self.ssh.close()
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             logger.error("Installation{0}：重启服务失败{1}".format(self.id,e))
 
-    def createUser(self):
-        try:
-            if self.Flag is True:
-                groups = KeycloakAdmin.get_groups()
-                KeycloakAdmin.create_user(
-                'test', 'Asd@123456', [
-                    x['id'] for x in groups])  # 获得角色(分组)ID
-        except Exception as e:
-            logging.error('Failed to create User: %s!', e)
+    # def createUser(self):
+    #     try:
+    #         if self.Flag is True:
+    #             groups = KeycloakAdmin.get_groups()
+    #             KeycloakAdmin.create_user(
+    #             'test', 'Asd@123456', [
+    #                 x['id'] for x in groups])  # 获得角色(分组)ID
+    #     except Exception as e:
+    #         logging.error('Failed to create User: %s!', e)
 
     def goldsmoke(self):
         try:
             data = {"version": self.obj.version,
                     "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                     "status": True,
-                    "Host_id": self.obj.Host_id,
+                    "Host_id": int(self.obj.Host_id),
                     "thread": 1,
                     "count": 127
                     }
@@ -223,7 +228,6 @@ class InstallThread(threading.Thread):
 
     def finish(self):
         try:
-
             self.obj.starttime = datetime.datetime.time()
             self.obj.type = 7
             self.obj.status = False
@@ -239,9 +243,10 @@ class InstallThread(threading.Thread):
         goldData = []
         uiData = []
         try:
-            uidiseases = auto_uirecord.objects.filter(autoid=self.obj.uid).values('caseid').annotate(
+            uidiseases = auto_uirecord.objects.filter(auto__autoid=self.obj.uid).values('case_id').annotate(
+
                 success=Count(Case(When(result='匹配成功', then=0))), fail=Count(Case(When(result='匹配失败', then=0))),
-                count=Count('caseid'))
+                count=Count('case_id'))
 
             for i in uidiseases:
                 error = int(i["count"]) - int(i["success"]) - int(i["fail"])
@@ -269,12 +274,12 @@ class InstallThread(threading.Thread):
 
             for k in ['成功', '失败']:
                 smobj = smoke_record.objects.filter(smokeid=self.obj.smokeid, result__contains=k)
-                uiobj = auto_uirecord.objects.filter(autoid=self.obj.uid, result__contains=k)
+                uiobj = auto_uirecord.objects.filter(auto__autoid=self.obj.uid, result__contains=k)
                 result.append(smobj.count())
                 result.append(uiobj.count())
             smerror = int(smoke_record.objects.filter(smokeid=self.obj.smokeid).count()) - int(result[0]) - int(
                 result[2])
-            uierror = int(auto_uirecord.objects.filter(autoid=self.obj.uid).count()) - int(result[1]) - int(
+            uierror = int(auto_uirecord.objects.filter(auto__autoid=self.obj.uid).count()) - int(result[1]) - int(
                 result[3])
             data = {
                 "basedata": [{
@@ -319,6 +324,7 @@ class InstallThread(threading.Thread):
             }
         except Exception as e:
             logger.error("数据报错{}".format(e))
+            return {}
         return data
 
     def setFlag(self, parm):  # 外部停止线程的操作函数

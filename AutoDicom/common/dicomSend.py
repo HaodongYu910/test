@@ -372,7 +372,7 @@ if __name__ == '__main__':
             sql = "select route,diseases from dicom  where predictor in ({0}) and stressstatus in (1,2)".format(
                 CONFIG["folderid"])
         else:
-            sql = "SELECT route,diseases FROM dicom where fileid ={0}".format(CONFIG["folderid"])
+            sql = "SELECT route,diseases FROM dicom where fileid ={0} and status = TRUE".format(CONFIG["folderid"])
         # 获取local_aet名称
         if socket.gethostname() == "biomindqa38":
             CONFIG["local_aet"] = 'QA38'

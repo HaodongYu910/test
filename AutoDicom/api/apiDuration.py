@@ -16,7 +16,8 @@ from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
-from AutoDicom.common.dicomBase import verifyDuration, durationtotal, baseTransform
+from AutoDicom.common.duration_verify import verifyDuration
+from AutoDicom.common.dicomBase import baseTransform
 from ..common.durarion import DurationThread
 import datetime,os
 
@@ -118,10 +119,10 @@ class durationData(APIView):
             obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         elif type == 'AiTrue':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[1, 2], create_time__lte=enddate,
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[3, 2], create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
         elif type == 'AiFalse':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 3],
+            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 1],
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         else:
             obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
@@ -137,18 +138,8 @@ class durationData(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
         durationData = serialize.data
-        try:
-            datalist = durationtotal(durationid)
-            datalist['all'] = obi.count()
-            datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])
-            avg = duration_record.objects.filter(duration_id=durationid).aggregate(Avg("time"))
-            datalist['avg'] = 1/avg['time__avg']
-        except ValueError:
-            return JsonResponse(data={"data": datalist
-                                      }, code="0", msg="测试环境数据库连接失败")
 
         return JsonResponse(data={"data": durationData,
-                                  "durationresult": [datalist],
                                   "page": page,
                                   "total": total,
                                   "count": count
@@ -323,12 +314,10 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             if obj.type == "匿名":
-                # durationThread = DurationThread(id=data["id"])
-                # durationThread.setDaemon(True)
-                # # 开始线程
-                # durationThread.start()
-                dicomsend = DicomThread(type='duration',id=data["id"])
-                dicomsend.anonymousSend()
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setDaemon(True)
+                # 开始线程
+                durationThread.start()
             elif obj.type == "正常":
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
@@ -435,7 +424,7 @@ class durationVerify(APIView):
         :return:
         """
         id = request.GET.get("id")
-        data = verifyData(id)
+        data = verifyDuration(id)
         return JsonResponse(data={"data": data
                                   }, code="0", msg="成功")
 

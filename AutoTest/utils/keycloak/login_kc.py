@@ -17,9 +17,9 @@ def login_keycloak(id):
     obj = Server.objects.get(id=id)
     try:
         kc = KeycloakClient('{0}://{1}'.format(
-            obj.protocol,obj.host), username,
+            obj.protocol, obj.host), username,
             password)
-        kc.login(username,password)
+        kc.login(username, password)
     except Exception as e:
         msg_code = 'kc_001'
         logger.info("Keycloak 登录失败:{0}".format(e))

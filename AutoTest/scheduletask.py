@@ -58,41 +58,48 @@ def InstallTask():
         downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
         filelist = downssh.cmd(
             "cd /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/;ls -lR |grep -v ^d|awk '{print $9}' |tr -s '\\n';")
-
         for i in str(filelist, encoding="utf-8").split('\n'):
             version = i.replace('\r', "")
             version = version.replace('\n', "")
             if version not in oldversion and version:
-                obj = install.objects.filter(status=False, crontab='crontab')
-                downssh = SSHConnection(host='192.168.2.111', pwd='P@ssw0rd2111')
-                downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}'.format(version)
-                path = '/files/History_version/{0}'.format(version[:-4])
-                if not os.path.exists(path):
-                    os.makedirs(path)
-                    logger.info("Installation定时：创建备份文件夹{}".format(version[:-4]))
-                localpath = '/files/History_version/{0}/{1}'.format(version[:-4], version)
-                logger.info("Installation{定时}：下载备份最新安装包{}.zip".format(version))
-                downssh.download(localpath, downpath)
-                logger.info("Installation{定时}：下载备份最新安装包{}.zip 完成".format(version))
-                downssh.close()
-                for j in obj:
-                    logger.info("Installation 安装版本:{}".format(version))
-                    logger.info("Installation version:{0}".format(version[:-4]))
-                    j.version = version[:-4]
-                    j.save()
-                    testThread = InstallThread(id=j.id)
-                    testThread.setDaemon(True)
-                    # 开始线程
-                    testThread.start()
-                if len(version) > 4:
-                    dobj.value = '{},{}'.format(str(dobj.value), version)
-                    dobj.save()
-
+                logger.info("Installation[定时]：新版本{}".format(version))
+                try:
+                    obj = install.objects.filter(status=False, crontab='crontab')
+                    if int(obj.count()) >= 1:
+                        downpath = '/lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/{0}'.format(version)
+                        path = '/files/History_version/{0}'.format(version[:-4])
+                        if not os.path.exists(path):
+                            os.makedirs(path)
+                            logger.info("Installation定时：创建备份文件夹{}".format(version[:-4]))
+                        localpath = '/files/History_version/{0}/{1}'.format(version[:-4], version)
+                        logger.info("Installation[定时]：下载备份最新安装包{}".format(version))
+                        downssh.download(localpath, downpath)
+                        logger.info("Installation[定时]：下载备份最新安装包{} 完成".format(version))
+                        downssh.close()
+                        for j in obj:
+                            logger.info("Installation[定时]:{0}".format(version[:-4]))
+                            j.version = version[:-4]
+                            j.save()
+                            testThread = InstallThread(id=j.id)
+                            testThread.setDaemon(True)
+                            # 开始线程
+                            testThread.start()
+                        if len(version) > 4:
+                            dobj.value = '{},{}'.format(str(dobj.value), version)
+                            dobj.save()
+                    else:
+                        logger.info("Installation{定时}：无定时部署服务")
+                except:
+                    downssh.close()
+                    logger.error("Installation{定时}：无定时部署服务")
+        downssh.close()
     except Exception as e:
+        downssh.close()
         logger.error(e)
 
 # 同步持续化数据结果
 def DurationTask():
+    logger.info("持续化数据结果同步定时任务启动！~~")
     obj = duration.objects.filter(type="持续化", status=True)
     sqlobj = dictionary.objects.get(key='duration', status=True, type='sql')
     try:
@@ -100,7 +107,7 @@ def DurationTask():
             record = duration_record.objects.filter(duration_id=i.id, aistatus=None)
             for j in record:
                 sql = sqlobj.value.format(j.studyinstanceuid)
-                result = connect_postgres(host=i.Host.host, sql=sql)
+                result = connect_postgres(host=i.Host.id, sql=sql, database="orthanc")
                 _dict = result.to_dict(orient='records')
                 if len(_dict) == 0:
                     continue

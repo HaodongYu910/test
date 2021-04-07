@@ -8,7 +8,7 @@ import numpy as np
 from django.db import connection
 from django.db import transaction
 from django.conf import settings
-from ..models import stress_record,stress_result, stress
+from ..models import stress_record, stress_result, stress
 from ..serializers import stress_result_Deserializer
 from .loganalys import errorLogger
 from AutoTest.common.PostgreSQL import connect_postgres
@@ -20,8 +20,7 @@ from AutoTest.common.transport import SSHConnection
 
 from AutoDicom.common.dicomBase import checkuid, voteData
 from AutoDicom.models import duration_record, dicom
-
-
+from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
@@ -43,17 +42,32 @@ def saveData(**kwargs):
     try:
         if kwargs["type"] in ["predictionJZ", "lung_prediction"]:
             sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
-            result = connect_postgres(host=kwargs["ip"],sql= sql.value.format(kwargs["studyuid"], kwargs["startdate"]))
-            datatest = kwargs["datatest"]
-            datatest["type"] = kwargs["type"]
-            datatest["avg"] = str(result.to_dict(orient='records')[0]["avg"])
-            datatest["median"] = str(result.to_dict(orient='records')[0]["median"])
-            datatest["min"] = str(result.to_dict(orient='records')[0]["min"])
-            datatest["max"] = str(result.to_dict(orient='records')[0]["max"])
+            result = connect_postgres(database="orthanc", host=kwargs["id"],
+                                      sql=sql.value.format(kwargs["studyuid"], kwargs["startdate"]))
+            kwargs["datatest"]["type"] = kwargs["type"]
+            try:
+                kwargs["datatest"]["avg"] = str(result.to_dict(orient='records')[0]["avg"])
+            except:
+                kwargs["datatest"]["avg"] = 0
+            try:
+                kwargs["datatest"]["median"] = str(result.to_dict(orient='records')[0]["median"])
+            except:
+                kwargs["datatest"]["avg"] = 0
+            try:
+                kwargs["datatest"]["min"] = str(result.to_dict(orient='records')[0]["min"])
+            except:
+                kwargs["datatest"]["avg"] = 0
+            try:
+                kwargs["datatest"]["max"] = str(result.to_dict(orient='records')[0]["max"])
+            except:
+                kwargs["datatest"]["avg"] = 0
         else:
-            datatest = kwargs["datatest"]
-            datatest["type"] = kwargs["type"]
-        stress_result.objects.create(**datatest)
+            kwargs["datatest"]["type"] = kwargs["type"]
+
+        _result = stress_result_Deserializer(data=kwargs["datatest"])
+        with transaction.atomic():
+            _result.is_valid()
+            _result.save()
     except Exception as e:
         logger.error("保存预测基准测试数据失败：{0}".format(e))
 
@@ -67,7 +81,7 @@ def stresscache(stressid):
         # 查询预测成功的数据 作为压测数据
         # sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname =\'brainctp\' ORDER BY modelname';
         sql = 'select  DISTINCT studyuid from  prediction_metrics where modelname like \'%{0}%\''.format(dictobj.key)
-        results = connect_postgres(host=obj.loadserver, sql=sql).to_dict(orient='records')
+        results = connect_postgres(database="orthanc", host=obj.Host_id, sql=sql).to_dict(orient='records')
         # 循环插入数据
         for j in results:
             logger.info(j['studyuid'])
@@ -99,7 +113,8 @@ def saveStressddt(stressid, path):
             [obj.loadserver, 'biomind3d', 'engine3D.', obj.thread, obj.synchroniz, obj.ramp, time, obj.version,
              obj.loop_count])
     # 影像id
-    image = connect_postgres(host=obj.loadserver, sql='select publicid from image ORDER BY internalid desc LIMIT 100')
+    image = connect_postgres(database="orthanc", host=obj.Host_id,
+                             sql='select publicid from image ORDER BY internalid desc LIMIT 100')
     imagedata = image.to_dict(orient='records')
     for j in imagedata:
         imagelist.append(j["publicid"])
@@ -109,15 +124,18 @@ def saveStressddt(stressid, path):
             obd = dictionary.objects.get(id=i)
             sqlobj = dictionary.objects.get(type='sql', key='3d')
             sql = sqlobj.value.format(obd.key, obj.thread)
-            stressdict = connect_postgres(host=obj.loadserver, sql=sql)
+            stressdict = connect_postgres(database="orthanc", host=obj.Host_id,
+                                          sql=sql)
             stressdata = stressdict.to_dict(orient='records')
             try:
                 for k in stressdata:
                     savecsv('{}/data/data.csv'.format(path, str(i)),
-                            [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks,imagelist[ii]])
+                            [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks,
+                             imagelist[ii]])
                     ii = ii + 1
             except Exception as e:
                 continue
+
 
 # 性能测试
 class StressThread(threading.Thread):
@@ -134,13 +152,15 @@ class StressThread(threading.Thread):
 
     #  基准测试
     def Manual(self):
+        self.obj.status = True
+        self.obj.save()
         count = int(self.obj.ramp)
         try:
             for i in self.obj.testdata.split(","):
                 stressdata = dicom.objects.filter(predictor=i.strip(), stressstatus=2)
                 for k in stressdata:
                     avglist = []
-                    checkuid(self.obj.hostid, self.server, str(k.id))
+                    checkuid(self.obj.Host_id, self.server, str(k.id))
                     delreport(self.kc, str(k.studyinstanceuid))
                     # 循环 测试基准数据
                     startdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
@@ -162,8 +182,9 @@ class StressThread(threading.Thread):
                     jobtype = 'jobJZ'
                     predictiontype = 'predictionJZ'
                     avgtime = str('%.2f' % np.mean(avglist))
+
                     datatest = {
-                        "stressid": self.stressid,
+                        "Stress": self.stressid,
                         "version": self.obj.version,
                         "count": count,
                         "modelname": k.predictor,
@@ -180,16 +201,52 @@ class StressThread(threading.Thread):
                              )
                     saveData(datatest=datatest,
                              type=predictiontype,
-                             ip=self.server,
+                             id=self.obj.Host_id,
                              studyuid=k.studyinstanceuid,
                              startdate=startdate
                              )
-
+            self.obj.status = False
+            self.obj.save()
         except Exception as e:
             logger.error("执行预测基准测试数据失败：{0}".format(e))
 
+    def Single(self):
+        starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        endtime = (datetime.datetime.now() + datetime.timedelta(hours=1)).strftime("%Y-%m-%d %H:%M:%S")
+        self.obj.save()
+        try:
+            # 已有数据 循环预测
+            for i in self.testdata.split(","):
+                dicobj = dictionary.objects.get(id=i)
+                obj = duration_record.objects.filter(model=dicobj.value)
+                # 循环调用graphql 自动预测
+                for k in obj:
+                    graphql_query = '{ ' \
+                                    'ai_biomind(' \
+                                    'block : false' \
+                                    ' study_uid: "' + str(k.studyinstanceuid) + '"' \
+                                                                                ' protocols: {' \
+                                                                                ' penable_cached_results: false' \
+                                                                                ' }' \
+                                                                                '){' \
+                                                                                '  pprediction' \
+                                                                                '  preport' \
+                                                                                '  pcontour' \
+                                                                                '  pmodels' \
+                                                                                '  pstudy_uid' \
+                                                                                '}' \
+                                                                                '}'
+                    graphql_Interface(graphql_query, self.kc)
+                    while starttime > endtime:
+                        print(1)
+                    ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
+                    ssh.cmd("nohup sshpass -p {} biomind restart prod master &;".format(self.obj.Host.pwd))
+                    time.sleep(300)
+        except Exception as e:
+            logger.error("性能测试启动失败：{0}".format(e))
+
     # 混合预测压测循环
-    def AutoPrediction(self,type):
+    def AutoPrediction(self, type):
         self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.obj.save()
         try:
@@ -199,7 +256,7 @@ class StressThread(threading.Thread):
                 for i in self.obj.testdata.split(","):
                     stressdata = dicom.objects.filter(predictor=i.strip())
                     for j in stressdata:
-                        checkuid(self.server, self.obj.hostid, j.id)
+                        checkuid(self.obj.Host_id, self.server, j.id)
                         delreport(self.kc, j.studyuid)
                     # 循环调用graphql 自动预测
                     for k in stressdata:
@@ -296,9 +353,10 @@ class StressThread(threading.Thread):
                 try:
                     # 循环查询结果
                     for k, v in infos.items():
-                        result = connect_postgres(host=self.server,
-                                                     sql=obj.value.format(v["uids"][:-1], self.obj.start_date,
-                                                                      self.obj.end_date))
+                        result = connect_postgres(database="orthanc",
+                                                  host=self.obj.Host.id,
+                                                  sql=obj.value.format(v["uids"][:-1], self.obj.start_date,
+                                                                       self.obj.end_date))
                         dict = result.to_dict(orient='records')
                         try:
                             dict[0]["avgimages"], dict[0]["maximages"], dict[0]["minimages"] = str(
@@ -325,7 +383,8 @@ class StressThread(threading.Thread):
         for j in ["predictionrecord", "jobmetrics"]:
             sqlobj = dictionary.objects.get(key=j)
             sql = sqlobj.value.format(self.obj.start_date, self.obj.end_date)
-            result = connect_postgres(host=self.server, sql=sql)
+            result = connect_postgres(database="orthanc",  host=self.obj.Host.id,
+                                      sql=sql)
             dict = result.to_dict(orient='records')
             # 循环数据保存
             for i in dict:
@@ -351,12 +410,12 @@ class StressThread(threading.Thread):
                     continue
 
     def errorlog(self):
-        ssh = SSHConnection(host=self.server, port=22, user='biomind', pwd='biomind')
-        ssh.cmd("rm -rf /home/biomind/pm2.zip")
+        ssh = SSHConnection(host=self.server, port=22, user=self.obj.Host.user, pwd=self.obj.Host.pwd)
+        os.system("rm -rf {}/pm2.zip".format(settings.LOG_PATH))
         downpath = '/home/biomind/.biomind/lib/versions/{}/logs/pm2'.format(self.obj.version)
-        ospath = '/home/biomind/Biomind_Test_Platform/logs/pm2.zip'
-        ssh.download(ospath,downpath)
-        errorLogger(self.stressid,self.obj.version,ospath)
+        ospath = '{}/pm2.zip'.format(settings.LOG_PATH)
+        ssh.download(ospath, downpath)
+        errorLogger(self.stressid, self.obj.version, ospath)
         ssh.close()
 
     def setFlag(self, parm):  # 外部停止线程的操作函数

@@ -357,7 +357,7 @@ class getInstallReport(APIView):
         try:
             testThread = InstallThread(id=data["id"])
             data = testThread.report()
-            return JsonResponse(code="0", msg="成功",data=data)
+            return JsonResponse(code="0", msg="成功", data=data)
 
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")

@@ -2,8 +2,7 @@
 import logging
 from django.db.models import Count, When, Case, Max, Min, Avg
 import time, datetime
-import random
-import math
+from AutoTest.scheduletask import DurationTask
 import time
 import json
 import threading
@@ -99,7 +98,7 @@ class ReportThread(threading.Thread):
             }
             return data
         except Exception as e:
-            logger.error("队列生成失败：{0}".format(e))
+            logger.error("报告数据：{0}".format(e))
 
     def errorData(self):
         try:
@@ -131,9 +130,6 @@ class ReportThread(threading.Thread):
         except Exception as e:
             logger.error("预测趋势数据生成失败：{0}".format(e))
 
-
-
-    #     datalist = durationtotal(durationid)
     #     datalist['all'] = obi.count()
     #     datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])
     #     avg = duration_record.objects.filter(duration_id=durationid).aggregate(Avg("time"))

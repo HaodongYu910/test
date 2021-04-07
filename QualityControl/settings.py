@@ -351,9 +351,9 @@ CORS_ALLOW_HEADERS = (
 # 定时配置
 CRONJOBS = [
     # ('30 19 * * *', 'AutoTest.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoTest/logs/job.logs'
-    ('*/10 * * * *', 'AutoTest.scheduletask.InstallTask',
+    ('*/30 * * * *', 'AutoTest.scheduletask.InstallTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟查看是否有新版本部署
-    ('30 00 * * *', 'AutoTest.scheduletask.DurationTask',
+    ('*/30 * * * *', 'AutoTest.scheduletask.DurationTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每天00：30 执行同步持续化数据结果
 ]
 

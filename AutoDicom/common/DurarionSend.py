@@ -37,39 +37,6 @@ def get_rand_uid():
     return "%08d" % rand_val
 
 
-class DicomData(threading.Thread):
-    def __init__(self, **kwargs):
-        threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
-        self.count = 1  # 可用来被外部访问
-        self.files = kwargs["files"]
-        self.end = kwargs["end"]
-
-    # 匿名数据队列
-    def run(self):
-        q = queue.Queue()
-        threads = []
-        dicomobj = dicom.objects.filter(fileid__in=self.files)
-        try:
-            while True:
-                if self.count > self.end:
-                    break
-                if self.end >= self.count > int(dicomobj.count()):
-                    dicomobj = dicom.objects.filter(fileid__in=self.files)
-                for j in dicomobj:
-                    if self.count > self.end:
-                        break
-                    else:
-                        src_folder = str(j.route)
-                        while src_folder[-1] == '/':
-                            src_folder = src_folder[0:-1]
-                        q.put([src_folder, j.diseases, self.count])
-                    self.count = self.count + 1
-
-        except Exception as e:
-            logger.error("队列数据生成失败：{0}".format(e))
-
-
 class DurationThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
@@ -239,8 +206,6 @@ class DurationThread(threading.Thread):
 
     def durationAnony(self, q):
         while not q.empty():
-            if self.Flag is False:
-                break
             testdata = q.get()
             full_fn_fake = testdata[1]
             try:
@@ -331,20 +296,17 @@ class DurationThread(threading.Thread):
         # 改变状态
         self.obj.sendstatus = False
         self.obj.save()
-        self.Flag = False
-
-        drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
-        # 删除错误数据
-        for j in drobj:
-            delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
-        drobj.delete()
-        # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
-                                                                             str(self.obj.patientid),
-                                                                             str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
-
+        # drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
+        # # 删除错误数据
+        # for j in drobj:
+        #     delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
+        # drobj.delete()
+        # # 删除 文件夹
+        # folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
+        #                                                                      str(self.obj.patientid),
+        #                                                                      str(self.id))
+        # if os.path.exists(folder):
+        #     shutil.rmtree(folder)
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
