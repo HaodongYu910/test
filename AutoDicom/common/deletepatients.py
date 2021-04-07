@@ -29,7 +29,7 @@ def delete_patients_duration(key, serverID,type,fuzzy):
         sqldict = dictionary.objects.get(key=type, type="sql", status=True)
         sql = sqldict.value
     try:
-        result_1 = connect_postgres(host=Hostobj.host,sql=sql)
+        result_1 = connect_postgres(host=Hostobj.id, sql=sql, database="orthanc")
         _dict1 = result_1.to_dict(orient='records')
         kc = login_keycloak(serverID)
     except Exception as e:

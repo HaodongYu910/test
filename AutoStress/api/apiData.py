@@ -8,8 +8,9 @@ from AutoTest.common.api_response import JsonResponse
 
 from ..serializers import stress_Deserializer
 from AutoDicom.serializers import dicomdata_Deserializer
-from ..common.stress import *
+from ..common.stress import voteData,checkuid
 from AutoDicom.common.deletepatients import *
+from ..models import stress
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -24,9 +25,43 @@ class stressversion(APIView):
         :param request:
         :return:
         """
-
-        obi = stress.objects.filter(status=1).order_by("-stressid")
-        serialize = stress_Deserializer(obi, many=True)
+        modelverion = []
+        modeldict ={}
+        obj = stress.objects.all()
+        # for i in obj:
+        #     modeldict[i.projectname] = i.
+        # [{
+        #     value: '晨曦',
+        #     label: '晨曦',
+        #     children: [{
+        #         value: '2.18.1',
+        #         label: '2.18.1',
+        #         children: [{
+        #             value: 'Brain',
+        #             label: 'Brain'
+        #         }]
+        #     }, {
+        #         value: 1,
+        #         label: 'Brain'
+        #     }, {
+        #         value: 13,
+        #         label: 'SWI'
+        #     }]
+        # }, {
+        #     value: 'Gold',
+        #     label: 'Gold',
+        #     children: [{
+        #         value: 1,
+        #         label: 'Lung'
+        #     }, {
+        #         value: 1,
+        #         label: 'Brain'
+        #     }, {
+        #         value: 13,
+        #         label: 'SWI'
+        #     }]
+        # }]
+        serialize = stress_Deserializer(obj, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}
         #     list.append(dict)
@@ -51,9 +86,9 @@ class stressData(APIView):
         diseases = request.GET.get("diseases")
         slicenumber = request.GET.get("slicenumber")
         if diseases is not None and slicenumber is None:
-            obi = dicom.objects.filter(predictor=diseases,stressstatus__in=(1,2)).order_by("-id")
+            obi = dicom.objects.filter(diseases=diseases, stressstatus__in=(1, 2)).order_by("-id")
         elif diseases is None and slicenumber is not None:
-            obi = dicom.objects.filter(slicenumber=slicenumber,stressstatus__in=(1,2)).order_by("-id")
+            obi = dicom.objects.filter(slicenumber=slicenumber, stressstatus__in=(1, 2)).order_by("-id")
         else:
             obi = dicom.objects.filter(stressstatus__in=(1,2)).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
@@ -68,7 +103,10 @@ class stressData(APIView):
         for i in serialize.data:
             dictobj = dictionary.objects.get(id=i["predictor"])
             i["diseases"] = dictobj.value
-
+            if i["stressstatus"] == '2':
+                i["benchmarkstatus"] = True
+            else:
+                i["benchmarkstatus"] = False
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total

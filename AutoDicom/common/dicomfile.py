@@ -21,7 +21,7 @@ def norm_string(str):
 
 
 # 更新文件到 测试目录 安装类型分类重新命名
-def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
+def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
     file_names = os.listdir(src_folder)
     file_names.sort()
     for fn in tqdm(file_names):
@@ -29,9 +29,8 @@ def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)):
-            updateFolder(full_fn, study_infos, diseases, type, id,predictor)
+            updateFolder(full_fn, study_infos, diseases, foldType, id,predictor)
             continue
-
         try:
             ds = pydicom.dcmread(full_fn, force=True)
             study_uid = ds.StudyInstanceUID
@@ -66,7 +65,7 @@ def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
                             patientid = patientname
                             ds.PatientID = patientid
                         filename = "{0}{1}".format(str(patientname), str(int(obj["id__max"]) + 1))
-                        folder_fake = '/files1/dicomTest/{0}/{1}/{2}'.format(type, diseases, filename)
+                        folder_fake = '/files1/dicomTest/{0}/{1}/{2}'.format(foldType, diseases, filename)
                         study_infos[study_uid] = {
                             "patientid": patientid,
                             "patientname": patientname,
@@ -79,7 +78,7 @@ def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
                             "patientname": patientname,
                             "studyinstanceuid": study_uid,
                             "diseases": diseases,
-                            "type": type,
+                            "type": foldType,
                             "route": folder_fake,
                             "fileid": id,
                             "predictor": predictor,
@@ -99,7 +98,6 @@ def updateFolder(src_folder, study_infos, diseases,type,id,predictor):
             logger.error('errormsg: failed to dcmread [{0}]'.format(e))
             continue
 
-
 # 更新文件
 def fileUpdate(id):
     obj = dicom_base.objects.get(id=id)
@@ -112,7 +110,7 @@ def fileUpdate(id):
         src_folder=src_folder,
         study_infos=study_infos,
         diseases=obj.remarks,
-        type=obj.type,
+        foldType=obj.type,
         id=id,
         predictor=obj.predictor
     )

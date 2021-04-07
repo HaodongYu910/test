@@ -11,7 +11,6 @@ from ..common.stress import *
 from ..common.PerformanceResult import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
-from AutoDicom.common.Dicom import DicomThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -49,7 +48,7 @@ class stressRun(APIView):
             St = StressThread(stressid=data['stressid'])
             # 基准测试
             if data['type'] is True:
-                resultobj = stress_result.objects.filter(stressid=data['stressid'],type__in=['jobJZ','predictionJZ','lung_jobJZ','lung_job'])
+                resultobj = stress_result.objects.filter(Stress=data['stressid'], type__in=['jobJZ','predictionJZ','lung_jobJZ','lung_job'])
                 resultobj.delete()
                 St.Manual()
             # 混合测试
@@ -62,8 +61,7 @@ class stressRun(APIView):
             else:
                 if obj.jmeterstatus is True:
                     St.jmeterStress()
-                anonymous = DicomThread(stressid=data['stressid'], type='stress')
-                anonymous.start()
+                St.Single()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)

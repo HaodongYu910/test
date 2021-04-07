@@ -32,15 +32,18 @@
                                 <el-table-column
                                         prop="success"
                                         label="成功"
-                                        class=statuscssa>
+                                        style="cololr:#02F000" >
                                 </el-table-column>
                                 <el-table-column
                                         prop="fail"
-                                        label="失败">
+                                        label="失败"
+                                        style="cololr:#FFF000"
+                                >
                                 </el-table-column>
                                 <el-table-column
                                         prop="error"
-                                        label="报错">
+                                        label="报错"
+                                        CLASS="yellow">
                                 </el-table-column>
                             </el-table>
                         </el-col>
@@ -66,16 +69,19 @@
                                 </el-table-column>
                                 <el-table-column
                                         prop="success"
-                                        label="成功数量">
+                                        label="成功数量"
+                                        style="cololr:#02F000">
                                 </el-table-column>
                                 <el-table-column
                                         prop="fail"
                                         label="失败数量"
+                                        class="{ color: #666666}"
                                 >
                                 </el-table-column>
                                 <el-table-column
                                         prop="error"
-                                        label="报错数量">
+                                        label="报错数量"
+                                        style="cololr:#FF0000">
                                 </el-table-column>
                             </el-table>
                         </el-col>

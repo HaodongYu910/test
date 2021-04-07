@@ -13,7 +13,7 @@ from AutoDicom.common.deletepatients import *
 from ..models import install
 from ..common.transport import SSHConnection
 from AutoDicom.common.dicomBase import baseTransform
-from ..scheduletask import installtask
+from ..scheduletask import InstallTask
 import os,re
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -276,11 +276,12 @@ class DisableInstall(APIView):
         # 查找是否存在
         try:
             obj = install.objects.get(id=data["id"])
+            obj.status = False
+            obj.save()
             testThread = InstallThread(data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
-            obj.status = False
-            obj.save()
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
@@ -356,7 +357,7 @@ class getInstallReport(APIView):
         try:
             testThread = InstallThread(id=data["id"])
             data = testThread.report()
-            return JsonResponse(code="0", msg="成功",data=data)
+            return JsonResponse(code="0", msg="成功", data=data)
 
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")

@@ -57,10 +57,10 @@ class KeycloakApi(KcAdmin):
 
 class KeycloakAdmin:
     kc_admin = KeycloakApi(
-        server_url=f"https://192.168.1.170:443/auth/",
-        username='admin',
-        password='secret',
-        realm_name="master",
+        server_url=f"https://192.168.1.172:443/auth/",
+        username='test',
+        password='Asd@123456',
+        realm_name="biomind",
         auto_refresh_token=[
             'get',
             'put',
@@ -154,15 +154,15 @@ class KeycloakAdmin:
         cls.set_password_groups(user_id, password, group_ids)
 
 
-# if __name__ == '__main__':
-#     print(KeycloakAdmin.get_all_users())
-#     print(KeycloakAdmin.get_all_users({
-#         'briefRepresentation': False,
-#         'max': 10,
-#         'first': 0
-#     }))  # 获得用户ID
-#
-#     groups = KeycloakAdmin.get_groups()
-#     KeycloakAdmin.create_user(
-#         'test', 'Asd123456', [
-#             x['id'] for x in groups],'test','test')  # 获得角色(分组)ID
+if __name__ == '__main__':
+    print(KeycloakAdmin.get_all_users())
+    print(KeycloakAdmin.get_all_users({
+        'briefRepresentation': False,
+        'max': 10,
+        'first': 0
+    }))  # 获得用户ID
+
+    groups = KeycloakAdmin.get_groups()
+    KeycloakAdmin.create_user(
+        'test1', 'Asd@123456', [
+            x['id'] for x in groups],'test','test')  # 获得角色(分组)ID

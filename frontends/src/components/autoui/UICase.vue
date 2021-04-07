@@ -20,15 +20,15 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="id" label="caseid" min-width="12%" sortable>
+            <el-table-column prop="id" label="id" min-width="12%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.caseid }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.id }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="filename" label="用例名称" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ name: 'UI用例详情', params: {caseid: scope.row.id}}"
+                    <router-link v-if="scope.row.status" :to="{ name: 'UI用例详情', params: {id: scope.row.id}}"
                                  style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.name }}
                     </router-link>
@@ -662,7 +662,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                caseid: self.editForm.caseid,
+                                id: self.editForm.id,
                                 name: self.editForm.name,
                                 testdata: self.editForm.testdata,
                                 type: this.editForm.type,

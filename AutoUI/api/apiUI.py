@@ -10,6 +10,7 @@ from ..serializers import autoui_Serializer, autoui_Deserializer
 from AutoDicom.common.deletepatients import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoUI.common.autouitest import *
+from django.db import transaction
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -82,7 +83,7 @@ class AddAutoUI(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["hostid"] or not data["version"]:
+            if not data["Host"] or not data["version"]:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:

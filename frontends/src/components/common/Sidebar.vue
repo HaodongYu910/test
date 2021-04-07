@@ -119,14 +119,18 @@
                                 title: 'Dicom删除'
                             },
                             {
-                                index: 'duration',
+                                index: 'DicomSend',
                                 title: 'Dicom发送'
                             },
                             {
-                                // dds监控页面
-                                index: 'dds',
-                                title: 'DDS监控'
-                            }
+                                index: 'duration',
+                                title: '持续化工具'
+                            },
+                            // {
+                            //     // dds监控页面
+                            //     index: 'dds',
+                            //     title: 'DDS监控'
+                            // }
                         ]
                     },
                     {
@@ -159,7 +163,7 @@
                                 title: '用户配置'
                             },
                             {
-                                index: 'mailconfig',
+                                index: 'analysisReport',
                                 title: '服务集成'
                             }
                             ,
@@ -168,7 +172,7 @@
                                 title: '数据字典'
                             },
                             {
-                                index: 'mailconfig',
+                                index: 'danger',
                                 title: '邮件设置'
                             }
                             ,

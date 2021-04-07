@@ -2,7 +2,6 @@ from django.conf.urls import url
 from rest_framework import routers
 
 from .api import user, VisitorRecord
-from .api.DDSapi import *
 from .api.global_parameter import *
 from .api.Jiradata import *
 from .api.Sendmail import *
@@ -74,5 +73,4 @@ urlpatterns = [
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
     url(r'todo', todo.as_view()),
-    url(r'DicomTool/sync_dds_data', sync_dds_data.as_view())
 ]

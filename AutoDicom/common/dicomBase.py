@@ -6,11 +6,11 @@ from AutoTest.utils.graphql.graphql import *
 from AutoTest.utils.keycloak.login_kc import *
 
 from AutoTest.models import Server, dictionary
-from .Dicom import Send
 from .duration_verify import *
 from AutoTest.common.PostgreSQL import connect_postgres
 from AutoTest.common.regexUtil import savecsv
 import os
+from ..common.Dicom import SendQueThread
 
 
 logger = logging.getLogger(__name__)
@@ -27,71 +27,13 @@ def baseTransform(basedata, basetype):
             elif basetype == 'dictionary':
                 obj = dictionary.objects.get(id=i)
                 result = result + obj.value + ","
-            elif basetype == 'host':
-                obj = Server.objects.get(id=i)
-                result = obj.host
             elif basetype == 'case':
                 obj = auto_uicase.objects.get(caseid=i)
                 result = result + obj.name + ","
         return result
     except Exception as e:
         return 'None'
-        logger.error("发送失败：{0}".format(e))
-
-
-# 检查是否数据
-def checkuid(serverID, serverIP, studyuid):
-    obj = dicom.objects.get(studyinstanceuid=studyuid, type='test')
-    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        studyuid)
-    result_db = connect_postgres(host=serverIP, sql=sql)
-    # 无此数据，发送
-    if len(result_db) == 0:
-        Send(serverID, obj.route)
-    # 重复数据 先删除后再发送新数据
-    elif len(result_db) > 2:
-        delete_patients_duration(studyuid, serverID, 'StudyInstanceUID', False)
-        Send(serverID, obj.route)
-
-
-#  duration 统计数据
-def durationtotal(durationid):
-    notsent = duration_record.objects.filter(duration_id=durationid, aistatus=None)
-    ai_true = duration_record.objects.filter(duration_id=durationid, aistatus__in=['1', '2'])
-    ai_false = duration_record.objects.filter(duration_id=durationid, aistatus__in=['3', '-2'])
-    notai = duration_record.objects.filter(duration_id=durationid, aistatus__in=['-1'])
-    datalist = {
-        'notai': notai.count(),
-        'ai_true': ai_true.count(),
-        'ai_false': ai_false.count(),
-        'notsent': notsent.count()
-    }
-    return datalist
-
-
-#  duration 数据结果更新
-def verifyDuration(durationid):
-    duration_data = duration_record.objects.filter(duration_id=durationid, aistatus=None)
-    obj = duration.objects.get(id=durationid)
-    if obj.dds is not None:
-        serverip = obj.dds
-    else:
-        serverip = obj.server
-    for i in duration_data:
-        data = {'studyinstanceuid': i.studyinstanceuid}
-        sql = 'SELECT aistatus,diagnosis,imagecount FROM study_view WHERE studyinstanceuid = \'{0}\' ORDER BY insertiontime desc'.format(
-            i.studyinstanceuid)
-        result_1 = connect_postgres(host=serverip, sql=sql)
-        sqldata = result_1.to_dict(orient='records')
-
-        if sqldata == []:
-            continue
-        else:
-            i.aistatus = sqldata[0]['aistatus']
-            i.diagnosis = sqldata[0]['diagnosis']
-            i.imagecount_server = sqldata[0]['imagecount']
-            i.save()
-
+        logger.error("失败：{0}".format(e))
 
 # 生成csv  数据
 def dicomsavecsv(ids):
@@ -115,34 +57,31 @@ def dicomsavecsv(ids):
             diseases = obj.diseases
         savecsv(str('{0}/logs/gold.csv'.format(path)), [graphql_query, diseases, obj.diagnosis])
 
-
-
-# 匿名化发送数据
-
-
-
-
-
 # 检查是否数据
 def checkuid(serverID, serverIP, dicomid):
     obj = dicom.objects.get(id=dicomid)
     sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
         obj.studyinstanceuid)
-    result_db = connect_postgres(host=serverIP, sql=sql)
-    # 无此数据，发送
+    result_db = connect_postgres(host=serverID, sql=sql, database="orthanc")
+    # 无此数据，发送v
     if len(result_db) == 0:
-        Send(serverID, obj.route)
+        logger.info("send file")
+        thread_Send = SendQueThread(route=obj.route, hostid=serverID)
+        thread_Send.run()
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
+        logger.info(" delete file")
         delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
-        Send(serverID, obj.route)
+        logger.info(" send file")
+        thread_Send = SendQueThread(route=obj.route, hostid=serverID)
+        thread_Send.run()
 
 
 # 数据跳转listview url
 def listUrl(hostid, studyuid):
     obj = Server.objects.get(id=hostid)
     kc = login_keycloak(hostid)
-    result_db = connect_postgres(host=obj.host,
+    result_db = connect_postgres(host=hostid, database="orthanc",
                                     sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
     url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
@@ -178,8 +117,8 @@ def voteData(uid, orthanc_ip, diseases, kc):
         else:
             Series = dictionary.objects.get(type='sql', key='Series').value
         protocol = dictionary.objects.get(type='sql', key='protocol')
-        Series = connect_postgres(host=orthanc_ip, sql=Series.format(uid)).to_dict(orient='records')
-        pseries_classifier = connect_postgres(host=orthanc_ip, sql=protocol.value.format(uid)).to_dict(orient='records')
+        Series = connect_postgres(database="orthanc", host=orthanc_ip, sql=Series.format(uid)).to_dict(orient='records')
+        pseries_classifier = connect_postgres(database="orthanc", host=orthanc_ip, sql=protocol.value.format(uid)).to_dict(orient='records')
         pseries = pseries_classifier[0]['pseries']
     except Exception as e:
         logger.info("没有此数据信息{0}".format(e))

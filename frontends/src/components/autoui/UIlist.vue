@@ -131,9 +131,9 @@
                         <el-form-item label="setUp" prop='setUp'>
                             <el-select v-model="editForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -142,9 +142,9 @@
                         <el-form-item label="case" prop='case'>
                             <el-select v-model="editForm.testdata" multiple placeholder="请选择" @click.native="getCase()">
                                 <el-option v-for="(item,index) in testcase"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -154,9 +154,9 @@
                             <el-select v-model="editForm.tearDown" multiple placeholder="请选择"
                                        @click.native="gettearDown()">
                                 <el-option v-for="(item,index) in tearDown"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -205,9 +205,9 @@
                         <el-form-item label="setUp" prop='setUp'>
                             <el-select v-model="addForm.setup" multiple placeholder="请选择" @click.native="getsetUp()">
                                 <el-option v-for="(item,index) in setUp"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -216,9 +216,9 @@
                         <el-form-item label="case" prop='case'>
                             <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getCase()">
                                 <el-option v-for="(item,index) in testcase"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -228,9 +228,9 @@
                             <el-select v-model="addForm.tearDown" multiple placeholder="请选择"
                                        @click.native="gettearDown()">
                                 <el-option v-for="(item,index) in tearDown"
-                                           :key="item.caseid"
+                                           :key="item.id"
                                            :label="item.name"
-                                           :value="item.caseid"
+                                           :value="item.id"
                                 />
                             </el-select>
                         </el-form-item>
@@ -626,7 +626,9 @@
                 this.addForm = {
                     version: null,
                     hostid: '',
-                    thread: 1
+                    thread: 1,
+                    setup: [],
+                    tearDown:[]
                 };
             },
             //编辑修改
@@ -686,7 +688,7 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                hostid: self.addForm.hostid,
+                                Host: self.addForm.hostid,
                                 version: self.addForm.version,
                                 setup: self.addForm.setup,
                                 cases: self.addForm.testdata,
