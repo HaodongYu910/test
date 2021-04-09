@@ -30,19 +30,24 @@
                                         label="策略">
                                 </el-table-column>
                                 <el-table-column
-                                        prop="success"
-                                        label="成功"
+                                        prop="aisuccess"
+                                        label="预测成功"
+                                        style="cololr:#02F000" >
+                                </el-table-column>
+                                 <el-table-column
+                                        prop="error"
+                                        label="预测失败"
                                         style="cololr:#02F000" >
                                 </el-table-column>
                                 <el-table-column
-                                        prop="fail"
-                                        label="失败"
+                                        prop="success"
+                                        label="匹配成功"
                                         style="cololr:#FFF000"
                                 >
                                 </el-table-column>
                                 <el-table-column
-                                        prop="error"
-                                        label="报错"
+                                        prop="fail"
+                                        label="匹配失败"
                                         CLASS="yellow">
                                 </el-table-column>
                             </el-table>
@@ -60,28 +65,72 @@
                         <el-col style="width: 50%">
                             <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">
                                 <span class="bug-ex-item">金标准结果</span><img src="../../assets/img/bug-10.png"></p>
-                            <el-table :data="goldData" border style="width: 100%" row-key="id" border
-                                      default-expand-all
-                                      :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+                            <el-table
+                                    :data="goldData"
+                                    style="width: 100%">
                                 <el-table-column
-                                        prop="diseases"
-                                        label="类型">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="success"
-                                        label="成功数量"
-                                        style="cololr:#02F000">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="fail"
-                                        label="失败数量"
-                                        class="{ color: #666666}"
+                                        label="类型"
                                 >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                        prop="error"
-                                        label="报错数量"
-                                        style="cololr:#FF0000">
+                                        label="预测成功"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.aisuccess }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="success">{{ scope.row.aisuccess }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="预测失败"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="匹配成功"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.success }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="success">{{ scope.row.success }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="匹配失败"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作">
+                                    <template slot-scope="scope">
+                                        <el-button
+                                                size="mini"
+                                                type="danger"
+                                                @click="handleDelete(scope.$index, scope.row)">详情
+                                        </el-button>
+                                    </template>
                                 </el-table-column>
                             </el-table>
                         </el-col>
@@ -89,28 +138,72 @@
                             <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">
                                 <span class="bug-ex-item">UI自动化结果</span>
                                 <img class="img-revers" src="../../assets/img/bug-10.png"></p>
-                            <el-table :data="UIData" border style="width: 100%">
+                            <el-table
+                                    :data="UIData"
+                                    style="width: 100%">
                                 <el-table-column
-                                        prop="diseases"
-                                        label="类型">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="success"
-                                        label="成功数量">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="fail"
-                                        label="失败数量"
+                                        label="类型"
                                 >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                        prop="error"
-                                        label="报错数量">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="online"
-                                        label="详情"
+                                        label="预测成功"
                                 >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.error }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.error }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="预测失败"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="匹配成功"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.success }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.success }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="匹配失败"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作">
+                                    <template slot-scope="scope">
+                                        <el-button
+                                                size="mini"
+                                                type="danger"
+                                                @click="handleDelete(scope.$index, scope.row)">详情
+                                        </el-button>
+                                    </template>
                                 </el-table-column>
                             </el-table>
                         </el-col>

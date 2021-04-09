@@ -6,11 +6,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoTest.common.api_response import JsonResponse
-from ..serializers import  stress_Deserializer
+from ..serializers import stress_Deserializer
 from ..common.stress import *
 from ..common.PerformanceResult import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
+from ..common.stressdurarion import STThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -44,19 +45,22 @@ class stressRun(APIView):
         if result:
             return result
         try:
-            obj = stress.objects.get(stressid=data['stressid'])
-            St = StressThread(stressid=data['stressid'])
+            stressid = data['stressid']
+            obj = stress.objects.get(stressid=stressid)
+            sendStress = STThread(id=data['stressid'])
+            St = StressThread(stressid=stressid)
             # 基准测试
             if data['type'] is True:
-                resultobj = stress_result.objects.filter(Stress=data['stressid'], type__in=['jobJZ','predictionJZ','lung_jobJZ','lung_job'])
+                resultobj = stress_result.objects.filter(Stress=stressid, type__in=['jobJZ','predictionJZ','lung_jobJZ','lung_job'])
                 resultobj.delete()
-                St.Manual()
+                sendStress.Manual()
             # 混合测试
             elif data['type'] is False:
                 if obj.jmeterstatus is True:
                     St.jmeterStress()
                 # St.AutoPrediction()
-                St.AutoPrediction(type='send')
+                sendStress.setDaemon(True)
+                sendStress.start()
             # 单一测试
             else:
                 if obj.jmeterstatus is True:

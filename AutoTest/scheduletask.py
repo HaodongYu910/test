@@ -2,7 +2,7 @@
 # coding=utf-8
 from HtmlTemplate.test_html import html
 from AutoTest.common.sendmail import send_mail
-from AutoTest.models import test_report, install, dictionary
+from AutoTest.models import test_report, install, dictionary, Server
 from AutoDicom.models import duration_record, duration
 from AutoDicom.serializers import duration_record_Deserializer
 from django.conf import settings
@@ -15,6 +15,9 @@ from .common.transport import SSHConnection
 from .common.install import InstallThread
 from AutoTest.common.PostgreSQL import connect_postgres
 from django.db import transaction
+from AutoDicom.common.durarion import DurationThread
+from .common.message import sendMessage
+from django.db.models import Count, When, Case, Max, Min, Avg
 
 # 生成一个以当前文件名为名字的logger实例
 logger = logging.getLogger(__name__)
@@ -97,28 +100,89 @@ def InstallTask():
         downssh.close()
         logger.error(e)
 
+
 # 同步持续化数据结果
-def DurationTask():
+def DurationSyTask():
+    infos = {}
     logger.info("持续化数据结果同步定时任务启动！~~")
-    obj = duration.objects.filter(type="持续化", status=True)
+    obj = duration_record.objects.filter(jobtime=None)
     sqlobj = dictionary.objects.get(key='duration', status=True, type='sql')
+    Psqlobj = dictionary.objects.get(key='durationP', status=True, type='sql')
     try:
         for i in obj:
-            record = duration_record.objects.filter(duration_id=i.id, aistatus=None)
-            for j in record:
-                sql = sqlobj.value.format(j.studyinstanceuid)
-                result = connect_postgres(host=i.Host.id, sql=sql, database="orthanc")
-                _dict = result.to_dict(orient='records')
-                if len(_dict) == 0:
+            if infos.__contains__(i.sendserver) is False:
+                infos[i.sendserver] = '\'' + str(i.studyinstanceuid) + '\''
+            else:
+                infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
+        for k, v in infos.items():
+            host = Server.objects.get(host=k)
+            sql = sqlobj.value.format(v)
+            Psql = Psqlobj.value.format(v)
+            result = connect_postgres(host=host.id, sql=sql, database="orthanc")
+            resultdict = result.to_dict(orient='records')
+            _result = connect_postgres(host=host.id, sql=Psql, database="orthanc")
+            _dict = _result.to_dict(orient='records')
+            for j in resultdict:
+                obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
+                try:
+                    obj.imagecount_server = j["imagecount_server"]
+                    obj.aistatus = j["pai_status"]
+                    obj.error = j["error"]
+                    obj.diagnosis = j["pclassification"]
+                    obj.jobtime = j["jobtime"]
+                    obj.starttime = j["starttime"]
+                    obj.save()
+                except Exception as e:
+                    logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
                     continue
-                else:
-                    try:
-                        serializer = duration_record_Deserializer(data=_dict[0])
-                        with transaction.atomic():
-                            if serializer.is_valid():
-                                # 修改数据
-                                serializer.update(instance=j, validated_data=_dict[0])
-                    except Exception as e:
-                        logger.error('[Schedule Task Error]:serializer.is_valid fail '.format(e))
+            for ii in _dict:
+                obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
+                try:
+                    obj.time = ii["predictionsec"]
+                    obj.model = ii["modelname"]
+                    obj.save()
+                except Exception as e:
+                    logger.error('[Schedule Synchronization Task Error]:predictionsec fail '.format(e))
+                    continue
     except Exception as e:
-        logger.error('[Schedule Task Error]:{}'.format(e))
+        logger.error('[Schedule Synchronization Task Error]:{}'.format(e))
+
+
+# 持续化定时任务启动
+def DurationTask():
+    logger.info("持续化定时任务启动！~~")
+    obj = duration.objects.filter(status=True, type='持续化')
+    try:
+        for i in obj:
+            if i.end_time > str(datetime.datetime.today()):
+                durationThread = DurationThread(id=i.id)
+                durationThread.setDaemon(True)
+                # 开始线程
+                durationThread.start()
+            else:
+                i.status = False
+                i.save()
+    except Exception as e:
+        logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
+
+
+def DurationReportTask():
+    logger.info("持续化报告定时任务启动！~~")
+    obj = duration.objects.filter(sendstatus=True, type='持续化')
+    statistics_date = '{} 00:00:00'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
+    try:
+        for i in obj:
+            record = duration_record.objects.filter(duration_id=i.id,
+                                                    create_time__lte=statistics_date).values(
+                "duration_id").annotate(
+                send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
+                success=Count(Case(When(aistatus__in=[2, 3], then=0))),
+                fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
+                count=Count('id'))
+            message = "【持续化进度消息】\n 测试版本：{0} \n 测试服务：{1} \n 统计截至时间：{2}  \n 共计发送：{3} 笔 \n  预测成功：{4}笔 \n 预测失败：{5}笔 \n  <a href=\"http://192.168.1.121/#/DurationReport/reportid={6}\">详细信息内网中请查看：http://192.168.1.121/#/DurationReport/reportid={7}</a>".format(
+                i.version,
+                i.server, statistics_date, record[0]['count'],  record[0]['success'], record[0]['fail'],
+                i.id, i.id)
+            sendMessage(touser='', toparty='132', message= message)
+    except Exception as e:
+        logger.error('[Schedule Sustainability Task Error]:{}'.format(e))

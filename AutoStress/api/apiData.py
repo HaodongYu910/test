@@ -27,9 +27,11 @@ class stressversion(APIView):
         """
         modelverion = []
         modeldict ={}
+        valuelist = []
         obj = stress.objects.all()
         # for i in obj:
-        #     modeldict[i.projectname] = i.
+        #     valuelist.append({})
+        #     modeldict[i.projectname] = valuelist
         # [{
         #     value: '晨曦',
         #     label: '晨曦',

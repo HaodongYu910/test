@@ -353,8 +353,12 @@ CRONJOBS = [
     # ('30 19 * * *', 'AutoTest.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoTest/logs/job.logs'
     ('*/30 * * * *', 'AutoTest.scheduletask.InstallTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟查看是否有新版本部署
-    ('*/30 * * * *', 'AutoTest.scheduletask.DurationTask',
-     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每天00：30 执行同步持续化数据结果
+    ('*/30 * * * *', 'AutoTest.scheduletask.DurationSyTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟执行同步持续化数据结果
+    ('30 00 * * *', 'AutoTest.scheduletask.DurationTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟执行同步持续化数据结果
+    ('30 09 * * *', 'AutoTest.scheduletask.DurationReportTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔10分钟执行同步持续化数据结果
 ]
 
 # 30 09 * * *'

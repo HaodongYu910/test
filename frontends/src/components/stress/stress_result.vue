@@ -34,50 +34,50 @@
                     </el-form-item>
                 </el-form>
             </el-col>
-            <el-row>
-                <el-col style="width: 100%">
-                    <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">
-                        <span class="bug-ex-item">{{diseases}} -模型各个版本预测时间对比图</span><img
-                                src="../../assets/img/bug-10.png"></p>
-                    <el-row>
-                        <el-col>
-                            <el-cascader :options="modeloptions" v-model="filters.version" clearable :props="props"
-                                         placeholder="请选择模型"
-                                         @click.native="getversion()"></el-cascader>
-                        </el-col>
-                        <el-col>
-                            <el-select v-model="filters.type" placeholder="类型">
-                                <el-option key="jz" label="基准测试" value="jz"/>
-                                <el-option key="hh" label="混合测试" value="hh"/>
-                                <el-option key="dy" label="单一测试" value="dy"/>
-                            </el-select>
-                        </el-col>
+<!--            <el-row>-->
+<!--                <el-col style="width: 100%">-->
+<!--                    <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">-->
+<!--                        <span class="bug-ex-item">{{diseases}} -模型各个版本预测时间对比图</span><img-->
+<!--                                src="../../assets/img/bug-10.png"></p>-->
+<!--                    <el-row>-->
+<!--                        <el-col>-->
+<!--                            <el-cascader :options="modeloptions" v-model="filters.version" clearable :props="props"-->
+<!--                                         placeholder="请选择模型"-->
+<!--                                         @click.native="getversion()"></el-cascader>-->
+<!--                        </el-col>-->
+<!--                        <el-col>-->
+<!--                            <el-select v-model="filters.type" placeholder="类型">-->
+<!--                                <el-option key="jz" label="基准测试" value="jz"/>-->
+<!--                                <el-option key="hh" label="混合测试" value="hh"/>-->
+<!--                                <el-option key="dy" label="单一测试" value="dy"/>-->
+<!--                            </el-select>-->
+<!--                        </el-col>-->
 
-                        <el-button
-                                plain
-                                @click="ToUpdate()">
-                            更新
-                        </el-button>
-                        <el-button
-                                plain
-                                @click="SaveReport()">
-                            保存报告
-                        </el-button>
-                        <el-button
-                                plain
-                                @click="checkExpress()">
-                            服务监控
-                        </el-button>
-                    </el-row>
+<!--                        <el-button-->
+<!--                                plain-->
+<!--                                @click="ToUpdate()">-->
+<!--                            更新-->
+<!--                        </el-button>-->
+<!--                        <el-button-->
+<!--                                plain-->
+<!--                                @click="SaveReport()">-->
+<!--                            保存报告-->
+<!--                        </el-button>-->
+<!--                        <el-button-->
+<!--                                plain-->
+<!--                                @click="checkExpress()">-->
+<!--                            服务监控-->
+<!--                        </el-button>-->
+<!--                    </el-row>-->
 
-                    <ve-line
-                            :set-option-opts="false"
-                            :data="chartData"
-                            :data-zoom="chartDataZoom">
-                    </ve-line>
+<!--                    <ve-line-->
+<!--                            :set-option-opts="false"-->
+<!--                            :data="chartData"-->
+<!--                            :data-zoom="chartDataZoom">-->
+<!--                    </ve-line>-->
 
-                </el-col>
-            </el-row>
+<!--                </el-col>-->
+<!--            </el-row>-->
             <!--图表-->
             <el-col :span="100" class="toolbar" style="padding-bottom: 0px;">
                 <el-card shadow="hover" style="width:100%;height:600px;">
