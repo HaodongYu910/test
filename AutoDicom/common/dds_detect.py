@@ -1,5 +1,7 @@
 from pip._internal.utils import logging
 from AutoTest.common.PostgreSQL import *
+
+from Autotest.scheduletask import logger
 from ..models import duration_record
 
 def dataVerify(ip,duration_id):
