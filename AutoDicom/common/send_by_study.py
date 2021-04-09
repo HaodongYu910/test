@@ -18,16 +18,19 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 
 def get_date():
+    # get current date
     localtime = time.localtime(time.time())
     return time.strftime("%Y%m%d", localtime)
 
 
 def get_time():
+    # get current time
     localtime = time.localtime(time.time())
     return time.strftime("%H%M%S", localtime)
 
 
 def get_rand_uid():
+    # generate a random value
     rand_val = random.randint(1, math.pow(10, 16) - 1)
     return "%08d" % rand_val
 
@@ -57,36 +60,36 @@ class DurationSendNewThread(threading.Thread):
 
     def anonymizationAndPutQueue(self, src_folder, study_infos_duration):
         '''
-        src_folder: folder need be anonymization
+        input：
+        src_folder: folder need be anonymization (can be a list)
         study_infos: empty dictionary{}
-        diseases: input parameter from front
-        wPN:boolean值，是否匿名patient name
-        wPID:boolean值，是否匿名patient ID
-        anonkey:匿名化key值
+
+        key variable：
+        full_fn:源文件绝对路径
+        full_fn_fake:匿名后文件绝对路径（不包含该文件）
+        file_after_fake:匿名后文件绝对路径（含该文件夹）
+        study_info_duration: dictionary include all study infos (old StudyUID as key)
+        q: queue, input is a list
         '''
-        q = queue.Queue()
+        q = queue.Queue() # initial q
         for i in src_folder:
+            # loop read src_folder path
             file_names = os.listdir(i)
             file_names.sort()
             for fn in tqdm(file_names):
                 full_fn = os.path.join(i, fn)
                 if os.path.isdir(full_fn):
                     self.anonymizationAndPutQueue(full_fn, study_infos_duration)
-                    logging.info('-------------this is a folder,skiping....')
                     continue
                 else:
                     ds = pydicom.dcmread(full_fn, force=True)  # 读取该路径文件的dicom信息
-
                     try:
                         if ds.StudyInstanceUID:
                             # and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
-                            logging.info('1. this is a truly dicom document')
                             oldUID = ds.StudyInstanceUID
                             if ds.StudyInstanceUID not in study_infos_duration.keys():  # 如果UID没在dic里面
                                 study_infos_duration[oldUID] = {"patientID": {}, "patientName": {}, "AccessionNumber": {}, "StudyDate": {}, "StudyTime": {}, "SeriesDate": {}, "SeriesTime": {}, "newUID": {}, "No": {}}  # 在dic里面创建这个UID分支
-                                logging.info('2. insert UID in dic')
                             try:
-                                logging.info('3. starting anon')
                                 # 判断pID是否有值
                                 if study_infos_duration[oldUID]["patientID"]:  # pid has value
                                     ds.PatientID = study_infos_duration[oldUID]["patientID"]
@@ -150,7 +153,7 @@ class DurationSendNewThread(threading.Thread):
                                 study_infos_duration[oldUID]["No"] = nextNumber(self.full_fn_fake)
                                 file_after_fake = '{0}/{1}.dcm'.format(self.full_fn_fake, str(study_infos_duration[oldUID]["No"]))
                                 ds.save_as(file_after_fake)
-                                logging.info("4. anon finished, current study info:[{0}]".format(study_infos_duration[oldUID]))
+                                logging.info("anon finished, current study info:[{0}]".format(study_infos_duration[oldUID]))
                                 # tmp = study_infos_duration[oldUID]
                             except Exception as e:
                                 logging.info(
@@ -165,7 +168,8 @@ class DurationSendNewThread(threading.Thread):
                                     "path": file_after_fake
                                 }
                                 q.put([info, int(study_infos_duration[oldUID]["No"])])
-                                logging.info("5. put in to q success. current queue length:[{0}]".format(q.qsize()))
+                                # q is a list
+                                logging.info("put in to q success. current queue length:[{0}]".format(q.qsize()))
                             except Exception as e:
                                 logging.error("[匿名后加入q失败]:{}".format(e))
                                 continue
@@ -177,6 +181,9 @@ class DurationSendNewThread(threading.Thread):
 
     def sync_send_file(self, q):
         # 发送数据
+        """
+        input: q[info,No] (default is a list)
+        """
         while not q.empty():
             testdata = q.get()
             testdata_dic = testdata[0]
@@ -205,6 +212,7 @@ class DurationSendNewThread(threading.Thread):
 
                                      })
                 os.remove(file_name)
+                logging.info("sending complete, current q size: [{0}]".format(q.qsize))
             except Exception as e:
                 logging.error('send_file error: {0}'.format(e))
 
@@ -213,32 +221,34 @@ class DurationSendNewThread(threading.Thread):
             influxdata = 'duration,durationid={0},studyuid="{1}",starttime="{2}",endtime="{3}",avgtime="{4}"'.format(
                 self.obj.id, data["studyuid"], data["starttime"], data["endtime"], data["time"])
             requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
+            logging.info("update db success")
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
 
     def run(self):
+        """
+        input:
+        self
+
+        key variable:
+        self.obj (duration object in django model class , complete setting id)
+        """
         self.obj.sendstatus = False
         self.obj.save()
         dicom_folder_id = str(self.obj.dicom)
-        dfi = dicom_folder_id.split(',')
+        dfi = dicom_folder_id.split(',') # split variable by ","
         dicom_folder_path = []
         for i in dfi:
+            # loop read dicom_folder_path
             tmp = dicom.objects.filter(fileid=i)
             for j in tmp:
                 dicom_folder_path.append(j.route)
-
-        """
-        没传参！！！！t
-            todo: 
-             chuancan
-        """
-        logging.info("dicomfolder path : [{0}]".format(dicom_folder_path))
-        q = self.anonymizationAndPutQueue(dicom_folder_path,{}) ####chuancan
-        logging.info("current q size: [{0}]".format(q.qsize()))
+        q = self.anonymizationAndPutQueue(dicom_folder_path,{}) # start anon and put data in q
         threads = []
 
         try:
             for i in range(self.thread_num):
+                # limit thread number as default number 4.
                 t = threading.Thread(target=self.sync_send_file, args=(q,))
                 # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
                 t.start()
@@ -246,13 +256,8 @@ class DurationSendNewThread(threading.Thread):
             for t in threads:
                 t.join()
                 time.sleep(1)
-            # for i in range(self.thread_num):
-            #     threads[i].start()
-            # for i in range(self.thread_num):
-            #     threads[i].join()
-
         except Exception as e:
-            logger.error("队列生成失败：{0}".format(e))
+            logger.error("multithread init error：{0}".format(e))
 
     def norm_string(self, str, len_norm):
         str_dest = str
