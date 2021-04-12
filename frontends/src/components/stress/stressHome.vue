@@ -157,35 +157,35 @@
                 <el-divider>参数配置</el-divider>
                 <el-row :gutter="24">
                     <el-col :span="8">
+                        <el-form-item label="发送数量" prop='loop_count'>
+                            <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1" :max="5000"
+                                             label="发送数量"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="editForm.thread" @change="handleChange" :min="1" :max="5000"
                                              label="线程数"></el-input-number>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
-                        <el-form-item label="循环次数" prop='loop_count'>
-                            <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
                         <el-form-item label="并发数" prop='synchroniz'>
                             <el-input-number v-model="editForm.synchroniz" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
+                                             label="并发数"></el-input-number>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="ramp" prop='ramp'>
+                        <el-form-item label="基准循环" prop='ramp'>
                             <el-input-number v-model="editForm.ramp" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
+                                             label="基准循环"></el-input-number>
                         </el-form-item>
                     </el-col>
                     <el-col :span="10">
-                        <el-form-item label="dicom" prop="switch">
-                            <el-switch v-model="editForm.switch" active-color="#13ce66"
-                                       inactive-color="#ff4949"></el-switch>
+                        <el-form-item label="单一循环" prop='single'>
+                            <el-input-number v-model="editForm.single" @change="handleChange" :min="0" :max="5000"
+                                             label="单一循环"></el-input-number>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -280,35 +280,35 @@
                 <el-divider>参数配置</el-divider>
                 <el-row :gutter="24">
                     <el-col :span="8">
+                        <el-form-item label="发送数量" prop='loop_count'>
+                            <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1" :max="5000"
+                                             label="发送数量"></el-input-number>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
                         <el-form-item label="线程数" prop='thread'>
                             <el-input-number v-model="addForm.thread" @change="handleChange" :min="1" :max="5000"
                                              label="线程数"></el-input-number>
                         </el-form-item>
                     </el-col>
                     <el-col :span="8">
-                        <el-form-item label="循环次数" prop='loop_count'>
-                            <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1" :max="5000"
-                                             label="循环次数"></el-input-number>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="8">
                         <el-form-item label="并发数" prop='synchroniz'>
                             <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
+                                             label="并发数"></el-input-number>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="ramp" prop='ramp'>
+                        <el-form-item label="基准循环" prop='ramp'>
                             <el-input-number v-model="addForm.ramp" @change="handleChange" :min="0" :max="5000"
-                                             label="循环次数"></el-input-number>
+                                             label="基准循环"></el-input-number>
                         </el-form-item>
                     </el-col>
                     <el-col :span="10">
-                        <el-form-item label="dicom" prop="switch">
-                            <el-switch v-model="addForm.switch" active-color="#13ce66"
-                                       inactive-color="#ff4949"></el-switch>
+                        <el-form-item label="单一循环" prop='single'>
+                            <el-input-number v-model="addForm.single" @change="handleChange" :min="0" :max="5000"
+                                             label="单一循环"></el-input-number>
                         </el-form-item>
                     </el-col>
                 </el-row>
@@ -912,7 +912,7 @@
                                 jmeterstatus: false,
                                 filedict: this.filedict,
                                 Host: this.addForm.Host,
-                                status: true,
+                                status: false,
                             });
                             let header = {
                                 "Content-Type": "application/json",

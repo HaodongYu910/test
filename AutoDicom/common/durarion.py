@@ -161,7 +161,7 @@ class DurationThread(threading.Thread):
             "sendserver": self.server,
             "diseases": diseases,
             "duration_id": self.obj.id
-        },Seriesinstanceuid
+        }, Seriesinstanceuid
 
     def QueData(self):
         q = queue.Queue()
@@ -215,7 +215,7 @@ class DurationThread(threading.Thread):
 
     # 匿名数据队列
     def run(self):
-        self.obj.sendstatus = False
+        self.obj.sendstatus = True
         self.obj.save()
         q = self.QueData()
         threads = []
@@ -233,7 +233,8 @@ class DurationThread(threading.Thread):
             #     threads[i].start()
             # for i in range(self.thread_num):
             #     threads[i].join()
-
+            self.obj.sendstatus = False
+            self.obj.save()
         except Exception as e:
             logger.error("队列生成失败：{0}".format(e))
 
@@ -318,13 +319,14 @@ class DurationThread(threading.Thread):
 
     # 判断是否 同一个 Series
     def delayed(self, SeriesID, Num):
-        if self.obj.sleepcount is not None:
+        logger.info(Num)
+        if self.obj.sleepcount is not None and self.obj.sleepcount and self.obj.sleeptime is not None:
             imod = divmod(int(Num), int(self.obj.sleepcount))
             if imod[1] == 0:
-                time.sleep(int(self.sleeptime))
-        if self.obj.series is True:
+                time.sleep(int(self.obj.sleeptime))
+        if self.obj.series is True and self.obj.sleeptime is not None:
             if SeriesID != self.SeriesInstanceUID:
-                time.sleep(int(self.sleeptime))
+                time.sleep(int(self.obj.sleeptime))
                 self.SeriesInstanceUID = SeriesID
 
     def durationStop(self):

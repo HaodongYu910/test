@@ -1,4 +1,3 @@
-
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -7,8 +6,41 @@ from AutoTest.common.api_response import JsonResponse
 from ..common.stress import *
 from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
+from AutoTest.models import dictionary
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
+
+
+class StressModel(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取性能测试版本模型
+        :param request:
+        :return:
+        """
+        options = []
+        optionsdict = {}
+
+        obj = dictionary.objects.filter(type="model", status=True)
+        for i in obj:
+            if optionsdict.__contains__(i.remarks) is False:
+                optionsdict[i.remarks] = [{"value": i.id,
+                                 "label": i.value}]
+            else:
+                optionsdict[i.remarks].append({"value": i.id,
+                                           "label": i.value})
+
+        for k, v in optionsdict.items():
+            children = {
+                "value": k,
+                "label": k,
+                "children": v}
+            options.append(children)
+        return JsonResponse(data={"data": options
+                                  }, code="0", msg="成功")
 
 
 class stressResult(APIView):
@@ -87,7 +119,6 @@ class stressResult(APIView):
             return JsonResponse(msg="失败", code="999991", exception=e)
 
 
-
 class stressResultsave(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -158,26 +189,16 @@ class reportfigure(APIView):
         if result:
             return result
         try:
-            type = data["type"]
-            if type == 'jz':
-                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
-                                                                     ["predictionJZ", "jobJZ", "lung_JZ",
-                                                                      "lung_jobJZ"])
-            elif type == 'dy':
-                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
-                                                                     ["predictiondy", "jobdy", "lung_dy",
-                                                                      "lung_jobdy"])
+            if data["type"] == 'jz':
+                type = ['predictionJZ', 'jobJZ']
+            elif data["type"] == 'dy':
+                type = ['predictiondy', 'jobdy']
             else:
-                predictionData, jobData, lungData, lungjobData = map(stressdataFigure,
-                                                                     ["prediction", "job", "lung_prediction",
-                                                                      "lung_job"])
+                type = ['prediction', 'job']
 
-            return JsonResponse(data={"modlename": predictionData[1],
-                                      "lungname": lungData[1],
-                                      "predictionFigure": predictionData[0],
-                                      "jobFigure": jobData[0],
-                                      "lungFigure": lungData[0],
-                                      "lungjobFigure": lungjobData[0]
+            chartData = stressdataFigure(data['diseases'], type)
+
+            return JsonResponse(data={"chartData": chartData
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)

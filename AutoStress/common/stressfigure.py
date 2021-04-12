@@ -2,7 +2,7 @@
 # coding=utf-8
 
 __author__ = "vte"
-__version__ = "0.0.1"
+
 import re
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -10,53 +10,75 @@ from io import BytesIO
 import base64
 from django.db.models import Q
 from AutoTest.models import dictionary
-from ..models import stress,stress_result
+from ..models import stress, stress_result
 from ..serializers import stress_Deserializer
 # from AutoTest.common.excel_data import *
 import logging
+
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
 plt.rcParams['font.family'] = ['Times New Roman']
+
+
 # plt.rcParams.update({'font.size': 12})
 
-#jira 数据图表
-def stressdataFigure(type):
-    version = []
-    modelname = []
-    if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
-        stressobj = stress.objects.filter(status=True).order_by("version")
-        model = stress_result.objects.values("slicenumber").order_by("slicenumber").distinct()
-    else:
-        stressobj = stress.objects.filter(status=True, projectname='晨曦').order_by("version")
-        model = dictionary.objects.filter(type='model')
+def stressdataFigure(diseases, rtype):
 
-    for i in stressobj:
-        version.append(i.version)
-    figureData = [version]
+    rows = []
+    dictColumns = {}
+    # 模型 ID
+    models = []
+    models.append(diseases[1])
+    # 多选模型 循环 处理
+    # for i in diseases:
+    #     models.append(i[1])
 
-    for k in model:
-        avg = []
-        if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
-            if k["slicenumber"] is None:
-                continue
-            modelname.append(k["slicenumber"])
-        else:
-            obj = dictionary.objects.get(id=k.id)
-            modelname.append(obj.key)
-        for j in version:
+    # 肺模型数据 按照 层厚 分类处理
+    if 9 in models or 12 in models:
+        columns = ['version', 'Prediction-1.0', 'Job-1.0', 'Prediction-1.25', 'Job-1.25', 'Prediction-1.5', 'Job-1.5',
+                   'Prediction-5.0', 'Job-5.0', 'Prediction-10.0', 'Job-10.0']
+        obj = stress_result.objects.filter(modelname__in=models, type__in=['predictionJZ', 'lung_prediction', 'prediction', 'jobJZ', 'lung_jobJZ', 'job'],
+                                           slicenumber__in=['10.0', '1.0', '5.0', '1.25', '1.25']).order_by("version")
+        # 循环 数据 按 版本 层厚分类
+        for j in obj:
             try:
-                if type in ['lung_prediction','lung_job','lung_JZ','lung_jobJZ','lung_dy','lung_jobdy']:
-                    resultobj = stress_result.objects.get(type=type, slicenumber=str(k["slicenumber"]), version=j)
+                if j.type in ['predictionJZ', 'lung_prediction', 'prediction']:
+                    result_type = 'Prediction-{}'.format(j.slicenumber)
                 else:
-                    resultobj = stress_result.objects.get(type=type, modelname=k.id, version=j)
-                avg.append(resultobj.avg)
-            except:
-                avgvalue = '0'
-                avg.append(avgvalue)
-                continue
-        figureData.append(avg)
-    return figureData,modelname
-#
+                    result_type = 'Job-{}'.format(j.slicenumber)
+                if dictColumns.__contains__(j.version) is False:
+                    dictColumns[j.version] = {"version": j.version, result_type: j.avg}
+                else:
+                    dictColumns[j.version][result_type] = j.avg
+            except Exception as e:
+                logger.error(e)
+    else:
+        # 其他模型数据 处理
+        columns = ['version', 'Prediction', 'Job']
+        obj = stress_result.objects.filter(modelname__in=models, type__in=rtype).order_by("version")
+        # 循环 数据 按 版本分类
+        for j in obj:
+            try:
+                if j.type in ['predictionJZ', 'predictiondy', 'prediction']:
+                    result_type = 'Prediction'
+                else:
+                    result_type = 'Job'
+
+                if dictColumns.__contains__(j.version) is False:
+                    dictColumns[j.version] = {"version": j.version, result_type: j.avg}
+                else:
+                    dictColumns[j.version][result_type] = j.avg
+            except Exception as e:
+                logger.error(e)
+    # 按版本 取key
+    for k, v in dictColumns.items():
+        rows.append(v)
+
+    return {
+        "columns": columns,
+        "rows": rows
+    }
+
 # # 绘制 创建与解决问题数据
 # def dataframe(platform, sprint_version):
 #     try:
@@ -151,9 +173,6 @@ def stressdataFigure(type):
 #     # tree = etree.ElementTree(html)
 #     # tree.write('iris.html')
 #     return imcd
-
-
-
 
 
 # pandas 的 DataFrame 数据直接装换为 html 代码字符串

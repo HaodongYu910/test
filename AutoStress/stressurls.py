@@ -34,5 +34,5 @@ urlpatterns = [
     url(r'data/disablebenchmarkstatus', DisableBenchmarkStatus.as_view()),
     url(r'data/enablebenchmarkstatus', EnableBenchmarkStatus.as_view()),
     url(r'data/Data', stressData.as_view()),
-
+    url(r'stressmodel', StressModel.as_view()),
 ]

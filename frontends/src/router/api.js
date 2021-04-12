@@ -205,6 +205,11 @@ export const delreport = (headers, params) => {
 export const Send = (headers, params) => {
   return axios.post(`${test}/api/send`, params, headers).then(res => res.data)
 }
+
+// 压测报告模型列表
+export const getstressmodel = (headers, params) => {
+  return axios.get(`${test}/stress/stressmodel`, { params: params }, { headers }).then(res => res.data)
+}
 // 压测列表
 export const stresslist = (headers, params) => {
   return axios.get(`${test}/stress/list`, { params: params }, { headers }).then(res => res.data)

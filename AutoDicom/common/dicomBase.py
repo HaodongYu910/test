@@ -6,12 +6,10 @@ from AutoTest.utils.graphql.graphql import *
 from AutoTest.utils.keycloak.login_kc import *
 
 from AutoTest.models import Server, dictionary
-from .duration_verify import *
 from AutoTest.common.PostgreSQL import connect_postgres
 from AutoTest.common.regexUtil import savecsv
 import os
 from ..common.Dicom import SendQueThread
-
 
 logger = logging.getLogger(__name__)
 
@@ -160,3 +158,4 @@ def graphql_query(studyuid,vote,predictorid,predictor):
         predictor) + manager + "{ pprediction pmetadata SOPInstanceUID pconfig  pseries_classifier pstatus_code } }"
     logger.info("请求graphql_query：{0}".format(graphql_query))
     return graphql_query
+

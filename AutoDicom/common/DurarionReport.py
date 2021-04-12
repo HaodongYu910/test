@@ -1,13 +1,13 @@
 # coding=utf-8
 import logging
-from django.db.models import Count, When, Case, Max, Min, Avg
+from django.db.models import Count, When, Case, Max, Min, Avg, Q
 import time, datetime
 from AutoTest.scheduletask import DurationTask
 import time
 import json
 import threading
+from ..models import duration,duration_record
 
-from ..common.duration_verify import *
 from ..serializers import duration_record_Serializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -55,7 +55,7 @@ class ReportThread(threading.Thread):
                 "end_date": self.obj.end_time
             }
 
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, create_time__lte=self.statistics_date).values(
+            recordDetail = duration_record.objects.filter(jobtime__isnull=False, duration_id=self.obj.id, create_time__lte=self.statistics_date).values(
                 "diseases").annotate(
                 ModelAvg=Avg('time'),
                 ModelMax=Max('time'),
@@ -69,6 +69,18 @@ class ReportThread(threading.Thread):
 
             for i in recordDetail:
                 try:
+                    if i["ModelAvg"] is None:
+                        i["ModelAvg"] = 0
+                    elif i["ModelMax"] is None:
+                        i["ModelMax"] = 0
+                    elif i["ModelMin"] is None:
+                        i["ModelMin"] = 0
+                    elif i["JobAvg"] is None:
+                        i["JobAvg"] = 0
+                    elif i["JobMax"] is None:
+                        i["JobMax"] = 0
+                    elif i["JobMin"] is None:
+                        i["JobMin"] = 0
                     diseases.append(i["diseases"])
                     rate = '%.2f' % float(int(i["success"])/(int(i["success"])+int(i["fail"]))*100)
                     durationData.append({

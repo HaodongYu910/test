@@ -25,64 +25,68 @@
                                     <el-divider></el-divider>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position ="left">
+                                    <el-col style="width: 40%" label-position="left">
 
-                                    <el-form-item  label="测试版本：" label-position ="left">
-                                        <el-input v-model="basedata.version" ></el-input>
-                                    </el-form-item>
-                                        </el-col>
+                                        <el-form-item label="测试版本：" label-position="left">
+                                            <el-input v-model="basedata.version"></el-input>
+                                        </el-form-item>
+                                    </el-col>
                                     <el-col style="width: 40%">
-                                    <el-form-item label="测试服务：" class="labelcss">
-                                        <el-select v-model="basedata.server" placeholder="请选择活动区域">
-                                        </el-select>
-                                    </el-form-item>
-                                        </el-col>
+                                        <el-form-item label="测试服务：" class="labelcss">
+                                            <el-select v-model="basedata.server" placeholder="请选择活动区域">
+                                            </el-select>
+                                        </el-form-item>
+                                    </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position ="left">
-                                    <el-form-item  label="共计发送（个）：" label-position ="left">
-                                        <el-tag effect="dark" type="warning" size ="150%">{{basedata.sendcount}} 笔</el-tag>
-                                    </el-form-item>
-                                        </el-col>
+                                    <el-col style="width: 40%" label-position="left">
+                                        <el-form-item label="共计发送（个）：" label-position="left">
+                                            <el-tag effect="dark" type="warning" size="150%">{{basedata.sendcount}} 笔
+                                            </el-tag>
+                                        </el-form-item>
+                                    </el-col>
                                     <el-col style="width: 40%">
-                                    <el-form-item label="共计预测：" class="labelcss">
-                                        <el-tag effect="dark" type="warning" size ="150%">{{basedata.AICount}} 笔</el-tag>
-                                    </el-form-item>
-                                        </el-col>
+                                        <el-form-item label="共计预测：" class="labelcss">
+                                            <el-tag effect="dark" type="warning" size="150%">{{basedata.AICount}} 笔
+                                            </el-tag>
+                                        </el-form-item>
+                                    </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position ="left" class="labelcss">
-                                    <el-form-item  label="预测成功：" label-position ="left" class="label-content">
-                                        <el-tag effect="dark" type="success" size ="150%">{{basedata.AISuccess}} 笔</el-tag>
-                                    </el-form-item>
-                                        </el-col>
+                                    <el-col style="width: 40%" label-position="left" class="labelcss">
+                                        <el-form-item label="预测成功：" label-position="left" class="label-content">
+                                            <el-tag effect="dark" type="success" size="150%">{{basedata.AISuccess}} 笔
+                                            </el-tag>
+                                        </el-form-item>
+                                    </el-col>
                                     <el-col style="width: 40%">
-                                    <el-form-item label="预测失败：">
-                                        <el-tag effect="dark" type="danger" size ="150%">{{basedata.AIFail}} 笔</el-tag>
-                                    </el-form-item>
-                                        </el-col>
+                                        <el-form-item label="预测失败：">
+                                            <el-tag effect="dark" type="danger" size="150%">{{basedata.AIFail}} 笔
+                                            </el-tag>
+                                        </el-form-item>
+                                    </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position ="left">
-                                    <el-form-item  label="开始时间：" label-position ="left">
-                                        <el-input v-model="basedata.start_date"></el-input>
-                                    </el-form-item>
-                                        </el-col>
+                                    <el-col style="width: 40%" label-position="left">
+                                        <el-form-item label="开始时间：" label-position="left">
+                                            <el-input v-model="basedata.start_date"></el-input>
+                                        </el-form-item>
+                                    </el-col>
                                     <el-col style="width: 40%">
-                                    <el-form-item label="结束时间：">
-                                        <el-input v-model="basedata.end_date"></el-input>
-                                    </el-form-item>
-                                        </el-col>
+                                        <el-form-item label="结束时间：">
+                                            <el-input v-model="basedata.end_date"></el-input>
+                                        </el-form-item>
+                                    </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position ="left">
-                                    <el-form-item  label="统计时间：" label-position ="left">
-                                        <el-input v-model="basedata.statistics_date"></el-input>
-                                    </el-form-item>
-                                        </el-col>
+                                    <el-col style="width: 40%" label-position="left">
+                                        <el-form-item label="统计时间：" label-position="left">
+                                            <el-input v-model="basedata.statistics_date"></el-input>
+                                        </el-form-item>
+                                    </el-col>
                                     <el-col style="width: 40%">
 
-                                        </el-col>
+                                    </el-col>
                                 </el-row>
                             </el-form>
                         </el-col>
@@ -95,59 +99,92 @@
                             <span class="bug-ex-item">Detailed</span>
                             <img class="img-revers" src="..//../../assets/img/bug-10.png"></p>
                         <el-col style="width: 60%">
-                            <el-table :data="durationData" border style="width: 100%" row-key="id" border
-                                      default-expand-all
-                                      :tree-props="{children: 'children', hasChildren: 'hasChildren'}">
+                            <el-table
+                                    :data="durationData"
+                                    style="width: 100%">
                                 <el-table-column
-                                        prop="diseases"
-                                        label="类型">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="count"
-                                        label="发送数量">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="ModelMax"
-                                        label="预测最大时间">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="ModelMin"
-                                        label="预测最小时间"
+                                        label="类型"
                                 >
-                                </el-table-column>
-
-                                <el-table-column
-                                        prop="ModelAvg"
-                                        label="预测平均时间">
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                        prop="JobMax"
-                                        label="Job最大时间">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="JobMin"
-                                        label="Job最小时间"
+                                        label="发送数量"
                                 >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.count }}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                        prop="JobAvg"
-                                        label="Job平均时间">
-                                </el-table-column>
-
-                                <el-table-column
-                                        prop="success"
-                                        label="成功数量"
-                                        style="color: #67c23a">
-                                </el-table-column>
-                                <el-table-column
-                                        prop="fail"
-                                        label="失败数量"
-                                        style="background: #990000"
+                                        label="最大预测时间"
                                 >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.ModelMax }}</span>
+                                    </template>
                                 </el-table-column>
                                 <el-table-column
-                                        prop="rate"
-                                        label="成功率">
+                                        label="最小预测时间"
+                                >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.ModelMin }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="平均预测时间"
+                                >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.ModelAvg }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="JOB最大时间"
+                                >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.JobMax }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="JOB最小时间"
+                                >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.JobMin }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="JOB平均时间"
+                                >
+                                    <template slot-scope="scope">
+                                        <span style="margin-left: 10px">{{ scope.row.JobAvg }}</span>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="预测成功"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-tag size="medium" type="success">{{ scope.row.success }}</el-tag>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column
+                                        label="预测失败"
+                                >
+                                    <template slot-scope="scope">
+                                        <el-popover trigger="hover" placement="top">
+                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <div slot="reference" class="name-wrapper">
+                                                <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
+                                            </div>
+                                        </el-popover>
+                                    </template>
+                                </el-table-column>
+                                <el-table-column label="操作">
+                                    <template slot-scope="scope">
+                                        <el-button
+                                                size="mini"
+                                                type="danger"
+                                                @click="handleDelete(scope.$index, scope.row)">详情
+                                        </el-button>
+                                    </template>
                                 </el-table-column>
                             </el-table>
                         </el-col>
@@ -228,10 +265,12 @@
 
 
     }
-    .labelcss.el-form-item__label{
+
+    .labelcss.el-form-item__label {
         color: #1E90FF;
     }
-    .label-content .el-form-item__content{
+
+    .label-content .el-form-item__content {
         font-size: 20px;
         color: #aaaa33;
     }
@@ -352,17 +391,17 @@
                     if (code === '0') {
                         this.basedata = data.data.basedata
                         this.durationData = data.data.durationData
-                        const chartData = {"columns": data.data.model , "rows": data.data.durationLineData }
+                        const chartData = {"columns": data.data.model, "rows": data.data.durationLineData}
                         this.model = data.data.diseases
                         this.chartData = chartData
-                        this.SummaryData= {
+                        this.SummaryData = {
                             columns: ['状态', '数量'],
                             rows: [
-                                {'状态': '成功', '数量':this.basedata.AISuccess},
-                                {'状态': '失败', '数量':this.basedata.AIFail }
+                                {'状态': '成功', '数量': this.basedata.AISuccess},
+                                {'状态': '失败', '数量': this.basedata.AIFail}
                             ]
                         }
-                        this.FailData= {
+                        this.FailData = {
                             columns: ['状态', '数量'],
                             rows: data.data.errorData
                         }
