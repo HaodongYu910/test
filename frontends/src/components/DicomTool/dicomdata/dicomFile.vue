@@ -3,21 +3,12 @@
         <!--工具条-->
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
-                <el-form-item label="服务器" prop="server">
-                    <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
-                        <el-option v-for="(item,index) in tags"
-                                   :key="item.id"
-                                   :label="item.name"
-                                   :value="item.id"
-                        />
-                    </el-select>
-                </el-form-item>
                 <el-form-item>
                     <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
                                     <el-option v-for="(item,index) in filetype"
-                                               :key="item.id"
-                                               :label="item.remarks"
-                                               :value="item.id"
+                                               :key="item.value"
+                                               :label="item.value"
+                                               :value="item.value"
                                     />
                                 </el-select>
                 </el-form-item>
@@ -27,6 +18,15 @@
                                    :key="item.remarks"
                                    :label="item.remarks"
                                    :value="item.remarks"
+                        />
+                    </el-select>
+                </el-form-item>
+                <el-form-item label="服务器" prop="server">
+                    <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
+                        <el-option v-for="(item,index) in tags"
+                                   :key="item.id"
+                                   :label="item.name"
+                                   :value="item.id"
                         />
                     </el-select>
                 </el-form-item>

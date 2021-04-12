@@ -25,44 +25,8 @@ class stressversion(APIView):
         :param request:
         :return:
         """
-        modelverion = []
-        modeldict ={}
-        valuelist = []
-        obj = stress.objects.all()
-        # for i in obj:
-        #     valuelist.append({})
-        #     modeldict[i.projectname] = valuelist
-        # [{
-        #     value: '晨曦',
-        #     label: '晨曦',
-        #     children: [{
-        #         value: '2.18.1',
-        #         label: '2.18.1',
-        #         children: [{
-        #             value: 'Brain',
-        #             label: 'Brain'
-        #         }]
-        #     }, {
-        #         value: 1,
-        #         label: 'Brain'
-        #     }, {
-        #         value: 13,
-        #         label: 'SWI'
-        #     }]
-        # }, {
-        #     value: 'Gold',
-        #     label: 'Gold',
-        #     children: [{
-        #         value: 1,
-        #         label: 'Lung'
-        #     }, {
-        #         value: 1,
-        #         label: 'Brain'
-        #     }, {
-        #         value: 13,
-        #         label: 'SWI'
-        #     }]
-        # }]
+        projectname = request.GET.get("projectname", '晨曦')
+        obj = stress.objects.filter(projectname=projectname)
         serialize = stress_Deserializer(obj, many=True)
         # for i in obi.version:
         #     dict = {'key': i, 'value': i}

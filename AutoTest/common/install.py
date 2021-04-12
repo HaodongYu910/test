@@ -278,7 +278,7 @@ class InstallThread(threading.Thread):
                 error = int(j["count"]) - int(j["success"]) - int(j["fail"])
                 disease = {
                     "diseases": j["diseases"],
-                    "aisuccess": int(i["success"]) + int(i["fail"]),
+                    "aisuccess": int(j["success"]) + int(j["fail"]),
                     "success": j["success"],
                     "fail": j["fail"],
                     "error": error
