@@ -127,12 +127,17 @@
                        style="width: 75%; left: 12.5%">
                 <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                     <el-row :gutter="24">
-                        <el-col :span="12">
+                        <el-col :span="8">
+                            <el-form-item label="别名">
+                                <el-input v-model="editForm.remark"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="8">
                             <el-form-item label="标注诊断">
                                 <el-input v-model="editForm.diagnosis"></el-input>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
+                        <el-col :span="8">
                             <el-form-item label="病种">
                                 <el-input v-model="editForm.diseases"></el-input>
                             </el-form-item>
@@ -267,9 +272,10 @@
                     diseases: '',
                     slicenumber: '',
                     type: '',
-                    diagnosis: ''
+                    diagnosis: '',
+                    remark:''
                 },
-                editFormVisible: false, // 新增界面是否显示
+                editFormVisible: false, // 编辑界面是否显示
                 editLoading: false,
                 // 新增界面数据
                 addForm: {
@@ -455,6 +461,7 @@
                                 diseases: self.editForm.diseases,
                                 slicenumber: self.editForm.slicenumber,
                                 vote: self.editForm.vote,
+                                remark:self.editForm.remark,
                                 diagnosis: self.editForm.diagnosis,
                                 imagecount: self.editForm.imagecount,
                                 graphql: self.editForm.graphql

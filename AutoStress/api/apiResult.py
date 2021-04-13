@@ -3,10 +3,11 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import logging
 from AutoTest.common.api_response import JsonResponse
-from ..common.stress import *
+from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 from AutoTest.models import dictionary
+from  ..common.saveResult import ResultThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -150,9 +151,9 @@ class stressResultsave(APIView):
             return result
 
         try:
-            Sf = StressThread(stressid=data['stressid'])
-            Sf.SaveResult()
-            Sf.SaveRecord()
+            result = ResultThread(stressid=data['stressid'])
+            result.setDaemon(True)
+            result.start()
 
             return JsonResponse(code="0", msg="成功")
         except Exception as e:

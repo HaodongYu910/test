@@ -13,11 +13,37 @@ from AutoDicom.common.deletepatients import *
 from ..models import install, smoke, Server
 from ..common.transport import SSHConnection
 from ..scheduletask import InstallTask
-from ..common.InstallSmoke import InSmokeThread
+from ..common.InstallSmoke import InGoldThread
 import os
+from ..common.gold import GoldThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
+
+class Smoketest(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request,*args, **kwargs):
+        """
+        冒烟测试
+        :param request:
+        :return:
+        user
+        """
+
+        version = request.GET.get("version")
+
+        try:
+            testThread = InGoldThread(version=version)
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setDaemon(True)
+            # 开始线程
+            testThread.start()
+            return JsonResponse(code="0", msg="Success")
+
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999998", msg="错误")
 
 class getInstallVersion(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -392,7 +418,7 @@ class InstallSmoke(APIView):
             return result
         # 查找是否存在
         try:
-            InSmoke = InSmokeThread(id=data["id"])
+            InSmoke = InGoldThread(id=data["id"])
             InSmoke.setDaemon(True)
             # 开始线程
             InSmoke.start()

@@ -81,6 +81,12 @@ export default new Router({
 
                 },
                 {
+                    path: '/dicomGroup',
+                    component: resolve => require(['../components/DicomTool/dicomdata/dicomGroup.vue'], resolve),
+                    meta: {title: 'Dicom组管理'}
+
+                },
+                {
                     path: '/durationData',
                     component: resolve => require(['../components/DicomTool/duration/durationData.vue'], resolve),
                     meta: {title: '持续化详情'}
@@ -135,34 +141,46 @@ export default new Router({
                 },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/project/gold/Smokelist.vue'], resolve),
+                    component: resolve => require(['../components/project/gold/goldlist.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
                 {
-                    path: '/gold/smokeid=:smokeid',
-                    component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
+                    path: '/gold/goldid=:goldid',
+                    component: resolve => require(['../components/project/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准'},
                     hidden: true,
                     children: [
                         {
-                            path: '/Smoke/smokeid=:smokeid',
-                            component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
+                            path: '/detail/goldid=:goldid',
+                            component: resolve => require(['../components/project/gold/goldDetails.vue'], resolve),
                             meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
-                        }
+                        },
+
                     ]
                 },
                 {
+                    path: '/report/goldid=:goldid',
+                    component: resolve => require(['../components/project/gold/goldReport.vue'], resolve),
+                    meta: {title: '金标准报告'},
+                    name: '金标准报告', leaf: true
+                },
+                {
                     path: '/SmokeReport/reportid=:reportid',
-                    component: resolve => require(['../components/deploy/SmokeReport.vue'], resolve),
+                    component: resolve => require(['../components/deploy/deployReport.vue'], resolve),
                     meta: {title: '冒烟报告'}
 
                 },
                 {
                     path: '/SmokeResult',
-                    component: resolve => require(['../components/project/gold/Smoketest.vue'], resolve),
+                    component: resolve => require(['../components/project/gold/goldtest.vue'], resolve),
                     meta: {title: '金标准结果'}
 
+                },
+                {
+                    path: '/monitor',
+                    component: resolve => require(['../components/stress/monitor.vue'], resolve),
+                    meta: {title: '性能监控'}
                 },
                 {
                     path: '/stressdata',
@@ -244,7 +262,7 @@ export default new Router({
                 {
                     // 拖拽Dialog组件
                     path: '/dialog',
-                    component: resolve => require(['../components/page/DragDialog.vue'], resolve),
+                    component: resolve => require(['../components/page/DragList.vue'], resolve),
                     meta: {title: '拖拽弹框'}
                 },
                 {

@@ -386,23 +386,28 @@ export const getdurationverify = (headers, params) => {
 export const durationverifydata = (headers, params) => {
       return axios.get(`${test}/dicom/duration/durationverifydata`, { params: params }, { headers }).then(res => res.data)
 }
-// 冒烟测试列表
+
+// 金标准冒烟测试报告
+export const getGoldreport = (headers, params) => {
+  return axios.get(`${test}/api/gold/GoldReport`, { params: params }, { headers }).then(res => res.data)
+}
+// 金标准冒烟测试列表
 export const getsmoke = (headers, params) => {
   return axios.get(`${test}/api/gold/smokelist`, { params: params }, { headers }).then(res => res.data)
 }
-// 添加冒烟测试
+// 添加金标准冒烟测试
 export const addSmoke = (headers, params) => {
   return axios.post(`${test}/api/gold/addsmoke`, params, headers).then(res => res.data)
 }
-// 修改冒烟测试
+// 修改金标准冒烟测试
 export const UpdateSmoke = (headers, params) => {
   return axios.post(`${test}/api/gold/updatesmoke`, params, headers).then(res => res.data)
 }
-// 启用冒烟测试
+// 启用金标准冒烟测试
 export const EnableSmoke = (headers, params) => {
   return axios.post(`${test}/api/gold/enablesmoke`, params, headers).then(res => res.data)
 }
-// 禁用冒烟测试
+// 禁用金标准冒烟测试
 export const DisableSmoke = (headers, params) => {
   return axios.post(`${test}/api/gold/disablesmoke`, params, headers).then(res => res.data)
 }

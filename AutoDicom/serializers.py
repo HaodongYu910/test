@@ -7,27 +7,6 @@ from rest_framework.authtoken.models import Token
 from .models import *
 
 
-class TokenSerializer(serializers.ModelSerializer):
-    """
-    用户信息序列化
-    """
-    first_name = serializers.CharField(source="user.first_name")
-    last_name = serializers.CharField(source="user.last_name")
-    phone = serializers.CharField(source="user.user.phone")
-    email = serializers.CharField(source="user.email")
-    date_joined = serializers.CharField(source="user.date_joined")
-
-    class Meta:
-        model = Token
-        fields = ('first_name', 'last_name', 'phone', 'email', 'key', 'date_joined')
-
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name')
-
-
 
 class dicom_base_Serializer(serializers.ModelSerializer):
     """
@@ -61,7 +40,7 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
         model = dicom
         fields = (
         'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','graphql', 'predictor', 'imagecount', 'fileid',
-        'diagnosis', 'type', 'route','status','stressstatus')
+        'diagnosis', 'remark', 'type', 'route', 'status', 'stressstatus')
 
 class duration_record_Serializer(serializers.ModelSerializer):
     """
@@ -110,3 +89,23 @@ class duration_Deserializer(serializers.ModelSerializer):
         'sendstatus','status', 'sendcount', 'dds', 'type', 'Host')
 
 
+class dicomGroup_Serializer(serializers.ModelSerializer):
+    """
+    组基础信息序列化
+     """
+
+    class Meta:
+        model = dicom_group
+        fields = (
+        'id', 'name', 'type', 'remark', 'status')
+        read_only_fields = ('id',)  # 指定只读的 field
+
+
+class dicomGroup_detail_Deserializer(serializers.ModelSerializer):
+    """
+    组详细信息反序列化
+    """
+
+    class Meta:
+        model = dicom_group_detail
+        fields = ('id', 'dicom', 'group')

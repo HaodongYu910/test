@@ -87,6 +87,10 @@
                         index: '3',
                         title: '性能测试',
                         subs: [
+                            {
+                                index: 'monitor',
+                                title: '监控管理'
+                            },
                              {
                                 index: 'stressdata',
                                 title: '性能数据'
@@ -113,6 +117,10 @@
                             {
                                 index: 'dicom',
                                 title: 'Dicom数据'
+                            },
+                            {
+                                index: 'dicomGroup',
+                                title: 'Dicom组'
                             },
                             {
                                 index: 'deldicom',

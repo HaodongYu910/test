@@ -4,7 +4,7 @@ from django.conf import settings
 from django.db.models import Count, When, Case
 from ..models import install, smoke, dictionary, smoke_record
 import os
-from ..common.gold import SmokeThread
+from ..common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
 import time
 import datetime
@@ -138,9 +138,10 @@ class InstallThread(threading.Thread):
 
             except Exception as e:
                 logger.error("Installation{0}：更新文件失败----失败原因：{1}".format(self.id, e))
-            self.restart()
-            logger.info("Installation{}：sheep 200 秒".format(self.id))
-            time.sleep(200)
+            restart = threading.Thread(target=self.restart)
+            restart.start()
+            logger.info("Installation{}：sheep 300 秒".format(self.id))
+            time.sleep(300)
             self.goldsmoke()
             self.finish()
         except Exception as e:
@@ -158,7 +159,7 @@ class InstallThread(threading.Thread):
                 self.obj.save()
                 logger.info("Installation{}：重启服务".format(self.id))
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）重启服务'.format(self.obj.Host.host))
-                self.ssh.cmd("sshpass -p {} biomind restart;".format(self.pwd))
+                self.ssh.cmd("nohup sshpass -p {} biomind restart > /home/biomind start.log 2>&1 &;".format(self.pwd))
                 time.sleep(200)
                 self.ssh.close()
         except Exception as e:
@@ -196,7 +197,7 @@ class InstallThread(threading.Thread):
                 self.obj.smokeid = smokeobj.id
                 self.obj.save()
                 logger.info("Installation{}：执行金标准测试".format(self.id))
-                testThread = SmokeThread(smokeobj.id)
+                testThread = GoldThread(smokeobj.id)
                 # 设为保护线程，主进程结束会关闭线程
                 testThread.setDaemon(True)
                 # 开始线程
@@ -222,7 +223,7 @@ class InstallThread(threading.Thread):
                 self.obj.type = 6
                 self.obj.uid = uobj.id
                 self.obj.save()
-                # testThread = SmokeThread(smokeobj.id)
+                # testThread = GoldThread(smokeobj.id)
                 # # 设为保护线程，主进程结束会关闭线程
                 # testThread.setDaemon(True)
                 # # 开始线程

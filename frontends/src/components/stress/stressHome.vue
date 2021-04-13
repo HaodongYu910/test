@@ -20,12 +20,12 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="version" label="项目" min-width="10%">
+            <el-table-column prop="version" label="项目" min-width="8%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.projectname }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="版本" min-width="10%" show-overflow-tooltip>
+            <el-table-column prop="version" label="版本" min-width="8%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
                     <router-link v-if="scope.row.status" :to="{ version: '概况', params: {stressid: scope.row.stressid}}"
@@ -35,7 +35,7 @@
                     {{ !scope.row.status?scope.row.version:""}}
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="服务" min-width="15%">
+            <el-table-column prop="version" label="服务" min-width="12%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
                 </template>
@@ -50,22 +50,23 @@
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="10%">
+            <el-table-column label="开始时间" min-width="15%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="结束时间" min-width="10%">
+            <el-table-column label="结束时间" min-width="15%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="status" label="状态" min-width="9%">
+            <el-table-column prop="teststatus" label="状态" min-width="15%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/qiyong.png"/>
                     <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/fou.png"/>
+                    <span style="margin-left: 10px">{{ scope.row.teststatus }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="操作" min-width="25%">

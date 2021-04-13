@@ -4,13 +4,13 @@ from AutoDicom.models import dicom, dicom_base
 from AutoTest.models import dictionary, smoke
 from AutoTest.utils.graphql.graphql import *
 from AutoTest.models import smoke_record, dictionary, pid
-from AutoDicom.common.Dicom import DicomThread
+from AutoTest.common.message import sendMessage
 from AutoDicom.common.deletepatients import delete_patients_duration
 from AutoTest.utils.graphql.graphql_ai_status import graphql_ai_status
 from AutoDicom.common.dicomBase import checkuid
 import queue
-
-import os
+from django.db.models import Count, Case, When
+import json
 import datetime
 import time
 import threading
@@ -101,7 +101,7 @@ def delresult(serverID, ids):
 
 
 # 执行冒烟测试
-class SmokeThread(threading.Thread):
+class GoldThread(threading.Thread):
     def __init__(self, *args, **kwargs):
         threading.Thread.__init__(self)
         self.Flag = True  # 停止标志位
@@ -166,9 +166,12 @@ class SmokeThread(threading.Thread):
                 t.join()
                 time.sleep(1)
 
+            sendMessage(touser='', toparty='132',
+                        message='【Nightly Build -金标准测试】 \n 测试版本：{0} \n 测试服务：{1} \n 测试完成 详细报告查看：http:192.168.1.121/api/smoketest#/report/goldid={2}'.format(
+                            self.smobj.version, self.smobj.Host.host, self.smobj.id))
+
         except Exception as e:
             logger.error("队列生成失败：{0}".format(e))
-
 
         self.smobj.completiontime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.smobj.status = False
@@ -198,6 +201,88 @@ class SmokeThread(threading.Thread):
                 testdata["result"] = str(e)[:500]
                 smoke_record.objects.create(**testdata)
                 continue
+
+    # 金标准测试报告
+    def report(self):
+        result = []
+        goldData = []
+
+        try:
+            smokediseases = smoke_record.objects.filter(smokeid=self.id).values('diseases').annotate(
+                success=Count(Case(When(result='匹配成功', then=0))), fail=Count(Case(When(result='匹配失败', then=0))),
+                count=Count('diseases'))
+
+            for j in smokediseases:
+                info = {}
+                obl = smoke_record.objects.filter(smokeid=self.id, diseases=j["diseases"])
+                # 按病种 统计 错误 信息
+                for jj in obl:
+                    if jj.result is not None and jj.result not in ['匹配成功', '匹配失败']:
+                        if info.__contains__(jj.result) is False:
+                            info[jj.result] = 1
+                        else:
+                            info[jj.result] = info[jj.result] + 1
+                error = int(j["count"]) - int(j["success"]) - int(j["fail"])
+                disease = {
+                    "diseases": j["diseases"],
+                    "aisuccess": int(j["success"]) + int(j["fail"]),
+                    "success": j["success"],
+                    "fail": j["fail"],
+                    "error": error,
+                    "info": info
+                }
+                goldData.append(disease)
+
+            for k in ['成功', '失败']:
+                smobj = smoke_record.objects.filter(smokeid=self.id, result__contains=k)
+                result.append(smobj.count())
+            smerror = int(smoke_record.objects.filter(smokeid=self.id).count()) - int(result[0]) - int(
+                result[1])
+
+            data = {
+                "basedata": {
+                    "version": self.smobj.version,
+                    "server": self.smobj.Host.host,
+                    "product": '金标准测试',
+                    "aisuccess": int(result[0]) + int(result[1]),
+                    "success": result[0],
+                    "fail": result[1],
+                    "error": smerror,
+                    "start_date": self.smobj.starttime,
+                    "end_date": self.smobj.completiontime
+                },
+                "goldrows": [
+                    {'状态': '匹配成功', '数量': result[0]},
+                    {'状态': '匹配失败', '数量': result[1]},
+                    {'状态': '报错', '数量': smerror}
+                ],
+                "goldData": goldData
+                ,
+                "errorData": self.errorData()
+            }
+        except Exception as e:
+            logger.error("数据报错{}".format(e))
+            return {}
+        return data
+
+    def errorData(self):
+        try:
+            recorddata = {}
+            errorData = []
+            recordDetail = smoke_record.objects.filter(smokeid=self.id)
+
+            for i in recordDetail:
+                if i.result is not None and i.result not in ['匹配成功', '匹配失败']:
+                    if recorddata.__contains__(i.result) is False:
+                        recorddata[i.result] = 1
+                    else:
+                        recorddata[i.result] = recorddata[i.result] + 1
+            for k, v in recorddata.items():
+                errorData.append({'状态': k, '数量': v})
+
+            return errorData
+        except Exception as e:
+            logger.error("预测趋势数据生成失败：{0}".format(e))
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

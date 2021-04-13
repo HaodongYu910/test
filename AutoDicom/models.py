@@ -28,7 +28,7 @@ class dicom_base(models.Model):
 
 class dicom(models.Model):
     """
-          测试数据表
+          dicom数据表
         """
     id = models.AutoField(primary_key=True)
     patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
@@ -46,6 +46,7 @@ class dicom(models.Model):
     route = models.CharField(max_length=100, blank=True, null=True, verbose_name="路径")
     status = models.BooleanField(default=False, verbose_name='状态')
     stressstatus = models.CharField(max_length=5, blank=True, null=True, verbose_name="性能状态")
+    remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -127,3 +128,36 @@ class duration_record(models.Model):
         verbose_name_plural = "持续化测试记录表"
         db_table = 'duration_record'
 
+class dicom_group(models.Model):
+    """
+          dicom 分组
+        """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="组名")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dicom组表"
+        verbose_name_plural = "dicom组表"
+        db_table = 'dicom_group'
+
+class dicom_group_detail(models.Model):
+    """
+          dicom 分组详情
+        """
+    id = models.AutoField(primary_key=True)
+    dicom = models.ForeignKey(to=dicom, null=True, on_delete=models.CASCADE, verbose_name='id')
+    group = models.ForeignKey(to=dicom_group, null=True, on_delete=models.CASCADE, verbose_name='id')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dicom组表"
+        verbose_name_plural = "dicom组表"
+        db_table = 'dicom_group_detail'

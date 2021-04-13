@@ -140,26 +140,3 @@ class jiradata(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999998", msg="未知错误")
 
-class todo(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request,*args, **kwargs):
-        """
-        查詢待办事项
-        :param request:
-        :return:
-        user
-        """
-
-        user = request.GET.get("user")
-
-        try:
-            # data = Jiradata().Pending(user)
-            data =[10,9,4]
-            return JsonResponse(code="0", msg="Success",data={
-                                  "total": data
-                })
-
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999998", msg="未知错误")

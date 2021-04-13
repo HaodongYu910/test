@@ -7,11 +7,13 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoTest.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.stress import *
+from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
-from ..common.stressdurarion import STThread
+from ..common.hybrid import HybridThread
+from ..common.single import SingleThread
+from ..common.manual import ManualThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -45,31 +47,27 @@ class stressRun(APIView):
         if result:
             return result
         try:
-            stressid = data['stressid']
-            obj = stress.objects.get(stressid=stressid)
-            sendStress = STThread(id=data['stressid'])
-            St = StressThread(stressid=stressid)
             # 基准测试
             if data['type'] is True:
-                resultobj = stress_result.objects.filter(Stress=stressid, type__in=['jobJZ','predictionJZ','lung_jobJZ','lung_job'])
-                resultobj.delete()
-                sendStress.Manual()
+                Manual = ManualThread(stressid=data['stressid'])
+                Manual.setDaemon(True)
+                Manual.start()
             # 混合测试
             elif data['type'] is False:
-                if obj.jmeterstatus is True:
-                    St.jmeterStress()
                 # St.AutoPrediction()
-                sendStress.setDaemon(True)
-                sendStress.start()
+                Hybrid = HybridThread(stressid=data['stressid'])
+                Hybrid.setDaemon(True)
+                Hybrid.start()
             # 单一测试
             else:
-                if obj.jmeterstatus is True:
-                    St.jmeterStress()
-                St.Single()
+                single = SingleThread(stressid=data['stressid'])
+                single.setDaemon(True)
+                single.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
+
 
 
 class stressStop(APIView):
@@ -101,29 +99,34 @@ class stressStop(APIView):
         if result:
             return result
         try:
-            stoptest = StressThread(stressid=data["stressid"])
+            obj = stress.objects.get(stressid=data["stressid"])
+
+            if obj.teststatus == "单一测试开始":
+                stoptest = SingleThread(stressid=data["stressid"])
+
+            elif obj.teststatus == "混合测试开始":
+                stoptest = HybridThread(stressid=data["stressid"])
+                durationid = '0' + str(data["stressid"])
+                drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
+                # 删除错误数据
+                for j in drobj:
+                    delete_patients_duration(j.studyinstanceuid, obj.Host_id, "studyinstanceuid", False)
+                drobj.delete()
+
+                result = ResultThread(stressid=data['stressid'])
+                result.setDaemon(True)
+                result.start()
+                # 删除 文件夹
+                folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.id))
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
+            else:
+                stoptest = ManualThread(stressid=data["stressid"])
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
-            durationid = '0'+str(data["stressid"])
-            obj = pid.objects.filter(durationid=durationid)
-            # kill 线程
-            for i in obj:
-                cmd = 'kill -9 {0}'.format(int(i.pid))
-                logger.info(cmd)
-                os.system(cmd)
-                i.delete()
-            drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
-            # # 删除错误数据
-            # for j in drobj:
-            #     delete_patients_duration(j.studyinstanceuid, okj.hostid, "studyinstanceuid", False)
-            # drobj.delete()
-            # # 删除 文件夹
-            # folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(okj.patientname),
-            #                                                                      str(okj.patientid),
-            #                                                                      str(okj.id))
-            # if os.path.exists(folder):
-            #     shutil.rmtree(folder)
-
+            self.obj.status = False
+            obj.teststatus = '已停止'
+            obj.save()
             return JsonResponse(code="0", msg="已停止")
         except Exception as e:
             logger.error(e)

@@ -35,7 +35,7 @@
             <el-table-column prop="version" label="版本" min-width="12%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
-                    <router-link v-if=true :to="{ name: '金标准详情', params: {smokeid: scope.row.id}}"
+                    <router-link v-if=true :to="{ name: '金标准详情', params: {goldid: scope.row.id}}"
                                  style='text-decoration: none;color: #0000ff;'>
                         {{ scope.row.version }}
                     </router-link>
@@ -89,11 +89,11 @@
                          src="../../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="20%">
+            <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
-                    <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
+                    <el-button type="primary" size="small" @click="handleEdit(scope.$index, scope.row)">修改</el-button>
 <!--                    <el-button type="primary" size="small" @click="smoketest(scope.$index, scope.row)">测试</el-button>-->
-<!--                    <el-button type="danger" size="small" @click="handleSave(scope.$index, scope.row)">定时</el-button>-->
+                    <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告</el-button>
                     <el-button :type="typestatus(scope.row.status)" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'停止'}}
                     </el-button>
@@ -272,6 +272,11 @@
                     return 'primary'
                 }
 
+            },
+            showReport(index, row) {
+                this.$router.push({
+                    path: '/report/goldid=' + row.id,
+                });
             },
             showdetail(index, row) {
                 this.$router.push({

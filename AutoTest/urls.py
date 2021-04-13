@@ -7,10 +7,11 @@ from .api.Jiradata import *
 from .api.Sendmail import *
 from .api.test_report import *
 from .api.user_permission import *
-from .api.apiSmoke import *
+from .api.apiGold import *
 from .api.apiDictionary import *
 from .api.apiUpload import *
 from .api.apInstall import *
+from .api.api import test
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -63,6 +64,7 @@ urlpatterns = [
     url(r'gold/record', smokeRecord.as_view()),
     url(r'gold/figure', smokefigure.as_view()),
     url(r'gold/smokelist', getSmoke.as_view()),
+    url(r'gold/GoldReport', getGoldReport.as_view()),
     url(r'install/add', AddInstall.as_view()),
     url(r'install/update', UpdateInstall.as_view()),
     url(r'install/del', DelInstall.as_view()),
@@ -72,5 +74,6 @@ urlpatterns = [
     url(r'install/getReport', getInstallReport.as_view()),
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
-    url(r'todo', todo.as_view()),
+    url(r'smoketest', Smoketest.as_view()),
+    url(r'totest', test.as_view()),
 ]

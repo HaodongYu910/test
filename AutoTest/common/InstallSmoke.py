@@ -2,8 +2,10 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, smoke, dictionary, smoke_record
-from ..common.gold import SmokeThread
+from ..models import install, smoke, dictionary, smoke_record, Server
+from AutoDicom.models import duration
+from AutoDicom.common.durarion import DurationThread
+from ..common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
 import time
 import datetime
@@ -13,75 +15,70 @@ from ..utils.keycloak.keycloakadmin import KeycloakAdm
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class InSmokeThread(threading.Thread):
+class InGoldThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         self.Flag = True  # 停止标志位
         # self.count = kwargs["count"]  # 可用来被外部访问的
         # 性能测试id
-        self.id = kwargs["id"]
-        self.obj = install.objects.get(id=self.id)
-        self.user = self.obj.Host.user
-        self.pwd = self.obj.Host.pwd
-        self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
-        self.dobj = dictionary.objects.get(type='install', key='oldversion')
-        self.oldversion = self.dobj.value.split(',')
-
+        self.version = kwargs["version"]
+        self.server = Server.objects.get(id='13')
+        self.ssh = SSHConnection(host=self.server.host, pwd=self.server.pwd)
+        
     def run(self):
         try:
             self.starttime = datetime.datetime.now()
             try:
-                logger.info("Installation{}：更新 orthanc 文件".format(self.id))
+                logger.info("Nightly Build Version:{}：更新 orthanc 文件".format(self.version))
                 self.ssh.upload("/files1/classifier/orthanc.json",
                                 "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
-                logger.info("Installation{}：更新classification_votes文件".format(self.id))
+                logger.info("Nightly Build Version:{}：更新classification_votes文件".format(self.version))
                 self.ssh.upload("/files1/classifier/classification_votes.json",
                                 "/home/biomind/.biomind/var/biomind/cache/series_classifier/classification_votes.json")
 
-                logger.info("Installation{}：更新predefined_classifier文件".format(self.id))
+                logger.info("Nightly Build Version:{}：更新predefined_classifier文件".format(self.version))
                 self.ssh.upload("/files1/classifier/predefined_classifier.json",
                                 "/home/biomind/.biomind/var/biomind/cache/series_classifier/predefined_classifier.json")
 
-                logger.info("Installation{}：更新special_classifier文件".format(self.id))
+                logger.info("Nightly Build Version:{}：更新special_classifier文件".format(self.version))
                 self.ssh.upload("/files1/classifier/special_classifier.json",
                                 "/home/biomind/.biomind/var/biomind/cache/series_classifier/special_classifier.json")
 
             except Exception as e:
-                logger.error("Installation{0}：更新json文件失败----失败原因：{1}".format(self.id, e))
-            self.restart()
-            logger.info("Installation{}：sheep 200 秒".format(self.id))
+                logger.error("Nightly Build Version:{0}：更新json文件失败----失败原因：{1}".format(self.version, e))
+            restart = threading.Thread(target=self.restart)
+            restart.start()
+            logger.info("Nightly Build Version:{}：sheep 300 秒".format(self.version))
             time.sleep(300)
+            self.createUser()
+            logger.info("Nightly Build Version:{}：createUser".format(self.version))
             self.goldsmoke()
-            self.finish()
+            self.duration()
         except Exception as e:
-            self.obj.status = False
-            self.obj.save()
-            logger.error("Installation{0}：安装{1}版本失败----失败原因：{2}".format(self.id, self.obj.version, e))
+            logger.error("Nightly Build Version:{0}：安装{1}版本失败----失败原因：{2}".format(self.version, self.obj.version, e))
 
     def restart(self):
         try:
             if self.Flag is True:
-                logger.info("Installation{}：配置 configure".format(self.id))
+                logger.info("Nightly Build Version:{}：配置 configure".format(self.version))
                 try:
-                    self.ssh.configure(self.obj.server, str(self.obj.Host.protocol))
-                    logger.info("Installation{}：重启服务".format(self.id))
+                    self.ssh.configure(self.server.host, str(self.server.protocol))
+                    logger.info("Nightly Build Version:{}：重启服务".format(self.version))
                     self.ssh.cmd(
-                        "nohup sshpass -p {} biomind start >> /home/biomind/restart.log 2>&1 &;".format(
-                            self.pwd))
+                        "sshpass -p {} biomind restart;ls;".format(
+                            self.server.pwd))
                 except Exception as e:
-                    logger.error("Installation{0}：重启服务失败----失败原因：{1}".format(self.id, e))
+                    logger.error("Nightly Build Version:{0}：重启服务失败----失败原因：{1}".format(self.version, e))
                 self.ssh.close()
         except Exception as e:
-            self.obj.status = False
-            self.obj.save()
-            logger.error("Installation{0}：重启服务失败{1}".format(self.id,e))
+            logger.error("Nightly Build Version:{0}：重启服务失败{1}".format(self.version,e))
 
     def createUser(self):
         try:
-            logger.info("Installation{}：创建 3d 用户".format(self.id))
+            logger.info("Nightly Build Version:{}：创建 3d 用户".format(self.version))
             user_info = {"username": "biomind3d", "enabled": True,
                          "credentials": [{"value": "engine3D.", "type": "password", }]}
-            kc_adm = KeycloakAdm(orthanc_ip='{0}://{1}'.format(self.obj.Host.protocol, self.obj.Host.host))
+            kc_adm = KeycloakAdm(orthanc_ip='{0}://{1}'.format(self.server.protocol, self.server.host))
             # kc_adm.update_user_add_group(user_info, 'admins')
             kc_adm.create_update_user_add_all_group(user_info)
         except Exception as e:
@@ -89,29 +86,24 @@ class InSmokeThread(threading.Thread):
 
     def goldsmoke(self):
         try:
-            data = {"version": self.obj.version,
+            data = {"version": self.version,
                     "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                     "status": True,
-                    "Host_id": int(self.obj.Host_id),
+                    "Host_id": 13,
                     "thread": 3,
                     "count": 127
                     }
-            logger.info("Installation{}：创建金标准测试".format(self.id))
+            logger.info("Nightly Build Version:{}：创建金标准测试".format(self.version))
             smokeobj = smoke.objects.create(**data)
-            self.obj.status = False
-            self.obj.type = 5
-            self.obj.smokeid = smokeobj.id
-            self.obj.save()
-            logger.info("Installation{}：执行金标准测试".format(self.id))
-            testThread = SmokeThread(smokeobj.id)
+
+            logger.info("Nightly Build Version:{}：执行金标准测试".format(self.version))
+            testThread = GoldThread(smokeobj.id)
             # 设为保护线程，主进程结束会关闭线程
             testThread.setDaemon(True)
             # 开始线程
             testThread.start()
         except Exception as e:
-            self.obj.status = False
-            self.obj.save()
-            logger.error("Installation{0}：执行金标准测试报错{1}".format(self.id, e))
+            logger.error("Nightly Build Version:{0}：执行金标准测试报错{1}".format(self.version, e))
 
     def UiTest(self):
         try:
@@ -123,20 +115,48 @@ class InSmokeThread(threading.Thread):
                     "hostid": self.obj.hostid,
                     "thread": 1
                     }
-            logger.info("Installation{}：创建UI测试".format(self.id))
+            logger.info("Nightly Build Version:{}：创建UI测试".format(self.version))
             uobj = autoui.objects.create(**data)
             self.obj.type = 6
             self.obj.uid = uobj.id
             self.obj.save()
-            # testThread = SmokeThread(smokeobj.id)
+            # testThread = GoldThread(smokeobj.id)
             # # 设为保护线程，主进程结束会关闭线程
             # testThread.setDaemon(True)
             # # 开始线程
             # testThread.start()
         except Exception as e:
-            self.obj.status = False
-            self.obj.save()
-            logger.error("Installation{0}：执行UI自动化报错{1}".format(self.id, e))
+            logger.error("Nightly Build Version:{0}：执行UI自动化报错{1}".format(self.version, e))
+
+    def duration(self):
+        try:
+            data = {"server": self.server.host,
+                    "port": 4242,
+                    "aet": self.server.remarks,
+                    "patientid": 'DT',
+                    "patientname": 'Dt',
+                    "dicom": "1,2,3,4,5,6,7,8,9,10,11,13,14,35,45",
+                    "sendcount": 500,
+                    "sleepcount": 0,
+                    "sleeptime": 0,
+                    "series": False,
+                    "sendstatus": True,
+                    "status": True,
+                    "Host_id": 13,
+                    "type": "持续化",
+                    "version": self.version
+                    }
+            logger.info("Nightly Build Version:{}：创建持续化测试".format(self.version))
+            duobj = duration.objects.create(**data)
+
+            logger.info("Nightly Build Version:{}：执行金标准测试".format(self.version))
+            testThread = DurationThread(id=duobj.id)
+            # 设为保护线程，主进程结束会关闭线程
+            testThread.setDaemon(True)
+            # 开始线程
+            testThread.start()
+        except Exception as e:
+            logger.error("Nightly Build Version:{0}：执行金标准测试报错{1}".format(self.version, e))
 
     def report(self):
         result = []

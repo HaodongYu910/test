@@ -8,7 +8,7 @@ from AutoTest.common.api_response import JsonResponse
 
 from ..serializers import stress_Deserializer
 from AutoDicom.serializers import dicomdata_Deserializer
-from ..common.stress import voteData,checkuid
+from ..common.saveResult import voteData,checkuid
 from AutoDicom.common.deletepatients import *
 from ..models import stress
 

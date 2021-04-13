@@ -8,7 +8,7 @@ from rest_framework.views import APIView
 from django.db import transaction
 from AutoTest.common.api_response import JsonResponse
 from AutoTest.serializers import smoke_Deserializer, smoke_Serializer, smokerecord_Serializer
-from AutoTest.common.gold import SmokeThread
+from AutoTest.common.gold import GoldThread
 from AutoDicom.common.deletepatients import *
 from ..models import smoke_record, smoke
 from AutoDicom.common.dicomBase import baseTransform
@@ -233,7 +233,7 @@ class DisableSmoke(APIView):
         # 查找是否存在
         try:
             obj = smoke.objects.get(id=data["id"])
-            testThread = SmokeThread(data["id"])
+            testThread = GoldThread(data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
 
@@ -278,7 +278,7 @@ class EnableSmoke(APIView):
             # 删除以前记录
             objrecord.delete()
 
-            testThread = SmokeThread(data["id"])
+            testThread = GoldThread(data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setDaemon(True)
             # 开始线程
@@ -405,3 +405,27 @@ class smokefigure(APIView):
                                       }, code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)
+
+
+class getGoldReport(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        冒烟测试报告
+        :param request:
+        :return:
+        """
+        try:
+            goldid = int(request.GET.get("id"))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="goldid must be integer!")
+        # 查找是否存在
+        try:
+            testThread = GoldThread(goldid)
+            data = testThread.report()
+            return JsonResponse(code="0", msg="成功", data=data)
+
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")

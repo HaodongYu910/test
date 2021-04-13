@@ -24,6 +24,7 @@ class stress(models.Model):
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
     loop_time = models.CharField(max_length=10, blank=True, null=True, verbose_name="执行时间")
+    teststatus = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试状态")
     jmeterstatus = models.BooleanField(default=True, verbose_name='jmeter状态')
     status = models.BooleanField(default=True, verbose_name='状态')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')

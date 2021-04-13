@@ -248,10 +248,7 @@ class DurationThread(threading.Thread):
                 data,Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
-            try:
-                self.delayed(Seriesinstanceuid, testdata[3])
-            except Exception as e:
-                logger.error("等待:{}".format(e))
+
             try:
                 if testdata[3] in self.CountData:
                     create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
@@ -266,12 +263,10 @@ class DurationThread(threading.Thread):
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
 
-            # try:
-            #     study_fakeinfos["count"] = int(study_fakeinfos["count"]) + 1
-            #     self.delayed(study_fakeinfos)
-            # except Exception as e:
-            #     logging.error('errormsg: failed delayed{0} ---报错：{1}]'.format(full_fn_fake, e))
-            #     continue
+            try:
+                self.delayed(Seriesinstanceuid, int(testdata[3]))
+            except Exception as e:
+                logger.error("delayed fail:{}".format(e))
 
     def connect_influx(self, data):
         try:
@@ -319,15 +314,17 @@ class DurationThread(threading.Thread):
 
     # 判断是否 同一个 Series
     def delayed(self, SeriesID, Num):
-        logger.info(Num)
-        if self.obj.sleepcount is not None and self.obj.sleepcount and self.obj.sleeptime is not None:
-            imod = divmod(int(Num), int(self.obj.sleepcount))
-            if imod[1] == 0:
-                time.sleep(int(self.obj.sleeptime))
-        if self.obj.series is True and self.obj.sleeptime is not None:
-            if SeriesID != self.SeriesInstanceUID:
-                time.sleep(int(self.obj.sleeptime))
-                self.SeriesInstanceUID = SeriesID
+        try:
+            if self.obj.sleepcount is not None and int(self.obj.sleepcount) != 0 and self.obj.sleeptime is not None:
+                imod = divmod(int(Num), int(self.obj.sleepcount))
+                if imod[1] == 0:
+                    time.sleep(int(self.obj.sleeptime))
+            if self.obj.series is True and self.obj.sleeptime is not None:
+                if SeriesID != self.SeriesInstanceUID:
+                    time.sleep(int(self.obj.sleeptime))
+                    self.SeriesInstanceUID = SeriesID
+        except Exception as e:
+            logger.error("delayed:{}".format(e))
 
     def durationStop(self):
         # 改变状态

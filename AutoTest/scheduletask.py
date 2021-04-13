@@ -151,7 +151,7 @@ def DurationSyTask():
 # 持续化定时任务启动
 def DurationTask():
     logger.info("持续化定时任务启动！~~")
-    obj = duration.objects.filter(status=True, type='持续化')
+    obj = duration.objects.filter(sendstatus=True, type='持续化')
     try:
         for i in obj:
             if i.end_time > str(datetime.datetime.today()):

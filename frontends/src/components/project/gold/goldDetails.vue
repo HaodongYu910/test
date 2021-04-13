@@ -188,7 +188,7 @@
         methods: {
             getParams() {
                 this.routerParams = this.$route.query;
-                this.smokeid = this.$route.params.smokeid
+                this.goldid = this.$route.params.goldid
             },
             valuestatus: function (a) {
                 if (a === "匹配成功") {
@@ -276,7 +276,7 @@
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.smokeid,
+                    smokeid: this.goldid,
                     diseases:this.filters.diseases,
                     status:this.filters.status
                 }
