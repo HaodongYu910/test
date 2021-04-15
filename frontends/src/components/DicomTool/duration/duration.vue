@@ -950,6 +950,7 @@
             // 批量删除
             batchRemove: function () {
                 const ids = this.sels.map(item => item.id)
+                console.log(ids)
                 const self = this
                 this.$confirm('确认删除选中记录吗？', '提示', {
                     type: 'warning'

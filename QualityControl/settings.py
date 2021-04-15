@@ -34,7 +34,7 @@ SITE_JENKINURL = "http://192.168.2.58:8080"  # JENKINS 地址
 
 # influxdb 数据库
 Influxdb = '192.168.1.121'
-InfluxDataBase = 'autotest'
+InfluxDataBase = 'AutoTest'
 InfluxdbUser = ''
 InfluxdbPassWd = ''
 

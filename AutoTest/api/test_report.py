@@ -319,7 +319,7 @@ class Updatetest_risk(APIView):
                 return JsonResponse(code="999998", msg="失败")
 
 
-class DelAutotest_risk(APIView):
+class DelAutoTest_risk(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 

@@ -364,9 +364,9 @@ class delDuration(APIView):
                         obj.delete()
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999994", msg="删除失败！")
-                    return JsonResponse(code="0", msg="成功")
                 except ObjectDoesNotExist:
                     return JsonResponse(code="999995", msg="数据不存在！")
+            return JsonResponse(code="0", msg="成功")
 
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="执行失败！")
