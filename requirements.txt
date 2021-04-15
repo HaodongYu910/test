@@ -68,11 +68,7 @@ urllib3==1.24.1
 xlrd==1.2.0
 XlsxWriter==1.1.5
 xlwt==1.3.0
-
 paramiko~=2.7.2
-<<<<<<< HEAD
 pip~=20.3.3
 pynetdicom~=1.5.6
-=======
-pip~=20.2.1
->>>>>>> 0841793b1b27c6360514fe203df50121b89abd39
+keycloak~=3.0.1

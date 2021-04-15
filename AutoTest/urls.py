@@ -39,7 +39,7 @@ urlpatterns = [
     url(r'sendreport', Sendreport.as_view()),
     url(r'risk/add', Add_test_risk.as_view()),
     url(r'risk/update', Updatetest_risk.as_view()),
-    url(r'risk/del', DelAutotest_risk.as_view()),
+    url(r'risk/del', DelAutoTest_risk.as_view()),
     url(r'risk/disable_risk', DisableRisk.as_view()),
     url(r'risk/enable_riskt', EnableRisk.as_view()),
     url(r'risk', Testrisk.as_view()),
