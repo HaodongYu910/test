@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 class SSHConnection:
     # 初始化连接创建Transport通道
-    def __init__(self, host='192.168.1.172', port=22, user='biomind', pwd='biomind'):
+    def __init__(self, host='192.168.1.208', port=22, user='biomind', pwd='biomind'):
         self.host = host
         self.port = port
         self.user = user
@@ -106,10 +106,11 @@ class SSHConnection:
 
 # import os
 # name = '2.18.1-radiology'
-# ssh = SSHConnection(host='192.168.1.170',pwd='biomind')
+# a = ssh.cmd("df -h;")
+# b = ssh.cmd("docker ps")
+# print(b)
 #
 # ssh.close()
-# ssh.cmd("cd 2.17.6/;sshpass -p biomind bash setup_engine.sh;")
 
 # # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
 # print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))

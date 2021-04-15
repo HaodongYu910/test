@@ -149,6 +149,7 @@ class StressThread(threading.Thread):
         self.server = self.obj.Host.host
         self.testdata = self.obj.testdata
         self.kc = login_keycloak(self.obj.Host_id)
+        self.single = 20
 
     #  基准测试
     def Manual(self):
@@ -217,10 +218,14 @@ class StressThread(threading.Thread):
         try:
             # 已有数据 循环预测
             for i in self.testdata.split(","):
+                count = 0
                 dicobj = dictionary.objects.get(id=i)
-                obj = duration_record.objects.filter(model=dicobj.value)
+                durobj = duration_record.objects.filter(model=dicobj.value, duration_id=self.obj.id,
+                                                        aistatus__in=[2, 3])
                 # 循环调用graphql 自动预测
-                for k in obj:
+                for k in durobj:
+                    if count == self.single:
+                        break
                     graphql_query = '{ ' \
                                     'ai_biomind(' \
                                     'block : false' \
@@ -237,11 +242,11 @@ class StressThread(threading.Thread):
                                                                                 '}' \
                                                                                 '}'
                     graphql_Interface(graphql_query, self.kc)
-                    while starttime > endtime:
-                        print(1)
-                    ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
-                    ssh.cmd("nohup sshpass -p {} biomind restart prod master &;".format(self.obj.Host.pwd))
-                    time.sleep(300)
+                time.sleep(180*int(self.single))
+                ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
+                ssh.cmd(
+                    "nohup sshpass -p {} biomind start >> /home/biomind/restart.log 2>&1 &;".format(self.obj.Host.pwd))
+                time.sleep(300)
         except Exception as e:
             logger.error("性能测试启动失败：{0}".format(e))
 
@@ -383,7 +388,7 @@ class StressThread(threading.Thread):
         for j in ["predictionrecord", "jobmetrics"]:
             sqlobj = dictionary.objects.get(key=j)
             sql = sqlobj.value.format(self.obj.start_date, self.obj.end_date)
-            result = connect_postgres(database="orthanc",  host=self.obj.Host.id,
+            result = connect_postgres(database="orthanc", host=self.obj.Host.id,
                                       sql=sql)
             dict = result.to_dict(orient='records')
             # 循环数据保存

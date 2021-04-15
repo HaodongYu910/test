@@ -48,3 +48,10 @@
 # #     p.start()
 # #     p.join()
 # #     pa.start()
+import requests
+import json
+#
+# server_url = "http://192.168.1.121/installsmoke"
+# parm = {"version": 1, "host": 2}
+# data = requests.post(server_url, parm)
+# vop_data = json.loads(data.content)

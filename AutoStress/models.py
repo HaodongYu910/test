@@ -16,6 +16,7 @@ class stress(models.Model):
     thread = models.CharField(max_length=4, blank=True, null=True, verbose_name="线程数")
     synchroniz = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
     ramp = models.CharField(max_length=4, blank=True, null=True, verbose_name="ramp up time")
+    single = models.CharField(max_length=4, blank=True, null=True, verbose_name="single")
     loop_count = models.CharField(max_length=4, blank=True, null=True, verbose_name="循环次数")
     duration = models.CharField(max_length=4, blank=True, null=True, verbose_name="持续时间")
     start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动 秒")

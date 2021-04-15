@@ -2,7 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import transaction
 from django.db.models import Avg
-
+from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -11,16 +11,15 @@ import threading
 from AutoTest.common.api_response import JsonResponse
 from AutoTest.models import pid
 from ..models import duration, duration_record
-from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Serializer
+from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
 from ..common.dds_detect import *
 from ..common.deletepatients import *
-from ..common.duration_verify import *
 from ..common.Dicom import DicomThread
-from AutoDicom.common.duration_verify import verifyDuration
 from AutoDicom.common.dicomBase import baseTransform
 from ..common.durarion import DurationThread
-import datetime,os
+import datetime, os
+from AutoTest.scheduletask import DurationSyTask
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -91,12 +90,6 @@ class durationData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
         durationid = int(request.GET.get("id"))
-        try:
-            verifythread = threading.Thread(target=verifyDuration(int(durationid)))
-            verifythread.start()
-        except Exception as e:
-            logger.error(e)
-        datalist = {}
 
         # 判断是否有查询时间
         if request.GET.get("startdate"):
@@ -323,8 +316,10 @@ class EnableDuration(APIView):
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
             else:
-                dicomsend = DicomThread(type='duration', id=data["id"])
-                dicomsend.anonymousSend()
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setDaemon(True)
+                # 开始线程
+                durationThread.start()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -414,22 +409,6 @@ class deletePatients(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
-class durationVerify(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        更新持续化记录
-        :param request:
-        :return:
-        """
-        id = request.GET.get("id")
-        data = verifyDuration(id)
-        return JsonResponse(data={"data": data
-                                  }, code="0", msg="成功")
-
-
 class anonymizationAPI_2nd(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -470,3 +449,19 @@ class ddsDataVerifyAPI(APIView):
             return JsonResponse(code="0", msg="开始搜索")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
+
+class getDurationTB(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取持续化同步结构
+        :param request:
+        :return:
+        """
+        try:
+            DurationSyTask()
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        return JsonResponse(code="0", msg="成功")

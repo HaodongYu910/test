@@ -6,6 +6,7 @@ from .api.apiDuration import *
 from .api.apiDicombase import *
 from .api.apiDurationReport import DurationReport
 
+
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -29,7 +30,6 @@ urlpatterns = [
     url(r'duration/add', addDuration.as_view()),
     url(r'duration/up', updateDuration.as_view()),
     url(r'duration/del', delDuration.as_view()),
-    url(r'duration/verify', durationVerify.as_view()),
     url(r'duration/disable_duration', DisableDuration.as_view()),
     url(r'duration/enable_duration', EnableDuration.as_view()),
     url(r'duration/getduration', getDuration.as_view()),
@@ -45,4 +45,5 @@ urlpatterns = [
     url(r'updatedata', Updatedata.as_view()),
     url(r'tool/search_data', ddsDataVerifyAPI.as_view()),
     url(r'report/durationreport', DurationReport.as_view()),
+    url(r'verify', getDurationTB.as_view()),
 ]

@@ -10,11 +10,11 @@ from AutoTest.common.api_response import JsonResponse
 from AutoTest.serializers import install_Deserializer
 from AutoTest.common.install import InstallThread
 from AutoDicom.common.deletepatients import *
-from ..models import install
+from ..models import install, smoke, Server
 from ..common.transport import SSHConnection
-from AutoDicom.common.dicomBase import baseTransform
 from ..scheduletask import InstallTask
-import os,re
+from ..common.InstallSmoke import InSmokeThread
+import os
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -278,13 +278,13 @@ class DisableInstall(APIView):
             obj = install.objects.get(id=data["id"])
             obj.status = False
             obj.save()
-            testThread = InstallThread(data["id"])
+            testThread = InstallThread(id=data["id"])
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="数据不存在！")
 
 
 class EnableInstall(APIView):
@@ -363,3 +363,40 @@ class getInstallReport(APIView):
             return JsonResponse(code="999995", msg="数据不存在！")
 
 
+class InstallSmoke(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验id类型为int
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        冒烟测试 对外接口
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否存在
+        try:
+            InSmoke = InSmokeThread(id=data["id"])
+            InSmoke.setDaemon(True)
+            # 开始线程
+            InSmoke.start()
+            return JsonResponse(code="0", msg="成功", data=data)
+
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")

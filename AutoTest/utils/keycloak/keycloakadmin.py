@@ -1,168 +1,106 @@
-# -*- coding: utf-8 -*-
-"""
-# @File    : keycloak_admin.py
-# @Time    : 2020/5/28 6:17 下午
-"""
-import logging
 import urllib3
-from keycloak import KeycloakAdmin as KcAdmin
-from keycloak.urls_patterns import URL_ADMIN_USERS
-from keycloak.exceptions import raise_error_from_response, KeycloakGetError
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from keycloak import KeycloakAdmin
+import logging
+logger = logging.getLogger(__name__)
 
-logging.getLogger('asyncio').setLevel(logging.WARNING)
-logging.getLogger('urllib3.util.retry').setLevel(logging.WARNING)
-logging.getLogger('urllib3.connectionpool').setLevel(logging.WARNING)
-logging.getLogger('requests.packages.urllib3.util.retry').setLevel(logging.WARNING)
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
-class KeycloakApi(KcAdmin):
+class KeycloakAdm:
+    def __init__(self, orthanc_ip=None, url=None, user=None, passwd=None, realm=None, change_realm=None, verify=False):
+        """
+        The administrator logs in to keycloak and can perform user creation and modification
+        :param url: keycloak server ip; eg. https://192.168.2.39/auth/
+        :param user: admin username
+        :param passwd: admin password
+        :param realm: realm name
+        :param change_realm: new realm name
+        :param verify: True if want check connection SSL
+        """
+        self.kc_adm = KeycloakAdmin(
+            server_url=url or '{0}/auth/'.format(orthanc_ip),
+            username=user or 'admin',
+            password=passwd or 'secret',
+            realm_name=realm or 'master',
+            verify=verify
+        )
+        self.kc_adm.realm_name = change_realm or 'biomind'
 
-    def get_users(self, query=None):
-        params_path = {"realm-name": self.realm_name}
-        url = URL_ADMIN_USERS.format(**params_path)
-
-        if not query:
-            return super().get_users(query)
+    def create_update_user(self, query):
+        """
+        Create or add users
+        :param query: user info eg. {"username": "biomind3d","enabled": True}
+        :return: user id
+        """
+        user_id = self.kc_adm.get_user_id(query.get('username'))
+        if user_id:
+            self.kc_adm.update_user(user_id, query)
         else:
-            query = {
-                'first': query.get('first', 0),
-                'max': query.get('max', self.PAGE_SIZE),
-                'briefRepresentation': query.get('briefRepresentation', True),
-                'search': query.get('search', '')
-            }
-            return raise_error_from_response(
-                self.raw_get(url, **query),
-                KeycloakGetError)
+            user_id = self.kc_adm.create_user(query)
 
-    def users_count_with_filter(self, query=None):
-        return len(super().get_users(query))
+        return user_id
 
-    def refresh_token(self):
-        refresh_token = self.token.get('refresh_token')
-        try:
-            self.token = self.keycloak_openid.refresh_token(refresh_token)
-        except KeycloakGetError as e:
-            if e.response_code == 400 and (b'Refresh token expired' in e.response_body
-                                           or b'Session not active' in e.response_body
-                                           or b'Stale token' in e.response_body
-                                           or b'Token is not active' in e.response_body):
-                self.get_token()
-            else:
-                raise
-        self.connection.add_param_headers(
-            'Authorization', 'Bearer ' + self.token.get('access_token'))
+    def user_add_group(self, username, group_name):
+        """
+        add group in user
+        :param username: username
+        :param group_name: group name
+        """
+        user_id = self.kc_adm.get_user_id(username)
+        if not user_id:
+            logger.warning('please create user, no such account')
+        group = self.kc_adm.get_group_by_path(f'/{group_name}')
+        if not group:
+            logger.warning("Can't find the corresponding group, please add")
+        self.kc_adm.group_user_add(user_id, group.get('id'))
 
+    def user_add_all_groups(self, username):
+        """
+        add all groups in user
+        :param username: username
+        """
+        user_id = self.kc_adm.get_user_id(username)
+        if not user_id:
+            logger.warning('please create user, no such account')
+        groups = self.kc_adm.get_groups()
+        for group in groups:
+            self.kc_adm.group_user_add(user_id, group.get('id'))
 
-class KeycloakAdmin:
-    kc_admin = KeycloakApi(
-        server_url=f"https://192.168.1.172:443/auth/",
-        username='test',
-        password='Asd@123456',
-        realm_name="biomind",
-        auto_refresh_token=[
-            'get',
-            'put',
-            'post',
-            'delete'],
-        verify=False)
+    def update_user_add_group(self, query, group_name):
+        """
+        create or update user and add group
+        :param query: user info
+        :param group_name: group name
+        """
+        user_id = self.kc_adm.get_user_id(query.get('username'))
+        if user_id:
+            self.kc_adm.update_user(user_id, query)
+        else:
+            user_id = self.kc_adm.create_user(query)
+        group = self.kc_adm.get_group_by_path(f'/{group_name}')
+        if not group:
+            logger.warning("Can't find the corresponding group, please add")
+        self.kc_adm.group_user_add(user_id, group.get('id'))
 
-    @classmethod
-    def get_all_users(cls, query=None):
-        def get_user_group(user):
-            group = cls.kc_admin.get_user_groups(user.get("id", None))
-            user['rolenames'] = [x.get('name', None) for x in group]
-
-        users = cls.kc_admin.get_users(query)
-
-        # 线程池加速实时获取user
-        executor = ThreadPoolExecutor(max_workers=8)
-        all_task = [executor.submit(get_user_group, user) for user in users]
-
-        for future in as_completed(all_task):
-            future.result()
-
-        return users
-
-    @classmethod
-    def get_user(cls, user_id):
-        return cls.kc_admin.get_user(user_id)
-
-    @classmethod
-    def get_groups(cls):
-        return cls.kc_admin.get_groups()
-
-    @classmethod
-    def users_count(cls):
-        return cls.kc_admin.users_count()
-
-    @classmethod
-    def users_count_with_filter(cls, query=None):
-        return cls.kc_admin.users_count_with_filter(query)
-
-    @classmethod
-    def set_password_groups(cls, user_id, password, group_ids):
-        if password:
-            cls.kc_admin.set_user_password(user_id, password, False)
-
-        if group_ids:
-            # 创建一个用户后，有一个默认的角色分组，需要删除默认的分组
-            groups = cls.kc_admin.get_user_groups(user_id)
+    def create_update_user_add_all_group(self, query):
+        """
+        create or update user and add all groups
+        :param query: user info
+        """
+        user_id = self.kc_adm.get_user_id(query.get('username'))
+        if user_id:
+            self.kc_adm.update_user(user_id, query)
+        else:
+            user_id = self.kc_adm.create_user(query)
+        groups = self.kc_adm.get_groups()
+        if user_id:
             for group in groups:
-                group_id = group['id']
-                cls.kc_admin.group_user_remove(user_id, group_id)
-
-            for group_id in group_ids:
-                cls.kc_admin.group_user_add(user_id, group_id)
-
-    @classmethod
-    def create_user(cls, username, password, group_ids, firstname, lastname):
-        user_id = cls.kc_admin.create_user({
-            'username': username,
-            "enabled": True,
-            "firstName": firstname,
-            "lastName": lastname,
-            "credentials": [{
-                "value": password,
-                "type": "password"
-            }]
-        })
-        cls.set_password_groups(user_id, None, group_ids)
-
-    @classmethod
-    def delete_user(cls, user_id):
-        cls.kc_admin.delete_user(user_id)
-
-    @classmethod
-    def update_user(
-            cls,
-            user_id,
-            username,
-            firstname,
-            lastname,
-            password,
-            group_ids):
-        # 确保user是存在的
-        user = cls.kc_admin.get_user(user_id)
-        cls.kc_admin.update_user(user['id'],
-                                 {'username': username,
-                                  'firstName': firstname,
-                                  'lastName': lastname
-                                  }
-                                 )
-        cls.set_password_groups(user_id, password, group_ids)
+                self.kc_adm.group_user_add(user_id, group.get('id'))
 
 
 if __name__ == '__main__':
-    print(KeycloakAdmin.get_all_users())
-    print(KeycloakAdmin.get_all_users({
-        'briefRepresentation': False,
-        'max': 10,
-        'first': 0
-    }))  # 获得用户ID
-
-    groups = KeycloakAdmin.get_groups()
-    KeycloakAdmin.create_user(
-        'test1', 'Asd@123456', [
-            x['id'] for x in groups],'test','test')  # 获得角色(分组)ID
+    pass
+    # user_info = {"username": "biomind3d", "enabled": True, "credentials": [{"value": "engine3D.", "type": "password", }]}
+    # kc_adm = KeycloakAdm(orthanc_ip='https://192.168.2.103')
+    # # kc_adm.update_user_add_group(user_info, 'admins')
+    # kc_adm.create_update_user_add_all_group(user_info)

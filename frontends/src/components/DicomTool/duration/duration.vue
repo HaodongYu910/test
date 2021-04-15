@@ -45,7 +45,7 @@
                         <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="预计数量" min-width="10%">
+                <el-table-column label="每日发送" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
                     </template>
@@ -151,10 +151,10 @@
 
                     <el-row :gutter="24">
                         <el-col :span="12">
-                            <el-form-item label="发送数量" prop='sendcount'>
+                            <el-form-item label="每日发送" prop='sendcount'>
                                 <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0"
                                                  :max="100000"
-                                                 label="发送数量"></el-input-number>
+                                                 label="每日发送"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
@@ -264,10 +264,10 @@
 
                     <el-row :gutter="24">
                         <el-col :span="12">
-                            <el-form-item label="发送数量" prop='sendcount'>
+                            <el-form-item label="每日发送" prop='sendcount'>
                                 <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0"
                                                  :max="100000"
-                                                 label="发送数量"></el-input-number>
+                                                 label="每日发送"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
