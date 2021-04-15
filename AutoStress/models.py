@@ -19,7 +19,7 @@ class stress(models.Model):
     single = models.CharField(max_length=4, blank=True, null=True, verbose_name="single")
     loop_count = models.CharField(max_length=4, blank=True, null=True, verbose_name="循环次数")
     duration = models.CharField(max_length=4, blank=True, null=True, verbose_name="持续时间")
-    start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动延时 秒")
+    start_delay = models.CharField(max_length=4, blank=True, null=True, verbose_name="启动 秒")
     dicom_send = models.CharField(max_length=4, blank=True, null=True, verbose_name="duration 发送")
     start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
     end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
