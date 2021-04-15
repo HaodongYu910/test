@@ -1,6 +1,7 @@
 from pip._internal.utils import logging
 from AutoTest.common.PostgreSQL import *
 
+from Autotest.common.PostgreSQL import connect_postgres
 from Autotest.scheduletask import logger
 from ..models import duration_record
 
