@@ -860,6 +860,7 @@ class dictionary(models.Model):
     id = models.AutoField(primary_key=True)
     key = models.CharField(max_length=50, blank=True, null=True, verbose_name="key")
     value = models.CharField(max_length=2500, blank=True, null=True, verbose_name="value")
+    log_title = models.CharField(max_length=2500, blank=True, verbose_name="log_title")
     remarks = models.CharField(max_length=500, blank=True, null=True, verbose_name="说明")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
