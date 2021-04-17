@@ -6,6 +6,28 @@ from rest_framework.authtoken.models import Token
 
 from .models import *
 
+
+class TokenSerializer(serializers.ModelSerializer):
+    """
+    用户信息序列化
+    """
+    first_name = serializers.CharField(source="user.first_name")
+    last_name = serializers.CharField(source="user.last_name")
+    phone = serializers.CharField(source="user.user.phone")
+    email = serializers.CharField(source="user.email")
+    date_joined = serializers.CharField(source="user.date_joined")
+
+    class Meta:
+        model = Token
+        fields = ('first_name', 'last_name', 'phone', 'email', 'key', 'date_joined')
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'first_name')
+
+
 class ProjectDeserializer(serializers.ModelSerializer):
     """
     项目信息反序列化
@@ -46,51 +68,6 @@ class ProjectSerializer(serializers.ModelSerializer):
 
     def get_memberCount(self, obj):
         return obj.member_project.all().count()
-
-
-class ProjectDynamicDeserializer(serializers.ModelSerializer):
-    """
-    项目动态信息反序列化
-    """
-
-    class Meta:
-        model = ProjectDynamic
-        fields = ('id', 'project', 'time', 'type', 'operationObject', 'user', 'description')
-
-
-class ProjectDynamicSerializer(serializers.ModelSerializer):
-    """
-    项目动态信息序列化
-    """
-    operationUser = serializers.CharField(source='user.first_name')
-    time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
-
-    class Meta:
-        model = ProjectDynamic
-        fields = ('id', 'time', 'type', 'operationObject', 'operationUser', 'description')
-
-
-class ProjectMemberDeserializer(serializers.ModelSerializer):
-    """
-    项目成员信息反序列化
-    """
-
-    class Meta:
-        model = ProjectMember
-        fields = ('id', 'permissionType', 'project', 'user')
-
-
-class ProjectMemberSerializer(serializers.ModelSerializer):
-    """
-    项目成员信息序列化
-    """
-    username = serializers.CharField(source='user.first_name')
-    userPhone = serializers.CharField(source='user.user.phone')
-    userEmail = serializers.CharField(source='user.email')
-
-    class Meta:
-        model = ProjectMember
-        fields = ('id', 'permissionType', 'username', 'userPhone', 'userEmail')
 
 
 class ApiGroupLevelFirstSerializer(serializers.ModelSerializer):
@@ -594,41 +571,43 @@ class AutomationReportSendConfigDeserializer(serializers.ModelSerializer):
         model = AutomationReportSendConfig
         fields = ("id", "project_id", 'reportFrom', 'mailUser', 'mailPass', 'mailSmtp')
 
-class smoke_Serializer(serializers.ModelSerializer):
+
+
+class gold_Serializer(serializers.ModelSerializer):
     """
     字典序列化
      """
     class Meta:
-        model = smoke
+        model = gold_test
         fields = ('id', 'version', 'diseases','progress', 'thread','count', 'starttime', 'completiontime', 'status', 'Host')
         read_only_fields = ('id',)  # 指定只读的 field
 
 
-class smoke_Deserializer(serializers.ModelSerializer):
+class gold_Deserializer(serializers.ModelSerializer):
     """
     金标准测试反序列化
     """
 
     class Meta:
-        model = smoke
+        model = gold_test
         fields = ('version', 'diseases', 'progress', 'thread','count', 'starttime', 'completiontime', 'status', 'Host')
 
 
-class smokerecord_Serializer(serializers.ModelSerializer):
+class gold_record_Serializer(serializers.ModelSerializer):
     """
     金标准测试数据记录表序列化
 
      """
 
     class Meta:
-        model = smoke_record
+        model = gold_record
         fields = ('id', 'version','patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'result', 'status','smokeid', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
-        return obj.api_smoke.all().count()
+        return obj.api_gold_record.all().count()
 
     def get_dynamicCount(self, obj):
         return obj.dynamic_smoke.all().count()
@@ -637,15 +616,14 @@ class smokerecord_Serializer(serializers.ModelSerializer):
         return obj.member_smoke.all().count()
 
 
-class smokerecord_Deserializer(serializers.ModelSerializer):
+class gold_record_Deserializer(serializers.ModelSerializer):
     """
     smoke测试数据记录表反序列化
     """
 
     class Meta:
-        model = smoke_record
+        model = gold_record
         fields = ('version', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
                   'result', 'status','smokeid')
-
 

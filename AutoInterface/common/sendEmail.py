@@ -21,8 +21,8 @@ sys.path.append(PathProject)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api_automation_test.settings")
 django.setup()
 
-from AutoTest.serializers import ProjectMemberSerializer
-from AutoTest.models import AutomationReportSendConfig, ProjectMember, Project
+from AutoProject.serializers import ProjectMemberSerializer
+from AutoProject.models import AutomationReportSendConfig, ProjectMember, Project
 
 
 # test_time    测试时间

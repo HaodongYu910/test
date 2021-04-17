@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 const ProjectInfo = () => import('../components/project/Projectdetail.vue');
-const Server = () => import('../components/project/global/Server.vue');
+const Server = () => import('../components/project/global/ServerList.vue');
 const API = () => import('../components/project/api/API.vue');
 const ApiList = () => import('../components/project/api/ApiList.vue');
 const ApiListGroup = () => import('../components/project/api/ApiListGroup.vue');
@@ -64,7 +64,7 @@ export default new Router({
                 },
                 {
                     path: '/duration',
-                    component: resolve => require(['../components/DicomTool/duration/duration.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/durationList.vue'], resolve),
                     meta: {title: '持续化工具'}
 
                 },
@@ -82,7 +82,7 @@ export default new Router({
                 },
                 {
                     path: '/dicomGroup',
-                    component: resolve => require(['../components/DicomTool/dicomdata/dicomGroup.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/DicomGroup/dicomGroup.vue'], resolve),
                     meta: {title: 'Dicom组管理'}
 
                 },
@@ -122,7 +122,7 @@ export default new Router({
                 // UI列表
                 {
                     path: '/UIList',
-                    component: resolve => require(['../components/autoui/UIlist.vue'], resolve),
+                    component: resolve => require(['../components/autoui/UIList.vue'], resolve),
                     meta: {title: 'UI自动化列表'}
 
                 },
@@ -141,7 +141,7 @@ export default new Router({
                 },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/project/gold/goldlist.vue'], resolve),
+                    component: resolve => require(['../components/project/gold/goldList.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
@@ -179,7 +179,7 @@ export default new Router({
                 },
                 {
                     path: '/monitor',
-                    component: resolve => require(['../components/stress/monitor.vue'], resolve),
+                    component: resolve => require(['../components/stress/stressMonitor.vue'], resolve),
                     meta: {title: '性能监控'}
                 },
                 {
@@ -189,12 +189,12 @@ export default new Router({
                 },
                 {
                     path: '/stressHome',
-                    component: resolve => require(['../components/stress/stressHome.vue'], resolve),
+                    component: resolve => require(['../components/stress/stressList.vue'], resolve),
                     meta: {title: '性能测试'}
                 },
                 {
                     path: '/stressreport',
-                    component: resolve => require(['../components/stress/stress_result.vue'], resolve),
+                    component: resolve => require(['../components/stress/stressResult.vue'], resolve),
                     meta: {title: '性能报告'}
                 },
                 {
@@ -211,7 +211,7 @@ export default new Router({
                 {
                     //安装部署
                     path: '/deploy',
-                    component: resolve => require(['../components/deploy/deploylist.vue'], resolve),
+                    component: resolve => require(['../components/deploy/deployList.vue'], resolve),
                     meta: {title: '安装部署'}
                 },
                 //邮件詳情頁面
@@ -280,7 +280,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/DicomTool/dicomdata/dicomFile.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/DicomFile/dicomFile.vue'], resolve),
                     meta: {title: 'dicom文件'}
                 },
                 {
@@ -313,7 +313,7 @@ export default new Router({
                 },
                 {
                     path: '/host',
-                    component: resolve => require(['../components/project/global/Server.vue'], resolve),
+                    component: resolve => require(['../components/project/global/ServerList.vue'], resolve),
                     meta: {title: 'Host配置'}
                 },
                 // {
@@ -493,7 +493,7 @@ export default new Router({
 //     },
 //     {
 //       path: '/Server/project=:project_id',
-//       component: '@/views//project/global/Server.vue',
+//       component: '@/views//project/global/ServerList.vue',
 //       name: 'Host配置',
 //       leaf: true
 //     },

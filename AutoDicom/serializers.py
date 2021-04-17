@@ -50,7 +50,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
         model = duration_record
         fields = (
             'id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server',
-            'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'time', 'starttime', 'endtime', 'diseases', 'jobtime', 'error', 'model','update_time', 'create_time')
+            'aistatus', 'diagnosis',  'sendserver', 'duration_id', 'sendtime', 'time', 'starttime', 'endtime', 'diseases', 'jobtime', 'error', 'model','update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 class duration_record_Deserializer(serializers.ModelSerializer):
@@ -74,7 +74,7 @@ class duration_Serializer(serializers.ModelSerializer):
         model = duration
         fields = (
             'id', 'version', 'server', 'port', 'aet', 'patientname','patientid', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series',
-        'sendstatus','status', 'sendcount', 'dds', 'type', 'Host', 'update_time', 'create_time')
+        'sendstatus','status', 'sendcount', 'group', 'dds', 'type', 'Host', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 
@@ -86,7 +86,7 @@ class duration_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = duration
         fields = ('id', 'version', 'server', 'port', 'aet', 'patientname', 'patientid', 'dicom', 'end_time', 'sleepcount', 'sleeptime', 'series',
-        'sendstatus','status', 'sendcount', 'dds', 'type', 'Host')
+        'sendstatus','status', 'sendcount', 'group', 'dds', 'type', 'Host')
 
 
 class dicomGroup_Serializer(serializers.ModelSerializer):

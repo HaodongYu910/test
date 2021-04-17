@@ -15,8 +15,8 @@ import time
 import queue
 
 from AutoStress.models import stress, Server
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.common.api_response import JsonResponse
 
 from .deletepatients import delete_patients_duration
 from ..models import duration_record, dicom, duration

@@ -6,8 +6,8 @@
 参数说明：
 
 '''
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.models import *
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.models import *
 
 
 

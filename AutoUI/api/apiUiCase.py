@@ -5,10 +5,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.api_response import JsonResponse
 from ..serializers import autoui_Deserializer,autocase_Serializer
 from AutoDicom.common.deletepatients import *
-from AutoTest.models import uploadfile
+from AutoProject.models import uploadfile
 from AutoDicom.common.dicomBase import baseTransform
 from AutoUI.common.autouitest import *
 from  django.db import transaction

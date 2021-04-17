@@ -1,5 +1,5 @@
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.models import dictionary
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.models import dictionary
 from ..serializers import stress_result_Deserializer
 from django.db import transaction
 from AutoDicom.common.dicomBase import voteData

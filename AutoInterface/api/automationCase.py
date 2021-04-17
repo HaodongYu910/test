@@ -14,22 +14,23 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 
-from AutoTest.common.WriteExcel import Write
-from AutoTest.common.addTask import add
-from AutoTest.common.api_response import JsonResponse
-from AutoTest.common.common import record_dynamic, create_json, del_task_crontab
-from AutoTest.common.confighttp import test_api
-from AutoTest.models import Project, AutomationGroupLevelFirst, \
+from AutoProject.common.WriteExcel import Write
+from AutoProject.common.addTask import add
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.common.common import record_dynamic, create_json, del_task_crontab
+from AutoInterface.common.confighttp import test_api
+from AutoInterface.models import AutomationGroupLevelFirst, \
     AutomationTestCase, AutomationCaseApi, AutomationParameter, Server, AutomationHead, AutomationTestTask, \
     AutomationTestResult, ApiInfo, AutomationParameterRaw, AutomationResponseJson
 
-from AutoTest.serializers import AutomationGroupLevelFirstSerializer, AutomationTestCaseSerializer, \
+from AutoInterface.serializers import AutomationGroupLevelFirstSerializer, AutomationTestCaseSerializer, \
     AutomationCaseApiSerializer, AutomationCaseApiListSerializer, AutomationTestTaskSerializer, \
     AutomationTestResultSerializer, ApiInfoSerializer, CorrelationDataSerializer, AutomationTestReportSerializer, \
     AutomationTestCaseDeserializer, AutomationCaseApiDeserializer, AutomationHeadDeserializer, \
-    AutomationParameterDeserializer, AutomationTestTaskDeserializer, ProjectSerializer, \
-    AutomationCaseDownSerializer
+    AutomationParameterDeserializer, AutomationTestTaskDeserializer, AutomationCaseDownSerializer
 
+from AutoProject.models import Project
+from AutoProject.serializers import ProjectSerializer
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
 
@@ -1386,7 +1387,7 @@ class DownLoadCase(APIView):
             return JsonResponse(code="999985", msg="该项目已禁用")
         obi = AutomationGroupLevelFirst.objects.filter(project=project_id).order_by("id")
         data = AutomationCaseDownSerializer(obi, many=True).data
-        path = "./AutoTest/ApiDoc/%s.xlsx" % str(obj.name)
+        path = "./AutoProject/ApiDoc/%s.xlsx" % str(obj.name)
         result = Write(path).write_case(data)
         if result:
             return JsonResponse(code="0", msg="成功！", data=path)

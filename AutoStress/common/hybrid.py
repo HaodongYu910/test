@@ -23,24 +23,14 @@ from ..serializers import stress_result_Deserializer
 from AutoDicom.models import duration_record, dicom
 from AutoDicom.common.deletepatients import delete_patients_duration
 
-from AutoTest.utils.graphql.graphql import *
-from AutoTest.utils.keycloak.login_kc import login_keycloak
+from AutoProject.utils.graphql.graphql import *
+
 
 from ..common.jmeter import JmeterThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-#  删除dicom报告
-def delreport(kc, studyinstanceuid):
-    try:
-        graphql_query = 'mutation{ ' \
-                        'deleteReport( studyuid:' + str(studyinstanceuid) + ' )' \
-                                                                            'deleteProtocol( studyuid:' + str(
-            studyinstanceuid) + ' ) }'
-        graphql_Interface(graphql_query, kc)
-    except:
-        logger.error("删除失败{0}".format(studyinstanceuid))
 
 def get_date():
     localtime = time.localtime(time.time())
@@ -67,7 +57,6 @@ class HybridThread(threading.Thread):
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
-        self.kc = login_keycloak(self.obj.Host_id)
 
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
@@ -118,10 +107,10 @@ class HybridThread(threading.Thread):
         ds.SOPInstanceUID = self.norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
         ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), self.patientid, rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), 'ST', rand_uid), 24)
 
         ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), 'st', rand_uid), 24)
         ds.AccessionNumber = fake_acc_number
 
         ds.StudyDate = cur_date
@@ -154,7 +143,7 @@ class HybridThread(threading.Thread):
         q = queue.Queue()
         filecount = 1
         dcmcount = 0
-
+        logger.info("测试集合：{}".format(self.obj.testdata.split(",")))
         dicomobj = dicom.objects.filter(predictor__in=self.obj.testdata.split(","),
                                         stressstatus__in=['1', '2'],
                                         status=True)
@@ -165,6 +154,7 @@ class HybridThread(threading.Thread):
                     self.CountData.append(dcmcount)
                     break
                 if file_end >= filecount > int(dicomobj.count()):
+                    logger.info("重新加载数据 file_end：{0}，{1}，{2}".format(file_end, filecount, int(dicomobj.count())))
                     dicomobj = dicom.objects.filter(predictor__in=self.obj.testdata.split(","),
                                                     stressstatus__in=['1', '2'],
                                                     status=True)
@@ -193,6 +183,7 @@ class HybridThread(threading.Thread):
                                 if (os.path.splitext(fn)[1] in ['.dcm'] == False):
                                     continue
                                 try:
+                                    # logger.info("队列数据:{}".format([full_fn, full_fn_fake, info, dcmcount]))
                                     q.put([full_fn, full_fn_fake, info, dcmcount])
                                 except Exception as e:
                                     logging.error("[匿名错误]:{}".format(e))
@@ -200,13 +191,16 @@ class HybridThread(threading.Thread):
                         except Exception as e:
                             logger.error("遍历文件：{}".format(e))
                     filecount = filecount + 1
-            logger.info("self:{}".format(self.CountData))
+
             return q
         except Exception as e:
             logger.error("队列错误：{}".format(e))
 
     # 匿名混合测试
     def run(self):
+        self.obj.status = True
+        self.obj.teststatus = '混合测试开始'
+        self.obj.save()
         if self.obj.jmeterstatus is True:
             jmeter = JmeterThread(stressid=self.obj.stressid)
             jmeter.setDaemon(True)
@@ -223,13 +217,8 @@ class HybridThread(threading.Thread):
             for t in threads:
                 t.join()
                 time.sleep(1)
-            # for i in range(self.thread_num):
-            #     threads[i].start()
-            # for i in range(self.thread_num):
-            #     threads[i].join()
-
         except Exception as e:
-            logger.error("队列生成失败：{0}".format(e))
+            logger.error("Thread Run Fail：{0}".format(e))
 
     # 混合测试发送数据
     def durationAnony(self, q):
@@ -255,13 +244,6 @@ class HybridThread(threading.Thread):
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
-
-            # try:
-            #     study_fakeinfos["count"] = int(study_fakeinfos["count"]) + 1
-            #     self.delayed(study_fakeinfos)
-            # except Exception as e:
-            #     logging.error('errormsg: failed delayed{0} ---报错：{1}]'.format(full_fn_fake, e))
-            #     continue
 
     def connect_influx(self, data):
         try:

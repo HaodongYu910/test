@@ -4,7 +4,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.api_response import JsonResponse
 
 from ..serializers import stress_Deserializer
 from AutoDicom.serializers import dicomdata_Deserializer

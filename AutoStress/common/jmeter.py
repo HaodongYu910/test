@@ -6,11 +6,11 @@ import time
 
 from ..models import  stress
 
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.common.regexUtil import csv
-from AutoTest.models import  dictionary, uploadfile
-from AutoTest.utils.graphql.graphql import *
-from AutoTest.utils.keycloak.login_kc import login_keycloak
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.common.regexUtil import csv
+from AutoProject.models import  dictionary, uploadfile
+from AutoProject.utils.graphql.graphql import *
+from AutoProject.utils.keycloak.login_kc import login_keycloak
 
 from django.conf import settings
 

@@ -2,11 +2,11 @@
 import logging
 from django.db.models import Count, When, Case, Max, Min, Avg, Q
 import time, datetime
-from AutoTest.scheduletask import DurationTask
+from AutoProject.scheduletask import DurationTask
 import time
 import json
 import threading
-from ..models import duration,duration_record
+from ..models import duration, duration_record
 
 from ..serializers import duration_record_Serializer
 
@@ -29,11 +29,11 @@ class ReportThread(threading.Thread):
         self.server = self.obj.Host.host
         self.statistics_date = '{} 00:00:00'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
         self.diseases = kwargs["diseases"]
+        self.dis = []
+        self.durationData = []
 
     # 生成报告数据
     def report(self):
-        durationData = []
-        diseases = []
         try:
             record = duration_record.objects.filter(duration_id=self.obj.id,
                                                     create_time__lte=self.statistics_date).values(
@@ -54,69 +54,83 @@ class ReportThread(threading.Thread):
                 "statistics_date": self.statistics_date,
                 "end_date": self.obj.end_time
             }
-
-            recordDetail = duration_record.objects.filter(jobtime__isnull=False, duration_id=self.obj.id, create_time__lte=self.statistics_date).values(
-                "diseases").annotate(
-                ModelAvg=Avg('time'),
-                ModelMax=Max('time'),
-                ModelMin=Min('time'),
-                JobAvg=Avg('jobtime'),
-                JobMax=Max('jobtime'),
-                JobMin=Min('jobtime'),
-                success=Count(Case(When(aistatus__in=[2, 3], then=0))),
-                fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
-                count=Count('id'))
-
-            for i in recordDetail:
-                try:
-                    if i["ModelAvg"] is None:
-                        i["ModelAvg"] = 0
-                    elif i["ModelMax"] is None:
-                        i["ModelMax"] = 0
-                    elif i["ModelMin"] is None:
-                        i["ModelMin"] = 0
-                    elif i["JobAvg"] is None:
-                        i["JobAvg"] = 0
-                    elif i["JobMax"] is None:
-                        i["JobMax"] = 0
-                    elif i["JobMin"] is None:
-                        i["JobMin"] = 0
-                    diseases.append(i["diseases"])
-                    rate = '%.2f' % float(int(i["success"])/(int(i["success"])+int(i["fail"]))*100)
-                    durationData.append({
-                        "diseases": i["diseases"],
-                        "ModelAvg":  '%.2f' % (float(i["ModelAvg"])),
-                        "ModelMax": i["ModelMax"],
-                        "ModelMin": i["ModelMin"],
-                        "JobAvg": '%.2f' % (float(i["JobAvg"])),
-                        "JobMax": i["JobMax"],
-                        "JobMin": i["JobMin"],
-                        "success": i["success"],
-                        "fail": i["fail"],
-                        "count": i["count"],
-                        "rate": rate,
-                    })
-                except Exception as e:
-                    logger.error("recordDetail 查询数据错误{}".format(e))
-                    continue
-
+            self.DetailData()
             data = {
                 "basedata": basedata,
                 "durationLineData": self.durationLine(),
-                "durationData": durationData,
-                "diseases": diseases,
-                "model": ['date', self.diseases],
+                "durationData": self.durationData,
+                "diseases": self.dis,
+                "model": ['date', "{}-Prediction".format(self.diseases), "{}-Job".format(self.diseases)],
                 "errorData": self.errorData()
             }
             return data
         except Exception as e:
             logger.error("报告数据：{0}".format(e))
 
+    def DetailData(self):
+        recordDetail = duration_record.objects.filter(jobtime__isnull=False, duration_id=self.obj.id,
+                                                      create_time__lte=self.statistics_date).values(
+            "diseases").annotate(
+            ModelAvg=Avg('time'),
+            ModelMax=Max('time'),
+            ModelMin=Min('time'),
+            JobAvg=Avg('jobtime'),
+            JobMax=Max('jobtime'),
+            JobMin=Min('jobtime'),
+            success=Count(Case(When(aistatus__in=[2, 3], then=0))),
+            fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
+            count=Count('id'))
+
+        # Detailed 数据信息
+        for i in recordDetail:
+            try:
+                info = {}
+                obl = duration_record.objects.filter(duration_id=self.obj.id, diseases=i["diseases"], aistatus__in=[1])
+                # 按病种 统计 错误 信息
+                for jj in obl:
+                    error = json.loads(jj.error[1:-1])["code"]
+                    if info.__contains__(error) is False:
+                        info[error] = 1
+                    else:
+                        info[error] = info[error] + 1
+                if i["ModelAvg"] is None:
+                    i["ModelAvg"] = 0
+                elif i["ModelMax"] is None:
+                    i["ModelMax"] = 0
+                elif i["ModelMin"] is None:
+                    i["ModelMin"] = 0
+                elif i["JobAvg"] is None:
+                    i["JobAvg"] = 0
+                elif i["JobMax"] is None:
+                    i["JobMax"] = 0
+                elif i["JobMin"] is None:
+                    i["JobMin"] = 0
+                self.dis.append(i["diseases"])
+                rate = '%.2f' % float(int(i["success"]) / (int(i["success"]) + int(i["fail"])) * 100)
+                self.durationData.append({
+                    "diseases": i["diseases"],
+                    "ModelAvg": '%.2f' % (float(i["ModelAvg"])),
+                    "ModelMax": i["ModelMax"],
+                    "ModelMin": i["ModelMin"],
+                    "JobAvg": '%.2f' % (float(i["JobAvg"])),
+                    "JobMax": i["JobMax"],
+                    "JobMin": i["JobMin"],
+                    "success": i["success"],
+                    "fail": i["fail"],
+                    "count": i["count"],
+                    "rate": rate,
+                    "errorinfo": info
+                })
+            except Exception as e:
+                logger.error("recordDetail 查询数据错误{}".format(e))
+                continue
+
     def errorData(self):
         try:
             recorddata = {}
             errorData = []
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, create_time__lte=self.statistics_date)
+            recordDetail = duration_record.objects.filter(duration_id=self.obj.id,
+                                                          create_time__lte=self.statistics_date)
 
             for i in recordDetail:
                 if i.error is not None and i.error != '[]':
@@ -126,7 +140,7 @@ class ReportThread(threading.Thread):
                     else:
                         recorddata[error["code"]] = recorddata[error["code"]] + 1
             for k, v in recorddata.items():
-                errorData.append({'状态': k, '数量': v })
+                errorData.append({'状态': k, '数量': v})
 
             return errorData
         except Exception as e:
@@ -135,9 +149,14 @@ class ReportThread(threading.Thread):
     def durationLine(self):
         try:
             durationLineData = []
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, diseases=self.diseases, aistatus__in=[2, 3]).order_by("starttime")
+            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, diseases=self.diseases,
+                                                          aistatus__in=[2, 3]).order_by("starttime")
             for i in recordDetail:
-                durationLineData.append({"date": i.starttime[5:], i.diseases: i.time})
+                durationLineData.append({
+                    "date": i.starttime[5:],
+                    "{}-Prediction".format(i.diseases): i.time,
+                    "{}-Job".format(i.diseases): i.jobtime
+                })
             return durationLineData
         except Exception as e:
             logger.error("预测趋势数据生成失败：{0}".format(e))

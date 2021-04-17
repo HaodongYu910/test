@@ -12,9 +12,9 @@ sys.path.append(PathProject)
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "api_automation_test.settings")
 django.setup()
 
-from AutoTest.common.sendEmail import send_email
-from AutoTest.common.auto_task_test import test_api
-from AutoTest.models import AutomationCaseApi, AutomationTaskRunTime, AutomationTestCase, Server, Project
+from AutoProject.common.sendEmail import send_email
+from AutoProject.common.auto_task_test import test_api
+from AutoProject.models import AutomationCaseApi, AutomationTaskRunTime, AutomationTestCase, Server, Project
 
 
 def automation_task():

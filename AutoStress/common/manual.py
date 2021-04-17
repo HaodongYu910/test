@@ -11,12 +11,12 @@ from django.conf import settings
 from ..models import stress_record, stress_result, stress
 from ..serializers import stress_result_Deserializer
 from .loganalys import errorLogger
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.common.regexUtil import csv
-from AutoTest.models import Server, dictionary, uploadfile
-from AutoTest.utils.graphql.graphql import *
-from AutoTest.utils.keycloak.login_kc import login_keycloak
-from AutoTest.common.transport import SSHConnection
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.common.regexUtil import csv
+from AutoProject.models import Server, dictionary, uploadfile
+from AutoProject.utils.graphql.graphql import *
+from AutoProject.utils.keycloak.login_kc import login_keycloak
+from AutoProject.common.transport import SSHConnection
 
 from AutoDicom.common.dicomBase import checkuid, voteData
 from AutoDicom.models import duration_record, dicom

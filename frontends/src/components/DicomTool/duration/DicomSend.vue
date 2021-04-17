@@ -138,8 +138,8 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="options" v-model="editForm.senddata" clearable :props="props"
-                                             @click.native="getBase()"></el-cascader>
+                                <el-cascader :options="groupOptions" v-model="editForm.senddata" clearable :props="props"
+                                             @click.native="getgroupbase()"></el-cascader>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
@@ -323,8 +323,8 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
-                                             @click.native="getBase()"></el-cascader>
+                                <el-cascader :options="groupOptions" v-model="addForm.senddata" clearable :props="props"
+                                             @click.native="getgroupbase()"></el-cascader>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
@@ -433,6 +433,7 @@
     import {
         getduration,
         getdurationverifydata,
+        getGroupBase,
         addduration,
         delduration,
         updateduration,
@@ -462,7 +463,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                options: [{
+                groupOptions: [{
                     value: 'test',
                     label: 'test',
                     children: [{
@@ -668,6 +669,28 @@
                     }
                 })
             },
+            // 获取级联 查询 组信息列表
+            getgroupbase() {
+                this.listLoading = true
+                const self = this
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getGroupBase(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            this.groupOptions = data.groupOptions
+
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    }
+                )
+            },
+            // 获取版本信息
             getversion() {
                 const params = {
                     type: '1'

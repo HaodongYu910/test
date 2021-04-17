@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from rest_framework.authtoken.models import Token
-from AutoTest.models import Server
+from AutoProject.models import Server
 # Create your models here.
 
 

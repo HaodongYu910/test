@@ -1,11 +1,11 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from AutoTest.models import pid
+from AutoProject.models import pid
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
 from ..common.saveResult import *
 from ..common.PerformanceResult import *
@@ -100,7 +100,9 @@ class stressStop(APIView):
             return result
         try:
             obj = stress.objects.get(stressid=data["stressid"])
-
+            obj.status = False
+            obj.teststatus = '已停止'
+            obj.save()
             if obj.teststatus == "单一测试开始":
                 stoptest = SingleThread(stressid=data["stressid"])
 
@@ -108,25 +110,30 @@ class stressStop(APIView):
                 stoptest = HybridThread(stressid=data["stressid"])
                 durationid = '0' + str(data["stressid"])
                 drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
-                # 删除错误数据
-                for j in drobj:
-                    delete_patients_duration(j.studyinstanceuid, obj.Host_id, "studyinstanceuid", False)
-                drobj.delete()
+                # 删除未发送完的错误数据
+                try:
+                    for j in drobj:
+                        j.delete()
+                        delete_patients_duration(j.studyinstanceuid, obj.Host_id, "studyinstanceuid", False)
+                except Exception as e:
+                    logger.error("删除未发送完的错误数据失败：{}".format(e))
 
+                # 删除文件夹
+                try:
+                    folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))
+                    if os.path.exists(folder):
+                        shutil.rmtree(folder)
+                except Exception as e:
+                    logger.error("删除文件夹失败：{}".format(e))
+                # 统计报告
                 result = ResultThread(stressid=data['stressid'])
                 result.setDaemon(True)
                 result.start()
-                # 删除 文件夹
-                folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.id))
-                if os.path.exists(folder):
-                    shutil.rmtree(folder)
             else:
                 stoptest = ManualThread(stressid=data["stressid"])
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
-            self.obj.status = False
-            obj.teststatus = '已停止'
-            obj.save()
+
             return JsonResponse(code="0", msg="已停止")
         except Exception as e:
             logger.error(e)
@@ -225,9 +232,13 @@ class addStress(APIView):
         if result:
             return result
         try:
+            testdata =''
             hostobj = Server.objects.get(id=data['Host'])
             data["loadserver"] = hostobj.host
-            data["testdata"] = str(data["testdata"])[1:-1]
+            # 循环保证 字符串中无空格
+            for j in data["testdata"]:
+                testdata = testdata + str(j) + ","
+            data["testdata"] = testdata[:-1]
             Stressadd = stress_Deserializer(data=data)
             with transaction.atomic():
                 Stressadd.is_valid()

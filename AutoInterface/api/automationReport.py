@@ -3,11 +3,13 @@ from django.db.models import Q
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 
-from AutoTest.common.api_response import JsonResponse
-from AutoTest.models import Project, AutomationTaskRunTime, AutomationTestCase, AutomationCaseApi, \
+from AutoInterface.models import AutomationTaskRunTime, AutomationTestCase, AutomationCaseApi, \
     AutomationCaseTestResult
-from AutoTest.serializers import AutomationAutoTestResultSerializer, \
-    AutomationTestLatelyTenTimeSerializer, AutomationTaskRunTimeSerializer, ProjectSerializer
+from AutoInterface.serializers import AutomationAutoTestResultSerializer, \
+    AutomationTestLatelyTenTimeSerializer, AutomationTaskRunTimeSerializer
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.models import Project
+from AutoProject.serializers import ProjectSerializer
 
 
 class TestTime(APIView):

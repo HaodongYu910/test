@@ -15,7 +15,7 @@ import queue
 from django.db import transaction
 from django.conf import settings
 import threading
-from AutoDicom.models import duration_record, dicom, duration
+from AutoDicom.models import duration_record, dicom, duration, dicom_group_detail
 from ..common.deletepatients import delete_patients_duration
 from ..serializers import duration_record_Serializer
 
@@ -49,14 +49,14 @@ class DicomData(threading.Thread):
     def run(self):
         q = queue.Queue()
         threads = []
-        dicomobj = dicom.objects.filter(fileid__in=self.files)
+        dicomObj = dicom.objects.filter(fileid__in=self.files)
         try:
             while True:
                 if self.count > self.end:
                     break
-                if self.end >= self.count > int(dicomobj.count()):
-                    dicomobj = dicom.objects.filter(fileid__in=self.files)
-                for j in dicomobj:
+                if self.end >= self.count > int(dicomObj.count()):
+                    dicomObj = dicom.objects.filter(fileid__in=self.files)
+                for j in dicomObj:
                     if self.count > self.end:
                         break
                     else:
@@ -167,16 +167,27 @@ class DurationThread(threading.Thread):
         q = queue.Queue()
         filecount = 1
         dcmcount = 0
-        dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","))
+        dicomID = []
+        # 查询 所以 dicom ID  优先组数据
+        if self.obj.dicom is not None and len(self.obj.dicom.strip()) > 0:
+            for i in dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True):
+                dicomID.append(i.id)
+        if self.obj.group is not None and len(self.obj.group.strip()) > 0:
+            for i in dicom_group_detail.objects.filter(group__id__in=self.obj.group.split(",")):
+                dicomID.append(i.dicom_id)
+        # 查询发送数据
+        dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
         try:
             file_end = int(self.obj.sendcount)
             while True:
                 if filecount > file_end:
                     self.CountData.append(dcmcount)
                     break
-                if file_end >= filecount > int(dicomobj.count()):
-                    dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True)
-                for j in dicomobj:
+                if file_end >= filecount > int(dicomObj.count()):
+                    # 查询发送数据
+                    dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
+                # 优先查询组
+                for j in dicomObj:
                     self.CountData.append(dcmcount)
                     if filecount > file_end:
                         break
@@ -242,6 +253,7 @@ class DurationThread(threading.Thread):
         while not q.empty():
             if self.Flag is False:
                 break
+            self.count = self.count + 1
             testdata = q.get()
             full_fn_fake = testdata[1]
             try:
@@ -264,7 +276,7 @@ class DurationThread(threading.Thread):
                 continue
 
             try:
-                self.delayed(Seriesinstanceuid, int(testdata[3]))
+                self.delayed(Seriesinstanceuid)
             except Exception as e:
                 logger.error("delayed fail:{}".format(e))
 
@@ -313,10 +325,10 @@ class DurationThread(threading.Thread):
         return str_dest
 
     # 判断是否 同一个 Series
-    def delayed(self, SeriesID, Num):
+    def delayed(self, SeriesID):
         try:
             if self.obj.sleepcount is not None and int(self.obj.sleepcount) != 0 and self.obj.sleeptime is not None:
-                imod = divmod(int(Num), int(self.obj.sleepcount))
+                imod = divmod(int(self.count), int(self.obj.sleepcount))
                 if imod[1] == 0:
                     time.sleep(int(self.obj.sleeptime))
             if self.obj.series is True and self.obj.sleeptime is not None:
@@ -325,7 +337,7 @@ class DurationThread(threading.Thread):
                     self.SeriesInstanceUID = SeriesID
         except Exception as e:
             logger.error("delayed:{}".format(e))
-
+    # 停止
     def durationStop(self):
         # 改变状态
         self.obj.sendstatus = False
@@ -333,6 +345,7 @@ class DurationThread(threading.Thread):
         self.Flag = False
 
         drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
+
         # 删除错误数据
         for j in drobj:
             delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)

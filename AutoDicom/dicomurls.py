@@ -5,7 +5,7 @@ from .api.apiDicom import *
 from .api.apiDuration import *
 from .api.apiDicombase import *
 from .api.apiDurationReport import DurationReport
-
+from .api.apiGroup import *
 
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
@@ -33,7 +33,7 @@ urlpatterns = [
     url(r'duration/disable_duration', DisableDuration.as_view()),
     url(r'duration/enable_duration', EnableDuration.as_view()),
     url(r'duration/getduration', getDuration.as_view()),
-    url(r'dicomurl',dicomUrl.as_view()),
+    url(r'dicomurl', dicomUrl.as_view()),
     url(r'DicomTool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
     url(r'base/getdata', getBase.as_view()),
     url(r'base/addData', AddbaseData.as_view()),
@@ -42,6 +42,14 @@ urlpatterns = [
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
+    url(r'group/groupadd', AddGroup.as_view()),
+    url(r'group/groupup', UpdateGroup.as_view()),
+    url(r'group/disablegroup', DisableGroup.as_view()),
+    url(r'group/enablegroup', EnableGroup.as_view()),
+    url(r'group/delgroup', DelGroup.as_view()),
+    url(r'group/getgroup', getGroup.as_view()),
+    url(r'group/getinfo', GroupInfo.as_view()),
+    url(r'group/groupbase', getGroupBase.as_view()),
     url(r'updatedata', Updatedata.as_view()),
     url(r'tool/search_data', ddsDataVerifyAPI.as_view()),
     url(r'report/durationreport', DurationReport.as_view()),

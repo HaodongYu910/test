@@ -1,5 +1,5 @@
 from django.db import models
-from AutoTest.models import Server
+from AutoProject.models import Server
 
 # Create your models here.
 

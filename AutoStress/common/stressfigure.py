@@ -9,10 +9,10 @@ import matplotlib.pyplot as plt
 from io import BytesIO
 import base64
 from django.db.models import Q
-from AutoTest.models import dictionary
+from AutoProject.models import dictionary
 from ..models import stress, stress_result
 from ..serializers import stress_Deserializer
-# from AutoTest.common.excel_data import *
+# from AutoProject.common.excel_data import *
 import logging
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -181,7 +181,7 @@ def stressdataFigure(diseases, rtype):
 # iris_p = urllib.request.urlopen(setl)
 # iris = pd.read_csv(iris_p, sep=',', decimal='.', header=None, names=['测试', '开发', '运维', '运营', '产品'])
 #
-# iris_des = """<h1>AutoTest</h1>""" + iris.describe().T.to_html()
+# iris_des = """<h1>AutoProject</h1>""" + iris.describe().T.to_html()
 
 # matplotlib 绘制一张图
 # fig,axes = plt.subplots(1,4,sharey = True)

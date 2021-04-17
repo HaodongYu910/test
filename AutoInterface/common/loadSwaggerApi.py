@@ -4,11 +4,12 @@ import requests
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 
-from AutoTest.common.common import record_dynamic
-from AutoTest.models import Project, ApiInfo, ApiHead, ApiParameter, ApiParameterRaw, ApiResponse, ApiOperationHistory
+from AutoProject.common.common import record_dynamic
+from AutoProject.models import Project
+from AutoInterface.models import ApiInfo, ApiHead, ApiParameter, ApiParameterRaw, ApiResponse, ApiOperationHistory
 from django.db import transaction
 
-from AutoTest.serializers import ApiInfoDeserializer, ApiHeadDeserializer, ApiParameterDeserializer, \
+from AutoInterface.serializers import ApiInfoDeserializer, ApiHeadDeserializer, ApiParameterDeserializer, \
     ApiResponseDeserializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。

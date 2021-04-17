@@ -1,8 +1,8 @@
 # coding=utf-8
 
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.models import dictionary
-from AutoTest.utils.keycloak.login_kc import *
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.models import dictionary
+from AutoProject.utils.keycloak.login_kc import *
 import logging
 from ..models import dicom
 logger = logging.getLogger(__name__)

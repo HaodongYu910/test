@@ -2,12 +2,12 @@ from ..models import dicom_base, dicom
 from AutoUI.models import auto_uicase
 from .deletepatients import *
 from .deletepatients import delete_patients_duration
-from AutoTest.utils.graphql.graphql import *
-from AutoTest.utils.keycloak.login_kc import *
+from AutoProject.utils.graphql.graphql import *
+from AutoProject.utils.keycloak.login_kc import *
 
-from AutoTest.models import Server, dictionary
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.common.regexUtil import savecsv
+from AutoProject.models import Server, dictionary
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.common.regexUtil import savecsv
 import os
 from ..common.Dicom import SendQueThread
 
@@ -57,20 +57,23 @@ def dicomsavecsv(ids):
 
 # 检查是否数据
 def checkuid(serverID, serverIP, dicomid):
-    obj = dicom.objects.get(id=dicomid)
-    sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
-        obj.studyinstanceuid)
-    result_db = connect_postgres(host=serverID, sql=sql, database="orthanc")
+    try:
+        obj = dicom.objects.get(id=dicomid)
+        sql = 'select studyinstanceuid,patientname from study_view where studyinstanceuid = \'{0}\''.format(
+            obj.studyinstanceuid)
+        result_db = connect_postgres(host=serverID, sql=sql, database="orthanc")
+    except Exception as e:
+        logger.error("查询数据错误：{}".format(e))
     # 无此数据，发送v
     if len(result_db) == 0:
-        logger.info("send file")
+        logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
         thread_Send.run()
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
-        logger.info(" delete file")
+        logger.info(" delete file{}".format(obj.studyinstanceuid))
         delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
-        logger.info(" send file")
+        logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
         thread_Send.run()
 
