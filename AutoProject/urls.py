@@ -43,21 +43,6 @@ urlpatterns = [
     url(r'global/enable_protocol', EnableProtocol.as_view()),
     url(r'user/login', user.obtain_auth_token),
     url(r'user/info', userinfo.as_view()),
-<<<<<<< HEAD:AutoTest/urls.py
-    url(r'user/VisitorRecord', VisitorRecord.Record.as_view()),
-    url(r'addreport', Addreport.as_view()),
-    url(r'updatereport', Updatereport.as_view()),
-    url(r'delreport', Delreport.as_view()),
-    url(r'report', loadReport.as_view()),
-    url(r'sendreport', Sendreport.as_view()),
-    url(r'risk/add', Add_test_risk.as_view()),
-    url(r'risk/update', Updatetest_risk.as_view()),
-    url(r'risk/del', DelAutoTest_risk.as_view()),
-    url(r'risk/disable_risk', DisableRisk.as_view()),
-    url(r'risk/enable_riskt', EnableRisk.as_view()),
-    url(r'risk', Testrisk.as_view()),
-=======
->>>>>>> bc66ecb2c97fc152f93761da99048231c6829fe8:AutoProject/urls.py
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
     url(r'addupload', AddUpload.as_view()),  # 文件上传

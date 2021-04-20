@@ -72,3 +72,4 @@ paramiko~=2.7.2
 pip~=20.3.3
 pynetdicom~=1.5.6
 keycloak~=3.0.1
+htmltemplate~=2.2.1

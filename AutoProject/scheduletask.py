@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 # coding=utf-8
-from htmlTemplate.test_html import html
+# from htmlTemplate.test_html import html
 from AutoProject.models import install, dictionary, Server
 from AutoDicom.models import duration_record, duration
 from AutoDicom.serializers import duration_record_Deserializer
@@ -24,32 +24,32 @@ logger = logging.getLogger(__name__)
 __author__ = ""
 __version__ = ""
 
-
-def mail_task():
-    data = []
-    try:
-        if Weekdays(1) is True:
-            title = data.title
-            Html = html(data.test_version, data.cns_version)
-            if data.receiver == 'QualityControl':  # 测试邮件
-                receiver = ['hang.yin@biomind.ai', 'yinhang@bishijie.com']
-                email_cc = ['yinhang@bishijie.com', 'yinhang@bishijie.com']
-            else:  # 正式邮件
-                receiver = ['tech@bishijie.com', 'product@bishijie.com', 'op@bishijie.com',
-                            'yunwei@bishijie.com', 'qa.list@bishijie.com']
-                email_cc = ['tan@bishijie.com', 'zhaoyan@bishijie.com', 'limingzhu@bishijie.com']
-            # 附件
-            # attach_xlsx = 'C:/Users/Hvte/Desktop/coinness1.6 行情测试用例.xlsx'
-            # attach_jpg = 'D:/360Downloads/wey.png'
-            try:
-                [settings.MAIL_USER, receiver, email_cc, title, Html]
-            except Exception as e:
-                logger.info('[Error] ' + e)
-        else:
-            logger.info('[ 休息时间] ' + datetime.datetime.now())
-    except Exception as e:
-        logger.error('[Error] ' + e)
-
+#
+# def mail_task():
+#     data = []
+#     try:
+#         if Weekdays(1) is True:
+#             title = data.title
+#             Html = html(data.test_version, data.cns_version)
+#             if data.receiver == 'QualityControl':  # 测试邮件
+#                 receiver = ['hang.yin@biomind.ai', 'yinhang@bishijie.com']
+#                 email_cc = ['yinhang@bishijie.com', 'yinhang@bishijie.com']
+#             else:  # 正式邮件
+#                 receiver = ['tech@bishijie.com', 'product@bishijie.com', 'op@bishijie.com',
+#                             'yunwei@bishijie.com', 'qa.list@bishijie.com']
+#                 email_cc = ['tan@bishijie.com', 'zhaoyan@bishijie.com', 'limingzhu@bishijie.com']
+#             # 附件
+#             # attach_xlsx = 'C:/Users/Hvte/Desktop/coinness1.6 行情测试用例.xlsx'
+#             # attach_jpg = 'D:/360Downloads/wey.png'
+#             try:
+#                 [settings.MAIL_USER, receiver, email_cc, title, Html]
+#             except Exception as e:
+#                 logger.info('[Error] ' + e)
+#         else:
+#             logger.info('[ 休息时间] ' + datetime.datetime.now())
+#     except Exception as e:
+#         logger.error('[Error] ' + e)
+#
 
 def InstallTask():
     dobj = dictionary.objects.get(type='install', key='oldversion')

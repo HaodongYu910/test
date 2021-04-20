@@ -59,13 +59,6 @@ urlpatterns = [
     url(r'report/auto_test_report', Report.AutoTestReport.as_view()),
     url(r'report/test_time', Report.TestTime.as_view()),
     url(r'report/lately_ten', Report.AutoLatelyTenTime.as_view()),
-<<<<<<< HEAD:AutoInterface/apiurls.py
-    url(r'member/project_member', member.ProjectMemberList.as_view()),
-    url(r'member/email_config', member.EmailConfig.as_view()),
-    url(r'member/del_email', member.DelEmail.as_view()),
-    url(r'member/get_email', member.GetEmail.as_view()),
-]
-=======
     url(r'gold/addsmoke', AddSmoke.as_view()),
     url(r'gold/updatesmoke', UpdateSmoke.as_view()),
     url(r'gold/delsmoke', DelSmoke.as_view()),
@@ -77,4 +70,3 @@ urlpatterns = [
     url(r'gold/GoldReport', getGoldReport.as_view()),
     url(r'smoketest', Smoketest.as_view()),
 ]
->>>>>>> bc66ecb2c97fc152f93761da99048231c6829fe8:AutoInterface/apiUrls.py
