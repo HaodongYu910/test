@@ -601,9 +601,9 @@ class gold_record_Serializer(serializers.ModelSerializer):
 
     class Meta:
         model = gold_record
-        fields = ('id', 'version','patientid','patientname', 'studyinstanceuid', 'slicenumber',
+        fields = ('id', 'version', 'patientid', 'patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
-                  'result', 'status','smokeid', 'update_time', 'create_time')
+                  'result', 'status', 'gold' , 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
     def get_apiCount(self, obj):
@@ -625,5 +625,5 @@ class gold_record_Deserializer(serializers.ModelSerializer):
         model = gold_record
         fields = ('version', 'patientid','patientname', 'studyinstanceuid', 'slicenumber',
                   'diseases', 'aidiagnosis', 'aistatus', 'diagnosis', 'starttime', 'completiontime', 'type',
-                  'result', 'status','smokeid')
+                  'result', 'status','gold')
 

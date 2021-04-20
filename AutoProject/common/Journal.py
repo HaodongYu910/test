@@ -32,13 +32,15 @@ def log(param):
 
 
 def AddJournal(**kw):
-    # path = "{0}/{1}.log".format(settings.LOG_PATH, kw["name"])
-    path = "D:\\workspace\\test\\Biomind_Test_Platform\\logs\\test.log"
+    path = "{0}/{1}.log".format(settings.LOG_PATH, kw["name"])
+    #path = "D:\\workspace\\test\\Biomind_Test_Platform\\logs\\test.log"
     with open(path, 'a', encoding='utf-8') as f:
         f.write(kw["content"])
 
 def readJournal(name):
     full_log = '{0}/{1}.log'.format(settings.LOG_PATH, name)
+    if not os.path.exists(full_log):
+        return ""
     #full_log ="D:\\workspace\\test\\Biomind_Test_Platform\\logs\\test.log"
     with open(full_log, 'r', encoding='utf-8') as f:
         strTxt = f.read()  # 将txt文件的所有内容读入到字符串txtstr中

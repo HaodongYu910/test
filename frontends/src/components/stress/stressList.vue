@@ -87,7 +87,7 @@
                         </el-button>
                         <el-button type="primary" size="small" @click="handleSave(scope.$index, scope.row)">结果
                         </el-button>
-                        <el-button type="warning" size="small" @click="handleSave(scope.$index, scope.row)">报告
+                        <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告
                         </el-button>
                         <el-button type="danger" size="small" @click="stopstress(scope.$index, scope.row)">停止
                         </el-button>
@@ -434,6 +434,15 @@
             }
         },
         methods: {
+            showReport(index,row){
+             this.$router.push({
+                    path:'/stressReport',
+                    query:{
+                        stress_id:row.stressid,
+                        version:row.version
+                    }
+                });
+            },
             //展示监控
             checkExpress: function (start_date, end_date, loadserver) {
                 if (start_date === null) {

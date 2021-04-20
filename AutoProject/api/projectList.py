@@ -66,7 +66,7 @@ class AddProject(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["name"] or not data["version"] or not data["type"]:
+            if not data["name"]  or not data["type"]:
                 return JsonResponse(code="999996", msg="参数有误！")
             # type 类型 Web， App
             if data["type"] not in ["Web", "App"]:
@@ -104,8 +104,8 @@ class AddProject(APIView):
         project_serializer = ProjectDeserializer(data=data)
 
         try:
-            Project.objects.get(version=data["version"])
-            return JsonResponse(code="999997", msg="存在相同版本号")
+            Project.objects.get(version=data["name"])
+            return JsonResponse(code="999997", msg="存在相同名称")
         except ObjectDoesNotExist:
             with transaction.atomic():
                 if project_serializer.is_valid():

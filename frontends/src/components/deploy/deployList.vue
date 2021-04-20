@@ -201,7 +201,7 @@
                     </el-col>
                 </el-row>
                 <el-row :gutter="24">
-                    <el-col :span="12">
+                    <el-col :span="8">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.installstatus"
@@ -212,7 +212,7 @@
                         </el-switch>
                     </el-col>
 
-                    <el-col :span="12">
+                    <el-col :span="8">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.testcase"
@@ -220,6 +220,16 @@
                                 inactive-color="#ff4949"
                                 active-text=""
                                 inactive-text="更新备份">
+                        </el-switch>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-switch
+                                style="display: block"
+                                v-model="addForm.cache"
+                                active-color="#13ce66"
+                                inactive-color="#ff4949"
+                                active-text=""
+                                inactive-text="更新cache">
                         </el-switch>
                     </el-col>
                 </el-row>
@@ -276,9 +286,11 @@
             <el-card id="card" class="box-card" style="background:black;color:white;max-height:27.2em;overflow:auto">
                 <div id="text" style="background:black;color:white;" @click="autoFocus()">
                     <ul id="ulid">
-                        <li style="color:yellow;">安装部署日志：<br/></li>
+                        <li style="color:#44ff00;" >【安装部署日志】<br/></li>
                         <li>========================================================================<br/></li>
-                        <li v-for="i in journaldata" :key="i">{{i}}<br/></li>
+                        <div style="color:yellow;" :key="journal" class="text item">
+                            {{ journalstr }}
+                        </div>
                     </ul>
 <!--                    <ul id="ul">-->
 <!--                        <li v-for="(i,b) in total" :key="b">{{i}}<br/></li>-->
@@ -377,7 +389,8 @@
                     installstatus: false,
                     smokeid:true,
                     uid:false,
-                    testcase:false
+                    testcase:false,
+                    cache:true
                 }
             }
         },
@@ -471,6 +484,7 @@
                     const {msg, code, data} = res
                     if (code === '0') {
                         this.journaldata = data
+                        this.journalstr = this.journaldata .replace(/↵/g,"\n");
                         console.log(this.journaldata)
                     } else {
                         self.$message.error({
@@ -687,7 +701,7 @@
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
-                                message: '禁用成功',
+                                message: '已停止',
                                 center: true,
                                 type: 'success'
                             });
@@ -705,7 +719,7 @@
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
-                                message: '启用成功',
+                                message: '启动成功',
                                 center: true,
                                 type: 'success'
                             });
@@ -737,7 +751,8 @@
                     server: '',
                     smokeid:true,
                     uid:false,
-                    testcase:false
+                    testcase:false,
+                    cache:true
                 };
             },
             //编辑修改
@@ -803,7 +818,8 @@
                                 smokeid: self.addForm.smokeid,
                                 uid: self.addForm.uid,
                                 testcase:self.addForm.testcase,
-                                status:true
+                                cache:self.addForm.cache,
+                                status:false
                             });
                             let header = {
                                 "Content-Type": "application/json",

@@ -1,7 +1,7 @@
 <template>
     <div class="sidebar">
         <el-menu class="sidebar-el-menu" :default-active="onRoutes" :collapse="collapse" background-color="#282828"
-            text-color="#bfcbd9" active-text-color="#20a0ff" unique-opened router>
+                 text-color="#bfcbd9" active-text-color="#20a0ff" unique-opened router>
             <template v-for="item in items">
                 <template v-if="item.subs">
                     <el-submenu :index="item.index" :key="item.index">
@@ -33,6 +33,7 @@
 
 <script>
     import bus from '../../utils/bus';
+
     export default {
         data() {
             return {
@@ -45,13 +46,8 @@
                     },
                     {
                         icon: 'el-icon-s-platform',
-                        index: 'deploy',
-                        title: '安装部署',
-                    },
-                    {
-                        icon: 'el-icon-s-flag',
                         index: 'project',
-                        title: '接口自动化',
+                        title: '项目管理',
                         subs: [
                             {
                                 index: 'project',
@@ -59,11 +55,26 @@
                             },
                             {
                                 index: 'SmokeList',
-                                title: '金标准测试'
+                                title: '版本管理'
                             },
                             {
-                                index: 'ProjectReport',
-                                title: '自动化报告'
+                                index: 'deploy',
+                                title: '安装部署',
+                            },
+                            {
+                                index: 'host',
+                                title: 'Host配置'
+                            },
+                        ]
+                    },
+                    {
+                        icon: 'el-icon-s-flag',
+                        index: 'interface',
+                        title: '接口自动化',
+                        subs: [
+                            {
+                                index: 'SmokeList',
+                                title: '金标准测试'
                             }
                         ]
                     },
@@ -91,7 +102,7 @@
                                 index: 'monitor',
                                 title: '监控管理'
                             },
-                             {
+                            {
                                 index: 'stressdata',
                                 title: '性能数据'
                             },
@@ -106,7 +117,7 @@
                         ]
                     },
                     {
-                        icon: 'el-icon-s-ticket',
+                        icon: 'el-icon-camera-solid',
                         index: '4',
                         title: 'Dicom工具',
                         subs: [
@@ -141,11 +152,7 @@
                             // }
                         ]
                     },
-                    {
-                        icon: 'el-icon-s-promotion',
-                        index: 'host',
-                        title: 'Host配置'
-                    },
+
                     // {
                     //     icon: 'el-icon-message',
                     //     index: '6',
@@ -198,12 +205,12 @@
                 ]
             }
         },
-        computed:{
-            onRoutes(){
-                return this.$route.path.replace('/','');
+        computed: {
+            onRoutes() {
+                return this.$route.path.replace('/', '');
             }
         },
-        created(){
+        created() {
             // 通过 Event Bus 进行组件间通信，来折叠侧边栏
             bus.$on('collapse', msg => {
                 this.collapse = msg;
@@ -213,21 +220,24 @@
 </script>
 
 <style scoped>
-    .sidebar{
+    .sidebar {
         display: block;
         position: absolute;
         left: 0;
         top: 70px;
-        bottom:0;
+        bottom: 0;
         overflow-y: scroll;
     }
-    .sidebar::-webkit-scrollbar{
+
+    .sidebar::-webkit-scrollbar {
         width: 0;
     }
-    .sidebar-el-menu:not(.el-menu--collapse){
+
+    .sidebar-el-menu:not(.el-menu--collapse) {
         width: 250px;
     }
+
     .sidebar > ul {
-        height:100%;
+        height: 100%;
     }
 </style>

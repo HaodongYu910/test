@@ -351,9 +351,6 @@ CORS_ALLOW_HEADERS = (
 
 # 定时配置
 CRONJOBS = [
-    # ('30 19 * * *', 'AutoProject.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoProject/logs/job.logs'
-    # ('*/30 * * * *', 'AutoProject.scheduletask.InstallTask',
-    #  '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔30分钟查看是否有新版本部署
     ('*/30 * * * *', 'AutoProject.scheduletask.DurationSyTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 每30 分同步一次
     ('30 00 * * *', 'AutoProject.scheduletask.DurationTask',
@@ -361,7 +358,10 @@ CRONJOBS = [
     ('30 09 * * *', 'AutoProject.scheduletask.DurationReportTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化报告任务
     ('30 16 * * *', 'AutoProject.scheduletask.NightlyReportTask',
-     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # NightlyReport 任务
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs')  # NightlyReport 任务
+    # ('30 19 * * *', 'AutoProject.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoProject/logs/job.logs'
+    # ('*/30 * * * *', 'AutoProject.scheduletask.InstallTask',
+    #  '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 每隔30分钟查看是否有新版本部署
 ]
 
 # 30 09 * * *'

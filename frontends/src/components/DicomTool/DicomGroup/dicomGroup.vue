@@ -147,6 +147,7 @@
                     <el-row>
                         <div style="text-align: center">
                             <el-transfer
+                                    class="el-transfer-panel__list.is-filterable"
                                     style="text-align: left; display: inline-block"
                                     v-model="groupData"
                                     filterable
@@ -161,8 +162,8 @@
                                     @change="ChangeHandle"
                                     :data="infoData">
                                 <span slot-scope="{ option }">{{ option.key }} - {{ option.label }}</span>
-                                <el-button class="transfer-footer" slot="left-footer" size="small">操作</el-button>
-                                <el-button class="transfer-footer" slot="right-footer" size="small">操作</el-button>
+<!--                                <el-button class="transfer-footer" slot="left-footer" size="small">操作</el-button>-->
+<!--                                <el-button class="transfer-footer" slot="right-footer" size="small">操作</el-button>-->
                             </el-transfer>
                         </div>
                     </el-row>
@@ -577,6 +578,14 @@
 <style scoped>
     .edit-input {
         padding-right: 100px;
+    }
+    .el-transfer-panel{
+        width: 800px;
+        height: 500px;
+    }
+    .el-transfer-panel__list.is-filterable{
+        height: 400px;
+        width: 400px;
     }
 
     .cancel-btn {

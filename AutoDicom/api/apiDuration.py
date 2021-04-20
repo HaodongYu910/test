@@ -271,15 +271,16 @@ class DisableDuration(APIView):
         if result:
             return result
         try:
-            obj = pid.objects.filter(durationid=data["id"])
-            # kill 线程
-            for i in obj:
-                cmd = 'kill -9 {0}'.format(int(i.pid))
-                logger.info(cmd)
-                os.system(cmd)
-                i.delete()
-            Threadstop = DicomThread(type="duration",id=data["id"])
-            Threadstop.durationStop()
+            obj = duration.objects.get(id=data["id"])
+            obj.sendstatus = False
+            obj.save()
+            if obj.type == "正常":
+                dicomsend = DicomThread(type='duration', id=data["id"])
+                dicomsend.setFlag = False
+            else:
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setFlag = False
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")

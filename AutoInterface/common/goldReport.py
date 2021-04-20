@@ -21,15 +21,15 @@ class GoldReportThread(threading.Thread):
         result = []
         goldData = []
         try:
-            smokediseases = gold_record.objects.filter(smokeid=self.id).values('diseases').annotate(
-                total=Count('smokeid'),
+            smokediseases = gold_record.objects.filter(gold_id=self.id).values('diseases').annotate(
+                total=Count('gold_id'),
                 success=Count(Case(When(result='匹配成功', then=0))), fail=Count(Case(When(result='匹配失败', then=0))),
                 count=Count('diseases'))
 
             for j in smokediseases:
                 errorInfo = {}
                 failInfo = ""
-                obl = gold_record.objects.filter(smokeid=self.id, diseases=j["diseases"])
+                obl = gold_record.objects.filter(gold_id=self.id, diseases=j["diseases"])
                 # 按病种 统计 错误 信息
                 for jj in obl:
                     if jj.result is not None and jj.result not in ['匹配成功', '匹配失败']:
@@ -54,9 +54,9 @@ class GoldReportThread(threading.Thread):
                 goldData.append(disease)
 
             for k in ['成功', '失败']:
-                smobj = gold_record.objects.filter(smokeid=self.id, result__contains=k)
+                smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
                 result.append(smobj.count())
-            smerror = int(gold_record.objects.filter(smokeid=self.id).count()) - int(result[0]) - int(
+            smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
                 result[1])
 
             data = {
@@ -89,9 +89,9 @@ class GoldReportThread(threading.Thread):
     def sendMessage(self):
         result = []
         for k in ['成功', '失败']:
-            smobj = gold_record.objects.filter(smokeid=self.id, result__contains=k)
+            smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
             result.append(smobj.count())
-        smerror = int(gold_record.objects.filter(smokeid=self.id).count()) - int(result[0]) - int(
+        smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
             result[1])
         total = int(result[0]) + int(result[1]) + int(smerror)
         sendMessage(touser='', toparty='132',
@@ -105,7 +105,7 @@ class GoldReportThread(threading.Thread):
         try:
             recorddata = {}
             errorData = []
-            recordDetail = gold_record.objects.filter(smokeid=self.id)
+            recordDetail = gold_record.objects.filter(gold_id=self.id)
 
             for i in recordDetail:
                 if i.result is not None and i.result not in ['匹配成功', '匹配失败']:

@@ -571,7 +571,7 @@ class gold_record(models.Model):
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
     def __unicode__(self):
-        return self.smokeid
+        return self.gold_id
 
     class Meta:
         verbose_name = "冒烟测试记录表"

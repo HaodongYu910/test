@@ -20,7 +20,7 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="name" label="项目名称" min-width="12%" sortable show-overflow-tooltip>
+            <el-table-column prop="name" label="项目名称" min-width="15%" sortable show-overflow-tooltip>
                 <template slot-scope="scope">
                     <el-icon name="name"></el-icon>
                     <router-link v-if="scope.row.status" :to="{ name: '项目概况', params: {project_id: scope.row.id}}"
@@ -30,57 +30,31 @@
                     {{ !scope.row.status?scope.row.name:""}}
                 </template>
             </el-table-column>
-            <el-table-column prop="version" label="项目版本" min-width="12%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.version }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="type" label="类型" min-width="9%">
+            <el-table-column prop="type" label="类型" min-width="10%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.type }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="项目开始时间" min-width="16%" sortable>
+            <el-table-column label="开始时间" min-width="20%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD ')}}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="接口提测时间" min-width="16%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.api_date  | dateformat('YYYY-MM-DD ')}}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="app提测时间" min-width="16%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.app_date  | dateformat('YYYY-MM-DD ')}}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="接口上线时间" min-width="16%" sortable>
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.api_online_date | dateformat('YYYY-MM-DD ') }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column label="发布日期" min-width="16%" sortable>
+            <el-table-column label="结束日期" min-width="20%" sortable>
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD ')}}</span>
                 </template>
             </el-table-column>
-
-            <el-table-column label="项目状态" min-width="9%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.projectstatus }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="status" label="禁用状态" min-width="9%">
+            <el-table-column prop="status" label="状态" min-width="10%">
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/qiyong.png"/>
                     <img v-show="!scope.row.status"  style="width:18px;height:18px;margin-right:5px;margin-bottom:5px" src="../../assets/img/fou.png"/>
                 </template>
             </el-table-column>
-            <el-table-column label="操作" min-width="50px">
+            <el-table-column label="操作" min-width="30%">
                 <template slot-scope="scope">
-                    <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="warning" size="small" @click="showRisks(scope.$index, scope.row)">风险点</el-button>
+                    <el-button type="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                    <el-button type="warning" size="small" @click="showHosts(scope.$index, scope.row)">Host配置</el-button>
                     <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
@@ -101,11 +75,14 @@
         <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-form-item label="项目名称">
-                    <el-input v-model="editForm.name" auto-complete="off" :disabled="true"></el-input>
-                </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
+                        <el-form-item label="项目名称">
+                            <el-input v-model="editForm.name" auto-complete="off" :disabled="true"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+
                         <el-form-item label="类型" prop='type'>
                             <el-select v-model="editForm.type" placeholder="请选择">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
@@ -114,62 +91,21 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="版本号">
-                            <el-input v-model="editForm.version" :disabled="true" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="项目开始时间">
+                        <el-form-item label="开始时间">
                             <el-date-picker v-model="editForm.start_date" type="datetime"
                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口提测时间" prop='api_date'>
-                            <el-date-picker v-model="editForm.api_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="APP提测时间" prop="app_date">
-                            <el-date-picker v-model="editForm.app_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="接口上线时间" prop='api_online_date'>
-                            <el-date-picker v-model="editForm.api_online_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="发布日期" prop="end_date">
+                        <el-form-item label="结束时间" prop='end_date'>
                             <el-date-picker v-model="editForm.end_date" type="datetime"
-                                          value-format="yyyy-MM-dd HH:mm:ss"  placeholder="选择日期"></el-date-picker>
+                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="项目状态" prop='projectstatus'>
-                            <el-select v-model="editForm.projectstatus" placeholder="请选择">
-                                <el-option key="未开发" label="未开发" value="未开发"></el-option>
-                                <el-option key="开发中" label="开发中" value="开发中"></el-option>
-                                <el-option key="接口测试" label="接口测试" value="接口测试"></el-option>
-                                <el-option key="功能测试" label="功能测试" value="功能测试"></el-option>
-                                <el-option key="灰度测试" label="灰度测试" value="灰度测试"></el-option>
-                                <el-option key="已上线" label="已上线" value="已上线"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-
                 </el-row>
-
                 <el-form-item label="描述" prop='description'>
                     <el-input type="textarea" :rows="6" v-model="editForm.description"></el-input>
                 </el-form-item>
@@ -184,14 +120,13 @@
         <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-form-item label="项目名称" prop="name">
-                     <el-select v-model="addForm.name" placeholder="请选择" >
-                            <el-option key="Boimind" label="Boimind" value="Boimind"></el-option>
-                            <el-option key="CoinNess" label="CoinNess" value="CoinNess"></el-option>
-                            <el-option key="风控" label="风控" value="风控"></el-option>
-                     </el-select>
-                </el-form-item>
+
                 <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="项目名称" prop="name">
+                    <el-input v-model.trim="addForm.name" auto-complete="off"></el-input>
+                </el-form-item>
+                    </el-col>
                     <el-col :span="12">
                         <el-form-item label="类型" prop='type'>
                             <el-select v-model="addForm.type" placeholder="请选择">
@@ -201,60 +136,20 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="版本号" prop='version'>
-                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
-                        </el-form-item>
-                    </el-col>
                 </el-row>
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="项目开始时间">
+                        <el-form-item label="开始时间">
                             <el-date-picker v-model="addForm.start_date" type="datetime"
                                             placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="接口提测时间" prop='api_date'>
-                            <el-date-picker v-model="addForm.api_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="APP提测时间" prop="app_date">
-                            <el-date-picker v-model="addForm.app_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="接口上线时间" prop='api_online_date'>
-                            <el-date-picker v-model="addForm.api_online_date" type="datetime"
-                                           value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="发布日期" prop="end_date">
+                        <el-form-item label="结束时间">
                             <el-date-picker v-model="addForm.end_date" type="datetime"
-                                          value-format="yyyy-MM-dd HH:mm:ss"  placeholder="选择日期"></el-date-picker>
+                                            placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
                         </el-form-item>
                     </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="项目状态" prop='projectstatus'>
-                            <el-select v-model="addForm.projectstatus" placeholder="请选择">
-                                <el-option key="未开发" label="未开发" value="未开发"></el-option>
-                                <el-option key="开发中" label="开发中" value="开发中"></el-option>
-                                <el-option key="接口测试" label="接口测试" value="接口测试"></el-option>
-                                <el-option key="功能测试" label="功能测试" value="功能测试"></el-option>
-                                <el-option key="灰度测试" label="灰度测试" value="灰度测试"></el-option>
-                                <el-option key="已上线" label="已上线" value="已上线"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-
                 </el-row>
                 <el-form-item label="描述" prop='description'>
                     <el-input type="textarea" :rows="6" v-model="addForm.description"></el-input>
@@ -299,10 +194,10 @@
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
-                    version: [
-                        {  required: true, message: '请输入版本号', trigger: 'change' },
-                        {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
-                    ],
+                    // version: [
+                    //     {  required: true, message: '请输入版本号', trigger: 'change' },
+                    //     {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
+                    // ],
                     description: [
                         {required: false, message: '请输入描述', trigger: 'blur'},
                         {max: 1024, message: '不能超过1024个字符', trigger: 'blur'}
@@ -326,15 +221,14 @@
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ],
-                    version: [
-                        {  required: true, message: '请输入版本号', trigger: 'change' },
-                        {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
-                    ]
+                    // version: [
+                    //     {  required: true, message: '请输入版本号', trigger: 'change' },
+                    //     {  pattern:/^\d+\.\d+\.\d+$/,message:'请输入合法的版本号（x.x.x）'}
+                    // ]
                 },
                 //新增界面数据
                 addForm: {
                     name: '',
-                    version: '',
                     type: '',
                     description: ''
                 }
@@ -342,10 +236,14 @@
             }
         },
         methods: {
-            //展示风险项
-            showRisks(index,row){
+            //获取由路由传递过来的参数
+            getParams(){
+              this.routerParams=this.$route.query;
+              },
+            //展示host
+            showHosts(index,row){
              this.$router.push({
-                    path:'/danger',
+                    path:'/host',
                     query:{
                         project_id:row.id,
                         name:row.name
@@ -464,16 +362,11 @@
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm={
-                    version:null,
                     name:null,
                     status:null,
                     start_date:null,
-                    api_date:null,
-                    app_date:null,
-                    api_online_date:null,
                     end_date:null,
                     type:null,
-                    projectstatus:null,
                     description:null
                 };
             },
@@ -489,13 +382,8 @@
                                 project_id: self.editForm.id,
                                 name: self.editForm.name,
                                 type: self.editForm.type,
-                                version: self.editForm.version,
                                 start_date: self.editForm.start_date,
-                                api_date: self.editForm.api_date,
-                                app_date: self.editForm.app_date,
-                                api_online_date: self.editForm.api_online_date,
                                 end_date: self.editForm.end_date,
-                                projectstatus: self.editForm.projectstatus,
                                 description: self.editForm.description
                             };
                             let header = {
@@ -541,14 +429,9 @@
                             let params = JSON.stringify({
                                 name: self.addForm.name,
                                 type: self.addForm.type,
-                                version: self.addForm.version,
                                 description: self.addForm.description,
                                 start_date: this.addForm.start_date,
-                                api_date: this.addForm.api_date,
-                                app_date: this.addForm.app_date,
-                                api_online_date: this.addForm.api_online_date,
-                                end_date: this.addForm.end_date,
-                                projectstatus: this.addForm.projectstatus,
+                                end_date: this.addForm.end_date
                             });
                             let header = {
                                 "Content-Type": "application/json",

@@ -38,15 +38,30 @@ class Install(APIView):
             if version is None or version == "":
                 return JsonResponse(code="999998", msg="参数错误（必传参数：version 可选参数：serverIP）")
             else:
-                obj = dictionary.objects.filter(key=version, type="history")
+                obj = dictionary.objects.filter(key=version[:-4], type="history")
                 if obj.count() < 1:
                     data = {
-                        "key": version,
-                        "value": "/files/History_version/{0}/{1}.zip".format(version, version),
+                        "key": version[:-4],
+                        "value": "/files/History_version/{0}/{1}".format(version[:-4], version),
                         "type": "history",
                         "status": 1
                     }
                     dictionary.objects.create(**data)
+                    try:
+                        installObj = install.objects.filter(status=False, crontab='crontab')
+                        if int(installObj.count()) > 0:
+                            # 循环安装部署
+                            for j in installObj:
+                                j.version = version[:-4]
+                                j.save()
+                                testThread = InstallThread(id=j.id)
+                                testThread.setDaemon(True)
+                                # 开始线程
+                                testThread.start()
+                        else:
+                            logger.info("无定时部署服务")
+                    except Exception as e:
+                        logger.error("定时部署服务失败：{}".format(e))
                 return JsonResponse(code="0", msg="Success")
 
         except ObjectDoesNotExist:
@@ -123,7 +138,7 @@ class getJournal(APIView):
             data = JSONParser().parse(request)
             journal = readJournal("Installation{}".format(data["id"]))
         except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="获取数据失败!")
+            return JsonResponse(code="999985", msg="获取数据失败!", data="")
         return JsonResponse(data=journal, code="0", msg="成功")
 
 
@@ -160,7 +175,22 @@ class AddInstall(APIView):
             data["server"] = obj.host
             data["smokeid"] = 0 if data["smokeid"] is True else None
             data["uid"] = 0 if data["uid"] is True else None
-            data["testcase"] = 0 if data["testcase"] is True else None
+            if data["testcase"] is True and data["cache"] is True:
+                # 更新备份同时更新 cache
+                data["testcase"] = 3
+
+            elif data["testcase"] is True and data["cache"] is False:
+                # 更新备份 不更新 cache
+                data["testcase"] = 0
+
+            elif data["testcase"] is False and data["cache"] is True:
+                # 不更新备份 更新 cache
+                data["testcase"] = 1
+            elif data["testcase"] is False and data["cache"] is False:
+                # 不更新备份 & cache
+                data["testcase"] = 2
+            else:
+                data["testcase"] = None
             Installadd = install_Deserializer(data=data)
 
             with transaction.atomic():

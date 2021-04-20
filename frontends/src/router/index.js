@@ -13,13 +13,13 @@ const ApiInfo = () => import('../components/project/api/updateApi/ApiInfo.vue');
 const testApi = () => import('../components/project/api/updateApi/TestApi.vue');
 const UpdateApi = () => import('../components/project/api/updateApi/UpdateApi.vue');
 const ApiDynamic = () => import('../components/project/api/updateApi/ApiDynamic.vue');
-const AutomationTest = () => import('../components/project/automation/AutomationTest.vue');
-const CaseList = () => import('../components/project/automation/CaseList.vue');
-const CaseListGroup = () => import('../components/project/automation/CaseListGroup.vue');
-const CaseApiList = () => import('../components/project/automation/CaseApiList.vue');
-const AddCaseApi = () => import('../components/project/automation/AddCaseApi.vue');
-const UpdateCaseApi = () => import('../components/project/automation/UpdateCaseApi.vue');
-const TestReport = () => import('../components/project/automation/TestReport.vue');
+const AutomationTest = () => import('../components/interface/automation/AutomationTest.vue');
+const CaseList = () => import('../components/interface/automation/CaseList.vue');
+const CaseListGroup = () => import('../components/interface/automation/CaseListGroup.vue');
+const CaseApiList = () => import('../components/interface/automation/CaseApiList.vue');
+const AddCaseApi = () => import('../components/interface/automation/AddCaseApi.vue');
+const UpdateCaseApi = () => import('../components/interface/automation/UpdateCaseApi.vue');
+const TestReport = () => import('../components/interface/automation/TestReport.vue');
 const ProjectMember = () => import('../components/project/ProjectMember.vue');
 const ProjectDynamic = () => import('../components/project/ProjectDynamic.vue');
 const ProjectTitle = () => import('../components/project/projectTitle/ProjectTitle.vue');
@@ -141,19 +141,19 @@ export default new Router({
                 },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/project/gold/goldList.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldList.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
                 {
                     path: '/gold/goldid=:goldid',
-                    component: resolve => require(['../components/project/gold/goldDetails.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准'},
                     hidden: true,
                     children: [
                         {
                             path: '/detail/goldid=:goldid',
-                            component: resolve => require(['../components/project/gold/goldDetails.vue'], resolve),
+                            component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                             meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
                         },
 
@@ -161,7 +161,7 @@ export default new Router({
                 },
                 {
                     path: '/report/goldid=:goldid',
-                    component: resolve => require(['../components/project/gold/goldReport.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldReport.vue'], resolve),
                     meta: {title: '金标准报告'},
                     name: '金标准报告', leaf: true
                 },
@@ -173,7 +173,7 @@ export default new Router({
                 },
                 {
                     path: '/SmokeResult',
-                    component: resolve => require(['../components/project/gold/goldtest.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldtest.vue'], resolve),
                     meta: {title: '金标准结果'}
 
                 },
@@ -193,14 +193,20 @@ export default new Router({
                     meta: {title: '性能测试'}
                 },
                 {
-                    path: '/stressreport',
+                    path: '/stressResult',
                     component: resolve => require(['../components/stress/stressResult.vue'], resolve),
-                    meta: {title: '性能报告'}
+                    meta: {title: '性能结果'}
                 },
                 {
                     path: '/data',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
                     meta: {title: '性能数据'}
+                },
+                {
+                    path: '/stressReport',
+                    component: resolve => require(['../components/stress/stressReport.vue'], resolve),
+                    meta: {title: '性能报告'},
+                    name: '性能报告', leaf: true
                 },
                 {
                     //邮件配置
@@ -238,13 +244,6 @@ export default new Router({
                     path: '/analysisReport',
                     component: resolve => require(['../components/report/AnalysisReport.vue'], resolve),
                     meta: {title: '质量分析报告'}
-
-                },
-                {
-                    //风险点列表
-                    path: '/danger',
-                    component: resolve => require(['../components/project/danger.vue'], resolve),
-                    meta: {title: '风险点列表'}
 
                 },
                 {
@@ -300,6 +299,16 @@ export default new Router({
                     path: '/permission',
                     component: resolve => require(['../components/page/Permission.vue'], resolve),
                     meta: {title: '权限测试', permission: true}
+                },
+                {
+                    path: '/502',
+                    component: resolve => require(['../components/errorpage/502.vue'], resolve),
+                    meta: {title: '502'}
+                },
+                {
+                    path: '/500',
+                    component: resolve => require(['../components/errorpage/500.vue'], resolve),
+                    meta: {title: '500'}
                 },
                 {
                     path: '/404',

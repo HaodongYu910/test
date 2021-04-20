@@ -340,12 +340,7 @@ class DurationThread(threading.Thread):
     # 停止
     def durationStop(self):
         # 改变状态
-        self.obj.sendstatus = False
-        self.obj.save()
-        self.Flag = False
-
         drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
-
         # 删除错误数据
         for j in drobj:
             delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
@@ -359,7 +354,9 @@ class DurationThread(threading.Thread):
 
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
+        self.durationStop()
         self.Flag = parm  # boolean
+
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm

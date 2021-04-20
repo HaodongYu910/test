@@ -47,11 +47,11 @@ axios.interceptors.response.use(res => {
         return res;
         }, error => {
         if (error.response.status === 401) {
-                Message({
-                    showClose: true,
-                    message: "登录状态信息过期,请重新登录",
-                    type: "error"
-                });
+                // Message({
+                //     showClose: true,
+                //     message: "登录状态信息过期,请重新登录",
+                //     type: "error"
+                // });
                 router.push({
                     path: "/login"
                 });

@@ -4,6 +4,7 @@ from rest_framework import routers
 from .api.apiStress import *
 from .api.apiResult import *
 from .api.apiData import *
+from .api.apiReport import *
 
 # Routers provide an easy way of ally determining the URL conf.
 # 注册
@@ -35,4 +36,7 @@ urlpatterns = [
     url(r'data/enablebenchmarkstatus', EnableBenchmarkStatus.as_view()),
     url(r'data/Data', stressData.as_view()),
     url(r'stressmodel', StressModel.as_view()),
+    url(r'Report', stressReport.as_view()),
+    url(r'Analysis', SaveAnalysis.as_view()),
+
 ]

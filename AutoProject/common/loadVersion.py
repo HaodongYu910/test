@@ -22,6 +22,7 @@ def backup(**kwargs):
             localpath = '/files/History_version/{0}/{1}'.format(version, version)
             downssh.download(localpath, downpath)
             downssh.close()
+            return True
         else:
             filelist = downssh.cmd("ls /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/")
             for i in str(filelist, encoding="utf-8").split('\n'):

@@ -141,7 +141,7 @@
                 page: 1,
                 listLoading: false,
                 sels: [],//列表选中列
-
+                project_id:1,
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
@@ -196,7 +196,20 @@
 
             }
         },
+        created(){
+          this.getParams();
+          this.getServer();
+          },
+        activated() {
+          this.getParams();
+          this.getServer();
+
+          },
         methods: {
+            getParams(){
+              this.routerParams=this.$route.query;
+              this.project_id =this.routerParams.project_id;
+              },
             // IP格式验证
             isValidIP(ip) {
                 var reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
@@ -209,7 +222,7 @@
                 this.listLoading = true;
                 let self = this;
                 let params = {
-                    project_id: this.$route.params.project_id,
+                    project_id:this.project_id,
                     page: self.page,
                     name: self.filters.name
                 };
@@ -396,7 +409,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                project_id: Number(this.project_id),
                                 id: Number(self.editForm.id),
                                 name: self.editForm.name,
                                 host: host,
@@ -456,7 +469,7 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                project_id: Number(this.project_id),
                                 name: self.addForm.name,
                                 host: host,
                                 port:self.addForm.port ,

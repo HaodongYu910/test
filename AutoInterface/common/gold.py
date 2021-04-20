@@ -140,7 +140,7 @@ class GoldThread(threading.Thread):
                         "diagnosis": i.diagnosis,
                         "type": "gold",
                         "status": False,
-                        "smokeid": self.id,
+                        "gold_id": self.id,
                         "result": "匹配成功",
                         "starttime": str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
                         "graphql": i.graphql
@@ -202,9 +202,9 @@ class GoldThread(threading.Thread):
     def sendMessage(self):
         result = []
         for k in ['成功', '失败']:
-            smobj = gold_record.objects.filter(smokeid=self.id, result__contains=k)
+            smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
             result.append(smobj.count())
-        smerror = int(gold_record.objects.filter(smokeid=self.id).count()) - int(result[0]) - int(
+        smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
             result[1])
         total = int(result[0]) + int(result[1]) + int(smerror)
         sendMessage(touser='', toparty='132',

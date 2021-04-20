@@ -326,9 +326,17 @@ export const stressStop = (headers, params) => {
 export const getVersion = (headers, params) => {
   return axios.get(`${test}/stress/version`, { params: params }, { headers }).then(res => res.data)
 }
-// 压测report
+// 压测结果
 export const getreportfigure = (headers, params) => {
   return axios.post(`${test}/stress/figure`,params, headers ).then(res => res.data)
+}
+// 压测report
+export const getStressReport = (headers, params) => {
+  return axios.get(`${test}/stress/Report`, { params: params }, { headers }).then(res => res.data)
+}
+// 压测结果
+export const saveAnalysis = (headers, params) => {
+  return axios.post(`${test}/stress/Analysis`,params, headers ).then(res => res.data)
 }
 // 压测版本
 export const getstressversion = (headers, params) => {

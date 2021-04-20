@@ -167,7 +167,7 @@ class InGoldThread(threading.Thread):
                 }
                 uiData.append(disease)
 
-            smokediseases = gold_record.objects.filter(smokeid=self.obj.smokeid).values('diseases').annotate(
+            smokediseases = gold_record.objects.filter(gold_id=self.obj.gold_id).values('diseases').annotate(
                 success=Count(Case(When(result='匹配成功', then=0))), fail=Count(Case(When(result='匹配失败', then=0))),
                 count=Count('diseases'))
 
@@ -182,11 +182,11 @@ class InGoldThread(threading.Thread):
                 goldData.append(disease)
 
             for k in ['成功', '失败']:
-                smobj = gold_record.objects.filter(smokeid=self.obj.smokeid, result__contains=k)
+                smobj = gold_record.objects.filter(gold_id=self.obj.gold_id, result__contains=k)
                 uiobj = auto_uirecord.objects.filter(auto__autoid=self.obj.uid, result__contains=k)
                 result.append(smobj.count())
                 result.append(uiobj.count())
-            smerror = int(gold_record.objects.filter(smokeid=self.obj.smokeid).count()) - int(result[0]) - int(
+            smerror = int(gold_record.objects.filter(gold_id=self.obj.gold_id).count()) - int(result[0]) - int(
                 result[2])
             uierror = int(auto_uirecord.objects.filter(auto__autoid=self.obj.uid).count()) - int(result[1]) - int(
                 result[3])

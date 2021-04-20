@@ -139,8 +139,8 @@ def CheckVersion():
 
 
 def api(version):
-    #server_url = "http://localhost:8000/api/deploy?version={}".format(version)
-    server_url = "http://192.168.1.121:9000/api/deploy?version={}".format(version)
+    #server_url = "http://localhost:8000/project/deploy?version={}".format(version)
+    server_url = "http://192.168.1.121:9000/project/deploy?version={}".format(version)
     data = requests.get(server_url)
 
 

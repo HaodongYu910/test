@@ -16,6 +16,7 @@ class stress(models.Model):
     thread = models.CharField(max_length=4, blank=True, null=True, verbose_name="线程数")
     synchroniz = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
     ramp = models.CharField(max_length=4, blank=True, null=True, verbose_name="ramp up time")
+    benchmark = models.IntegerField( blank=True, null=True, verbose_name="benchmark")
     single = models.CharField(max_length=4, blank=True, null=True, verbose_name="single")
     loop_count = models.CharField(max_length=4, blank=True, null=True, verbose_name="循环次数")
     duration = models.CharField(max_length=4, blank=True, null=True, verbose_name="持续时间")
@@ -28,6 +29,7 @@ class stress(models.Model):
     jmeterstatus = models.BooleanField(default=True, verbose_name='jmeter状态')
     status = models.BooleanField(default=True, verbose_name='状态')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    summary = models.TextField(max_length=2000, blank=True, null=True, verbose_name="结论")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -56,6 +58,7 @@ class stress_record(models.Model):
     images = models.CharField(max_length=30, blank=True, null=True, verbose_name="张数")
     slicenumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="层厚")
     Stress = models.ForeignKey(stress, null=True, on_delete=models.CASCADE, verbose_name='Stress')
+    error = models.TextField(max_length=2000, blank=True, null=True, verbose_name="error")
     aistatus = models.CharField(max_length=30, blank=True, null=True, verbose_name="预测状态")
 
     def __unicode__(self):

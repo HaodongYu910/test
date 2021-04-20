@@ -56,8 +56,8 @@ class getSmoke(APIView):
                 i["Host"] = Server.objects.get(id=int(i["Host"])).host
                 i["diseases"] = baseTransform(i["diseases"], 'base')
                 smokeResult = gold_record.objects.filter(
-                    smokeid=i["id"]).values('smokeid').annotate(
-                    total=Count('smokeid'),
+                    gold_id=i["id"]).values('gold_id').annotate(
+                    total=Count('gold_id'),
                     success=Count(Case(When(result='匹配成功', then=0))),
                     fail=Count(Case(When(result='匹配失败', then=0)))
                 )
@@ -288,7 +288,7 @@ class EnableSmoke(APIView):
         # 查找项目是否存在
         try:
             obj = gold_test.objects.get(id=data["id"])
-            objrecord = gold_record.objects.filter(smokeid=str(data["id"]))
+            objrecord = gold_record.objects.filter(gold_id=str(data["id"]))
             # 删除以前记录
             objrecord.delete()
 
@@ -323,28 +323,28 @@ class smokeRecord(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
-        smokeid = request.GET.get("smokeid")
+        gold_id = request.GET.get("gold_id")
         status = request.GET.get("status")
 
         if diseases != '' and status != '':
             if status in ["0","1"]:
-                obi = gold_record.objects.filter(diseases=diseases, status=int(status), smokeid=smokeid).order_by(
+                obi = gold_record.objects.filter(diseases=diseases, status=int(status), gold_id=gold_id).order_by(
                     "-id")
             else:
-                obi = gold_record.objects.filter(diseases=diseases, result=status, smokeid=smokeid).order_by(
+                obi = gold_record.objects.filter(diseases=diseases, result=status, gold_id=gold_id).order_by(
                     "-id")
         elif diseases == '' and status != '':
             if status in ["0","1"]:
-                obi = gold_record.objects.filter(status=int(status), smokeid=smokeid).order_by(
+                obi = gold_record.objects.filter(status=int(status), gold_id=gold_id).order_by(
                     "-id")
             else:
-                obi = gold_record.objects.filter(result=status, smokeid=smokeid).order_by(
+                obi = gold_record.objects.filter(result=status, gold_id=gold_id).order_by(
                     "-id")
         elif diseases != '' and status == '':
-            obi = gold_record.objects.filter(diseases=diseases, smokeid=smokeid).order_by(
+            obi = gold_record.objects.filter(diseases=diseases, gold_id=gold_id).order_by(
                     "-id")
         else:
-            obi = gold_record.objects.filter(smokeid=smokeid).order_by("-id")
+            obi = gold_record.objects.filter(gold_id=gold_id).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -403,10 +403,10 @@ class smokefigure(APIView):
             versions = gold_test.objects.filter(status=True)
             for i in versions:
                 goldcolumns.append(i.version)
-                count = gold_record.objects.filter(smokeid=i.id).aggregate(report_nums=Count("report"))
-                success = gold_record.objects.filter(smokeid=i.id, report='匹配成功').aggregate(
+                count = gold_record.objects.filter(gold_id=i.id).aggregate(report_nums=Count("report"))
+                success = gold_record.objects.filter(gold_id=i.id, report='匹配成功').aggregate(
                     report_nums=Count("report"))
-                fail = gold_record.objects.filter(smokeid=i.id, report='匹配失败').aggregate(report_nums=Count("report"))
+                fail = gold_record.objects.filter(gold_id=i.id, report='匹配失败').aggregate(report_nums=Count("report"))
                 histogram = {
                     '版本': i.version,
                     '匹配成功': success["report_nums"],
