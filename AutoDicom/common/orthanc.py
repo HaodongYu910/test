@@ -1,6 +1,6 @@
 import json, os
 
-from AutoTest.common.transport import SSHConnection
+from AutoProject.common.transport import SSHConnection
 
 
 def orthancInfo(**kwargs):

@@ -13,16 +13,18 @@ from rest_framework.response import Response
 from rest_framework.utils import json
 from rest_framework.views import APIView
 
-from AutoTest.common.WriteDocx import Write
-from AutoTest.common.api_response import JsonResponse
-from AutoTest.common.common import record_dynamic, check_json
-from AutoTest.common.loadSwaggerApi import swagger_api
-from AutoTest.models import Project, ApiGroupLevelFirst, ApiInfo, \
+from AutoProject.common.WriteDocx import Write
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.common.common import record_dynamic, check_json
+from AutoInterface.common.loadSwaggerApi import swagger_api
+from AutoProject.models import Project
+from AutoInterface.models import ApiGroupLevelFirst, ApiInfo, \
     ApiOperationHistory, APIRequestHistory, ApiHead, ApiParameter, ApiResponse, ApiParameterRaw
-from AutoTest.serializers import ApiGroupLevelFirstSerializer, ApiInfoSerializer, APIRequestHistorySerializer, \
+from AutoInterface.serializers import ApiGroupLevelFirstSerializer, ApiInfoSerializer, APIRequestHistorySerializer, \
     ApiOperationHistorySerializer, ApiInfoListSerializer, ApiInfoDocSerializer, ApiGroupLevelFirstDeserializer, \
     ApiInfoDeserializer, ApiHeadDeserializer, ApiParameterDeserializer, \
-    ApiResponseDeserializer, APIRequestHistoryDeserializer, ProjectSerializer
+    ApiResponseDeserializer, APIRequestHistoryDeserializer
+from AutoProject.serializers import ProjectSerializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 

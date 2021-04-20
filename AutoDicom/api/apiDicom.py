@@ -4,7 +4,7 @@ from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.api_response import JsonResponse
 from ..models import dicom_base, duration_record
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *

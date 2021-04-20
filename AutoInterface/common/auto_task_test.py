@@ -18,11 +18,11 @@ from django.core import serializers
 from requests import ReadTimeout
 
 
-from AutoTest.common.confighttp import get, post, put, delete
-from AutoTest.common.common import check_json, record_auto_results
-from AutoTest.models import AutomationCaseApi, AutomationParameter, AutomationHead, \
+from AutoProject.common.confighttp import get, post, put, delete
+from AutoProject.common.common import check_json, record_auto_results
+from AutoProject.models import AutomationCaseApi, AutomationParameter, AutomationHead, \
     AutomationParameterRaw, AutomationCaseTestResult
-from AutoTest.serializers import AutomationCaseApiSerializer, AutomationParameterRawSerializer
+from AutoProject.serializers import AutomationCaseApiSerializer, AutomationParameterRawSerializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 

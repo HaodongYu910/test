@@ -2,7 +2,7 @@ import Vue from 'vue';
 import Router from 'vue-router';
 
 const ProjectInfo = () => import('../components/project/Projectdetail.vue');
-const Server = () => import('../components/project/global/Server.vue');
+const Server = () => import('../components/project/global/ServerList.vue');
 const API = () => import('../components/project/api/API.vue');
 const ApiList = () => import('../components/project/api/ApiList.vue');
 const ApiListGroup = () => import('../components/project/api/ApiListGroup.vue');
@@ -13,13 +13,13 @@ const ApiInfo = () => import('../components/project/api/updateApi/ApiInfo.vue');
 const testApi = () => import('../components/project/api/updateApi/TestApi.vue');
 const UpdateApi = () => import('../components/project/api/updateApi/UpdateApi.vue');
 const ApiDynamic = () => import('../components/project/api/updateApi/ApiDynamic.vue');
-const AutomationTest = () => import('../components/project/automation/AutomationTest.vue');
-const CaseList = () => import('../components/project/automation/CaseList.vue');
-const CaseListGroup = () => import('../components/project/automation/CaseListGroup.vue');
-const CaseApiList = () => import('../components/project/automation/CaseApiList.vue');
-const AddCaseApi = () => import('../components/project/automation/AddCaseApi.vue');
-const UpdateCaseApi = () => import('../components/project/automation/UpdateCaseApi.vue');
-const TestReport = () => import('../components/project/automation/TestReport.vue');
+const AutomationTest = () => import('../components/interface/automation/AutomationTest.vue');
+const CaseList = () => import('../components/interface/automation/CaseList.vue');
+const CaseListGroup = () => import('../components/interface/automation/CaseListGroup.vue');
+const CaseApiList = () => import('../components/interface/automation/CaseApiList.vue');
+const AddCaseApi = () => import('../components/interface/automation/AddCaseApi.vue');
+const UpdateCaseApi = () => import('../components/interface/automation/UpdateCaseApi.vue');
+const TestReport = () => import('../components/interface/automation/TestReport.vue');
 const ProjectMember = () => import('../components/project/ProjectMember.vue');
 const ProjectDynamic = () => import('../components/project/ProjectDynamic.vue');
 const ProjectTitle = () => import('../components/project/projectTitle/ProjectTitle.vue');
@@ -64,7 +64,7 @@ export default new Router({
                 },
                 {
                     path: '/duration',
-                    component: resolve => require(['../components/DicomTool/duration/duration.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/durationList.vue'], resolve),
                     meta: {title: '持续化工具'}
 
                 },
@@ -78,6 +78,12 @@ export default new Router({
                     path: '/dicom',
                     component: resolve => require(['../components/DicomTool/dicomdata/dicomData.vue'], resolve),
                     meta: {title: 'Dicom数据'}
+
+                },
+                {
+                    path: '/dicomGroup',
+                    component: resolve => require(['../components/DicomTool/DicomGroup/dicomGroup.vue'], resolve),
+                    meta: {title: 'Dicom组管理'}
 
                 },
                 {
@@ -116,7 +122,7 @@ export default new Router({
                 // UI列表
                 {
                     path: '/UIList',
-                    component: resolve => require(['../components/autoui/UIlist.vue'], resolve),
+                    component: resolve => require(['../components/autoui/UIList.vue'], resolve),
                     meta: {title: 'UI自动化列表'}
 
                 },
@@ -135,34 +141,46 @@ export default new Router({
                 },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/project/gold/Smokelist.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldList.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
                 {
-                    path: '/gold/smokeid=:smokeid',
-                    component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
+                    path: '/gold/goldid=:goldid',
+                    component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准'},
                     hidden: true,
                     children: [
                         {
-                            path: '/Smoke/smokeid=:smokeid',
-                            component: resolve => require(['../components/project/gold/SmokeDetails.vue'], resolve),
+                            path: '/detail/goldid=:goldid',
+                            component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                             meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
-                        }
+                        },
+
                     ]
                 },
                 {
+                    path: '/report/goldid=:goldid',
+                    component: resolve => require(['../components/interface/gold/goldReport.vue'], resolve),
+                    meta: {title: '金标准报告'},
+                    name: '金标准报告', leaf: true
+                },
+                {
                     path: '/SmokeReport/reportid=:reportid',
-                    component: resolve => require(['../components/deploy/SmokeReport.vue'], resolve),
+                    component: resolve => require(['../components/deploy/deployReport.vue'], resolve),
                     meta: {title: '冒烟报告'}
 
                 },
                 {
                     path: '/SmokeResult',
-                    component: resolve => require(['../components/project/gold/Smoketest.vue'], resolve),
+                    component: resolve => require(['../components/interface/gold/goldtest.vue'], resolve),
                     meta: {title: '金标准结果'}
 
+                },
+                {
+                    path: '/monitor',
+                    component: resolve => require(['../components/stress/stressMonitor.vue'], resolve),
+                    meta: {title: '性能监控'}
                 },
                 {
                     path: '/stressdata',
@@ -171,18 +189,24 @@ export default new Router({
                 },
                 {
                     path: '/stressHome',
-                    component: resolve => require(['../components/stress/stressHome.vue'], resolve),
+                    component: resolve => require(['../components/stress/stressList.vue'], resolve),
                     meta: {title: '性能测试'}
                 },
                 {
-                    path: '/stressreport',
-                    component: resolve => require(['../components/stress/stress_result.vue'], resolve),
-                    meta: {title: '性能报告'}
+                    path: '/stressResult',
+                    component: resolve => require(['../components/stress/stressResult.vue'], resolve),
+                    meta: {title: '性能结果'}
                 },
                 {
                     path: '/data',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
                     meta: {title: '性能数据'}
+                },
+                {
+                    path: '/stressReport',
+                    component: resolve => require(['../components/stress/stressReport.vue'], resolve),
+                    meta: {title: '性能报告'},
+                    name: '性能报告', leaf: true
                 },
                 {
                     //邮件配置
@@ -193,7 +217,7 @@ export default new Router({
                 {
                     //安装部署
                     path: '/deploy',
-                    component: resolve => require(['../components/deploy/deploylist.vue'], resolve),
+                    component: resolve => require(['../components/deploy/deployList.vue'], resolve),
                     meta: {title: '安装部署'}
                 },
                 //邮件詳情頁面
@@ -223,13 +247,6 @@ export default new Router({
 
                 },
                 {
-                    //风险点列表
-                    path: '/danger',
-                    component: resolve => require(['../components/project/danger.vue'], resolve),
-                    meta: {title: '风险点列表'}
-
-                },
-                {
                     // 图片上传组件
                     path: '/upload',
                     component: resolve => require(['../components/page/Upload.vue'], resolve),
@@ -244,7 +261,7 @@ export default new Router({
                 {
                     // 拖拽Dialog组件
                     path: '/dialog',
-                    component: resolve => require(['../components/page/DragDialog.vue'], resolve),
+                    component: resolve => require(['../components/page/DragList.vue'], resolve),
                     meta: {title: '拖拽弹框'}
                 },
                 {
@@ -262,7 +279,7 @@ export default new Router({
                 {
                     //基础配置
                     path: '/base',
-                    component: resolve => require(['../components/DicomTool/dicomdata/dicomFile.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/DicomFile/dicomFile.vue'], resolve),
                     meta: {title: 'dicom文件'}
                 },
                 {
@@ -284,6 +301,16 @@ export default new Router({
                     meta: {title: '权限测试', permission: true}
                 },
                 {
+                    path: '/502',
+                    component: resolve => require(['../components/errorpage/502.vue'], resolve),
+                    meta: {title: '502'}
+                },
+                {
+                    path: '/500',
+                    component: resolve => require(['../components/errorpage/500.vue'], resolve),
+                    meta: {title: '500'}
+                },
+                {
                     path: '/404',
                     component: resolve => require(['../components/errorpage/404.vue'], resolve),
                     meta: {title: '404'}
@@ -295,7 +322,7 @@ export default new Router({
                 },
                 {
                     path: '/host',
-                    component: resolve => require(['../components/project/global/Server.vue'], resolve),
+                    component: resolve => require(['../components/project/global/ServerList.vue'], resolve),
                     meta: {title: 'Host配置'}
                 },
                 // {
@@ -475,7 +502,7 @@ export default new Router({
 //     },
 //     {
 //       path: '/Server/project=:project_id',
-//       component: '@/views//project/global/Server.vue',
+//       component: '@/views//project/global/ServerList.vue',
 //       name: 'Host配置',
 //       leaf: true
 //     },

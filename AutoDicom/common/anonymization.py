@@ -40,6 +40,7 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                 if ds.StudyInstanceUID:
                     # and ds.PatientID and ds.PatientName: # 如果该文件存在UID等信息
                     logging.info('1. this is a truly dicom document')
+
                     if ds.StudyInstanceUID not in study_infos.keys():   # 如果UID没在dic里面
                         study_infos[ds.StudyInstanceUID] = {"patientID": {}, "patientName": {}}  # 在dic里面创建这个UID分支
                         logging.info('2. insert UID in dic')
@@ -61,6 +62,13 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                                 ds.PatientName = norm_string("{0}_{1}{2}".format(anonkey, time.strftime("%H%M%S", time.localtime(time.time())), randomFourNum(4)), 32)
                                 study_infos[ds.StudyInstanceUID]["patientName"] = ds.PatientName
                                 logging.info('4. do not has pN [{0}], creating.....'.format(ds.PatientName))
+
+                        """
+                        TODO:   
+                            add series describtion anon. need to know which series? anon to what? how many series?
+                        
+                        """
+
 
                         # # 判断要不要进行pid和pn的匿名化
                         # if wPID:

@@ -6,12 +6,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.api_response import JsonResponse
 from ..models import dicom_base, dicom
-from AutoTest.common.api_response import JsonResponse
-from AutoTest.models import dictionary
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.models import dictionary
 from ..serializers import dicom_base_Serializer, dicom_base_Deserializer
-from AutoTest.common.regexUtil import *
+from AutoProject.common.regexUtil import *
 from AutoDicom.common.dicomfile import fileUpdate
 import threading
 
@@ -67,11 +67,10 @@ class getBase(APIView):
                 i["predictor"] = "Null"
                 continue
         return JsonResponse(data={"data": serialize.data,
-                                  "type":type,
+                                  "type": type,
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
-
 
 
 class AddbaseData(APIView):

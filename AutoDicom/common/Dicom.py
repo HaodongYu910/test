@@ -15,8 +15,8 @@ import time
 import queue
 
 from AutoStress.models import stress, Server
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.common.api_response import JsonResponse
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.common.api_response import JsonResponse
 
 from .deletepatients import delete_patients_duration
 from ..models import duration_record, dicom, duration
@@ -102,36 +102,19 @@ class DicomThread(threading.Thread):
     def normalSend(self):
         self.obj.sendstatus = True
         self.obj.save()
-        for i in self.obj.dicom.split(","):
+        try:
+            dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True)
+        except Exception as e:
+            logger.error(e)
+        for j in dicomobj:
             try:
-                dicomobj = dicom.objects.filter(fileid=str(i), status=True)
+                delete_patients_duration(j.studyinstanceuid, self.obj.Host, 'StudyInstanceUID', False)
             except Exception as e:
-                continue
-            for j in dicomobj:
-                try:
-                    delete_patients_duration(j.studyinstanceuid, self.obj.Host, 'StudyInstanceUID', False)
-                except Exception as e:
-                    logger.error("删除数据失败:{}".format(e))
-                try:
-                    self.sendDicom(j.route)
-                except Exception as e:
-                    logger.error("发送数据失败：{}".format(e))
-
-    def durationStop(self):
-        # 改变状态
-        self.obj.sendstatus = False
-        self.obj.save()
-        drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
-        # 删除错误数据
-        for j in drobj:
-            delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
-        drobj.delete()
-        # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
-                                                                             str(self.obj.patientid),
-                                                                             str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
+                logger.error("删除数据失败:{}".format(e))
+            try:
+                self.sendDicom(j.route)
+            except Exception as e:
+                logger.error("发送数据失败：{}".format(e))
 
     def sendDicom(self, route):
         try:

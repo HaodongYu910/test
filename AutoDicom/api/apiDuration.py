@@ -8,8 +8,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
 
-from AutoTest.common.api_response import JsonResponse
-from AutoTest.models import pid
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.models import pid
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
@@ -19,7 +19,7 @@ from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
 from ..common.durarion import DurationThread
 import datetime, os
-from AutoTest.scheduletask import DurationSyTask
+from AutoProject.scheduletask import DurationSyTask
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -165,6 +165,8 @@ class addDuration(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
+        group = ""
+        dicom = ""
         if result:
             return result
         try:
@@ -173,8 +175,13 @@ class addDuration(APIView):
             data['server']= hostobj.host
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
-                dicomdata = dicomdata + str(i[1]) + ','
+                if i[0] == "虚拟组":
+                    group = group + "{},".format(i[1])
+                else:
+                    dicomdata = dicomdata + "{},".format(str(i[1]))
+
             data['dicom'] = dicomdata[:-1]
+            data['group'] = group[:-1]
             data['aet'] = hostobj.remarks
             duration = duration_Deserializer(data=data)
 
@@ -215,22 +222,24 @@ class updateDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            dicomdata=''
+            dicomdata = ""
+            group = ""
             for i in data['dicom']:
-                dicomdata = dicomdata + str(i[1]) + ','
+                if i[0] == "虚拟组":
+                    group = group + "{},".format(i[1])
+                else:
+                    dicomdata = dicomdata + "{},".format(str(i[1]))
+
             data['dicom'] = dicomdata[:-1]
-            patientname = duration.objects.filter(patientname=data["patientname"],sendstatus=True)
-            if len(patientname):
-                return JsonResponse(code="999997", msg="存在相同 patientname 名称数据，请修改")
-            else:
-                serializer = duration_Deserializer(data=data)
-                with transaction.atomic():
-                    if serializer.is_valid():
-                        # 修改数据
-                        serializer.update(instance=obj, validated_data=data)
-                        return JsonResponse(code="0", msg="成功")
-                    else:
-                        return JsonResponse(code="999995", msg="修改失败！")
+            data['group'] = group[:-1]
+            # 修改数据
+            serializer = duration_Deserializer(data=data)
+            with transaction.atomic():
+                if serializer.is_valid():
+                    serializer.update(instance=obj, validated_data=data)
+                    return JsonResponse(code="0", msg="成功")
+                else:
+                    return JsonResponse(code="999995", msg="修改失败！")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="修改失败！")
 
@@ -263,15 +272,16 @@ class DisableDuration(APIView):
         if result:
             return result
         try:
-            obj = pid.objects.filter(durationid=data["id"])
-            # kill 线程
-            for i in obj:
-                cmd = 'kill -9 {0}'.format(int(i.pid))
-                logger.info(cmd)
-                os.system(cmd)
-                i.delete()
-            Threadstop = DicomThread(type="duration",id=data["id"])
-            Threadstop.durationStop()
+            obj = duration.objects.get(id=data["id"])
+            obj.sendstatus = False
+            obj.save()
+            if obj.type == "正常":
+                dicomsend = DicomThread(type='duration', id=data["id"])
+                dicomsend.setFlag = False
+            else:
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setFlag = False
+
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")
@@ -367,9 +377,8 @@ class delDuration(APIView):
                 except ObjectDoesNotExist:
                     return JsonResponse(code="999995", msg="数据不存在！")
             return JsonResponse(code="0", msg="成功")
-
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="执行失败！")
+            return JsonResponse(code="999995", msg="删除失败！")
 
 
 # 删除dicom 数据

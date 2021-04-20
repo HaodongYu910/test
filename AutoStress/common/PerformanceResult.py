@@ -1,5 +1,5 @@
-from AutoTest.common.PostgreSQL import connect_postgres
-from AutoTest.models import dictionary
+from AutoProject.common.PostgreSQL import connect_postgres
+from AutoProject.models import dictionary
 from ..serializers import stress_result_Deserializer
 from django.db import transaction
 from AutoDicom.common.dicomBase import voteData
@@ -41,9 +41,9 @@ def lung(checkdate, server, version, lungid, kc):
 
 
 # 数据比较检查
-def dataCheck(dataA, dataB):
-    dictA = stress_result_Deserializer(dataA, many=True).data
-    dictB = stress_result_Deserializer(dataB, many=True).data
+def dataCheck(data):
+    dictA = stress_result_Deserializer(data[0], many=True).data
+    dictB = stress_result_Deserializer(data[1], many=True).data
     for i in dictA:
         for j in dictB:
             if i['slicenumber'] is None:
@@ -69,7 +69,6 @@ def dataCheck(dataA, dataB):
                 except Exception as e:
                     logger.error("error:{0}".format(e))
                     continue
-
             else:
                 continue
         obj = dictionary.objects.get(id=i['modelname'])

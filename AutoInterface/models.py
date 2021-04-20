@@ -1,10 +1,10 @@
 from django.contrib.auth.models import User
 from django.db import models
-from AutoTest.models import Server
-# Create your models here.
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from AutoProject.models import Server, Project
+
 from rest_framework.authtoken.models import Token
 
 HTTP_CHOICE = (
@@ -63,93 +63,6 @@ TASK_CHOICE = (
     ('circulation', '循环'),
     ('timing', '定时'),
 )
-
-
-class Project(models.Model):
-    """
-    项目表
-    """
-    ProjectType = (
-        ('Web', 'Web'),
-        ('App', 'App')
-    )
-
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50, verbose_name='项目名称')
-    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
-    type = models.CharField(max_length=50, verbose_name='类型', choices=ProjectType)
-    status = models.BooleanField(default=True, verbose_name='状态')
-    start_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="项目开始时间")
-    api_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="接口提测时间")
-    app_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="app提测时间")
-    api_online_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True,
-                                           verbose_name="接口上线时间")
-    end_date = models.DateTimeField(auto_now=False, auto_now_add=False, null=True, blank=True, verbose_name="发布日期")
-    client = models.CharField(max_length=2, blank=True, null=True, verbose_name="0 是安卓 1是ios  2 是all")
-    projectstatus = models.CharField(default="未開始", max_length=10, verbose_name="项目状态")
-    description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
-    LastUpdateTime = models.DateTimeField(auto_now=True, verbose_name='最近修改时间')
-    createTime = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, max_length=1024, verbose_name='创建人')
-
-    def __unicode__(self):
-        return self.name
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = '项目'
-        verbose_name_plural = '项目'
-        db_table = 'Project'
-
-
-class ProjectDynamic(models.Model):
-    """
-    项目动态
-    """
-    id = models.AutoField(primary_key=True)
-    project = models.ForeignKey(Project, related_name='dynamic_project', on_delete=models.CASCADE, verbose_name='所属项目')
-    time = models.DateTimeField(max_length=128, verbose_name='操作时间')
-    type = models.CharField(max_length=50, verbose_name='操作类型')
-    operationObject = models.CharField(max_length=50, verbose_name='操作对象')
-    user = models.ForeignKey(User, blank=True, null=True, related_name='userName',
-                             on_delete=models.SET_NULL, verbose_name='操作人')
-    description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
-
-    def __unicode__(self):
-        return self.type
-
-    class Meta:
-        verbose_name = '项目动态'
-        verbose_name_plural = '项目动态'
-        db_table = 'ProjectDynamic'
-
-
-class ProjectMember(models.Model):
-    """
-    项目成员
-    """
-    CHOICES = (
-        ('超级管理员', '超级管理员'),
-        ('开发人员', '开发人员'),
-        ('测试人员', '测试人员')
-    )
-    id = models.AutoField(primary_key=True)
-    permissionType = models.CharField(max_length=50, verbose_name='权限角色', choices=CHOICES)
-    project = models.ForeignKey(Project, related_name='member_project', on_delete=models.CASCADE, verbose_name='所属项目')
-    user = models.ForeignKey(User, related_name='member_user', on_delete=models.CASCADE, verbose_name='用户')
-
-    def __unicode__(self):
-        return self.permissionType
-
-    def __str__(self):
-        return self.permissionType
-
-    class Meta:
-        verbose_name = '项目成员'
-        verbose_name_plural = '项目成员'
-        db_table = 'ProjectMember'
 
 
 class CustomMethod(models.Model):
@@ -611,34 +524,9 @@ class AutomationReportSendConfig(models.Model):
         db_table = 'AutomationReportSendConfig'
 
 
-class VisitorsRecord(models.Model):
+class gold_test(models.Model):
     """
-    访客记录
-    """
-    id = models.AutoField(primary_key=True)
-    formattedAddress = models.CharField(max_length=1024, blank=True, null=True, verbose_name="访客地址")
-    country = models.CharField(max_length=50, blank=True, null=True, verbose_name="国家")
-    province = models.CharField(max_length=50, blank=True, null=True, verbose_name="省份")
-    city = models.CharField(max_length=50, blank=True, null=True, verbose_name="城市")
-    district = models.CharField(max_length=50, blank=True, null=True, verbose_name="县级")
-    township = models.CharField(max_length=50, blank=True, null=True, verbose_name="镇")
-    street = models.CharField(max_length=50, blank=True, null=True, verbose_name="街道")
-    number = models.CharField(max_length=50, blank=True, null=True, verbose_name="门牌号")
-    success = models.CharField(max_length=50, blank=True, null=True, verbose_name="成功")
-    reason = models.CharField(max_length=1024, blank=True, null=True, verbose_name="原因")
-    callTime = models.DateTimeField(auto_now_add=True, verbose_name="访问时间")
-
-    def __unicode__(self):
-        return self.formattedAddress
-
-    class Meta:
-        verbose_name = "访客"
-        verbose_name_plural = "访客查看"
-        db_table = 'VisitorsRecord'
-
-class smoke(models.Model):
-    """
-          smoke测试记录表
+          gold_test测试表
         """
     id = models.AutoField(primary_key=True)
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
@@ -655,16 +543,16 @@ class smoke(models.Model):
         return self.version
 
     class Meta:
-        verbose_name = "smoke测试表"
-        verbose_name_plural = "smoke测试表"
-        db_table = 'smoke'
+        verbose_name = "gold_test测试表"
+        verbose_name_plural = "gold_test测试表"
+        db_table = 'gold_test'
 
-class smoke_record(models.Model):
+class gold_record(models.Model):
     """
           测试记录表
     """
     id = models.AutoField(primary_key=True)
-    version = models.CharField(max_length=30, blank=True, null=True, verbose_name="版本")
+    version = models.CharField(max_length=30, blank=True, null=True, verbose_name="version")
     patientid = models.CharField(max_length=80, blank=True, null=True, verbose_name="id")
     patientname = models.CharField(max_length=80, blank=True, null=True, verbose_name="id")
     studyinstanceuid = models.CharField(max_length=150, blank=True, null=True, verbose_name="数据uid")
@@ -678,18 +566,14 @@ class smoke_record(models.Model):
     result = models.TextField(max_length=2500, blank=True, null=True, verbose_name="结果")
     type = models.TextField(max_length=20, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
-    smokeid =models.IntegerField(default=False, verbose_name='smokeid')
+    gold = models.ForeignKey(gold_test, null=True, on_delete=models.CASCADE, verbose_name='gold_id')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
     def __unicode__(self):
-        return self.smokeid
+        return self.gold_id
 
     class Meta:
         verbose_name = "冒烟测试记录表"
         verbose_name_plural = "冒烟测试记录表"
-        db_table = 'smoke_record'
-
-
-
-
+        db_table = 'gold_record'

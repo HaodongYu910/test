@@ -19,33 +19,29 @@
                             <img class="img-revers" src="..//../../assets/img/bug-10.png"></p>
                     </div>
                     <el-row>
-                        <el-col style="width: 60%">
+                        <el-col style="width: 40%">
                             <el-form ref="form" :model="basedata" label-width="60%">
-                                <el-row>
-                                    <el-divider></el-divider>
-                                </el-row>
-                                <el-row>
-                                    <el-col style="width: 40%" label-position="left">
-
+                                <el-row style="width: 100%" label-position="left">
+                                    <el-col style="width: 50%" label-position="left">
                                         <el-form-item label="测试版本：" label-position="left">
                                             <el-input v-model="basedata.version"></el-input>
                                         </el-form-item>
                                     </el-col>
-                                    <el-col style="width: 40%">
+                                    <el-col style="width: 50%">
                                         <el-form-item label="测试服务：" class="labelcss">
-                                            <el-select v-model="basedata.server" placeholder="请选择活动区域">
+                                            <el-select  v-model="basedata.server" placeholder="请选择活动区域">
                                             </el-select>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position="left">
-                                        <el-form-item label="共计发送（个）：" label-position="left">
+                                    <el-col style="width: 50%" label-position="left">
+                                        <el-form-item label="共计发送：" label-position="left">
                                             <el-tag effect="dark" type="warning" size="150%">{{basedata.sendcount}} 笔
                                             </el-tag>
                                         </el-form-item>
                                     </el-col>
-                                    <el-col style="width: 40%">
+                                    <el-col style="width: 50%">
                                         <el-form-item label="共计预测：" class="labelcss">
                                             <el-tag effect="dark" type="warning" size="150%">{{basedata.AICount}} 笔
                                             </el-tag>
@@ -53,13 +49,13 @@
                                     </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position="left" class="labelcss">
+                                    <el-col style="width: 50%" label-position="left" class="labelcss">
                                         <el-form-item label="预测成功：" label-position="left" class="label-content">
                                             <el-tag effect="dark" type="success" size="150%">{{basedata.AISuccess}} 笔
                                             </el-tag>
                                         </el-form-item>
                                     </el-col>
-                                    <el-col style="width: 40%">
+                                    <el-col style="width: 50%">
                                         <el-form-item label="预测失败：">
                                             <el-tag effect="dark" type="danger" size="150%">{{basedata.AIFail}} 笔
                                             </el-tag>
@@ -67,19 +63,19 @@
                                     </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position="left">
+                                    <el-col style="width: 50%" label-position="left">
                                         <el-form-item label="开始时间：" label-position="left">
                                             <el-input v-model="basedata.start_date"></el-input>
                                         </el-form-item>
                                     </el-col>
-                                    <el-col style="width: 40%">
+                                    <el-col style="width: 50%">
                                         <el-form-item label="结束时间：">
                                             <el-input v-model="basedata.end_date"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 40%" label-position="left">
+                                    <el-col style="width: 50%" label-position="left">
                                         <el-form-item label="统计时间：" label-position="left">
                                             <el-input v-model="basedata.statistics_date"></el-input>
                                         </el-form-item>
@@ -93,12 +89,55 @@
                         <el-col style="width: 20%">
                             <ve-ring :data="SummaryData" :settings="SummarySettings"></ve-ring>
                         </el-col>
+                        <el-col style="width: 40%">
+                            <ve-ring :data="FailData" :settings="SummarySettings"></ve-ring>
+                        </el-col>
+                    </el-row>
+                    <el-row>
+                        <el-col style="width: 100%">
+                            <p class="bug-exp-step p-t-20 p-b-10"><img src="..//../../assets/img/bug-10.png">
+                                <span class="bug-ex-item">{{diseases}} -预测时间趋势图</span><img
+                                        src="..//../../assets/img/bug-10.png"></p>
+                            <el-row>
+                                <el-select v-model="diseases" placeholder="请选择病种"
+                                           @click.native="getReport()">
+                                    <el-option
+                                            v-for="key in model"
+                                            :key="key"
+                                            :label="key"
+                                            :value="key"
+                                    />
+                                </el-select>
+                                <el-button
+                                        plain
+                                        @click="ToUpdate()">
+                                    更新
+                                </el-button>
+                                <el-button
+                                        plain
+                                        @click="SaveReport()">
+                                    保存报告
+                                </el-button>
+                                <el-button
+                                        plain
+                                        @click="checkExpress()">
+                                    服务监控
+                                </el-button>
+                            </el-row>
+
+                            <ve-line
+                                    :set-option-opts="false"
+                                    :data="chartData"
+                                    :data-zoom="chartDataZoom">
+                            </ve-line>
+
+                        </el-col>
                     </el-row>
                     <el-row>
                         <p class="bug-exp-step p-t-20 p-b-10"><img src="..//../../assets/img/bug-10.png">
                             <span class="bug-ex-item">Detailed</span>
                             <img class="img-revers" src="..//../../assets/img/bug-10.png"></p>
-                        <el-col style="width: 60%">
+                        <el-col style="width: 100%">
                             <el-table
                                     :data="durationData"
                                     style="width: 100%">
@@ -113,7 +152,7 @@
                                         label="发送数量"
                                 >
                                     <template slot-scope="scope">
-                                        <span style="margin-left: 10px">{{ scope.row.count }}</span>
+                                        <el-tag size="medium" type="warning">{{ scope.row.count }}</el-tag>
                                     </template>
                                 </el-table-column>
                                 <el-table-column
@@ -170,7 +209,7 @@
                                 >
                                     <template slot-scope="scope">
                                         <el-popover trigger="hover" placement="top">
-                                            <p>失败原因: {{ scope.row.fail }}</p>
+                                            <p>失败原因: {{ scope.row.errorinfo }}</p>
                                             <div slot="reference" class="name-wrapper">
                                                 <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
                                             </div>
@@ -182,56 +221,14 @@
                                         <el-button
                                                 size="mini"
                                                 type="danger"
-                                                @click="handleDelete(scope.$index, scope.row)">详情
+                                                @click="showDetail(scope.$index, scope.row)">详情
                                         </el-button>
                                     </template>
                                 </el-table-column>
                             </el-table>
                         </el-col>
-                        <el-col style="width: 40%">
-                            <ve-ring :data="FailData" :settings="SummarySettings"></ve-ring>
-                        </el-col>
                     </el-row>
-                    <el-row>
-                        <el-col style="width: 100%">
-                            <p class="bug-exp-step p-t-20 p-b-10"><img src="..//../../assets/img/bug-10.png">
-                                <span class="bug-ex-item">{{diseases}} -模型预测时间趋势图</span><img
-                                        src="..//../../assets/img/bug-10.png"></p>
-                            <el-row>
-                                <el-select v-model="diseases" placeholder="请选择病种"
-                                           @click.native="getReport()">
-                                    <el-option
-                                            v-for="key in model"
-                                            :key="key"
-                                            :label="key"
-                                            :value="key"
-                                    />
-                                </el-select>
-                                <el-button
-                                        plain
-                                        @click="ToUpdate()">
-                                    更新
-                                </el-button>
-                                <el-button
-                                        plain
-                                        @click="SaveReport()">
-                                    保存报告
-                                </el-button>
-                                <el-button
-                                        plain
-                                        @click="checkExpress()">
-                                    服务监控
-                                </el-button>
-                            </el-row>
 
-                            <ve-line
-                                    :set-option-opts="false"
-                                    :data="chartData"
-                                    :data-zoom="chartDataZoom">
-                            </ve-line>
-
-                        </el-col>
-                    </el-row>
                 </el-main>
 
             </el-container>
@@ -359,7 +356,7 @@
             ToUpdate() {
                 this.$notify.success({
                     title: '刷新成功',
-                    message: this.diseases + '模型预测时间图表已更新',
+                    message: this.diseases + '预测时间图表已更新',
                     showClose: false
                 });
                 this.getReport()
@@ -375,6 +372,16 @@
             getParams() {
                 this.routerParams = this.$route.query;
                 this.reportid = this.$route.params.reportid
+            },
+            // 跳转到详情页面
+            showDetail(index, row) {
+                this.$router.push({
+                    path: '/durationData',
+                    query: {
+                        id: this.reportid,
+                        name: row.server_ip
+                    }
+                });
             },
             // 获取数据列表
             getReport() {

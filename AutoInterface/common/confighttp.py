@@ -21,10 +21,11 @@ import simplejson
 from django.core import serializers
 from requests import ReadTimeout
 
-from AutoTest.common.common import check_json, record_results
-from AutoTest.models import Server, AutomationCaseApi, AutomationParameter, AutomationTestResult, AutomationHead, \
+from AutoProject.common.common import check_json, record_results
+from AutoProject.models import Server
+from AutoInterface.models import AutomationCaseApi, AutomationParameter, AutomationTestResult, AutomationHead, \
     AutomationParameterRaw
-from AutoTest.serializers import AutomationCaseApiSerializer, AutomationParameterRawSerializer
+from AutoInterface.serializers import AutomationCaseApiSerializer, AutomationParameterRawSerializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 

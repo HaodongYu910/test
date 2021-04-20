@@ -20,12 +20,12 @@ from django.urls import path, include
 from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
-from AutoTest import urls
+from AutoProject import urls
 from AutoUI import autourls
 from AutoStress import stressurls
 from AutoDicom import dicomurls
-# from AutoInterface import apiurls
-from AutoTest.api.ApiDoc import MockRequest
+from AutoInterface import apiUrls
+from AutoInterface.api.ApiDoc import MockRequest
 
 
 schema_view = get_schema_view(title='测试平台 API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer]
@@ -38,7 +38,8 @@ urlpatterns = [
     url(r'^ui/', include(autourls)),
     url(r'^stress/', include(stressurls)),
     url(r'^dicom/', include(dicomurls)),
-    url(r'^api/', include(urls)),
+    url(r'^project/', include(urls)),
+    url(r'^api/', include(apiUrls)),
     path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]
 

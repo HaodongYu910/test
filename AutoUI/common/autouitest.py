@@ -1,4 +1,4 @@
-from AutoTest.models import Server,dictionary
+from AutoProject.models import Server,dictionary
 from AutoDicom.models import dicom
 from AutoDicom.common.dicomBase import checkuid
 from ..models import auto_uicase, autoui, auto_uirecord
