@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from AutoInterface.serializers import gold_Deserializer, gold_Serializer, gold_record_Serializer
 from AutoInterface.common.gold import GoldThread
-from AutoInterface.common.goldReport import GoldReportThread
+from AutoInterface.common.goldReport import GoldReport
 
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
@@ -250,7 +250,7 @@ class DisableSmoke(APIView):
             obj = gold_test.objects.get(id=data["id"])
             obj.status = False
             obj.save()
-            testThread = GoldThread(data["id"])
+            testThread = GoldThread(data["id"], "")
             # 设为保护线程，主进程结束会关闭线程
             testThread.setFlag = False
             return JsonResponse(code="0", msg="成功")
@@ -292,7 +292,7 @@ class EnableSmoke(APIView):
             # 删除以前记录
             objrecord.delete()
 
-            testThread = GoldThread(data["id"])
+            testThread = GoldThread(data["id"], "gold")
             # 设为保护线程，主进程结束会关闭线程
             testThread.setDaemon(True)
             # 开始线程
@@ -313,7 +313,7 @@ class smokeRecord(APIView):
 
     def get(self, request):
         """
-        获取冒烟数据显示数据列表
+        获取金标准数据显示数据列表
         :param request:
         :return:
         """
@@ -327,14 +327,14 @@ class smokeRecord(APIView):
         status = request.GET.get("status")
 
         if diseases != '' and status != '':
-            if status in ["0","1"]:
+            if status in ["0", "1"]:
                 obi = gold_record.objects.filter(diseases=diseases, status=int(status), gold_id=gold_id).order_by(
                     "-id")
             else:
                 obi = gold_record.objects.filter(diseases=diseases, result=status, gold_id=gold_id).order_by(
                     "-id")
         elif diseases == '' and status != '':
-            if status in ["0","1"]:
+            if status in ["0", "1"]:
                 obi = gold_record.objects.filter(status=int(status), gold_id=gold_id).order_by(
                     "-id")
             else:
@@ -437,7 +437,7 @@ class getGoldReport(APIView):
             return JsonResponse(code="999985", msg="goldid must be integer!")
         # 查找是否存在
         try:
-            reportThread = GoldReportThread(goldid)
+            reportThread = GoldReport(goldid)
             data = reportThread.report()
             return JsonResponse(code="0", msg="成功", data=data)
 

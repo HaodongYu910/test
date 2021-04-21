@@ -188,7 +188,10 @@
         methods: {
             getParams() {
                 this.routerParams = this.$route.query;
-                this.goldid = this.$route.params.goldid
+                this.gold_id =  this.routerParams.gold_id;
+                this.diseases = this.routerParams.diseases
+
+                console.log(this.diseases)
             },
             valuestatus: function (a) {
                 if (a === "匹配成功") {
@@ -276,7 +279,7 @@
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.goldid,
+                    gold_id: this.gold_id,
                     diseases:this.filters.diseases,
                     status:this.filters.status
                 }

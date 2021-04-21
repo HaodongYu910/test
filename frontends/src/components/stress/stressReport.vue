@@ -2,7 +2,7 @@
     <div class="wid-2000 " for="pc">
         <el-container style=" border: 1px solid #eee">
             <el-header style="text-align: center; color: rgb(71,62,62); font-size: 24px">
-                <span :model="basedata">BioMind {{version}} Stress Test Report</span>
+                <span :model="basedata">BioMind Stress Test Report</span>
             </el-header>
             <el-main>
                 <div>
@@ -12,15 +12,14 @@
                 </div>
                 <el-row>
                     <el-col style="width: 50%">
-                        <el-form ref="form" :model="basedata" label-width="60%">
+                        <el-form ref="form" :model="basedata" label-width="50%">
                             <el-row>
-                                <el-divider></el-divider>
+                                <p></p>
                             </el-row>
-                            <el-row>
-                                <el-col style="width: 50%" label-position="left">
-
-                                    <el-form-item label="测试版本：" label-position="left">
-                                        <el-input v-model="basedata.version"></el-input>
+                            <el-row :gutter="20">
+                                <el-col style="width: 50%">
+                                    <el-form-item label="测试版本:">
+                                        <el-input v-model="basedata.version" style="align:left "></el-input>
                                     </el-form-item>
                                 </el-col>
                                 <el-col style="width: 50%">
@@ -46,13 +45,13 @@
                             <el-row>
                                 <el-col style="width: 50%" label-position="left" class="labelcss">
                                     <el-form-item label="预测成功：" label-position="left" class="label-content">
-                                        <el-tag effect="dark" type="success" size="150%">{{basedata.aisuccess}} 笔
+                                        <el-tag effect="dark" type="success" size="150%">{{basedata.success}} 笔
                                         </el-tag>
                                     </el-form-item>
                                 </el-col>
                                 <el-col style="width: 50%">
                                     <el-form-item label="预测失败：">
-                                        <el-tag effect="dark" type="danger" size="150%">{{basedata.error}} 笔
+                                        <el-tag effect="dark" type="danger" size="150%">{{basedata.fail}} 笔
                                         </el-tag>
                                     </el-form-item>
                                 </el-col>
@@ -70,9 +69,52 @@
                                 </el-col>
                             </el-row>
                             <el-row label-position="left">
-                                <el-col>
+                                <el-col style="width: 50%" label-position="left" align="center" >
+                                    <el-table
+                                            :data="stressData"
+                                            style="width: 100%">
+                                        <el-table-column
+                                                label="策略"
+                                        >
+                                            <template slot-scope="scope">
+                                                <span style="margin-left: 10px">{{ scope.row.strategy }}</span>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="并发VU"
+                                        >
+                                            <template slot-scope="scope">
+                                                <div slot="reference" class="name-wrapper">
+                                                    <el-tag size="medium" type="warning">{{ scope.row.vu }}</el-tag>
+                                                </div>
+
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="循环次数"
+                                        >
+                                            <template slot-scope="scope">
+                                                <div slot="reference" class="name-wrapper">
+                                                    <el-tag size="medium" type="success">{{ scope.row.count }}
+                                                    </el-tag>
+                                                </div>
+                                            </template>
+                                        </el-table-column>
+                                        <el-table-column
+                                                label="运行时间"
+                                        >
+                                            <template slot-scope="scope">
+                                                <el-popover trigger="hover" placement="top">
+                                                    <p>{{ scope.row.time }}</p>
+
+                                                </el-popover>
+                                            </template>
+                                        </el-table-column>
+                                    </el-table>
+                                </el-col>
+                                <el-col style="width: 50%" label-position="left">
                                     <el-form-item label="服务器配置" prop='serverInfo'>
-                                        <el-input type="textarea" :rows="6" v-model="basedata.serverInfo"></el-input>
+                                        <el-input type="textarea" :rows="10" v-model="basedata.serverInfo"></el-input>
                                     </el-form-item>
                                 </el-col>
                             </el-row>
@@ -97,7 +139,7 @@
                                     src="../../assets/img/bug-10.png"></p>
                     </el-col>
                     <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-                        <el-input type="textarea" :rows="10" v-model="summary"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="basedata.summary"></el-input>
                         <el-button type="primary" @click="getSaveReport">保存更新</el-button>
                     </el-col>
                 </el-row>
@@ -117,12 +159,17 @@
                                         <el-option key="dy" label="单一测试" value="dy"/>
                                     </el-select>
                                 </el-form-item>
-                                <el-cascader
-                                        :options="diseasesoptions"
-                                        :props="props"
-                                        clearable v-model="filters.model"
-                                        @click.native="stressmodel()"></el-cascader>
-                                <el-button type="primary" @click="getReport">更新</el-button>
+                                <el-select v-model="filters.models" placeholder="模型">
+                                    <el-option
+                                            v-for="(k,v) in basedata.models"
+                                            :key="v"
+                                            :label="k"
+                                            :value="v"
+                                    />
+                                </el-select>
+                                <el-button type="primary" @click="ToUpdate">更新</el-button>
+                                <el-button type="primary" @click="ToMonitor">监控</el-button>
+                                <el-button type="primary" @click="ToUpdate">发送</el-button>
                             </el-form>
                             <ve-line
                                     :set-option-opts="false"
@@ -138,13 +185,13 @@
                             <span class="bug-ex-item">Prediction Time Result</span><img
                                     src="../../assets/img/bug-10.png"></p>
                         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-                            <el-form :inline="true" :model="filters" @click.native="getreportData()">
+                            <el-form :inline="true" :model="filters">
                                 <el-select v-model="filters.type" placeholder="类型">
                                     <el-option key="jz" label="基准测试" value="jz"/>
                                     <el-option key="hh" label="混合测试" value="hh"/>
                                     <el-option key="dy" label="单一测试" value="dy"/>
                                 </el-select>
-                                <el-select v-model="filters.checkversion" placeholder="以往版本"
+                                <el-select v-model="filters.checkversion" placeholder="比对版本"
                                            @click.native="getversion()">
                                     <el-option
                                             v-for="(item,index) in versions"
@@ -154,7 +201,7 @@
                                     />
                                 </el-select>
                                 <el-form-item>
-                                    <el-button type="primary" @click="getReport">更新</el-button>
+                                    <el-button type="primary" @click="ToUpdate">更新</el-button>
                                 </el-form-item>
                             </el-form>
                         </el-col>
@@ -166,12 +213,12 @@
                                     <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="version" label="sliceThickness" min-width="8%">
+                            <el-table-column prop="slicenumber" label="sliceThickness" min-width="8%">
                                 <template slot-scope="scope">
                                     <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="type" label="prediction_count" min-width="10%">
+                            <el-table-column prop="type" label="prediction_count" min-width="8%">
                                 <template slot-scope="scope">
                                     <span style="margin-left: 10px">{{ scope.row.count }}</span>
                                 </template>
@@ -182,13 +229,13 @@
                                   :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="median pred time /s" min-width="10%" sortable>
+                            <el-table-column label="median pred time /s" min-width="10%" >
                                 <template slot-scope="scope">
                         <span style="margin-left: 10px"
                               :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="min pred time /s" min-width="10%" sortable>
+                            <el-table-column label="min pred time /s" min-width="10%" >
                                 <template slot-scope="scope">
                             <span style="margin-left: 10px"
                                   :class="valuestatus(scope.row.min)">{{ scope.row.min}}</span>
@@ -220,19 +267,21 @@
                                     <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
                                 </template>
                             </el-table-column>
+                            <el-table-column label="预测成功率" min-width="8%">
+                                <template slot-scope="scope">
+                                    <div slot="reference" class="name-wrapper">
+                                        <el-tag size="medium" type="success">{{ scope.row.rate }}
+                                        </el-tag>
+                                    </div>
+                                </template>
+                            </el-table-column>
                         </el-table>
-                        <el-table-column label="rate of success" min-width="8%" sortable>
-                            <template slot-scope="scope">
-                                <span style="margin-left: 10px">{{ scope.row.rate }}</span>
-                            </template>
-                        </el-table-column>
-
                         <p class="bug-exp-step p-t-20 p-b-10"><img src="../../assets/img/bug-10.png">
                             <span class="bug-ex-item">Job Time Result</span><img src="../../assets/img/bug-10.png"></p>
                         <el-table :data="job" highlight-current-row v-loading="listLoading"
                                   @selection-change="selsChange"
                                   style="width: 100%;">
-                            <el-table-column prop="version" label="modelname" min-width="8%">
+                            <el-table-column prop="modelname" label="modelname" min-width="8%">
                                 <template slot-scope="scope">
                                     <span style="margin-left: 10px">{{ scope.row.modelname }}</span>
                                 </template>
@@ -242,7 +291,7 @@
                                     <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column prop="type" label="job_count" min-width="10%">
+                            <el-table-column prop="type" label="job_count" min-width="8%">
                                 <template slot-scope="scope">
                                     <span style="margin-left: 10px">{{ scope.row.count }}</span>
                                 </template>
@@ -259,13 +308,13 @@
                               :class="valuestatus(scope.row.single)">{{ scope.row.single }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="median job time /s" min-width="10%" sortable>
+                            <el-table-column label="median job time /s" min-width="10%">
                                 <template slot-scope="scope">
                         <span style="margin-left: 10px"
                               :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="min job time /s" min-width="10%" sortable>
+                            <el-table-column label="min job time /s" min-width="10%">
                                 <template slot-scope="scope">
                             <span style="margin-left: 10px"
                                   :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
@@ -320,13 +369,13 @@
                                   :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="median pred time /s" min-width="10%" sortable>
+                            <el-table-column label="median pred time /s" min-width="10%" >
                                 <template slot-scope="scope">
                         <span style="margin-left: 10px"
                               :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
                                 </template>
                             </el-table-column>
-                            <el-table-column label="min pred time /s" min-width="10%" sortable>
+                            <el-table-column label="min pred time /s" min-width="10%" >
                                 <template slot-scope="scope">
                             <span style="margin-left: 10px"
                                   :class="valuestatus(scope.row.min)">{{ scope.row.min}}</span>
@@ -354,83 +403,11 @@
                                 </template>
                             </el-table-column>
                         </el-table>
-                        <el-table-column label="rate of success" min-width="8%" sortable>
+                        <el-table-column label="rate of success" min-width="8%" >
                             <template slot-scope="scope">
                                 <span style="margin-left: 10px">{{ scope.row.rate }}</span>
                             </template>
                         </el-table-column>
-                        <el-table
-                                :data="stressData"
-                                style="width: 100%">
-                            <el-table-column
-                                    label="类型"
-                            >
-                                <template slot-scope="scope">
-                                    <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
-                                </template>
-                            </el-table-column>
-                            <el-table-column
-                                    label="共计预测"
-                            >
-                                <template slot-scope="scope">
-                                    <div slot="reference" class="name-wrapper">
-                                        <el-tag size="medium" type="warning">{{ scope.row.total }}</el-tag>
-                                    </div>
-
-                                </template>
-                            </el-table-column>
-                            <el-table-column
-                                    label="预测成功"
-                            >
-                                <template slot-scope="scope">
-                                    <div slot="reference" class="name-wrapper">
-                                        <el-tag size="medium" type="success">{{ scope.row.aisuccess }}</el-tag>
-                                    </div>
-                                </template>
-                            </el-table-column>
-                            <el-table-column
-                                    label="预测失败"
-                            >
-                                <template slot-scope="scope">
-                                    <el-popover trigger="hover" placement="top">
-                                        <p>预测失败: {{ scope.row.errorInfo }}</p>
-                                        <div slot="reference" class="name-wrapper">
-                                            <el-tag size="medium" type="danger">{{ scope.row.error }}</el-tag>
-                                        </div>
-                                    </el-popover>
-                                </template>
-                            </el-table-column>
-                            <el-table-column
-                                    label="匹配成功"
-                            >
-                                <template slot-scope="scope">
-                                    <div slot="reference" class="name-wrapper">
-                                        <el-tag size="medium" type="success">{{ scope.row.success }}</el-tag>
-                                    </div>
-                                </template>
-                            </el-table-column>
-                            <el-table-column
-                                    label="匹配失败"
-                            >
-                                <template slot-scope="scope">
-                                    <el-popover trigger="hover" placement="top">
-                                        <p v-html="scope.row.failInfo"></p>
-                                        <div slot="reference" class="name-wrapper">
-                                            <el-tag size="medium" type="danger">{{ scope.row.fail }}</el-tag>
-                                        </div>
-                                    </el-popover>
-                                </template>
-                            </el-table-column>
-                            <el-table-column label="操作">
-                                <template slot-scope="scope">
-                                    <el-button
-                                            size="mini"
-                                            type="danger"
-                                            @click="showDetail(scope.$index, scope.row)">详情
-                                    </el-button>
-                                </template>
-                            </el-table-column>
-                        </el-table>
                     </el-col>
                 </el-row>
             </el-main>
@@ -464,7 +441,7 @@
 
 <script>
     import {
-        getHost, getStressReport, getbase, getreportfigure, saveAnalysis
+        getstressversion, getstressmodel, getStressReport, getbase, getreportfigure, saveAnalysis
     } from '@/router/api'
 
     export default {
@@ -480,11 +457,10 @@
             }
             return {
                 props: {multiple: false}, // 控制级联选择 是否允许多选
+                versions: {},
                 filters: {
-                    server: '192.168.1.208',
-                    diseases: '',
                     type: "jz",
-                    model:""
+                    models: 1
                 },
                 chartData: {
                     "columns": ['version', 'Prediction', 'Job'],
@@ -501,53 +477,19 @@
                     value: '晨曦',
                     label: '晨曦',
                     children: [{
-                        value: '2.18.1',
-                        label: '2.18.1',
-                        children: [{
-                            value: 'Brain',
-                            label: 'Brain'
-                        }]
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }, {
-                    value: 'Gold',
-                    label: 'Gold',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
+                        value: 'brain_predictor',
+                        label: 'brain_predictor',
                     }]
                 }],
                 stresschartData: {
                     columns: ['状态', '数量'],
                     rows: [
                         {'状态': '成功', '数量': 0},
-                        {'状态': '失败', '数量': 0},
-                        {'状态': '报错', '数量': 0}
+                        {'状态': '失败', '数量': 0}
                     ]
                 },
                 basedata: [],
-                stressData: [{
-                    diseases: 'CTA',
-                    success: '50',
-                    fail: '10',
-                    error: '5'
-                }, {
-                    diseases: 'brain',
-                    success: '23',
-                    fail: '11',
-                    error: '1'
-                },],
+                stressData: [],
 
             }
         },
@@ -562,11 +504,32 @@
             this.getParams();
         },
         methods: {
+            // 获取页面传参
             getParams() {
                 this.routerParams = this.$route.query;
-                this.stressId = this.$route.params.stress_id;
-                this.version = this.$route.params.version
+                this.stressId = this.routerParams.stress_id;
+                this.projectName = this.routerParams.projectName
             },
+            // 更新消息弹出，调用更新数据接口
+            ToUpdate() {
+                this.getReport();
+                this.$notify.success({
+                    title: '刷新成功',
+                    message: '图表已更新',
+                    showClose: false
+                });
+
+            },
+            // 更新消息弹出，调用更新数据接口
+            ToMonitor() {
+                this.$notify.success({
+                    title: '即将跳转到监控页面',
+                    message: '即将跳转到监控页面',
+                    showClose: false
+                });
+                this.checkExpress();
+            },
+            // 样式 显示
             valuestatus: function (a) {
                 if (a === "匹配成功") {
                     return 'statuscssb';
@@ -574,10 +537,76 @@
                     return 'statuscssa';
                 }
             },
+            // 跳转数据详情页面
             showDetail(index, row) {
                 this.$router.push({
                     path: '/detail/stressId=' + this.stressId,
                 });
+            },
+            //展示监控
+            checkExpress: function () {
+                if (this.basedata.start_date === null) {
+                    var startstamp = new Date().getTime();
+                }
+                else {
+                    var startdate = this.basedata.start_date.replace(/-/g, '/');
+                    var startstamp = new Date(startdate).getTime();
+                }
+                if (this.basedata.end_date === null) {
+                    var endstamp = new Date().getTime();
+                }
+                else {
+                    var enddate = this.basedata.end_date.replace(/-/g, '/');
+                    var endstamp = new Date(enddate).getTime();
+                }
+                {
+                    window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                        startstamp + "&to=" + endstamp + "&var-host_name=" +
+                        this.basedata.server + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                }
+                // //刷新当前页面
+                // window.location.reload();
+            },
+            // 压测项目模型
+            stressmodel() {
+                this.listLoading = true
+                const self = this
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getstressmodel(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.modeloptions = data.data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
+            // 获取压测版本
+            getversion() {
+                this.listLoading = true
+                const self = this
+                const params = {
+                    projectName: this.projectName
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getstressversion(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        var json = JSON.stringify(data.data)
+                        this.versions = JSON.parse(json)
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
             },
             // 获取保存结论列表
             getSaveReport() {
@@ -601,39 +630,15 @@
                     }
                 })
             },
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom", type: "stress",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.bases = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
             // 获取数据列表
             getReport() {
                 this.listLoading = true
                 const self = this
                 const params = {
                     stressId: this.stressId,
-                    type:this.filters.type,
-                    checkversion:this.filters.checkversion,
-                    model:this.filters.model
+                    type: this.filters.type,
+                    checkversion: this.filters.checkversion,
+                    models: this.filters.models
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getStressReport(headers, params).then((res) => {
@@ -641,16 +646,33 @@
                     const {msg, code, data} = res
                     if (code === '0') {
                         self.reportdata = data
-                        // self.stresschartData.rows = data.stressrows
+                        this.stresschartData.rows = data.report.aiResult
                         this.basedata = data.report.basedata
                         this.prediction = data.predictionresult
                         this.job = data.jobresult
                         this.diff = data.diffresult
                         this.stressData = data.stressData
-                        this.FailData = {
-                            columns: ['状态', '数量'],
-                            rows: data.errorData
-                        }
+                        this.chartData = data.chartData
+                        this.stressData = [{
+                            strategy: '基准测试',
+                            vu: this.basedata.synchroniz,
+                            count: this.basedata.benchmark,
+                            time: ''
+                        }, {
+                            strategy: '单一模型',
+                            vu: this.basedata.synchroniz,
+                            count:this.basedata.single,
+                            time: ''
+                        },{
+                            strategy: '混合模型',
+                            vu: this.basedata.synchroniz,
+                            count: '',
+                            time: this.basedata.loop_time
+                        },],
+                            this.FailData = {
+                                columns: ['状态', '数量'],
+                                rows: data.errorData
+                            }
                     } else {
                         self.$message.error({
                             message: msg,
@@ -666,106 +688,6 @@
             selsChange: function (sels) {
                 this.sels = sels
             },
-            // 批量删除
-            batchRemove: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认删除选中记录吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    deldicomdata(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '删除成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
-                })
-            },
-            handleR: function (index, row) {
-                this.$confirm('确认重新测试吗?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {id: row.id};
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    stresssave(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.getdata()
-                    });
-                })
-            },
-            handleU: function (index, row) {
-                this.$confirm('跳转到imageview页面?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {
-                        id: row.id,
-                        type: "stress"
-                    };
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    getdicomurl(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            console.log(JSON.stringify(data.url))
-                            window.location.href = JSON.stringify(data.url),
-                                //刷新当前页面
-                                // window.location.reload();
-                                self.$message({
-                                    message: '成功',
-                                    center: true,
-                                    type: 'success'
-                                })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.getdata()
-                    });
-                })
-            }
         }
     }
 </script>

@@ -308,3 +308,21 @@ class install(models.Model):
         verbose_name_plural = "install"
         db_table = 'install'
 
+class message_group(models.Model):
+    """
+          信息组
+        """
+    id = models.AutoField(primary_key=True)
+    party = models.CharField(max_length=30, blank=True, null=True, verbose_name="组")
+    user = models.CharField(max_length=200, blank=True, null=True, verbose_name="人员")
+    content = models.CharField(max_length=500, blank=True, null=True, verbose_name="内容")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="组")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "message_group"
+        verbose_name_plural = "message_group"
+        db_table = 'message_group'

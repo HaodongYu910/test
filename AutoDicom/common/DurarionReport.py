@@ -133,18 +133,22 @@ class ReportThread(threading.Thread):
                                                           create_time__lte=self.statistics_date)
 
             for i in recordDetail:
-                if i.error is not None and i.error != '[]':
-                    error = json.loads(i.error[1:-1])
-                    if recorddata.__contains__(error["code"]) is False:
-                        recorddata[error["code"]] = 1
-                    else:
-                        recorddata[error["code"]] = recorddata[error["code"]] + 1
+                try:
+                    if i.error is not None and i.error != '[]':
+                        error = json.loads(i.error[1:-1])
+                        if recorddata.__contains__(error["code"]) is False:
+                            recorddata[error["code"]] = 1
+                        else:
+                            recorddata[error["code"]] = recorddata[error["code"]] + 1
+                except Exception as e:
+                    logger.error("失败：{0}".format(e))
+                    continue
             for k, v in recorddata.items():
                 errorData.append({'状态': k, '数量': v})
 
             return errorData
         except Exception as e:
-            logger.error("预测趋势数据生成失败：{0}".format(e))
+            logger.error("错误分析数据生成失败：{0}".format(e))
 
     def durationLine(self):
         try:

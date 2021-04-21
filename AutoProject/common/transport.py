@@ -2,6 +2,7 @@
 import paramiko
 import logging
 import uuid
+import time
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -112,14 +113,34 @@ class SSHConnection:
         result = stdout.read()
         return result
 
+    def command(self, cmd, result_print=None, nohup=False):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname=self.host, port=self.port, username=self.user,
+                    password=self.pwd)
+        if nohup:
+            cmd += ' & \n '
+            invoke = ssh.invoke_shell()
+            invoke.send(cmd)
+            # 等待命令执行完成
+            time.sleep(2)
+        else:
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            result = stdout.read()
+            if result_print:
+                lines = result
+                for line in lines:
+                    print(line)
 
+#
 # if __name__ == '__main__':
 #
 #     ssh = SSHConnection()
-#     a = ssh.cmd("biomind log")
+#     a = ssh.command("nohup unzip -o QaInstall.zip > zz.log 2>&1 &")
 #     print(bytes.decode(a))
-# #
+#
 #     ssh.close()
+
 
 # # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
 # print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))
