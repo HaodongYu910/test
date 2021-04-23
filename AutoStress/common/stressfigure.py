@@ -22,13 +22,13 @@ plt.rcParams['font.family'] = ['Times New Roman']
 
 # plt.rcParams.update({'font.size': 12})
 
-def stressdataFigure(diseases, rtype):
+def stressdataFigure(model, rtype):
 
     rows = []
     dictColumns = {}
     # 模型 ID
     models = []
-    models.append(diseases[1])
+    models.append(model[1])
     # 多选模型 循环 处理
     # for i in diseases:
     #     models.append(i[1])

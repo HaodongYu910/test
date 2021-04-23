@@ -17,6 +17,23 @@ from AutoStress.models import stress
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
+
+# 获取性能测试版本号
+class stressVersion(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取性能测试版本
+        :param request:
+        :return:
+        """
+        name = request.GET.get("projectName", '晨曦')
+        obj = stress.objects.filter(projectname=name).order_by("-version")
+        serialize = stress_Deserializer(obj, many=True)
+        return JsonResponse(data={"data": serialize.data
+                                  }, code="0", msg="成功")
 # 获取压测列表
 class stressReport(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -29,19 +46,18 @@ class stressReport(APIView):
         :return:
         """
         try:
-            stressId = int(request.GET.get("stressId", 20))
+            stressId = int(request.GET.get("stressId"))
+            obj = stress.objects.get(stressid=stressId)
+            type = request.GET.get("type", "jz")
+            checkversion = request.GET.get("checkversion", obj.version)
+            models = ["", str(request.GET.get("models")).strip()]
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="必传 stressId!")
-
         st = StressReport(stressId)
         report = st.report()
-        obj = stress.objects.get(stressid=stressId)
-        type = request.GET.get("type", "jz")
-        checkversion = request.GET.get("checkversion", obj.version)
-        model = request.GET.get("model", 1)
 
         if type == 'jz':
-            stresstype = ['predictionJZ', 'jobJZ']
+            stressType = ['predictionJZ', 'jobJZ']
             prediction = stress_result.objects.filter(version=obj.version,
                                                       type__in=['predictionJZ', 'lung_prediction'])
             job = stress_result.objects.filter(version=obj.version, type__in=['jobJZ', 'lung_jobJZ'])
@@ -49,9 +65,9 @@ class stressReport(APIView):
             predictionb = stress_result.objects.filter(version=checkversion,
                                                        type__in=['predictionJZ', 'lung_JZ'])
             jobb = stress_result.objects.filter(version=checkversion, type__in=['jobJZ', 'lung_jobJZ'])
-            result = map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]])
+            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
         elif type == 'dy':
-            stresstype = ['predictiondy', 'jobdy']
+            stressType = ['predictiondy', 'jobdy']
             prediction = stress_result.objects.filter(version=obj.version,
                                                       type__in=['predictiondy', 'lung_dy'])
             job = stress_result.objects.filter(version=obj.version, type__in=['jobdy', 'lung_jobdy'])
@@ -60,7 +76,7 @@ class stressReport(APIView):
                                                        type__in=['predictiondy', 'lung_dy'])
             jobb = stress_result.objects.filter(version=checkversion, type__in=['jobdy', 'lung_jobdy'])
 
-            result = map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]])
+            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
         else:
             prediction = stress_result.objects.filter(version=obj.version,
                                                       type__in=['prediction', 'lung_prediction'])
@@ -69,10 +85,9 @@ class stressReport(APIView):
             predictionb = stress_result.objects.filter(version=checkversion,
                                                        type__in=['prediction', 'lung_prediction'])
             jobb = stress_result.objects.filter(version=checkversion, type__in=['job', 'lung_job'])
-            stresstype = ['prediction', 'job']
-
-            result = map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]])
-        chartData = {}
+            stressType = ['prediction', 'job']
+            result = list(result=map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
+        chartData = stressdataFigure(models, stressType)
 
         return JsonResponse(data={"report": report,
                                   "predictionresult": result[0],

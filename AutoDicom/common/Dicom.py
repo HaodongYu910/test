@@ -188,7 +188,7 @@ class SendQueThread:
         else:
             self.local_aet = 'QA120'
 
-    def run(self):
+    def DicomSend(self):
         try:
             src_folder = self.route
             while src_folder[-1] == '/':
@@ -211,7 +211,7 @@ class SendQueThread:
 
         threads = []
         for i in range(self.thread_num):
-            t = threading.Thread(target=self.send, args=(q,))
+            t = threading.Thread(target=self.Send, args=(q,))
             # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
             threads.append(t)
         for i in range(self.thread_num):
@@ -220,7 +220,7 @@ class SendQueThread:
             threads[i].join()
 
     # 下面来通过多线程来处理Queue里面的任务：
-    def send(self, q):
+    def Send(self, q):
         while True:
             if q.empty():
                 return

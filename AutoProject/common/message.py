@@ -2,6 +2,7 @@ import requests
 import json
 import datetime
 import logging
+from ..models import message_group, message_detail
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,122 @@ logger = logging.getLogger(__name__)
 注：QA部门ID是132，如果需要其他部门可以联系CIT 张子轩。
 
 """
+"""
+msgtype	是	消息类型，此时固定为text
+content	是	文本内容，最长不超过2048个字节，必须是utf8编码
+mentioned_list	否	userid的列表，提醒群中的指定成员(@某个成员)，@all表示提醒所有人，如果开发者获取不到userid，可以使用mentioned_mobile_list
+mentioned_mobile_list	否	手机号列表，提醒手机号对应的群成员(@某个成员)，@all表示提醒所有人
+目前支持的markdown语法是如下的子集：
+
+标题 （支持1至6级标题，注意#与文字中间要有空格）
+# 标题一
+## 标题二
+### 标题三
+#### 标题四
+##### 标题五
+###### 标题六
+加粗
+**bold**
+链接
+[这是一个链接](http://work.weixin.qq.com/api/doc)
+行内代码段（暂不支持跨行）
+`code`
+引用
+> 引用文字
+字体颜色(只支持3种内置颜色)
+<font color="info">绿色</font>
+<font color="comment">灰色</font>
+<font color="warning">橙红色</font>
+图片类型
+
+{
+    "msgtype": "image",
+    "image": {
+        "base64": "DATA",
+        "md5": "MD5"
+    }
+}
+参数	是否必填	说明
+msgtype	是	消息类型，此时固定为image
+base64	是	图片内容的base64编码
+md5	是	图片内容（base64编码前）的md5值
+注：图片（base64编码前）最大不能超过2M，支持JPG,PNG格式
+
+
+图文类型
+
+{
+    "msgtype": "news",
+    "news": {
+       "articles" : [
+           {
+               "title" : "中秋节礼品领取",
+               "description" : "今年中秋节公司有豪礼相送",
+               "url" : "www.qq.com",
+               "picurl" : "http://res.mail.qq.com/node/ww/wwopenmng/images/independent/doc/test_pic_msg1.png"
+           }
+        ]
+    }
+}
+参数	是否必填	说明
+msgtype	是	消息类型，此时固定为news
+articles	是	图文消息，一个图文消息支持1到8条图文
+title	是	标题，不超过128个字节，超过会自动截断
+description	否	描述，不超过512个字节，超过会自动截断
+url	是	点击后跳转的链接。
+picurl	否	图文消息的图片链接，支持JPG、PNG格式，较好的效果为大图 1068*455，小图150*150。
+
+
+文件类型
+
+{
+    "msgtype": "file",
+    "file": {
+         "media_id": "3a8asd892asd8asd"
+    }
+}
+参数	是否必填	说明
+msgtype	是	消息类型，此时固定为file
+media_id	是	文件id，通过下文的文件上传接口获取
+
+"""
+
+def MessageGroup(send_url, params):
+    # """
+    # 发送消息
+    # """
+    try:
+        requests.post(send_url, data=json.dumps(params))
+    except Exception as e:
+        logger.error("send Message fail :{}".format(e))
+#     obj = message_group.objects.get(type=messageType)
+#     if obj.msgtype =="image":
+#         params ={
+#     "msgtype": "image",
+#     "image": {
+#         "base64": "DATA",
+#         "md5": "MD5"
+#     }
+# }
+#     elif obj.msgtype =="news":
+#         params = {
+#             "msgtype": "news",
+#             "news": {
+#                "articles": [
+#                    {
+#                        "title":"中秋节礼品领取",
+#                        "description" : "今年中秋节公司有豪礼相送",
+#                        "url" : "www.qq.com",
+#                        "picurl" : "http://res.mail.qq.com/node/ww/wwopenmng/images/independent/doc/test_pic_msg1.png"
+#                    }
+#                 ]
+#             }
+#         }
+#     else:
+#         params =
+
+
+
 def sendMessage(touser='',toparty='',message='Message'):
     """
     固定参数:corpid,appsecret，agentid

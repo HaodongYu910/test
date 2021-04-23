@@ -68,14 +68,14 @@ def checkuid(serverID, serverIP, dicomid):
     if len(result_db) == 0:
         logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
-        thread_Send.run()
+        thread_Send.DicomSend()
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
         logger.info(" delete file{}".format(obj.studyinstanceuid))
         delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
         logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
-        thread_Send.run()
+        thread_Send.DicomSend()
 
 
 # 数据跳转listview url
@@ -141,6 +141,7 @@ def voteData(uid, orthanc_ip, diseases, kc):
     except Exception as e:
         return vote, None, None
     return str(vote), imagecount, slicenumber
+
 
 # 生成graphql 接口 json
 def graphql_query(studyuid,vote,predictorid,predictor):

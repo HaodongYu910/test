@@ -15,25 +15,6 @@ from ..models import stress
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class stressversion(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        获取性能测试版本
-        :param request:
-        :return:
-        """
-        projectname = request.GET.get("projectname", '晨曦')
-        obj = stress.objects.filter(projectname=projectname)
-        serialize = stress_Deserializer(obj, many=True)
-        # for i in obi.version:
-        #     dict = {'key': i, 'value': i}
-        #     list.append(dict)
-        return JsonResponse(data={"data": serialize.data
-                                  }, code="0", msg="成功")
-
 class stressData(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()

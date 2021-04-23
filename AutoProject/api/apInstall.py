@@ -9,12 +9,12 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
-from ..common.install import InstallThread
+from ..common.install import InstallThread, smokeThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
 from ..models import install, Server
-from ..common.InstallSmoke import InGoldThread
 from ..common.Journal import readJournal
+from ..common.biomind import Restart, createUser
 
 import os
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -99,7 +99,7 @@ class getInstall(APIView):
         :return:
         """
         try:
-            page_size = int(request.GET.get("page_size", 20))
+            page_size = int(request.GET.get("page_size", 10))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
@@ -136,10 +136,37 @@ class getJournal(APIView):
         """
         try:
             data = JSONParser().parse(request)
-            journal = readJournal("Installation{}".format(data["id"]))
+            obj = install.objects.get(id=data["id"])
+            journal, installStr, restartStr = readJournal(obj.Host.host, "Installation{}".format(data["id"]), obj.Host.pwd)
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取数据失败!", data="")
-        return JsonResponse(data=journal, code="0", msg="成功")
+        return JsonResponse(data={"deploy": journal,
+                                  "install": installStr,
+                                  "restart": restartStr,
+                                  "gold": "------暂未开放-------",
+                                  }, code="0", msg="成功")
+
+class getRestart(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self, request):
+        """
+        重启& 创建用户
+        :param request:
+        :return:
+        """
+        try:
+            data = JSONParser().parse(request)
+
+            obj = install.objects.get(id=data["id"])
+            if data["type"] == 1:
+                Restart(id=obj.Host_id)
+            else:
+                createUser(user=data["user"], pwd=data["pwd"], protocol=obj.Host.protocol, server=obj.Host.host)
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="重启失败!")
+        return JsonResponse(code="0", msg="成功")
 
 
 class AddInstall(APIView):
@@ -280,8 +307,7 @@ class DelInstall(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    obj = install.objects.filter(id=j)
-                    obj.delete()
+                    install.objects.filter(id=j).delete()
                 except Exception as e:
                     logger.error("删除Install数据失败")
             return JsonResponse(code="0", msg="成功")

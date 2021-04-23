@@ -368,9 +368,9 @@ class delDuration(APIView):
         try:
             for i in data["ids"]:
                 try:
-                    obj = duration.objects.get(id=i)
+                    duration.objects.get(id=i).delete()
                     try:
-                        obj.delete()
+                        duration_record.objects.filter(duration_id=i).delete()
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999994", msg="删除失败！")
                 except ObjectDoesNotExist:

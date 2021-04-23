@@ -8,7 +8,6 @@ from AutoDicom.models import duration
 from AutoDicom.common.durarion import DurationThread
 from AutoInterface.common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
-from ..common.biomind import RestartThread
 import time
 import datetime
 import logging
@@ -46,19 +45,15 @@ class InGoldThread(threading.Thread):
                 logger.error("Nightly Build Version:{0}：更新json文件失败----失败原因：{1}".format(self.version, e))
 
             logger.info("Nightly Build Version:{}：重启服务".format(self.version))
-            restart = RestartThread(id=self.server.id)
-            restart.setDaemon(True)
-            # 开始线程
-            restart.start()
-
+            self.ssh.command("nohup sshpass -p {} biomind restart".format(self.pwd))
+            time.sleep(400)
+            self.ssh.close()
             logger.info("Nightly Build Version:{}：sheep 300 秒".format(self.version))
-            time.sleep(300)
             self.createUser()
             logger.info("Nightly Build Version:{}：createUser".format(self.version))
             self.goldsmoke()
             self.duration()
-            restart.setFlag = False
-            self.ssh.close()
+
         except Exception as e:
             logger.error("Nightly Build Version:{0}：安装{1}版本失败----失败原因：{2}".format(self.version, self.obj.version, e))
 
@@ -75,18 +70,19 @@ class InGoldThread(threading.Thread):
 
     def goldsmoke(self):
         try:
+            logger.info("Nightly Build Version:{}：创建金标准测试".format(self.version))
             data = {"version": self.version,
                     "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                     "status": True,
                     "Host_id": 13,
-                    "thread": 3,
+                    "thread": 1,
                     "count": 127
                     }
-            logger.info("Nightly Build Version:{}：创建金标准测试".format(self.version))
+
             smokeobj = gold_test.objects.create(**data)
 
             logger.info("Nightly Build Version:{}：执行金标准测试".format(self.version))
-            testThread = GoldThread(smokeobj.id)
+            testThread = GoldThread(smokeobj.id, "goldNightly")
             # 设为保护线程，主进程结束会关闭线程
             testThread.setDaemon(True)
             # 开始线程
@@ -127,7 +123,7 @@ class InGoldThread(threading.Thread):
                     "dicom": "1,2,3,4,5,6,7,8,9,10,11,13,14,35,45",
                     "sendcount": 258,
                     "sleepcount": 100,
-                    "sleeptime": 10,
+                    "sleeptime": 3,
                     "series": False,
                     "sendstatus": True,
                     "status": True,

@@ -7,6 +7,7 @@ import time
 import numpy as np
 from django.db import connection
 from django.db import transaction
+from django.db.models import Count, Case, When, Sum
 from django.conf import settings
 from ..models import stress_record, stress_result, stress
 from ..serializers import stress_result_Deserializer
@@ -73,8 +74,7 @@ class ResultThread(threading.Thread):
     # 测试结果
     def run(self):
         try:
-            resultObj = stress_result.objects.filter(Stress=self.stressid, type__in=['prediction', 'job'])
-            resultObj.delete()
+            stress_result.objects.filter(Stress=self.stressid, type__in=['prediction', 'job']).delete()
         except:
             logger.error("删除旧的性能结果数据数据失败")
 
@@ -127,9 +127,29 @@ class ResultThread(threading.Thread):
                     logger.error("数据写入失败{}".format(e))
                     continue
         self.SaveRecord()
+        self.JobRecord()
+
+    def SaveRecord(self):
+        # 按模型 查询成功失败 数量
+        obj = stress_record.objects.filter(
+            Stress_id=self.obj.id, modelname__in=self.obj.testdata.split(",")).values("modelname").annotate(
+            success=Count(Case(When(aistatus=3, then=0))),
+            fail=Count(Case(When(aistatus=1, then=0))),
+        )
+
+        # 循环数据保存
+        for i in obj:
+            try:
+                resultObj = stress_result.objects.get(Stress_=self.obj.id,
+                                                      type="prediction",
+                                                      modelname=i["modelname"])
+                total = i["success"] + i["fail"]
+                resultObj.rate = i["success"] / total * 100
+            except Exception as e:
+                continue
 
     # 保存 job 结果数据
-    def SaveRecord(self):
+    def JobRecord(self):
         # 查询测试时间 job 数据
         for j in ["predictionrecord", "jobmetrics"]:
             sqlobj = dictionary.objects.get(key=j)
@@ -148,6 +168,7 @@ class ResultThread(threading.Thread):
                         "start": str(i["start"])[:19],
                         "end": str(i["end"])[:19],
                         "sec": str(i["sec"]),
+                        "error": str(i["error"]),
                         "modelname": dicomobj.predictor,
                         "version": self.obj.version,
                         "type": 'job',
@@ -158,6 +179,7 @@ class ResultThread(threading.Thread):
                     }
                     stress_record.objects.create(**data)
                 except Exception as e:
+                    logger.error(e)
                     continue
 
     def errorlog(self):

@@ -150,7 +150,7 @@ class SingleThread(threading.Thread):
         self.kc = login_keycloak(self.obj.Host_id)
 
     def run(self):
-        self.obj.teststatus = "单一测试开始"
+        self.obj.teststatus = "单一开始"
         self.obj.status = True
         self.obj.save()
 
@@ -160,8 +160,13 @@ class SingleThread(threading.Thread):
                 imagecount = []
                 uids = ""
                 count = 0
+                # 肺炎模型单独 按层厚 分类处理
+                if int(i) in [9, 12]:
+                    self.lung(i)
+                    continue
                 dictobj = dictionary.objects.get(id=i)
-                sql = 'SELECT dr.studyinstanceuid ,d.imagecount,d.slicenumber FROM duration_record dr JOIN dicom d ON dr.studyolduid = d.studyinstanceuid WHERE dr.duration_id = \'0{0}\'AND d.predictor ={1}'.format(
+
+                sql = 'SELECT dr.studyinstanceuid,d.imagecount,d.slicenumber FROM duration_record dr JOIN dicom d ON dr.studyolduid = d.studyinstanceuid WHERE dr.duration_id = \'0{0}\'AND d.predictor ={1}'.format(
                     str(self.stressid), i)
                 cursor = connection.cursor()
                 cursor.execute(sql)
@@ -169,9 +174,11 @@ class SingleThread(threading.Thread):
                 start_date = datetime.datetime.now()
                 # 循环调用graphql 自动预测
                 for k in ret:
+                    # 影像张数集合
                     imagecount.append(k[1])
+                    # 测试数据的uid
                     uids = uids + '\'' + str(k.studyinstanceuid) + '\','
-                    if count == self.single:
+                    if count == self.obj.single:
                         break
                     graphql_query = '{ ' \
                                     'ai_biomind(' \
@@ -189,21 +196,65 @@ class SingleThread(threading.Thread):
                                                                                 '}' \
                                                                                 '}'
                     graphql_Interface(graphql_query, self.kc)
-                time.sleep(300 * int(self.single))
+                time.sleep(300 * int(self.obj.single))
                 self.SaveResult(uids, start_date, imagecount, dictobj.value, None)
+
                 ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
-                ssh.cmd(
-                    "nohup sshpass -p {} biomind restart;".format(self.obj.Host.pwd))
+                ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
                 time.sleep(500)
-            self.obj.teststatus = "单一测试完成"
+            self.obj.teststatus = "测试完成"
             self.obj.save()
         except Exception as e:
             logger.error("性能测试启动失败：{0}".format(e))
             self.obj.teststatus = "测试报错！~"
             self.obj.save()
 
+    def lung(self, modelID):
+        for i in ["1.0", "1.25", "1.5", "5.0", "10.0"]:
+            imagecount = []
+            uids = ""
+            count = 0
+            dictobj = dictionary.objects.get(id=modelID)
+
+            sql = 'SELECT dr.studyinstanceuid,d.imagecount,d.slicenumber FROM duration_record dr JOIN dicom d ON dr.studyolduid = d.studyinstanceuid WHERE dr.duration_id = \'0{0}\'AND d.predictor ={1} AND d.slicenumber =\'{2}\''.format(
+                str(self.stressid), modelID, i)
+            cursor = connection.cursor()
+            cursor.execute(sql)
+            ret = cursor.fetchall()
+            start_date = datetime.datetime.now()
+            # 循环调用graphql 自动预测
+            for k in ret:
+                # 影像张数集合
+                imagecount.append(k[1])
+                # 测试数据的uid
+                uids = uids + '\'' + str(k.studyinstanceuid) + '\','
+                if count == self.obj.single:
+                    break
+                graphql_query = '{ ' \
+                                'ai_biomind(' \
+                                'block : false' \
+                                ' study_uid: "' + str(k[0]) + '"' \
+                                                              ' protocols: {' \
+                                                              ' penable_cached_results: false' \
+                                                              ' }' \
+                                                              '){' \
+                                                              '  pprediction' \
+                                                              '  preport' \
+                                                              '  pcontour' \
+                                                              '  pmodels' \
+                                                              '  pstudy_uid' \
+                                                              '}' \
+                                                              '}'
+                graphql_Interface(graphql_query, self.kc)
+            time.sleep(300 * int(self.obj.single))
+            self.SaveResult(uids, start_date, imagecount, dictobj.value, i)
+
+            ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
+            ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
+            time.sleep(500)
+
     # 测试结果
-    def SaveResult(self, uids, start_date, imagecount, modelname ,slicenumber):
+    def SaveResult(self, uids, start_date, imagecount, modelname , slicenumber):
         try:
             end_date = datetime.datetime.now()
 

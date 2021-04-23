@@ -176,8 +176,7 @@ class DelDictionary(APIView):
 
         try:
             for j in data["ids"]:
-                obj = dictionary.objects.filter(id=j)
-                obj.delete()
+                dictionary.objects.filter(id=j).delete()
             return JsonResponse(code="0", msg="成功！")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
