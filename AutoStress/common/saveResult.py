@@ -74,8 +74,7 @@ class ResultThread(threading.Thread):
     # 测试结果
     def run(self):
         try:
-            resultObj = stress_result.objects.filter(Stress=self.stressid, type__in=['prediction', 'job'])
-            resultObj.delete()
+            stress_result.objects.filter(Stress=self.stressid, type__in=['prediction', 'job']).delete()
         except:
             logger.error("删除旧的性能结果数据数据失败")
 
@@ -128,6 +127,7 @@ class ResultThread(threading.Thread):
                     logger.error("数据写入失败{}".format(e))
                     continue
         self.SaveRecord()
+        self.JobRecord()
 
     def SaveRecord(self):
         # 按模型 查询成功失败 数量
@@ -147,6 +147,40 @@ class ResultThread(threading.Thread):
                 resultObj.rate = i["success"] / total * 100
             except Exception as e:
                 continue
+
+    # 保存 job 结果数据
+    def JobRecord(self):
+        # 查询测试时间 job 数据
+        for j in ["predictionrecord", "jobmetrics"]:
+            sqlobj = dictionary.objects.get(key=j)
+            sql = sqlobj.value.format(self.obj.start_date, self.obj.end_date)
+            result = connect_postgres(database="orthanc", host=self.obj.Host.id,
+                                      sql=sql)
+            dict = result.to_dict(orient='records')
+            # 循环数据保存
+            for i in dict:
+                try:
+                    drobj = duration_record.objects.get(studyinstanceuid=i["studyuid"])
+                    dicomobj = dicom.objects.get(studyinstanceuid=drobj.studyolduid)
+                    data = {
+                        "studyuid": i["studyuid"],
+                        "job_id": self.server,
+                        "start": str(i["start"])[:19],
+                        "end": str(i["end"])[:19],
+                        "sec": str(i["sec"]),
+                        "error": str(i["error"]),
+                        "modelname": dicomobj.predictor,
+                        "version": self.obj.version,
+                        "type": 'job',
+                        "Stress_id": self.stressid,
+                        "images": dicomobj.imagecount,
+                        "slicenumber": dicomobj.slicenumber,
+                        "type": j
+                    }
+                    stress_record.objects.create(**data)
+                except Exception as e:
+                    logger.error(e)
+                    continue
 
     def errorlog(self):
         ssh = SSHConnection(host=self.server, port=22, user=self.obj.Host.user, pwd=self.obj.Host.pwd)

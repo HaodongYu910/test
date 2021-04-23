@@ -3,27 +3,15 @@ import os
 import shutil
 import threading
 import time
-
-import numpy as np
-from django.db import connection
-from django.db import transaction
 from django.conf import settings
 from ..models import stress_record, stress_result, stress
-from ..serializers import stress_result_Deserializer
-from .loganalys import errorLogger
-from AutoProject.common.PostgreSQL import connect_postgres
-from AutoProject.common.regexUtil import csv
-from AutoProject.models import Server, dictionary, uploadfile
-from AutoProject.utils.graphql.graphql import *
-from AutoProject.utils.keycloak.login_kc import login_keycloak
-from AutoProject.common.transport import SSHConnection
 
-from AutoDicom.common.dicomBase import checkuid, voteData
+from AutoProject.utils.graphql.graphql import *
 from AutoProject.common.biomind import Restart
-from django.conf import settings
 from ..common.manual import ManualThread
 from ..common.single import SingleThread
 from ..common.hybrid import HybridThread
+from ..common.saveResult import ResultThread
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +32,7 @@ class StressThread(threading.Thread):
             self.obj.teststatus = "基准测试"
             self.obj.status = True
             self.obj.save()
-
+            logger.info("基准测试开始")
             Manual = ManualThread(stressid=self.id)
             Manual.setDaemon(True)
             Manual.run()
@@ -57,12 +45,23 @@ class StressThread(threading.Thread):
             self.obj.teststatus = "混合测试"
             self.obj.status = True
             self.obj.save()
+            if self.Flag is True:
+                logger.info("混合测试开始")
+                Hybrid = HybridThread(stressid=self.id)
+                Hybrid.setDaemon(True)
+                Hybrid.start()
+                # 结束时间
+                start = datetime.datetime.now()
+                # 结束时间
+                end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime("%Y-%m-%d %H:%M:%S")
+                while str(start) < end:
+                    start = datetime.datetime.now()
 
-            Hybrid = HybridThread(stressid=self.id)
-            Hybrid.setDaemon(True)
-            Manual.run()
-            Restart(id=self.obj.Host.id)
-            time.sleep(300)
+                result = ResultThread(stressid=self.obj.stressid)
+                result.setDaemon(True)
+                result.start()
+                Restart(id=self.obj.Host.id)
+                time.sleep(300)
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
@@ -71,16 +70,13 @@ class StressThread(threading.Thread):
             self.obj.teststatus = "混合测试"
             self.obj.status = True
             self.obj.save()
-
-            Single = SingleThread(stressid=self.id)
-            Single.setDaemon(True)
-            Single.run()
-            Restart(id=self.obj.Host.id)
-            time.sleep(300)
+            if self.Flag is True:
+                Single = SingleThread(stressid=self.id)
+                Single.setDaemon(True)
+                Single.run()
         except Exception as e:
             logger.error("单一测试失败：{}".format(e))
             # 混合测试
-
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

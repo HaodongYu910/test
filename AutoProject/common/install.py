@@ -1,21 +1,24 @@
+import os
+import time
+import datetime
+import logging
+
 from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, dictionary, message_group
+from ..models import install, dictionary, message_group, Server
 from AutoInterface.models import gold_test, gold_record
-import os
 from AutoInterface.common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
-import time
-import datetime
-import logging
-from ..utils.keycloak.keycloakadmin import KeycloakAdm
+
+from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
 from ..common.Journal import log, AddJournal
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
+
 
 
 def deldata(server, InstallID, passwd):
@@ -102,8 +105,8 @@ class InstallThread(threading.Thread):
                     self.ssh.cmd("sshpass -p {0} sudo rm -rf {1}/ install.log restart.log".format(self.pwd, self.obj.version))
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）解压安装包'.format(self.obj.Host.host))
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：解压安装包\n")
-                    self.ssh.command("nohup unzip -o QaInstall.zip > install.log 2>&1 &")
-                    time.sleep(300)
+                    self.ssh.command("unzip -o QaInstall.zip")
+
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装包 失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
@@ -118,24 +121,19 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id),content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
-
             try:
                 if int(self.obj.testcase) in [1, 3]:
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）更新 配置文件'.format(self.obj.Host.host))
                     AddJournal(name="Installation{}".format(self.id),content="【安装部署】：备份更新配置文件\n")
-                    self.ssh.upload("/files1/classifier/orthanc.json",
-                                    "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
-                    self.ssh.upload("/files1/classifier/cache.zip",
-                                    "/home/biomind/cache.zip")
-                    self.ssh.cmd(
-                        "mv /home/biomind/.biomind/var/biomind/cache cachebak;unzip -o cache.zip -d /home/biomind/.biomind/var/biomind/;")
+                    cache(id=self.obj.Host_id)
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本更新文件失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
             try:
                 self.installStatus(status=True, type=4)
-                AddJournal(name="Installation{}".format(self.id),content="【安装部署】：重启服务\n")
+                self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
+                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）重启服务'.format(self.obj.Host.host))
                 self.ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
                 time.sleep(300)
@@ -143,85 +141,25 @@ class InstallThread(threading.Thread):
             except:
                 self.installStatus(status=False, type=4)
                 return
+            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：createUser \n")
+            createUser(user="biomind3d", pwd="engine3D.", protocol=self.obj.Host.protocol, server=self.obj.Host.host)
 
-            self.createUser()
             self.installStatus(status=True, type=5)
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装部署完成'.format(self.obj.Host.host))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装完成\n")
 
             if self.obj.smokeid == 0:
-                self.goldsmoke()
+                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
+                goldsmoke(version=self.obj.version)
                 self.installStatus(status=False, type=6)
             if self.obj.uid == 0:
-                self.UiTest()
+                goldsmoke(version=self.obj.version)
                 self.installStatus(status=False, type=7)
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
 
-    def createUser(self):
-        try:
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：创建 3D 用户\n")
-            user_info = {"username": "biomind3d", "enabled": True,
-                         "credentials": [{"value": "engine3D.", "type": "password", }]}
-            kc_adm = KeycloakAdm(orthanc_ip='{0}://{1}'.format(self.obj.Host.protocol, self.obj.Host.host))
-            kc_adm.create_update_user_add_all_group(user_info)
-        except Exception as e:
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：Failed to create User: {e}".format(e))
-            self.installStatus(status=False, type=5)
-            return
-
-    def goldsmoke(self):
-        try:
-            if self.Flag is True:
-                sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）创建金标准测试'.format(self.obj.Host.host))
-                data = {"version": self.obj.version,
-                        "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
-                        "status": True,
-                        "Host_id": int(self.obj.Host_id),
-                        "thread": 3,
-                        "count": 118
-                        }
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：创建执行金标准测试 \n")
-
-                smokeObj = gold_test.objects.create(**data)
-                self.obj.gold_id = smokeObj.id
-                self.obj.save()
-                testThread = GoldThread(smokeObj.id, "goldInstall")
-                # 设为保护线程，主进程结束会关闭线程
-                testThread.setDaemon(True)
-                # 开始线程
-                testThread.start()
-        except Exception as e:
-            self.installStatus(status=False, type=6)
-            AddJournal(name="Installation{}".format(self.id),content="【安装部署】：执行金标准测试报错: {e}".format(e))
-
-    def UiTest(self):
-        try:
-            if self.Flag is True:
-                data = {"version": self.obj.version,
-                        "setup": "1",
-                        "cases": "1",
-                        "tearDown": "1",
-                        "status": True,
-                        "hostid": self.obj.hostid,
-                        "thread": 1
-                        }
-                AddJournal(name="Installation{}".format(self.id),content="【安装部署】：创建执行UI测试 \n")
-
-                uiObj = autoui.objects.create(**data)
-                self.obj.type = 7
-                self.obj.uid = uiObj.id
-                self.obj.save()
-                # testThread = GoldThread(smokeobj.id)
-                # # 设为保护线程，主进程结束会关闭线程
-                # testThread.setDaemon(True)
-                # # 开始线程
-                # testThread.start()
-        except Exception as e:
-            self.installStatus(status=False, type=7)
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行UI测试报错: {e}".format(e))
 
     def installStatus(self, status, type):
         self.obj.status = status
@@ -236,3 +174,33 @@ class InstallThread(threading.Thread):
 
     def getParm(self):  # 外部获得内部信息函数
         return self.parm
+
+
+class smokeThread(threading.Thread):
+    def __init__(self, **kwargs):
+        threading.Thread.__init__(self)
+        self.Flag = True  # 停止标志位
+        # 版本号
+        self.version = kwargs["version"]
+        self.server = Server.objects.get(id='13')
+
+
+    def run(self):
+        try:
+            logger.info("Nightly Build Version:{}：更新配置文件".format(self.version))
+            cache(id=self.server.id)
+
+            logger.info("Nightly Build Version:{}：重启服务".format(self.version))
+            Restart(id=self.server.id)
+            time.sleep(100)
+
+            logger.info("Nightly Build Version:{}：金标准测试".format(self.version))
+            goldsmoke(version=self.version)
+
+            logger.info("Nightly Build Version:{}：持续化测试".format(self.version))
+            durationTest(version=self.version, server=self.server.host, aet=self.server.remarks)
+        except Exception as e:
+            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format(self.obj.version, e))
+
+    def setFlag(self, parm):  # 外部停止线程的操作函数
+        self.Flag = parm  # boolean

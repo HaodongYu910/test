@@ -23,10 +23,10 @@
                     <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="stressTest('hh')" :disabled="this.sels.length===0">全部测试</el-button>
+                    <el-button type="primary" @click="stressTest('qb')" :disabled="this.sels.length===0">全部测试</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="danger" @click="stopstress" :disabled="this.sels.length===0">停止测试</el-button>
+                    <el-button type="danger" @click="stop" :disabled="this.sels.length===0">停止测试</el-button>
                 </el-form-item>
 
             </el-row>
@@ -624,7 +624,9 @@
                     }
                 })
             },
-            stopstress: function (index, row) {
+            stop: function () {
+                let ids = this.sels.map(item => item.stressid);
+                let self = this;
                 this.$confirm('停止测试?', '提示', {
                     type: 'warning'
                 }).then(() => {
@@ -632,7 +634,7 @@
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        stressid: row.stressid
+                        ids: ids
                     };
                     let header = {
                         "Content-Type": "application/json",

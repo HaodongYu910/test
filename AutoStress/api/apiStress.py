@@ -108,10 +108,10 @@ class stressStop(APIView):
             obj.status = False
             obj.teststatus = '已停止'
             obj.save()
-            if obj.teststatus == "单一测试开始":
+            if obj.teststatus == "单一测试":
                 stoptest = SingleThread(stressid=stressid)
 
-            elif obj.teststatus == "混合测试开始":
+            elif obj.teststatus == "混合开始":
                 stoptest = HybridThread(stressid=stressid)
                 durationid = '0' + str(stressid)
                 drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
@@ -134,8 +134,10 @@ class stressStop(APIView):
                 result = ResultThread(stressid=stressid)
                 result.setDaemon(True)
                 result.start()
-            else:
+            elif obj.teststatus == "基准测试":
                 stoptest = ManualThread(stressid=stressid)
+            else:
+                stoptest = StressThread(stressid=stressid)
 
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False

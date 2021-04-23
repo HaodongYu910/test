@@ -88,71 +88,77 @@ class ManualThread(threading.Thread):
     #  基准测试
     def run(self):
         self.obj.status = True
-        self.obj.teststatus = "基准测试开始"
+        self.obj.teststatus = "基准开始"
         self.obj.save()
         try:
-            resultobj = stress_result.objects.filter(Stress=self.stressid,
-                                                     type__in=['jobJZ', 'predictionJZ', 'lung_jobJZ', 'lung_job'])
-            resultobj.delete()
+            stress_result.objects.filter(Stress=self.stressid,
+                                         type__in=['jobJZ', 'predictionJZ', 'lung_jobJZ', 'lung_job']).delete()
         except:
             logger.error("性能基准数据删除失败")
-        count = int(self.obj.ramp)
+        count = int(self.obj.benchmark)
         try:
-            for i in self.obj.testdata.split(","):
-                stressdata = dicom.objects.filter(predictor=i.strip(), stressstatus=2)
-                for k in stressdata:
-                    avglist = []
-                    checkuid(self.obj.Host_id, self.server, str(k.id))
-                    delreport(self.kc, str(k.studyinstanceuid))
-                    # 循环 测试基准数据
-                    startdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-                    for j in range(count):
-                        try:
-                            if self.Flag is False:
-                                break
+            stressData = dicom.objects.filter(predictor__in=self.obj.testdata.split(","), stressstatus='2')
+            for k in stressData:
+                avglist = []
+                logger.info("基准测试：{}".format(k))
+                checkuid(self.obj.Host_id, self.server, str(k.id))
+                delreport(self.kc, str(k.studyinstanceuid))
+                # 循环 测试基准数据
+                startdate = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+                for j in range(count):
+                    try:
+                        if self.Flag is False:
+                            break
                             # 开始时间
-                            starttime = time.time()
-                            result = graphql_Interface(k.graphql, self.kc)
-                            ai_biomind = result['ai_biomind']
-                            avgtime = time.time() - starttime
-                            avglist.append(avgtime)
-                            time.sleep(10)
-                        except Exception as e:
-                            logger.error("执行预测失败：{0}".format(k.studyinstanceuid))
-                            continue
+                        starttime = time.time()
+                        result = graphql_Interface(k.graphql, self.kc)
+                        ai_biomind = result['ai_biomind']
+                        avgtime = time.time() - starttime
+                        avglist.append(avgtime)
+                        time.sleep(3)
+                    except Exception as e:
+                        logger.error("{0}执行预测失败：{1}".format(k.studyinstanceuid, e))
+                        continue
 
-                    jobtype = 'jobJZ'
-                    predictiontype = 'predictionJZ'
-                    avgtime = str('%.2f' % np.mean(avglist))
+                jobtype = 'jobJZ'
+                predictiontype = 'predictionJZ'
+                avgtime = str('%.2f' % np.mean(avglist))
+                try:
+                    mintime = str('%.2f' % min(avglist))
+                except:
+                    mintime = None
 
-                    datatest = {
-                        "Stress": self.stressid,
-                        "version": self.obj.version,
-                        "count": count,
-                        "modelname": k.predictor,
-                        "slicenumber": k.slicenumber,
-                        "avg": avgtime,
-                        "min": str('%.2f' % min(avglist)),
-                        "max": str('%.2f' % max(avglist)),
-                        "minimages": k.imagecount,
-                        "maximages": k.imagecount,
-                        "avgimages": k.imagecount
-                    }
-                    saveData(datatest=datatest,
-                             type=jobtype
-                             )
-                    saveData(datatest=datatest,
-                             type=predictiontype,
-                             id=self.obj.Host_id,
-                             studyuid=k.studyinstanceuid,
-                             startdate=startdate
-                             )
+                try:
+                    maxtime = str('%.2f' % max(avglist))
+                except:
+                    maxtime = None
+                datatest = {
+                    "Stress": self.stressid,
+                    "version": self.obj.version,
+                    "count": count,
+                    "modelname": k.predictor,
+                    "slicenumber": k.slicenumber,
+                    "avg": avgtime,
+                    "min": mintime,
+                    "max": maxtime,
+                    "minimages": k.imagecount,
+                    "maximages": k.imagecount,
+                    "avgimages": k.imagecount
+                }
+                saveData(datatest=datatest,
+                         type=jobtype
+                         )
+                saveData(datatest=datatest,
+                         type=predictiontype,
+                         id=self.obj.Host_id,
+                         studyuid=k.studyinstanceuid,
+                         startdate=startdate
+                         )
             self.obj.status = False
-            self.obj.teststatus = "基准测试完成"
+            self.obj.teststatus = "测试完成"
             self.obj.save()
         except Exception as e:
             logger.error("执行预测基准测试数据失败：{0}".format(e))
-
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

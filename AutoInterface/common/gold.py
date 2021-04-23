@@ -7,7 +7,7 @@ from AutoDicom.common.dicomBase import checkuid
 from AutoInterface.models import gold_record, gold_test
 import queue
 from django.db.models import Count, Case, When
-from AutoProject.common.message import sendMessage
+from AutoProject.common.message import sendMessage, MessageGroup
 import datetime
 import time
 import threading
@@ -201,17 +201,21 @@ class GoldThread(threading.Thread):
                 continue
 
     def sendMessage(self):
-        MessObj = message_group.objects.get(type=self.type, status=True)
-        result = []
-        for k in ['成功', '失败']:
-            smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
-            result.append(smobj.count())
-        smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
-            result[1])
-        total = int(result[0]) + int(result[1]) + int(smerror)
+        try:
+            logger.info("test")
+            MessObj = message_group.objects.get(type=self.type, status=True)
+            result = []
+            for k in ['成功', '失败']:
+                smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
+                result.append(smobj.count())
+            smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
+                result[1])
+            total = int(result[0]) + int(result[1]) + int(smerror)
 
-        sendMessage(touser=MessObj.user, toparty=MessObj.party,
-                    message=MessObj.content.format(
+            params = {
+                "msgtype": "markdown",
+                "markdown": {
+                    "content": MessObj.content.format(
                         self.smobj.version,
                         self.smobj.Host.host,
                         total,
@@ -219,7 +223,15 @@ class GoldThread(threading.Thread):
                         result[0],
                         result[1],
                         smerror,
-                        self.smobj.id))
+                        self.smobj.id),
+                      "mentioned_list": MessObj.mentioned_list.split(","),
+                    # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
+                }
+            }
+            logger.info(params)
+            MessageGroup(send_url=MessObj.send_url, params=params)
+        except Exception as e:
+            logger.error(e)
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

@@ -5,12 +5,10 @@ from AutoProject.common.message import sendMessage
 import datetime
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
-
-# 执行冒烟测试
+# 性能测试结果
 class StressReport:
     def __init__(self, *args):
         self.id = args[0]
@@ -25,7 +23,7 @@ class StressReport:
                 total=Count(1),
                 success=Count(Case(When(aistatus=3, then=0))),
                 fail=Count(Case(When(aistatus=1, then=0))),
-                )
+            )
             if not aiObj:
                 total = 0
                 success = 0
@@ -43,8 +41,8 @@ class StressReport:
                     "version": self.obj.version,
                     "server": self.obj.Host.host,
                     "total": total,
-                    "success": success,   # 成功
-                    "fail": fail,      # 失败
+                    "success": success,  # 成功
+                    "fail": fail,  # 失败
                     "models": models,
                     "start_date": self.obj.start_date,
                     "end_date": self.obj.end_date,

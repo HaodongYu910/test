@@ -10,6 +10,7 @@ from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
 from ..common.Dicom import SendQueThread
+from AutoInterface.models import gold_record
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -202,8 +203,7 @@ class deldicomdata(APIView):
             return result
         try:
             for j in data["ids"]:
-                obj = dicom.objects.filter(id=j)
-                obj.delete()
+                dicom.objects.filter(id=j).delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -408,8 +408,8 @@ class dicomUrl(APIView):
             type = data['type']
             try:
                 if type == 'gold':
-                    obj = dicom.objects.get(id=data['id'])
-                    kc, url = listUrl(obj.hostid, obj.studyinstanceuid)
+                    obj = gold_record.objects.get(id=data['id'])
+                    kc, url = listUrl(obj.gold.Host.id, obj.studyinstanceuid)
                 elif type == 'duration':
                     obj = duration_record.objects.get(id=data['id'])
                     kc, url = listUrl(obj.hostid, obj.studyinstanceuid)

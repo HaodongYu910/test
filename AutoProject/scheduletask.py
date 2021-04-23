@@ -11,7 +11,7 @@ import datetime
 from AutoProject.common.PostgreSQL import connect_postgres
 from django.db import transaction
 from AutoDicom.common.durarion import DurationThread
-from .common.message import sendMessage
+from .common.message import MessageGroup
 from django.db.models import Count, When, Case, Max, Min, Avg
 
 # 生成一个以当前文件名为名字的logger实例
@@ -128,17 +128,23 @@ def DurationReportTask():
                 count=Count('id'))
 
             # 查询发送信息 数据 发送 企业微信
-            messObj = message_group.objects.get(type="durationNightly", status=True)
-            sendMessage(touser=messObj.user,
-                        toparty=messObj.party,
-                        message=messObj.content.format(
+            messObj = message_group.objects.get(type="duration", status=True)
+            params = {
+                "msgtype": "markdown",
+                "markdown": {
+                    "content": messObj.content.format(
                             i.version,
                             i.server,
                             record[0]['count'],
                             record[0]['success'],
                             record[0]['fail'],
                             i.id,
-                            i.id))
+                            i.id)
+                    # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
+                }
+            }
+            logger.info(params)
+            MessageGroup(send_url=messObj.send_url, params=params)
 
     except Exception as e:
         logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
@@ -156,18 +162,25 @@ def NightlyReportTask():
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
                 count=Count('id'))
 
+
             # 查询发送信息 数据 发送 企业微信
             messObj = message_group.objects.get(type="durationNightly", status=True)
-            sendMessage(touser=messObj.user,
-                        toparty=messObj.party,
-                        message=messObj.content.format(
+            params = {
+                "msgtype": "markdown",
+                "markdown": {
+                    "content": messObj.content.format(
                             i.version,
                             i.server,
                             record[0]['count'],
                             record[0]['success'],
                             record[0]['fail'],
                             i.id,
-                            i.id))
+                            i.id)
+                    # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
+                }
+            }
+            logger.info(params)
+            MessageGroup(send_url=messObj.send_url, params=params)
             i.sendstatus = False
             i.save()
     except Exception as e:

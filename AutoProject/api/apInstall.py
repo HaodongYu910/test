@@ -9,11 +9,10 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
-from ..common.install import InstallThread
+from ..common.install import InstallThread, smokeThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
 from ..models import install, Server
-from ..common.InstallSmoke import InGoldThread
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
 
@@ -308,8 +307,7 @@ class DelInstall(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    obj = install.objects.filter(id=j)
-                    obj.delete()
+                    install.objects.filter(id=j).delete()
                 except Exception as e:
                     logger.error("删除Install数据失败")
             return JsonResponse(code="0", msg="成功")

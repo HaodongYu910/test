@@ -33,17 +33,12 @@
                     highlight-current-row
                     style="width: 100%;"
                     @selection-change="selsChange">
-                <el-table-column prop="ID" label="ID" min-width="4%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.id }}</span>
-                    </template>
-                </el-table-column>
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientname" label="patientname" min-width="8%" sortable>
+                <el-table-column prop="patientname" label="patientname" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
@@ -100,7 +95,7 @@
                               :class="valuestatus(scope.row.result)">{{ scope.row.result }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="8px">
+                <el-table-column label="操作" min-width="15%">
                     <template slot-scope="scope">
                         <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
                         <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
@@ -166,11 +161,20 @@
 
             }
         },
+        // 更新消息弹出，调用更新数据接口
+        ToMonitor(index,row) {
+                this.$notify.success({
+                    title: '即将跳转到list页面',
+                    message: '即将跳转到list页面',
+                    showClose: false
+                });
+                this.checkExpress(index,row);
+        },
         created() {
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getdata(), 0);
-            }, 10000);
+            }, 15000);
             this.getParams();
           },
         beforeDestroy() {    //页面关闭时清除定时器

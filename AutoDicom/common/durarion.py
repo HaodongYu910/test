@@ -208,7 +208,7 @@ class DurationThread(threading.Thread):
                             for fn in file_names:
                                 dcmcount = dcmcount + 1
                                 full_fn = os.path.join(src_folder, fn)
-                                full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(fn, filecount))
+                                full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
                                 if (os.path.splitext(fn)[1] in ['.dcm'] == False):
                                     continue
                                 try:
@@ -257,7 +257,7 @@ class DurationThread(threading.Thread):
             testdata = q.get()
             full_fn_fake = testdata[1]
             try:
-                data,Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
+                data, Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
 

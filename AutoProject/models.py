@@ -316,7 +316,11 @@ class message_group(models.Model):
     party = models.CharField(max_length=30, blank=True, null=True, verbose_name="组")
     user = models.CharField(max_length=200, blank=True, null=True, verbose_name="人员")
     content = models.CharField(max_length=500, blank=True, null=True, verbose_name="内容")
+    send_url = models.CharField(max_length=200, blank=True, null=True, verbose_name="发送组链接")
+    mentioned_list = models.CharField(max_length=200, blank=True, null=True, verbose_name="@人员")
+    mentioned_mobile_list = models.CharField(max_length=200, blank=True, null=True, verbose_name="@人员")
     type = models.CharField(max_length=20, blank=True, null=True, verbose_name="组")
+    msgtype = models.CharField(max_length=20, blank=True, null=True, verbose_name="消息类型")
     status = models.BooleanField(default=False, verbose_name='状态')
 
     def __unicode__(self):
@@ -326,3 +330,22 @@ class message_group(models.Model):
         verbose_name = "message_group"
         verbose_name_plural = "message_group"
         db_table = 'message_group'
+
+
+class message_detail(models.Model):
+    """
+          信息组
+        """
+    id = models.AutoField(primary_key=True)
+    content = models.TextField(max_length=5000, blank=True, null=True, verbose_name="内容")
+    msgtype = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
+    message = models.ForeignKey(message_group, null=True, on_delete=models.CASCADE, verbose_name='message')
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "message_detail"
+        verbose_name_plural = "message_detail"
+        db_table = 'message_detail'

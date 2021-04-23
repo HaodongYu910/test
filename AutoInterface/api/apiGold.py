@@ -209,8 +209,7 @@ class DelSmoke(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    obj = gold_test.objects.filter(id=j)
-                    obj.delete()
+                    gold_test.objects.filter(id=j).delete()
                 except Exception as e:
                     logger.error("删除smoke数据失败")
             return JsonResponse(code="0", msg="成功")
@@ -288,9 +287,8 @@ class EnableSmoke(APIView):
         # 查找项目是否存在
         try:
             obj = gold_test.objects.get(id=data["id"])
-            objrecord = gold_record.objects.filter(gold_id=str(data["id"]))
             # 删除以前记录
-            objrecord.delete()
+            gold_record.objects.filter(gold_id=str(data["id"])).delete()
 
             testThread = GoldThread(data["id"], "gold")
             # 设为保护线程，主进程结束会关闭线程
