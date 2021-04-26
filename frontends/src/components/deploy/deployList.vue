@@ -84,14 +84,17 @@
             </el-table-column>
             <el-table-column label="操作" min-width="25%">
                 <template slot-scope="scope">
+
                     <el-row>
-                        <el-button :type="typestatus(scope.row.status)" size="small"
+                       <el-button :type="typestatus(scope.row.status)" size="small"
                                    @click="handleChangeStatus(scope.$index, scope.row)">
                             {{scope.row.status===false?'部 署':'停 止'}}
                         </el-button>
-                        <el-button type="danger" size="small" @click="showJournal(scope.$index, scope.row)">日 志
+                        <el-button type="warning" size="small" @click="showJournal(scope.$index, scope.row)">日 志
                         </el-button>
-                        <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告
+                        <el-button type="primary" size="small" @click="handleCreate(scope.$index, scope.row)">创建用户
+                        </el-button>
+                         <el-button type="danger" size="small" @click="Restart(scope.$index, scope.row)">重启
                         </el-button>
                     </el-row>
                 </template>
@@ -168,6 +171,30 @@
             </div>
         </el-dialog>
 
+        <!--新增用户界面-->
+        <el-dialog title="添加用户" :visible.sync="createFormVisible" :close-on-click-modal="false"
+                   style="width: 75%; left: 12.5%">
+            <el-form :model="createForm" label-width="80px" :rules="createFormRules" ref="addForm">
+                <el-divider>基本配置</el-divider>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                       <el-form-item label="账号" prop='version'>
+                            <el-input v-model.trim="createForm.user" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="密码" prop='version'>
+                            <el-input v-model.trim="createForm.pwd" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="createFormVisible = false">取消</el-button>
+                <el-button type="primary" @click.native="CreateUser" :loading="addLoading">保存</el-button>
+            </div>
+        </el-dialog>
+
         <!--新增界面-->
         <el-dialog title="新增部署" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
@@ -234,7 +261,7 @@
                     </el-col>
                 </el-row>
                 <el-divider>冒烟配置</el-divider>
-                 <el-row :gutter="24">
+                <el-row :gutter="24">
                     <el-col :span="12">
                         <el-switch
                                 style="display: block"
@@ -262,6 +289,7 @@
                 <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
             </div>
         </el-dialog>
+
         <!--错误图片页面-->
         <el-dialog title="错误截图" :visible.sync="imageVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
@@ -281,38 +309,123 @@
         </el-dialog>
 
         <!--安装日志页面-->
-        <el-dialog  :visible.sync="journalVisible" :close-on-click-modal="false"
+        <el-dialog :visible.sync="journalVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
-            <el-card id="card" class="box-card" style="background:black;color:white;max-height:27.2em;overflow:auto">
-                <div id="text" style="background:black;color:white;" @click="autoFocus()">
-                    <ul id="ulid">
-                        <li style="color:#44ff00;" >【安装部署日志】<br/></li>
-                        <li>========================================================================<br/></li>
-                        <div style="color:yellow;" :key="journal" class="text item">
-                            {{ journalstr }}
+            <el-tabs v-model="activeName" type="border-card" stretch ="ture" @tab-click="handleClick">
+                <el-tab-pane label="部署日志" name="deploy">
+                    <el-card id="deploycard" class="box-card"
+                             style="background:black;color:white;max-height:27.2em;overflow:auto">
+                        <div id="deploytext" style="background:black;color:white;" @click="autoFocus()">
+                            <ul id="deployid">
+                                <li style="color:#44ff00;">【部署日志】<br/></li>
+                                <li>========================================================================<br/></li>
+                                <div style="color:yellow;" :key="journal" class="text item">
+                                    <p v-html="deploystr" style="white-space: pre-line;"></p>
+                                </div>
+                            </ul>
+                            <el-input
+                                    v-loading="loading"
+                                    type="text"
+                                    id="deploy"
+                                    class="input_text"
+                                    v-model="command"
+                                    resize="none"
+                                    @keyup.enter.native="enter()"
+                                    autofocus="autofocus">
+                                <span slot="prepend" style="font-size:18px">></span>
+                            </el-input>
                         </div>
-                    </ul>
-<!--                    <ul id="ul">-->
-<!--                        <li v-for="(i,b) in total" :key="b">{{i}}<br/></li>-->
-<!--                    </ul>-->
-                    <el-input
-                            v-loading="loading"
-                            type="text"
-                            id="in"
-                            class="input_text"
-                            v-model="command"
-                            resize="none"
-                            @keyup.enter.native="enter()"
-                            autofocus="autofocus">
-                        <span slot="prepend" style="font-size:18px">></span>
-                    </el-input>
-                </div>
-            </el-card>
+                    </el-card>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click.native="journalVisible = false">关闭</el-button>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="安装日志" name="second">
+                    <el-card id="installcard" class="box-card"
+                             style="background:black;color:white;max-height:27.2em;overflow:auto">
+                        <div id="installid" style="background:black;color:white;" @click="autoFocus()">
+                            <ul id="installul">
+                                <li style="color:#44ff00;">【安装日志】<br/></li>
+                                <li>========================================================================<br/></li>
+                                <div style="color:yellow;" :key="journal" class="text item">
+                                    <p v-html="installstr" style="white-space: pre-line;"></p>
+                                </div>
+                            </ul>
+                            <el-input
+                                    v-loading="loading"
+                                    type="text"
+                                    id="install"
+                                    class="input_text"
+                                    v-model="command"
+                                    resize="none"
+                                    @keyup.enter.native="enter()"
+                                    autofocus="autofocus">
+                                <span slot="prepend" style="font-size:18px">></span>
+                            </el-input>
+                        </div>
+                    </el-card>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click.native="journalVisible = false">关闭</el-button>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="重启日志" name="third">
+                    <el-card id="card" class="box-card"
+                             style="background:black;color:white;max-height:27.2em;overflow:auto">
+                        <div id="restartid" style="background:black;color:white;" @click="autoFocus()">
+                            <ul id="ulrestart">
+                                <li style="color:#44ff00;">【重启日志】<br/></li>
+                                <li>========================================================================<br/></li>
+                                <div style="color:yellow;" :key="journal" class="text item">
+                                    <p v-html="restartstr" style="white-space: pre-line;"></p>
+                                </div>
+                            </ul>
+                            <el-input
+                                    v-loading="loading"
+                                    type="text"
+                                    id="restar"
+                                    class="input_text"
+                                    v-model="command"
+                                    resize="none"
+                                    @keyup.enter.native="enter()"
+                                    autofocus="autofocus">
+                                <span slot="prepend" style="font-size:18px">></span>
+                            </el-input>
+                        </div>
+                    </el-card>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click.native="journalVisible = false">关闭</el-button>
+                    </div>
+                </el-tab-pane>
+                <el-tab-pane label="金标准日志" name="fourth">
+                    <el-card id="goldcard" class="box-card"
+                             style="background:black;color:white;max-height:27.2em;overflow:auto">
+                        <div id="goldid" style="background:black;color:white;" @click="autoFocus()">
+                            <ul id="ulgold">
+                                <li style="color:#44ff00;">【金标准日志】<br/></li>
+                                <li>========================================================================<br/></li>
+                                <div style="color:yellow;" :key="journal" class="text item">
+                                    <p v-html="goldstr" style="white-space: pre-line;"></p>
+                                </div>
+                            </ul>
+                            <el-input
+                                    v-loading="loading"
+                                    type="text"
+                                    id="gold"
+                                    class="input_text"
+                                    v-model="command"
+                                    resize="none"
+                                    @keyup.enter.native="enter()"
+                                    autofocus="autofocus">
+                                <span slot="prepend" style="font-size:18px">></span>
+                            </el-input>
+                        </div>
+                    </el-card>
+                    <div slot="footer" class="dialog-footer">
+                        <el-button @click.native="journalVisible = false">关闭</el-button>
+                    </div>
+                </el-tab-pane>
+            </el-tabs>
 
-
-            <div slot="footer" class="dialog-footer">
-                <el-button @click.native="journalVisible = false">关闭</el-button>
-            </div>
         </el-dialog>
     </section>
 
@@ -322,30 +435,33 @@
     //import NProgress from 'nprogress'
     import {
         getInstall, delInstall, DisableInstall, EnableInstall, getInstallersion,
-        updateInstall, addInstall, getJournal, getImage, getHost, getbase, getAutoCase, getReport
+        updateInstall, addInstall, getJournal, getImage, getHost, getbase, getCreateRestart
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
             return {
-                log:0,
-                 timerId:1, // 模拟计时器id，唯一性
-                 timerObj :{}, // 计时器存储器
+                log: 0,
+                timerId: 1, // 模拟计时器id，唯一性
+                timerObj: {}, // 计时器存储器
                 command: '',
                 loading: false,
-                total: ['Welcome！You can enter：ping 192.168.1.1', ' '],
+                activeName:"deploy",
                 filters: {
                     name: ''
                 },
-                id:'',
+                id: '',
                 UIlist: [],
                 versionlist: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
                 sels: [],//列表选中列
-                journal: '',
+                deploystr: '',
+                installstr: '',
+                restartstr: '',
+                golgstr: '',
                 journalVisible: false, //日志页面是否显示
                 imageVisible: false, //错误图像页面是否显示
                 reportVisible: false, //报告页面是否显示
@@ -374,6 +490,18 @@
                     testdata: []
                 },
 
+                createFormVisible: false,//新增用户界面是否显示
+                createLoading: false,
+                createFormRules: {
+                    user: [
+                        {required: true, message: '请输入用户', trigger: 'blur'}
+                    ]
+                },
+                //新增用户界面数据
+                createForm: {
+                    user: '',
+                    pwd: '',
+                },
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
@@ -387,10 +515,10 @@
                     version: '',
                     status: false,
                     installstatus: false,
-                    smokeid:true,
-                    uid:false,
-                    testcase:false,
-                    cache:true
+                    smokeid: true,
+                    uid: false,
+                    testcase: false,
+                    cache: true
                 }
             }
         },
@@ -398,7 +526,7 @@
             // 实现轮询
             this.InstalllTimeSet = window.setInterval(() => {
                 setTimeout(this.getInstalllist(), 0);
-            }, 10000);
+            }, 30000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.InstalllTimeSet);
@@ -464,13 +592,9 @@
                     path: '/SmokeReport/reportid=' + row.id,
                 });
             },
-            // showReport: function (url) {
-            //     {
-            //         window.location.href = url
-            //     }
-            //     // //刷新当前页面
-            //     // window.location.reload();
-            // },
+            handleClick(tab, event) {
+                this.showJournal()
+            },
             showJournal(index, row) {
                 this.journalVisible = true;
                 this.listLoading = true
@@ -483,9 +607,16 @@
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.journaldata = data
-                        this.journalstr = this.journaldata .replace(/↵/g,"\n");
-                        console.log(this.journaldata)
+                        this.deploy = data.deploy
+                        this.install = data.install
+                        this.restart = data.restart
+                        this.gold = data.gold
+
+                        this.deploystr = this.deploy.replace(/↵/g, "\n");
+                        this.installstr = this.install.replace(/↵/g, "\n");
+                        this.restartstr = this.restart.replace(/↵/g, "\n");
+                        this.goldstr = this.gold.replace(/↵/g, "\n");
+
                     } else {
                         self.$message.error({
                             message: msg,
@@ -518,22 +649,23 @@
                     }
                 })
             },
-            // 获取setUp 用例
-            getsetUp() {
+            //  重启服务
+            Restart(index, row) {
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    type: "setUp"
+                    id: row.id,
+                    type: 1
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getAutoCase(headers, params).then((res) => {
+                getCreateRestart(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.total = data.total
-                        this.list = data.data
-                        var json = JSON.stringify(this.list)
-                        this.setUp = JSON.parse(json)
+                         self.$message.success({
+                            message: msg,
+                            center: true
+                        })
                     } else {
                         self.$message.error({
                             message: msg,
@@ -542,46 +674,26 @@
                     }
                 })
             },
-            // 获取setUp 用例
-            getCase() {
+            //  创建用户或重启
+            CreateUser() {
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    type: "case"
+                    id: this.createForm.id,
+                    type: 2,
+                    user: this.createForm.user,
+                    pwd: this.createForm.pwd,
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getAutoCase(headers, params).then((res) => {
+                getCreateRestart(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.total = data.total
-                        this.list = data.data
-                        var json = JSON.stringify(this.list)
-                        this.testcase = JSON.parse(json)
-                    } else {
-                        self.$message.error({
+                        this.createFormVisible = false,
+                         self.$message.success({
                             message: msg,
                             center: true
                         })
-                    }
-                })
-            },
-            // 获取setUp 用例
-            gettearDown() {
-                this.listLoading = true
-                let self = this;
-                const params = {
-                    type: "tearDown"
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getAutoCase(headers, params).then((res) => {
-                    this.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        this.total = data.total
-                        this.list = data.data
-                        var json = JSON.stringify(this.list)
-                        this.tearDown = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -744,15 +856,21 @@
                 this.editForm = Object.assign({}, row);
             },
             //显示新增界面
+            handleCreate: function (index, row) {
+                this.createFormVisible = true;
+                this.createForm = Object.assign({}, row);
+                this.createForm[pwd] = 1
+            },
+            //显示新增界面
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm = {
                     version: null,
                     server: '',
-                    smokeid:true,
-                    uid:false,
-                    testcase:false,
-                    cache:true
+                    smokeid: true,
+                    uid: false,
+                    testcase: false,
+                    cache: true
                 };
             },
             //编辑修改
@@ -817,9 +935,9 @@
                                 installstatus: self.addForm.installstatus,
                                 smokeid: self.addForm.smokeid,
                                 uid: self.addForm.uid,
-                                testcase:self.addForm.testcase,
-                                cache:self.addForm.cache,
-                                status:false
+                                testcase: self.addForm.testcase,
+                                cache: self.addForm.cache,
+                                status: false
                             });
                             let header = {
                                 "Content-Type": "application/json",

@@ -18,7 +18,7 @@ pwd：密码
 
 class SSHConnection:
     # 初始化连接创建Transport通道
-    def __init__(self, host='192.168.1.172', port=22, user='biomind', pwd='biomind'):
+    def __init__(self, host='192.168.1.169', port=22, user='biomind', pwd='biomind'):
         self.host = host
         self.port = port
         self.user = user
@@ -134,8 +134,12 @@ class SSHConnection:
 
 #
 # if __name__ == '__main__':
-#
+#     import collections
 #     ssh = SSHConnection()
+#     Disk = bytes.decode(ssh.cmd("docker ps;"))
+#     size = Disk.split()
+#
+#     ssh.close()
 #     a = ssh.command("nohup unzip -o QaInstall.zip > zz.log 2>&1 &")
 #     print(bytes.decode(a))
 #

@@ -34,6 +34,8 @@ class stressVersion(APIView):
         serialize = stress_Deserializer(obj, many=True)
         return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
+
+
 # 获取压测列表
 class stressReport(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -48,53 +50,25 @@ class stressReport(APIView):
         try:
             stressId = int(request.GET.get("stressId"))
             obj = stress.objects.get(stressid=stressId)
-            type = request.GET.get("type", "jz")
+            ChartType = request.GET.get("type", "jz")
             checkversion = request.GET.get("checkversion", obj.version)
-            models = ["", str(request.GET.get("models")).strip()]
+            models = ["", str(request.GET.get("models", "1")).strip()]
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="必传 stressId!")
+        dictObj = dictionary.objects.get(id=models[1])
         st = StressReport(stressId)
         report = st.report()
-
-        if type == 'jz':
-            stressType = ['predictionJZ', 'jobJZ']
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['predictionJZ', 'lung_prediction'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['jobJZ', 'lung_jobJZ'])
-
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['predictionJZ', 'lung_JZ'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['jobJZ', 'lung_jobJZ'])
-            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        elif type == 'dy':
-            stressType = ['predictiondy', 'jobdy']
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['predictiondy', 'lung_dy'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['jobdy', 'lung_jobdy'])
-
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['predictiondy', 'lung_dy'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['jobdy', 'lung_jobdy'])
-
-            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        else:
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['prediction', 'lung_prediction'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['job', 'lung_job'])
-
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['prediction', 'lung_prediction'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['job', 'lung_job'])
-            stressType = ['prediction', 'job']
-            result = list(result=map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        chartData = stressdataFigure(models, stressType)
+        result, chartData, LineData = st.ChartData(ChartType=ChartType,
+                                                   models=models,
+                                                   version=checkversion)
 
         return JsonResponse(data={"report": report,
-                                  "predictionresult": result[0],
-                                  "jobresult": result[1],
-                                  "diffresult": result[2],
-                                  "chartData": chartData
+                                  "result": result,
+                                  "chartData": chartData,
+                                  "LineData": LineData,
+                                  "modelsName": dictObj.value
                                   }, code="0", msg="成功")
+
 
 class SaveAnalysis(APIView):
     authentication_classes = (TokenAuthentication,)

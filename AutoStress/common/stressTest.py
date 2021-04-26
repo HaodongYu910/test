@@ -44,19 +44,21 @@ class StressThread(threading.Thread):
         try:
             self.obj.teststatus = "混合测试"
             self.obj.status = True
+            # 开始时间
+            start = datetime.datetime.now()
+            # 结束时间
+            end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
+                "%Y-%m-%d %H:%M:%S")
+            self.obj.start_date = start
+            self.obj.end_date = end
             self.obj.save()
             if self.Flag is True:
                 logger.info("混合测试开始")
                 Hybrid = HybridThread(stressid=self.id)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
-                # 结束时间
-                start = datetime.datetime.now()
-                # 结束时间
-                end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime("%Y-%m-%d %H:%M:%S")
                 while str(start) < end:
                     start = datetime.datetime.now()
-
                 result = ResultThread(stressid=self.obj.stressid)
                 result.setDaemon(True)
                 result.start()
@@ -65,7 +67,6 @@ class StressThread(threading.Thread):
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
-
         try:
             self.obj.teststatus = "混合测试"
             self.obj.status = True

@@ -63,13 +63,21 @@ class InstallThread(threading.Thread):
         path = "{0}/Installation{1}.log".format(settings.LOG_PATH, self.id)
         with open(path, 'w', encoding='utf-8') as f:
             f.write("-----------Welcome Link:{}-----------\n".format(self.obj.Host.host))
+    # 检查磁盘大小
+    def checkDisk(self):
+        Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
+        size = Disk.split()[11]
+        AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + Disk)
+        if int(size[:-1]) > 90:
+            sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
+            sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
 
     def run(self):
         try:
             self.obj.starttime = datetime.datetime.now()
             self.installStatus(status=True, type=1)
             # 查看磁盘空间 输出日志
-            AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + bytes.decode(self.ssh.cmd("df -h;")))
+            self.checkDisk()
             # 删除旧的版本配置
             if self.obj.installstatus is True:
                 deldata(self.obj.server, self.id, self.pwd)
@@ -111,20 +119,32 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装包 失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
+            # 安装版本
             try:
                 if self.Flag is True:
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：停止旧服务 & 安装新版本\n")
                     self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
                     self.ssh.command("cd {0};nohup sshpass -p {1} bash setup_engine.sh > install.log 2>&1 &".format(self.obj.version, self.pwd))
-                    time.sleep(300)
+                    while True:
+                        time.sleep(120)
+                        result = bytes.decode(self.ssh.cmd(
+                            "ls /home/biomind/.biomind/lib/versions/{}/deps/Biomind-Management/".format(
+                                self.obj.version)))
+                        if ('build' in result) is True:
+                            time.sleep(60)
+                            break
+                        else:
+                            time.sleep(30)
+
             except Exception as e:
-                AddJournal(name="Installation{}".format(self.id),content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
+                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
+
             try:
                 if int(self.obj.testcase) in [1, 3]:
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）更新 配置文件'.format(self.obj.Host.host))
-                    AddJournal(name="Installation{}".format(self.id),content="【安装部署】：备份更新配置文件\n")
+                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：备份更新配置文件\n")
                     cache(id=self.obj.Host_id)
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本更新文件失败原因：{1}".format(self.obj.version, e))
@@ -136,31 +156,62 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）重启服务'.format(self.obj.Host.host))
                 self.ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
-                time.sleep(300)
+                time.sleep(120)
                 AddJournal(name="Installation{}".format(self.id), content="【服务状态】\n" + bytes.decode(self.ssh.cmd("docker ps;")))
             except:
                 self.installStatus(status=False, type=4)
                 return
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：createUser \n")
-            createUser(user="biomind3d", pwd="engine3D.", protocol=self.obj.Host.protocol, server=self.obj.Host.host)
+            # 检查服务状态
+            self.Judging_state()
 
-            self.installStatus(status=True, type=5)
-            sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装部署完成'.format(self.obj.Host.host))
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装完成\n")
-
-            if self.obj.smokeid == 0:
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
-                goldsmoke(version=self.obj.version)
-                self.installStatus(status=False, type=6)
-            if self.obj.uid == 0:
-                goldsmoke(version=self.obj.version)
-                self.installStatus(status=False, type=7)
         except Exception as e:
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
 
+    # 检查服务状态
+    def Judging_state(self):
+        try:
+            b = 0
+            while True:
+                docker = bytes.decode(self.ssh.cmd("docker ps;"))
+                dockerList = docker.split()
+                a = 0
+                for i in dockerList:
+                    if i == "(healthy)":
+                        a = a + 1
+                if a >= 9:
+                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：createUser \n")
+                    createUser(user="biomind3d", pwd="engine3D.", protocol=self.obj.Host.protocol,
+                               server=self.obj.Host.host)
+                    self.installStatus(status=True, type=5)
+                    sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装部署完成'.format(self.obj.Host.host))
+                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装完成\n")
 
+                    if self.obj.smokeid == 0:
+                        AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
+                        goldsmoke(version=self.obj.version)
+                        self.installStatus(status=False, type=6)
+                    if self.obj.uid == 0:
+                        goldsmoke(version=self.obj.version)
+                        self.installStatus(status=False, type=7)
+
+                    return True
+                elif b == 10:
+                    sendMessage(touser='', toparty='132', message='【注意】：（{0}）安装部署可能失败请看下'.format(self.obj.Host.host))
+                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装部署可能失败请看下\n")
+                    return False
+                else:
+                    time.sleep(30)
+                    b = b + 1
+
+        except Exception as e:
+            self.obj.status = False
+            self.obj.save()
+            AddJournal(name="Installation{}".format(self.id),
+                       content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+            return False
+    # 变更状态
     def installStatus(self, status, type):
         self.obj.status = status
         self.obj.type = type

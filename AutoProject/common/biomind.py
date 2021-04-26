@@ -73,7 +73,7 @@ def goldsmoke(version):
                 "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                 "status": True,
                 "Host_id": 13,
-                "thread": 2,
+                "thread": 1,
                 "count": 127
                 }
 

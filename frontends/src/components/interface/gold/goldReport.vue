@@ -277,7 +277,11 @@
             },
             showDetail(index, row) {
                 this.$router.push({
-                    path: '/detail/goldid=' + this.goldid,
+                    path: '/goldDetail',
+                    query: {
+                        gold_id: this.goldid,
+                        diseases: row.diseases
+                    }
                 });
             },
             gethost() {

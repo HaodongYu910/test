@@ -12,7 +12,7 @@ class GraphQLDriver():
         self.graphql_url = graphql_url
         self.kc = keycloakclient
 
-    def execute_query(self, query, timeout=600):
+    def execute_query(self, query, timeout=60):
         if self.kc is not None:
             r = self.kc.post(
                 url=self.graphql_url,

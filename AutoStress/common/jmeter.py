@@ -41,11 +41,11 @@ class JmeterThread(threading.Thread):
     def run(self):
         jmeterobj = uploadfile.objects.filter(fileid=self.stressid)
         path = settings.LOG_PATH
-        if not os.path.exists('{}/data'.format(path)):
-            os.mkdir('{}/data'.format(path))
+        if not os.path.exists('{0}/{1}'.format(path, self.server)):
+            os.mkdir('{0}/{1}'.format(path, self.server))
         else:
-            shutil.rmtree('{}/data'.format(path))
-            os.mkdir('{}/data'.format(path))
+            shutil.rmtree('{0}/{1}'.format(path, self.server))
+            os.mkdir('{0}/{1}'.format(path, self.server))
         self.saveStressddt(path)
         # 执行jmeter
         try:
@@ -63,7 +63,7 @@ class JmeterThread(threading.Thread):
         ii = 0
         # 查询测试配置
 
-        savecsv('{}/data/config.csv'.format(path),
+        savecsv('{0}/{1}/config.csv'.format(path, self.server),
                 [self.obj.loadserver, 'biomind3d', 'engine3D.', self.obj.thread, self.obj.synchroniz, self.obj.ramp, time, self.obj.version,
                  self.obj.loop_count])
         # 影像id
@@ -83,8 +83,8 @@ class JmeterThread(threading.Thread):
                 stressdata = stressdict.to_dict(orient='records')
                 try:
                     for k in stressdata:
-                        savecsv('{}/data/data.csv'.format(path, str(i)),
-                                [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.remarks,
+                        savecsv('{0}/{1}/data.csv'.format(path, str(self.server)),
+                                [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.value,
                                  imagelist[ii]])
                         ii = ii + 1
                 except Exception as e:

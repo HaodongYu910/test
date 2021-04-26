@@ -82,10 +82,14 @@ def checkuid(serverID, serverIP, dicomid):
 def listUrl(hostid, studyuid):
     obj = Server.objects.get(id=hostid)
     kc = login_keycloak(hostid)
-    result_db = connect_postgres(host=hostid, database="orthanc",
-                                    sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
+    try:
+        result_db = connect_postgres(host=hostid, database="orthanc",
+                                        sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
-    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
+        url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
+    except Exception as e:
+        logger.error("生成url失败：{}".format(e))
+        return kc.raw_token, False
     return kc.raw_token, url
 
 

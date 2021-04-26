@@ -33,17 +33,12 @@
                     highlight-current-row
                     style="width: 100%;"
                     @selection-change="selsChange">
-                <el-table-column prop="ID" label="ID" min-width="4%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.id }}</span>
-                    </template>
-                </el-table-column>
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientname" label="patientname" min-width="8%" sortable>
+                <el-table-column prop="patientname" label="patientname" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
@@ -100,7 +95,7 @@
                               :class="valuestatus(scope.row.result)">{{ scope.row.result }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="8px">
+                <el-table-column label="操作" min-width="15%">
                     <template slot-scope="scope">
                         <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
                         <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
@@ -136,11 +131,7 @@
         data() {
             return {
                 filters: {
-                    diseases: null,
-                    slicenumber: null,
                     diseases: '',
-                    server: '',
-                    version: '',
                     status: ''
                 },
                 total: 0,
@@ -166,11 +157,20 @@
 
             }
         },
+        // 更新消息弹出，调用更新数据接口
+        ToMonitor(index,row) {
+                this.$notify.success({
+                    title: '即将跳转到list页面',
+                    message: '即将跳转到list页面',
+                    showClose: false
+                });
+                this.checkExpress(index,row);
+        },
         created() {
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getdata(), 0);
-            }, 10000);
+            }, 15000);
             this.getParams();
           },
         beforeDestroy() {    //页面关闭时清除定时器
@@ -188,7 +188,8 @@
         methods: {
             getParams() {
                 this.routerParams = this.$route.query;
-                this.goldid = this.$route.params.goldid
+                this.gold_id =  this.routerParams.gold_id;
+                this.diseases = this.routerParams.diseases;
             },
             valuestatus: function (a) {
                 if (a === "匹配成功") {
@@ -273,11 +274,14 @@
             // 获取数据列表
             getdata() {
                 this.listLoading = true
+                if (this.filters.diseases!=''){
+                    this.diseases = this.filters.diseases;
+                };
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.goldid,
-                    diseases:this.filters.diseases,
+                    gold_id: this.gold_id,
+                    diseases:this.diseases,
                     status:this.filters.status
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -367,7 +371,7 @@
                 })
             },
             handleU: function (index, row) {
-                this.$confirm('跳转到imageview页面?', '提示', {
+                this.$confirm('打开imageview页面?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
@@ -384,15 +388,25 @@
                     getdicomurl(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
-                            console.log(JSON.stringify(data.url))
-                            window.location.href = JSON.stringify(data.url),
-                                //刷新当前页面
-                                // window.location.reload();
-                                self.$message({
+                            const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+                            const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+                            const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+                            const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+                            const left = ((width / 2) - (800 / 2)) + dualScreenLeft
+                            const top = ((height / 2) - (800 / 2)) + dualScreenTop
+                            const newWindow = window.open(data.url, 'title', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + '800' + ', height=' + '800' + ', top=' + top + ', left=' + left)
+
+                              // Puts focus on the newWindow
+                            if (window.focus) {
+                                newWindow.focus()
+                            }
+                            self.$message({
                                     message: '成功',
                                     center: true,
                                     type: 'success'
-                                })
+                            })
                         } else {
                             self.$message.error({
                                 message: msg,

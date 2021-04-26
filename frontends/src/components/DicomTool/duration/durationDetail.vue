@@ -84,19 +84,11 @@
               <span style="margin-left: 12px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD HH:MM:SS') }}</span>
             </template>
           </el-table-column>
-
-<!--          <el-table-column label="操作" min-width="10px">-->
-<!--              <template>-->
-<!--                  <div class="container">-->
-<!--                      <input type="text" v-model="message">-->
-<!--                      <button type="button"-->
-<!--                              v-clipboard:copy="message"-->
-<!--                              v-clipboard:success="onCopy"-->
-<!--                              v-clipboard:error="onError">Copy!-->
-<!--                      </button>-->
-<!--                  </div>-->
-<!--              </template>-->
-<!--          </el-table-column>-->
+            <el-table-column label="操作" min-width="15%">
+                    <template slot-scope="scope">
+                       <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>
+                    </template>
+                </el-table-column>
         </el-table>
       <el-footer style="margin-top:20px;">
           <el-pagination
@@ -121,7 +113,7 @@
     // import NProgress from 'nprogress'
 
     import {
-        getduration,getdurationData,getdurationverify
+        getduration,getdurationData,getdurationverify,getdicomurl
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -215,6 +207,48 @@
                             center: true
                         })
                     }
+                })
+            },
+            handleU: function (index, row) {
+                this.$confirm('打开imageview页面?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        id: row.id,
+                        type: "duration"
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    getdicomurl(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+                            const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+                            const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+                            const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+                            const left = ((width / 2) - (800 / 2)) + dualScreenLeft
+                            const top = ((height / 2) - (800 / 2)) + dualScreenTop
+                            const newWindow = window.open(data.url, 'title', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + '800' + ', height=' + '800' + ', top=' + top + ', left=' + left)
+
+                              // Puts focus on the newWindow
+                            if (window.focus) {
+                                newWindow.focus()
+                            }
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getdata()
+                    });
                 })
             },
             handleCurrentChange(val) {

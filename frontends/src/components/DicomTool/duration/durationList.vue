@@ -75,9 +75,9 @@
                         <span style="margin-left: 10px">{{ scope.row.series }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="DDS" min-width="12%">
+                <el-table-column label="发送类型" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px;color: #02C874;">{{ scope.row.dds }}</span>
+                        <span style="margin-left: 10px;color: #02C874;">{{ scope.row.type }}</span>
                     </template>
                 </el-table-column>
 
@@ -183,8 +183,8 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="15">
-                                <el-form-item label="DDS服务" prop="dds">
-                                    <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
+                                <el-form-item label="durationType" prop="durationType">
+                                    <el-select v-model="editForm.durationType" placeholder="请选择durationType"
                                                @click.native="gethost()">
                                         <el-option
                                                 v-for="(item,index) in tags"
@@ -295,8 +295,8 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="15">
-                                <el-form-item label="DDS服务" prop="dds">
-                                    <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
+                                <el-form-item label="durationType" prop="dds">
+                                    <el-select v-model="addForm.durationType" placeholder="请选择durationType"
                                                @click.native="gethost()">
                                         <el-option
                                                 v-for="(item,index) in tags"
@@ -361,33 +361,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                groupOptions: [{
-                    value: 'test',
-                    label: 'test',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }, {
-                    value: 'Gold',
-                    label: 'Gold',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }],
+                groupOptions: [],
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -458,7 +432,7 @@
             // 实现轮询
             this.clearTimeSet = window.setInterval(() => {
                 setTimeout(this.getDurationlist(), 0);
-            }, 20000);
+            }, 30000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -468,6 +442,7 @@
             this.gethost()
             this.getBase()
             this.durationVerifyData()
+            this.getgroupbase()
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -818,7 +793,7 @@
                     loop_time: '',
                     keyword: null,
                     dicom: null,
-                    dds: null,
+                    durationType: null,
                     sendstatus: false,
                     status: false,
                     sleepcount: null,

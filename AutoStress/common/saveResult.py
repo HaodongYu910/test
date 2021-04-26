@@ -74,6 +74,8 @@ class ResultThread(threading.Thread):
     # 测试结果
     def run(self):
         try:
+            # 删除 之前数据
+            stress_record.objects.filter(Stress=self.stressid).delete()
             stress_result.objects.filter(Stress=self.stressid, type__in=['prediction', 'job']).delete()
         except:
             logger.error("删除旧的性能结果数据数据失败")
@@ -118,6 +120,7 @@ class ResultThread(threading.Thread):
                         dict[0]["modelname"] = i
                         dict[0]["type"] = type
                         dict[0]["slicenumber"] = k
+                        dict[0]["Stress"] = self.obj.stressid
 
                         stressserializer = stress_result_Deserializer(data=dict[0])
                         with transaction.atomic():
@@ -126,26 +129,31 @@ class ResultThread(threading.Thread):
                 except Exception as e:
                     logger.error("数据写入失败{}".format(e))
                     continue
-        self.SaveRecord()
+        # 保存本次预测详情
         self.JobRecord()
+        self.SaveRecord()
 
     def SaveRecord(self):
         # 按模型 查询成功失败 数量
         obj = stress_record.objects.filter(
-            Stress_id=self.obj.id, modelname__in=self.obj.testdata.split(",")).values("modelname").annotate(
+            Stress_id=self.obj.stressid, modelname__in=self.obj.testdata.split(",")).values("modelname").annotate(
             success=Count(Case(When(aistatus=3, then=0))),
+            warn=Count(Case(When(aistatus=2, then=0))),
             fail=Count(Case(When(aistatus=1, then=0))),
         )
 
         # 循环数据保存
         for i in obj:
             try:
-                resultObj = stress_result.objects.get(Stress_=self.obj.id,
+                resultObj = stress_result.objects.get(Stress_id=self.obj.stressid,
                                                       type="prediction",
                                                       modelname=i["modelname"])
-                total = i["success"] + i["fail"]
-                resultObj.rate = i["success"] / total * 100
+
+                total = i["success"] + i["warn"] + i["fail"]
+                resultObj.rate = (i["success"] + i["warn"]) / total * 100
+                resultObj.save()
             except Exception as e:
+                logger.error(e)
                 continue
 
     # 保存 job 结果数据
@@ -161,7 +169,7 @@ class ResultThread(threading.Thread):
             for i in dict:
                 try:
                     drobj = duration_record.objects.get(studyinstanceuid=i["studyuid"])
-                    dicomobj = dicom.objects.get(studyinstanceuid=drobj.studyolduid)
+                    dicomobj = dicom.objects.get(studyinstanceuid=drobj.studyolduid, stressstatus__in=[1,2])
                     data = {
                         "studyuid": i["studyuid"],
                         "job_id": self.server,
@@ -172,6 +180,7 @@ class ResultThread(threading.Thread):
                         "modelname": dicomobj.predictor,
                         "version": self.obj.version,
                         "type": 'job',
+                        "aistatus": i["aistatus"],
                         "Stress_id": self.stressid,
                         "images": dicomobj.imagecount,
                         "slicenumber": dicomobj.slicenumber,

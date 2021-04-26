@@ -109,10 +109,6 @@
                             {
                                 index: 'stressHome',
                                 title: '性能测试'
-                            },
-                            {
-                                index: 'stressreport',
-                                title: '性能图表'
                             }
                         ]
                     },

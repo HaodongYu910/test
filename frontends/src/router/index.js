@@ -88,7 +88,7 @@ export default new Router({
                 },
                 {
                     path: '/durationData',
-                    component: resolve => require(['../components/DicomTool/duration/durationData.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/durationDetail.vue'], resolve),
                     meta: {title: '持续化详情'}
 
                 },
@@ -146,18 +146,9 @@ export default new Router({
 
                 },
                 {
-                    path: '/gold/goldid=:goldid',
+                    path: '/goldDetail',
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
-                    meta: {title: '金标准'},
-                    hidden: true,
-                    children: [
-                        {
-                            path: '/detail/goldid=:goldid',
-                            component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
-                            meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
-                        },
-
-                    ]
+                    meta: {title: '金标准详情'}
                 },
                 {
                     path: '/report/goldid=:goldid',
