@@ -456,6 +456,12 @@ export const delduration = (headers, params) => {
 export const anonStart = (headers, params) => {
   return axios.post(`${test}/dicom/tool/anonymization`, params, headers).then(res => res.data)
 }
+
+// 启动提取dicom文件
+export const get_dicom_start = (headers, params) => {
+  return axios.post(`${test}/dicom/tool/get_dicom`, params, headers).then(res => res.data)
+}
+
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {
   return axios.post(`${test}/dicom/duration/enable_duration`, params, headers).then(res => res.data)

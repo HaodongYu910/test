@@ -54,4 +54,5 @@ urlpatterns = [
     url(r'tool/search_data', ddsDataVerifyAPI.as_view()),
     url(r'report/durationreport', DurationReport.as_view()),
     url(r'verify', getDurationTB.as_view()),
+    url(r'tool/get_dicom', get_dicomAPI_2nd.as_view()),
 ]

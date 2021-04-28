@@ -10,6 +10,7 @@ import threading
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import pid
+from ..common.getdicom import *
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
@@ -437,6 +438,28 @@ class anonymizationAPI_2nd(APIView):
             # 将匿名化后的数据入库
             # 调用后端服务，对传入的文件夹进行匿名化
             t = threading.Thread(target=onlyDoAnonymization(addr, {"No": 0}, disease, wPN, wPID, name, ap_addr))
+            t.start()
+            return JsonResponse(code="0", msg="匿名化开始")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="出问题了....")
+
+class get_dicomAPI_2nd(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    # 判断是否需要匿名化或者存储这个匿名后的数据到一个新的folder？
+    def post(self, request):
+        data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
+        try:
+            PID = data['PID']
+            # addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
+            destIP = data['destIP']
+            destUSR = data['destUSR']
+            destPSW = data['destPSW']  # appointed storage address
+
+            # 将匿名化后的数据入库
+            # 调用后端服务，对传入的文件夹进行匿名化
+            t = threading.Thread(target=getDicomServe(PID, destIP, destUSR, destPSW))
             t.start()
             return JsonResponse(code="0", msg="匿名化开始")
         except ObjectDoesNotExist:

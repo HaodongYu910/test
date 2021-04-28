@@ -23,6 +23,9 @@
                     <el-form-item>
                         <el-button type="primary" @click="handleAnon">匿名化文件夹</el-button>
                     </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleGetDicom">获取Dicom文件</el-button>
+                    </el-form-item>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -232,6 +235,46 @@
                 </div>
             </el-dialog>
 
+            <!--提取dicom文件-->
+            <el-dialog title="提取dicom文件" :visible.sync="getDicomFormVisible" :close-on-click-modal="false"
+                       style="width: 75%; left: 12.5%">
+                <el-form :model="getDicomForm" label-width="80px" :rules="getDicomFormRules" ref="getDicomForm">
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
+                        <el-row>
+                            <el-col :span="8">
+                                <el-form-item label="患者姓名" prop="PID">
+                                    <el-input id="PID" v-model="getDicomForm.PID" placeholder="BioMind_001"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器地址（ip）" prop="destIP">
+                                    <el-input id="destIP" v-model="getDicomForm.destIP" placeholder="192.168.1.100"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器用户名" prop="destIP">
+                                    <el-input id="destUSR" v-model="getDicomForm.destUSR" placeholder="biomind"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器密码" prop="destIP">
+                                    <el-input id="destPSW" v-model="getDicomForm.destPSW" placeholder="biomind"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="15">
+                                <el-form-item label="" prop="getDicomStart">
+                                    <el-button type="primary" @click="getDicomStart('form')">开始提取</el-button>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+
+                    </el-form>
+                </el-form>
+
+            </el-dialog>
+
             <!--匿名化文件夹界面-->
             <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible" :close-on-click-modal="false"
                        style="width: 75%; left: 12.5%">
@@ -291,6 +334,7 @@
                 </el-form>
 
             </el-dialog>
+
             <!--新增界面-->
             <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                        style="width: 100%; left: 10%">
@@ -554,6 +598,33 @@
                     ],
                     anon_disease: [
                         {required: true, message: '请输入疾病种类', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                },
+
+                // get dicom initial
+                getDicomForm: {
+                    destPSW: '',
+                    destIP: '',
+                    destUSR: '',
+                    PID: ''
+                },
+                getDicomFormVisible: false, // 匿名化界面是否显示
+                getDicomFormRules: {
+                    destPSW: [
+                        {required: true, message: '目标服务器密码', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    destIP: [
+                        {required: true, message: '目标服务器地址', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    destUSR: [
+                        {required: true, message: '目标服务器用户名', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    PID: [
+                        {required: true, message: '患者姓名', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ],
                 },
@@ -948,6 +1019,16 @@
                 }
             }
             ,
+            //显示获取dicom影像面板
+            handleGetDicom: function () {
+                this.getDicomFormVisible = true
+                this.getDicomForm = {
+                    destPSW: '',
+                    destUSR: '',
+                    PID: '',
+                    destIP:''
+                }
+            },
             // 编辑
             editSubmit: function () {
                 const self = this
@@ -1045,6 +1126,52 @@
                                 self.$refs['anonForm'].resetFields()
                                 self.anonFormVisible = false
                                 self.getDurationlist()
+                            }
+                        })
+                    }
+                })
+            },
+
+            // 开始提取dicom文件
+            getDicomStart: function () {
+                this.$refs.getDicomForm.validate((valid) => {
+                    if (valid) {
+                        const self = this
+                        self.addLoading = true
+                        // NProgress.start();
+                        const params = JSON.stringify({
+                            PID: self.getDicomForm.PID,
+                            destIP: self.getDicomForm.destIP,
+                            destUSR: self.getDicomForm.destUSR,
+                            destPSW: self.getDicomForm.destPSW,
+                        })
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        get_dicom_start(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            self.addLoading = false
+                            if (code === '0') {
+                                self.$message({
+                                    message: 'get dicom start',
+                                    center: true,
+                                    type: 'success'
+                                })
+                                self.$refs['getDicomForm'].resetFields()
+                                self.getDicomFormVisible = false
+                            } else if (code === '999997') {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                                self.$refs['getDicomForm'].resetFields()
+                                self.getDicomVisible = false
                             }
                         })
                     }
