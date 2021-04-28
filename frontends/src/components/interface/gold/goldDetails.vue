@@ -29,10 +29,10 @@
             <!--列表-->
             <el-table
                     v-loading="listLoading"
-                    :data="stresslist"
+                    :data="goldlist"
                     highlight-current-row
                     style="width: 100%;"
-                    @selection-change="selsChange">
+                >
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
@@ -63,12 +63,12 @@
                              src="../../../assets/img/shibai.png"/>
                     </template>
                 </el-table-column>
-                <el-table-column label="预测时间" min-width="8%" sortable>
+                <el-table-column label="预测时间" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.time }} 秒</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="slice" min-width="8%" sortable>
+                <el-table-column label="slice" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                     </template>
@@ -80,19 +80,18 @@
                 </el-table-column>
                 <el-table-column label="标准" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.result)">{{ scope.row.diagnosis }}</span>
+                        <span style="margin-left: 10px; color: #1c84c6">{{ scope.row.diagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="实际" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px" :class="valuestatus(scope.row.result)">{{ scope.row.aidiagnosis }}</span>
+                        <span style="margin-left: 10px; color: #5a78f0">{{ scope.row.aidiagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="结果" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.result)">{{ scope.row.result }}</span>
+                              :class="resultstatus(scope.row.result)">{{ scope.row.result }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" min-width="15%">
@@ -121,11 +120,9 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, getdicomurl
-    } from '@/router/api'
-    import {stresssave} from "../../../router/api";
+       getsmokerecord, getsmokestart, getdicomurl
+    } from '@/router/api';
 
-    // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
@@ -139,45 +136,19 @@
                 page_size: 50,
                 listLoading: false,
                 sels: [], // 列表选中列
-
-                // 新增界面数据
-                addForm: {
-                    diseases: '',
-                    server: '192.168.1.208',
-                    studyinstanceuid: ''
-                },
-                addFormVisible: false, // 新增界面是否显示
-                addLoading: false,
-                addFormRules: {
-                    diseases: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ]
-                }
-
             }
-        },
-        // 更新消息弹出，调用更新数据接口
-        ToMonitor(index,row) {
-                this.$notify.success({
-                    title: '即将跳转到list页面',
-                    message: '即将跳转到list页面',
-                    showClose: false
-                });
-                this.checkExpress(index,row);
         },
         created() {
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getdata(), 0);
-            }, 15000);
+            }, 30000);
             this.getParams();
           },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
         },
         mounted() {
-            this.gethost();
             this.getParams();
             this.getdata();
         },
@@ -186,90 +157,21 @@
 			  this.getdata();
 			  },
         methods: {
+            resultstatus: function (resultstatus) {
+                if (resultstatus === "匹配成功") {
+                    return 'successCss';
+                }
+                else if (resultstatus === "匹配失败") {
+                    return 'failCss';
+                }
+                else {
+                    return 'errorCss';
+                }
+            },
             getParams() {
                 this.routerParams = this.$route.query;
                 this.gold_id =  this.routerParams.gold_id;
                 this.diseases = this.routerParams.diseases;
-            },
-            valuestatus: function (a) {
-                if (a === "匹配成功") {
-                    return 'statuscssb';
-                } else {
-                    return 'statuscssa';
-                }
-            },
-            gethost() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    page_size:100
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getHost(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom", type: "gold",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.bases = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            smoketest() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    server_ip: self.filters.server,
-                    diseases: self.filters.diseases,
-                    version: self.filters.version
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getsmokestart(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.$message.success({
-                            message: "运行中！~~~~~",
-                            center: true
-                        })
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
             },
             // 获取数据列表
             getdata() {
@@ -286,12 +188,13 @@
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getsmokerecord(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.page = data.page
-                        self.stresslist = data.data
+                        this.total = data.total
+                        this.page = data.page
+                        this.goldlist = data.data
+                        console.log()
                     } else {
                         self.$message.error({
                             message: msg,
@@ -306,39 +209,6 @@
             },
             selsChange: function (sels) {
                 this.sels = sels
-            },
-            // 批量删除
-            batchRemove: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认删除选中记录吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    deldicomdata(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '删除成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
-                })
             },
             handleR: function (index, row) {
                 this.$confirm('确认重新测试吗?', '提示', {
@@ -413,7 +283,7 @@
                                 center: true,
                             })
                         }
-                        self.getdata()
+                        this.getdata()
                     });
                 })
             }
@@ -433,15 +303,15 @@
         top: 10px;
     }
 
-    .statuscssa {
+    .errorCss {
         color: #E61717
     }
 
-    .statuscssb {
+    .successCss {
         color: #67c23a;
     }
 
-    .statuscssc {
-        color: #666666;
+    .failCss {
+        color: #b8763c;
     }
 </style>

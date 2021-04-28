@@ -18,9 +18,9 @@ from AutoDicom.common.durarion import DurationThread
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
+# biomind命令
 
-
-# biomind命令  服务器重启
+# 服务器重启
 def Restart(**kwargs):
     try:
         server = Server.objects.get(id=kwargs["id"])

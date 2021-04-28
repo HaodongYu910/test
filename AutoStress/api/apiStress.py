@@ -1,20 +1,27 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db import transaction
 from AutoProject.models import pid
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.saveResult import *
-from ..common.PerformanceResult import *
+
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
 from ..common.hybrid import HybridThread
 from ..common.single import SingleThread
 from ..common.manual import ManualThread
 from ..common.stressTest import StressThread
+from ..common.saveResult import ResultThread
+from ..common.PerformanceResult import dictionary
+from AutoProject.models import uploadfile
+from ..models import stress
+import os
+import shutil
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -113,16 +120,6 @@ class stressStop(APIView):
 
             elif obj.teststatus == "混合开始":
                 stoptest = HybridThread(stressid=stressid)
-                durationid = '0' + str(stressid)
-                drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
-                # 删除未发送完的错误数据
-                try:
-                    for j in drobj:
-                        j.delete()
-                        delete_patients_duration(j.studyinstanceuid, obj.Host_id, "studyinstanceuid", False)
-                except Exception as e:
-                    logger.error("删除未发送完的错误数据失败：{}".format(e))
-
                 # 删除文件夹
                 try:
                     folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))

@@ -7,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *

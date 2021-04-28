@@ -10,35 +10,35 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-# 肺炎结果记录
-def lung(checkdate, server, version, lungid, kc):
-    dict = {}
-    imagescount = {}
-    # 查询sql
-    dise = dictionary.objects.get(id=lungid)
-    sql = dictionary.objects.get(key="predictionuid", type="sql")
-    # db_query = 'select studyinstanceuid as studyuid  from study_view where aistatus =\'3\''
-    db_query = sql.value.format(dise.key, checkdate[0], checkdate[1])
-
-    result_db = connect_postgres(host=server, sql=db_query, database="orthanc").to_dict(orient='records')
-    for u in result_db:
-        vote, imagecount, SliceThickness = voteData(u["studyuid"], server, int(lungid), kc)
-        if SliceThickness is None:
-            continue
-        if dict.get(SliceThickness) is None:
-            dict[SliceThickness] = '\'' + str(u["studyuid"]) + '\''
-            imagescount[SliceThickness] = imagecount
-        else:
-            dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyuid"]) + '\''
-            if imagecount is None:
-                imagescount[SliceThickness] = imagescount[SliceThickness]
-            else:
-                imagescount[SliceThickness] = imagescount[SliceThickness] + ',' + str(int(imagecount))
-    for ikey in dict.keys():
-        for j in ['lung_job']:
-            sql = dictionary.objects.get(key=str(j), type='sql')
-            strsql = sql.value.format(checkdate[0], checkdate[1], dict[ikey], ikey)
-            saveResult(server, version, j, checkdate, strsql, imagescount[ikey], kc)
+# # 肺炎结果记录
+# def lung(checkdate, server, version, lungid, kc):
+#     dict = {}
+#     imagescount = {}
+#     # 查询sql
+#     dise = dictionary.objects.get(id=lungid)
+#     sql = dictionary.objects.get(key="predictionuid", type="sql")
+#     # db_query = 'select studyinstanceuid as studyuid  from study_view where aistatus =\'3\''
+#     db_query = sql.value.format(dise.key, checkdate[0], checkdate[1])
+#
+#     result_db = connect_postgres(host=server, sql=db_query, database="orthanc").to_dict(orient='records')
+#     for u in result_db:
+#         vote, imagecount, SliceThickness = voteData(u["studyuid"], server, int(lungid), kc)
+#         if SliceThickness is None:
+#             continue
+#         if dict.get(SliceThickness) is None:
+#             dict[SliceThickness] = '\'' + str(u["studyuid"]) + '\''
+#             imagescount[SliceThickness] = imagecount
+#         else:
+#             dict[SliceThickness] = dict[SliceThickness] + ',\'' + str(u["studyuid"]) + '\''
+#             if imagecount is None:
+#                 imagescount[SliceThickness] = imagescount[SliceThickness]
+#             else:
+#                 imagescount[SliceThickness] = imagescount[SliceThickness] + ',' + str(int(imagecount))
+#     for ikey in dict.keys():
+#         for j in ['lung_job']:
+#             sql = dictionary.objects.get(key=str(j), type='sql')
+#             strsql = sql.value.format(checkdate[0], checkdate[1], dict[ikey], ikey)
+#             saveResult(server, version, j, checkdate, strsql, imagescount[ikey], kc)
 
 
 # 数据比较检查
@@ -170,34 +170,34 @@ def dataCheck(stressType, versions):
         i['modelname'] = obj.key
     return dictA
 
-
-# 预测数据保存
-def saveResult(server, version, type, checkdate, sql, imagedata, kc):
-    imagelist = []
-    result = connect_postgres(host=server, sql=sql, database="orthanc")
-    dict = result.to_dict(orient='records')
-    for i in dict:
-        if type == 'lung_job':
-            obj = dictionary.objects.get(remarks=i["modelname"])
-        elif type == "job":
-            obj = dictionary.objects.get(value=i["modelname"])
-        else:
-            obj = dictionary.objects.get(key=i["modelname"])
-        i["version"] = version
-        i["type"] = type
-        i["modelname"] = obj.id
-        if imagedata != []:
-            for j in imagedata[1:].split(","):
-                imagelist.append(int(j))
-            i["avgimages"], i["maximages"], i["minimages"] = str('%.2f' % np.mean(imagelist)), str(
-                np.max(imagelist)), str(np.min(imagelist))
-        else:
-            i["avgimages"], i["maximages"], i["minimages"] = image(server, int(obj.id), checkdate, kc)
-        stressserializer = stress_result_Deserializer(data=i)
-        with transaction.atomic():
-            stressserializer.is_valid()
-            stressserializer.save()
-    return True
+#
+# # 预测数据保存
+# def saveResult(server, version, type, checkdate, sql, imagedata, kc):
+#     imagelist = []
+#     result = connect_postgres(host=server, sql=sql, database="orthanc")
+#     dict = result.to_dict(orient='records')
+#     for i in dict:
+#         if type == 'lung_job':
+#             obj = dictionary.objects.get(remarks=i["modelname"])
+#         elif type == "job":
+#             obj = dictionary.objects.get(value=i["modelname"])
+#         else:
+#             obj = dictionary.objects.get(key=i["modelname"])
+#         i["version"] = version
+#         i["type"] = type
+#         i["modelname"] = obj.id
+#         if imagedata != []:
+#             for j in imagedata[1:].split(","):
+#                 imagelist.append(int(j))
+#             i["avgimages"], i["maximages"], i["minimages"] = str('%.2f' % np.mean(imagelist)), str(
+#                 np.max(imagelist)), str(np.min(imagelist))
+#         else:
+#             i["avgimages"], i["maximages"], i["minimages"] = image(server, int(obj.id), checkdate, kc)
+#         stressserializer = stress_result_Deserializer(data=i)
+#         with transaction.atomic():
+#             stressserializer.is_valid()
+#             stressserializer.save()
+#     return True
 
 
 # 求预测影像 平均值 最大值  最小值

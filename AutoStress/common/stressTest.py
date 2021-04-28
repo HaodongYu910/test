@@ -57,18 +57,15 @@ class StressThread(threading.Thread):
                 Hybrid = HybridThread(stressid=self.id)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
-                while str(start) < end:
+                while str(start) < str(end):
                     start = datetime.datetime.now()
-                result = ResultThread(stressid=self.obj.stressid)
-                result.setDaemon(True)
-                result.start()
                 Restart(id=self.obj.Host.id)
                 time.sleep(300)
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
         try:
-            self.obj.teststatus = "混合测试"
+            self.obj.teststatus = "单一测试"
             self.obj.status = True
             self.obj.save()
             if self.Flag is True:

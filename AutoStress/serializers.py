@@ -65,7 +65,7 @@ class stress_record_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id', 'Stress', 'studyuid', 'slicenumber', 'image', 'version',
-                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
+                  'type', 'job_id', 'sec', 'start', 'end', 'job_time', 'job_start', 'job_end', 'modelname', 'aistatus')
 
 class stress_record_Serializer(serializers.ModelSerializer):
     """
@@ -75,7 +75,7 @@ class stress_record_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress_record
         fields = ('id', 'Stress', 'studyuid', 'slicenumber', 'image', 'version',
-                  'type', 'job_id', 'sec','start', 'end', 'modelname','aistatus')
+                  'type', 'job_id', 'sec', 'start', 'end', 'job_time', 'job_start', 'job_end', 'modelname', 'aistatus')
         read_only_fields = ('id',)  # 指定只读的 field
 
 class errorlog_Serializer(serializers.ModelSerializer):
