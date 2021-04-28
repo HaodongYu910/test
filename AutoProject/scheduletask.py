@@ -156,6 +156,7 @@ def NightlyReportTask():
 
     for i in obj:
         try:
+
             record = duration_record.objects.filter(duration_id=i.id).values(
                 "duration_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
@@ -179,6 +180,7 @@ def NightlyReportTask():
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
                 }
             }
+
             i.status = False
             i.save()
             logger.info(params)
@@ -186,3 +188,4 @@ def NightlyReportTask():
         except Exception as e:
             logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
             continue
+

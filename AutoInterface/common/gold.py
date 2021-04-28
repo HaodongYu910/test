@@ -219,6 +219,7 @@ class GoldThread(threading.Thread):
                         self.smobj.Host.host,
                         total,
                         int(result[0]) + int(result[1]),
+
                         smerror,
                         result[0],
                         result[1],

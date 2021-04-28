@@ -136,10 +136,7 @@ class SSHConnection:
 # if __name__ == '__main__':
 #     import collections
 #     ssh = SSHConnection()
-#     Disk = bytes.decode(ssh.cmd("docker ps;"))
-#     size = Disk.split()
-#
-#     ssh.close()
+
 #     a = ssh.command("nohup unzip -o QaInstall.zip > zz.log 2>&1 &")
 #     print(bytes.decode(a))
 #

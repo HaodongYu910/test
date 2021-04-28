@@ -33,6 +33,7 @@
                     highlight-current-row
                     style="width: 100%;"
                 >
+
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
@@ -137,6 +138,15 @@
                 listLoading: false,
                 sels: [], // 列表选中列
             }
+        },
+        // 更新消息弹出，调用更新数据接口
+        ToMonitor(index,row) {
+                this.$notify.success({
+                    title: '即将跳转到list页面',
+                    message: '即将跳转到list页面',
+                    showClose: false
+                });
+                this.checkExpress(index,row);
         },
         created() {
             // 实现轮询

@@ -34,7 +34,6 @@ class stressVersion(APIView):
         return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
 
-
 # 获取压测列表
 class stressReport(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -60,7 +59,6 @@ class stressReport(APIView):
         result, chartData, LineData = st.ChartData(ChartType=ChartType,
                                                    models=models,
                                                    version=checkversion)
-
         return JsonResponse(data={"report": report,
                                   "result": result,
                                   "chartData": chartData,
