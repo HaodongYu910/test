@@ -114,6 +114,7 @@ class ResultThread(threading.Thread):
         #     stress_result.objects.filter(Stress=self.stressid, type__in=['hh', '']).delete()
         # except:
         #     logger.error("删除旧的性能结果数据数据失败")
+
         # 按模型 查询成功失败 数量
         obj = stress_record.objects.filter(
             Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=True).values("modelname").annotate(
