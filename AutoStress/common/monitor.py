@@ -3,7 +3,8 @@ import time
 import datetime
 import logging
 
-from .transport import SSHConnection
+
+from AutoProject.common.transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
@@ -22,6 +23,27 @@ class MonitorThread(threading.Thread):
         self.user = self.obj.Host.user
         self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
+
+        self.ssh.cmd("wget https://ifileserver.biomind.com.cn/index.php/s/4dMqo7F2meb4cTp/download -O ./monitor.zip --no-check-certificate;unzip ./monitor.zip;")
+
+    def run(self):
+        try:
+            pass
+        except Exception as e:
+            logger.error(e)
+
+    def GPUInstall(self):
+        try:
+            self.ssh.cmd()
+        except Exception as e:
+            logger.error(e)
+
+
+    def run(self):
+        try:
+            pass
+        except Exception as e:
+            logger.error(e)
 
 
     def run(self):
@@ -73,3 +95,4 @@ class smokeThread(threading.Thread):
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
+

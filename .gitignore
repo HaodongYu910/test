@@ -7,6 +7,9 @@
 *.idea
 *pycache__
 # Distribution / packaging
+logs
+cache
+migrations
 .Python
 env/
 build/

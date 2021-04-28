@@ -3,11 +3,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import logging
 from AutoProject.common.api_response import JsonResponse
-from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 from AutoProject.models import dictionary
-from  ..common.saveResult import ResultThread
+from ..common.saveResult import ResultThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 

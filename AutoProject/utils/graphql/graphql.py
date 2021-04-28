@@ -12,6 +12,6 @@ def graphql_Interface(graphql_query, kc):
         logger.info("results : {}".format(results))
         return results
     except Exception as e:
-        logger.error('failed: {0},results {1}'.format(e, results))
+        logger.error('failed: {0}'.format(e))
         return e
 

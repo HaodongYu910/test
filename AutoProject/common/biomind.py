@@ -17,10 +17,10 @@ from AutoDicom.common.durarion import DurationThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
+# biomind命令
 
+# 服务器重启
 
-
-# biomind命令  服务器重启
 def Restart(**kwargs):
     try:
         server = Server.objects.get(id=kwargs["id"])
@@ -73,7 +73,7 @@ def goldsmoke(version):
                 "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                 "status": True,
                 "Host_id": 13,
-                "thread": 2,
+                "thread": 1,
                 "count": 127
                 }
 
@@ -99,7 +99,8 @@ def durationTest(**kwargs):
                 "patientname": 'Dt',
                 "dicom": "1,2,3,4,5,6,7,8,9,10,11,13,14,35,45",
                 "sendcount": 258,
-                "sleepcount": 1000,
+                "sleepcount": 100,
+
                 "sleeptime": 3,
                 "series": False,
                 "sendstatus": True,

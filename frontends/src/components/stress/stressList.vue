@@ -13,24 +13,27 @@
                     <el-button type="primary" @click="handleAdd">创建测试</el-button>
                 </el-form-item>
                 <el-row>
-                <el-form-item>
-                    <el-button  @click="stressTest('jz')" :disabled="this.sels.length===0">基准测试</el-button>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="stressTest('dy')"  :disabled="this.sels.length===0">单一测试</el-button>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试</el-button>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="primary" @click="stressTest('qb')" :disabled="this.sels.length===0">全部测试</el-button>
-                </el-form-item>
-                <el-form-item>
-                    <el-button type="danger" @click="stop" :disabled="this.sels.length===0">停止测试</el-button>
-                </el-form-item>
+                    <el-form-item>
+                        <el-button @click="stressTest('jz')" :disabled="this.sels.length===0">基准测试</el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="stressTest('dy')" :disabled="this.sels.length===0">单一测试
+                        </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试
+                        </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="stressTest('qb')" :disabled="this.sels.length===0">全部测试
+                        </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="danger" @click="stop" :disabled="this.sels.length===0">停止测试</el-button>
+                    </el-form-item>
 
-            </el-row>
-                 </el-form>
+                </el-row>
+            </el-form>
 
         </el-col>
 
@@ -497,13 +500,23 @@
                     var enddate = end_date.replace(/-/g, '/');
                     var endstamp = new Date(enddate).getTime();
                 }
-                {
-                    window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
-                        startstamp + "&to=" + endstamp + "&var-host_name=" +
-                        loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                const url = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                    startstamp + "&to=" + endstamp + "&var-host_name=" +
+                    loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+                const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+                const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+                const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+                const left = ((width / 2) - (1500 / 2)) + dualScreenLeft
+                const top = ((height / 2) - (800 / 2)) + dualScreenTop
+                const newWindow = window.open(url, '服务监控', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + '1500' + ', height=' + '800' + ', top=' + top + ', left=' + left)
+
+                // Puts focus on the newWindow
+                if (window.focus) {
+                    newWindow.focus()
                 }
-                // //刷新当前页面
-                // window.location.reload();
             },
             //上传前对文件大小进行校验
             beforeUpload(file) {

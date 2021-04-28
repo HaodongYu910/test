@@ -255,7 +255,7 @@
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getsmokeList(), 0);
-            }, 20000);
+            }, 30000);
           },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);

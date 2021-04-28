@@ -5,7 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_base, duration_record
+from ..models import dicom_base, duration_record, duration
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
@@ -412,11 +412,14 @@ class dicomUrl(APIView):
                     kc, url = listUrl(obj.gold.Host.id, obj.studyinstanceuid)
                 elif type == 'duration':
                     obj = duration_record.objects.get(id=data['id'])
-                    kc, url = listUrl(obj.hostid, obj.studyinstanceuid)
+                    durObj = duration.objects.get(id=obj.duration_id)
+                    kc, url = listUrl(durObj.Host_id, obj.studyinstanceuid)
                 else:
                     dicomdata = dicom.objects.filter(vote=None)
+                if url == False:
+                    return JsonResponse(code="999993", msg="未查询到相关数据！")
             except ObjectDoesNotExist:
-                return JsonResponse(code="999994", msg="数据未预测，请先预测！")
+                return JsonResponse(code="999994", msg="数据错误！")
             return JsonResponse(code="0", msg="成功", data={
                 "url": url,
                 "kc": kc
