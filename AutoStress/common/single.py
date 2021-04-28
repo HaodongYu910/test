@@ -221,7 +221,7 @@ class SingleThread(threading.Thread):
                     result = ResultThread(stressid=self.obj.stressid, stressType='single')
                     result.setDaemon(True)
                     result.start()
-
+                    time.sleep(120)
                     ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
                     ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
                     time.sleep(500)
