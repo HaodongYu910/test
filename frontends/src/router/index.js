@@ -31,10 +31,8 @@ const ReportTitle = () => import('../components/home/Dashboard.vue');
 Vue.use(Router);
 
 export default new Router({
-    mode:'history',
-    base:'/',
-    routes: [
 
+    routes: [
         {
             path: '/',
             redirect: '/home'

@@ -75,7 +75,7 @@ class stressResultsave(APIView):
             return result
 
         try:
-            result = ResultThread(stressid=data['stressid'])
+            result = ResultThread(stressid=data['stressid'], stressType="HH")
             result.setDaemon(True)
             result.start()
 

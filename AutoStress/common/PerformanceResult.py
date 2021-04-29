@@ -136,10 +136,7 @@ def dataCheck(stressType, versions):
         stress_result.objects.filter(version=versions[1], type=stressType[0]), many=True).data
     # 比较 性能测试记录 结果
     for i in dictA:
-        i = modelData(i, versions[0], stressType[1])
         for j in dictB:
-            j = modelData(j, versions[1], stressType[1])
-
             if i['slicenumber'] is None:
                 a = i['modelname']
                 b = j['modelname']

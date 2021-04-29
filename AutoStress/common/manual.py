@@ -40,29 +40,27 @@ def delreport(kc, studyinstanceuid):
 # 保存数据
 def saveData(**kwargs):
     try:
-        if kwargs["type"] in ["predictionJZ", "lung_prediction"]:
-            sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
-            result = connect_postgres(database="orthanc", host=kwargs["id"],
-                                      sql=sql.value.format(kwargs["studyuid"], kwargs["startdate"]))
-            kwargs["datatest"]["type"] = kwargs["type"]
-            try:
-                kwargs["datatest"]["avg"] = str(result.to_dict(orient='records')[0]["avg"])
-            except:
-                kwargs["datatest"]["avg"] = 0
-            try:
-                kwargs["datatest"]["median"] = str(result.to_dict(orient='records')[0]["median"])
-            except:
-                kwargs["datatest"]["avg"] = 0
-            try:
-                kwargs["datatest"]["min"] = str(result.to_dict(orient='records')[0]["min"])
-            except:
-                kwargs["datatest"]["avg"] = 0
-            try:
-                kwargs["datatest"]["max"] = str(result.to_dict(orient='records')[0]["max"])
-            except:
-                kwargs["datatest"]["avg"] = 0
-        else:
-            kwargs["datatest"]["type"] = kwargs["type"]
+        sql = dictionary.objects.get(key="predictionJZ", type="sql", status=True)
+        result = connect_postgres(database="orthanc", host=kwargs["id"],
+                                  sql=sql.value.format(kwargs["studyuid"], kwargs["startdate"]))
+
+        try:
+            kwargs["datatest"]["avg"] = str(result.to_dict(orient='records')[0]["avg"])
+        except:
+            kwargs["datatest"]["avg"] = 0
+        try:
+            kwargs["datatest"]["median"] = str(result.to_dict(orient='records')[0]["median"])
+        except:
+            kwargs["datatest"]["median"] = 0
+        try:
+            kwargs["datatest"]["min"] = str(result.to_dict(orient='records')[0]["min"])
+        except:
+            kwargs["datatest"]["min"] = 0
+        try:
+            kwargs["datatest"]["max"] = str(result.to_dict(orient='records')[0]["max"])
+        except:
+            kwargs["datatest"]["max"] = 0
+
 
         _result = stress_result_Deserializer(data=kwargs["datatest"])
         with transaction.atomic():
@@ -92,7 +90,7 @@ class ManualThread(threading.Thread):
         self.obj.save()
         try:
             stress_result.objects.filter(Stress=self.stressid,
-                                         type__in=['jobJZ', 'predictionJZ', 'lung_jobJZ', 'lung_job']).delete()
+                                         type__in=['JZ']).delete()
         except:
             logger.error("性能基准数据删除失败")
         count = int(self.obj.benchmark)
@@ -119,41 +117,42 @@ class ManualThread(threading.Thread):
                     except Exception as e:
                         logger.error("{0}执行预测失败：{1}".format(k.studyinstanceuid, e))
                         continue
-
-                jobtype = 'jobJZ'
-                predictiontype = 'predictionJZ'
-                avgtime = str('%.2f' % np.mean(avglist))
                 try:
-                    mintime = str('%.2f' % min(avglist))
+                    avgTime = str('%.2f' % np.mean(avglist))
                 except:
-                    mintime = None
-
+                    avgTime = 0
                 try:
-                    maxtime = str('%.2f' % max(avglist))
+                    minTime = str('%.2f' % min(avglist))
                 except:
-                    maxtime = None
-                datatest = {
+                    minTime = 0
+                try:
+                    maxTime = str('%.2f' % max(avglist))
+                except:
+                    maxTime = 0
+                try:
+                    medianTime = str('%.2f' % np.median(avglist))
+                except:
+                    medianTime = 0
+
+                saveData(datatest={
                     "Stress": self.stressid,
                     "version": self.obj.version,
+                    "type": "JZ",
                     "count": count,
                     "modelname": k.predictor,
                     "slicenumber": k.slicenumber,
-                    "avg": avgtime,
-                    "min": mintime,
-                    "max": maxtime,
+                    "jobavg": avgTime,
+                    "jobmin": minTime,
+                    "jobmax": maxTime,
+                    "jobmedian": medianTime,
                     "minimages": k.imagecount,
                     "maximages": k.imagecount,
                     "avgimages": k.imagecount
-                }
-                saveData(datatest=datatest,
-                         type=jobtype
-                         )
-                saveData(datatest=datatest,
-                         type=predictiontype,
-                         id=self.obj.Host_id,
-                         studyuid=k.studyinstanceuid,
-                         startdate=startdate
-                         )
+                },
+                    id=self.obj.Host_id,
+                    studyuid=k.studyinstanceuid,
+                    startdate=startdate
+                )
             self.obj.status = False
             self.obj.teststatus = "测试完成"
             self.obj.save()

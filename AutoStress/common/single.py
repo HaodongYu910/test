@@ -124,7 +124,7 @@ class SingleThread(threading.Thread):
         return {
             "version": self.obj.version,
             "studyuid": ds.StudyInstanceUID,
-            "type": 'single',
+            "type": 'DY',
             "slicenumber":  info.get("slicenumber"),
             "images":  info.get("images"),
             "modelname": predictor,
@@ -200,7 +200,7 @@ class SingleThread(threading.Thread):
         self.obj.save()
 
         # 按模型 循环预测
-        for i in self.testdata.split(","):
+        for i in self.obj.testdata.split(","):
             try:
                 q = self.QueData(model=i)
                 threads = []
@@ -218,10 +218,10 @@ class SingleThread(threading.Thread):
                     self.obj.end_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     self.obj.save()
 
-                    result = ResultThread(stressid=self.obj.stressid, stressType='single')
+                    result = ResultThread(stressid=self.obj.stressid, stressType='DY')
                     result.setDaemon(True)
                     result.start()
-                    time.sleep(120)
+                    time.sleep(180)
                     ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
                     ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
                     time.sleep(500)

@@ -180,7 +180,8 @@ class InstallThread(threading.Thread):
                 for i in dockerList:
                     if i == "(healthy)":
                         a = a + 1
-                if a >= 9:
+                if a >= 7:
+                    time.sleep(30)
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：createUser \n")
                     createUser(user="biomind3d", pwd="engine3D.", protocol=self.obj.Host.protocol,
                                server=self.obj.Host.host)

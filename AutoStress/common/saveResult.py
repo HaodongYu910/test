@@ -73,7 +73,7 @@ class ResultThread(threading.Thread):
 
     # 测试结果
     def run(self):
-        uids = ','
+        uids = ''
         # 测试数据查询
         for i in stress_record.objects.filter(Stress_id=self.stressid, type=self.stressType):
             uids = uids + '\'' + str(i.studyuid) + '\','
@@ -88,12 +88,27 @@ class ResultThread(threading.Thread):
                 result = connect_postgres(database="orthanc",
                                           host=self.obj.Host.id,
                                           sql=sql)
-                dict = result.to_dict(orient='records')
                 # 循环更新查询结果
-                for i in dict:
+                for i in result.to_dict(orient='records'):
+                    if j == "predictionrecord":
+                        data = {}
+                        data = {
+                            "sec": str(i["sec"]),
+                            "start": str(i["start"])[:19],
+                            "end": str(i["end"])[:19],
+                            "aistatus": 3
+                        }
+                    elif j == "jobmetrics":
+                        data = {
+                            "job_time": str(i["job_time"]),
+                            "start": str(i["job_start"])[:19],
+                            "end": str(i["job_end"])[:19]
+                        }
+                    else:
+                        data = i
                     try:
                         recordObj = stress_record.objects.get(Stress_id=self.stressid, studyuid=i["studyuid"])
-                        serializer = stress_record_Deserializer(data=i)
+                        serializer = stress_record_Deserializer(data=data)
                         with transaction.atomic():
                             if serializer.is_valid():
                                 # 修改数据
@@ -109,11 +124,11 @@ class ResultThread(threading.Thread):
         self.SaveResult()
 
     def SaveResult(self):
-        # try:
-        #     # 删除 之前数据
-        #     stress_result.objects.filter(Stress=self.stressid, type__in=['hh', '']).delete()
-        # except:
-        #     logger.error("删除旧的性能结果数据数据失败")
+        try:
+            # 删除 之前数据
+            stress_result.objects.filter(Stress=self.stressid, type=self.stressType).delete()
+        except:
+            logger.error("删除旧的性能结果数据数据失败")
 
         # 按模型 查询成功失败 数量
         obj = stress_record.objects.filter(
@@ -137,91 +152,113 @@ class ResultThread(threading.Thread):
         for i in obj:
             try:
                 total = i["success"] + i["warn"] + i["fail"]
-                rate = (i["success"] + i["warn"]) / total * 100
 
-                data = {
+                ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))
+                ModelMin = 0 if i["ModelMin"] is None else '%.2f' % (float(i["ModelMin"]))
+                ModelMax = 0 if i["ModelMax"] is None else '%.2f' % (float(str(i["ModelMax"])))
+                JobAvg = 0 if i["JobAvg"] is None else '%.2f' % (float(i["JobAvg"]))
+                JobMin = 0 if i["JobMin"] is None else '%.2f' % (float(i["JobMin"]))
+                JobMax = 0 if i["JobMax"] is None else '%.2f' % (float(i["JobMax"]))
+                rate = 0 if i["success"] is None else '%.2f' % (float((i["success"] + i["warn"]) / total * 100))
+                imagesMin = 0 if i["imagesMin"] is None else '%.2f' % (float(i["imagesMin"]))
+                imagesMax = 0 if i["imagesMax"] is None else '%.2f' % (float(i["imagesMax"]))
+                imagesAvg = 0 if i["imagesAvg"] is None else '%.2f' % (float(i["imagesAvg"]))
+
+                stress_result.objects.create(**{
                     "version": self.obj.version,
                     "modelname": i["modelname"],
                     "type": self.stressType,
-                    "avg": i["ModelAvg"],
-                    "min": i["ModelMin"],
-                    "max": str(i["ModelMax"]),
-                    "jobavg": str(i["JobAvg"]),
-                    "jobmin": i["JobMin"],
-                    "jobmax": i["JobMax"],
+                    "avg": ModelAvg,
+                    "min": ModelMin,
+                    "max": ModelMax,
+                    "jobavg": JobAvg,
+                    "jobmin": JobMin,
+                    "jobmax": JobMax,
                     "rate": rate,
-                    "minimages": i["imagesMin"],
-                    "maximages": i["imagesMax"],
-                    "avgimages": i["imagesAvg"],
+                    "minimages": imagesMin,
+                    "maximages": imagesMax,
+                    "avgimages": imagesAvg,
                     "Stress_id": self.stressid,
                     "slicenumber": None,
                     "count": i["count"]
-                }
-                stress_result.objects.create(**data)
+                })
             except Exception as e:
                 logger.error(e)
                 continue
                 # 按模型 查询成功失败 数量
-            obj = stress_record.objects.filter(
-                    Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=False).values(
-                    "slicenumber").annotate(
-                    count=Count(1),
-                    ModelAvg=Avg('sec'),
-                    ModelMax=Max('sec'),
-                    ModelMin=Min('sec'),
-                    JobAvg=Avg('job_time'),
-                    JobMax=Max('job_time'),
-                    JobMin=Min('job_time'),
-                    imagesAvg=Avg('images'),
-                    imagesMax=Max('images'),
-                    imagesMin=Min('images'),
-                    success=Count(Case(When(aistatus=3, then=0))),
-                    warn=Count(Case(When(aistatus=2, then=0))),
-                    fail=Count(Case(When(aistatus=1, then=0))),
-                )
-            # 循环数据保存
-            for i in obj:
-                try:
-                    total = i["success"] + i["warn"] + i["fail"]
-                    rate = (i["success"] + i["warn"]) / total * 100
+        obj = stress_record.objects.filter(
+            Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=False).values(
+            "slicenumber").annotate(
+            count=Count(1),
+            ModelAvg=Avg('sec'),
+            ModelMax=Max('sec'),
+            ModelMin=Min('sec'),
+            JobAvg=Avg('job_time'),
+            JobMax=Max('job_time'),
+            JobMin=Min('job_time'),
+            imagesAvg=Avg('images'),
+            imagesMax=Max('images'),
+            imagesMin=Min('images'),
+            success=Count(Case(When(aistatus=3, then=0))),
+            warn=Count(Case(When(aistatus=2, then=0))),
+            fail=Count(Case(When(aistatus=1, then=0))),
+        )
+        # 循环数据保存
+        for i in obj:
+            try:
+                total = i["success"] + i["warn"] + i["fail"]
+                ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))
+                ModelMin = 0 if i["ModelMin"] is None else '%.2f' % (float(i["ModelMin"]))
+                ModelMax = 0 if i["ModelMax"] is None else '%.2f' % (float(str(i["ModelMax"])))
+                JobAvg = 0 if i["JobAvg"] is None else '%.2f' % (float(i["JobAvg"]))
+                JobMin = 0 if i["JobMin"] is None else '%.2f' % (float(i["JobMin"]))
+                JobMax = 0 if i["JobMax"] is None else '%.2f' % (float(i["JobMax"]))
+                rate = 0 if i["success"] is None else '%.2f' % (float((i["success"] + i["warn"]) / total * 100))
+                imagesMin = 0 if i["imagesMin"] is None else '%.2f' % (float(i["imagesMin"]))
+                imagesMax = 0 if i["imagesMax"] is None else '%.2f' % (float(i["imagesMax"]))
+                imagesAvg = 0 if i["imagesAvg"] is None else '%.2f' % (float(i["imagesAvg"]))
 
-                    data = {
-                            "version": self.obj.version,
-                            "modelname": None,
-                            "type": self.stressType,
-                            "avg": i["ModelAvg"],
-                            "min": i["ModelMin"],
-                            "max": str(i["ModelMax"]),
-                            "jobavg": str(i["JobAvg"]),
-                            "jobmin": i["JobMin"],
-                            "jobmax": i["JobMax"],
-                            "rate": rate,
-                            "minimages": i["imagesMin"],
-                            "maximages": i["imagesMax"],
-                            "avgimages": i["imagesAvg"],
-                            "Stress_id": self.stressid,
-                            "slicenumber": i["slicenumber"],
-                            "count": i["count"]
-                        }
-                    stress_result.objects.create(**data)
-                except Exception as e:
-                    logger.error(e)
-                    continue
+                stress_result.objects.create(**{
+                    "version": self.obj.version,
+                    "modelname": None,
+                    "type": self.stressType,
+                    "avg": ModelAvg,
+                    "min": ModelMin,
+                    "max": ModelMax,
+                    "jobavg": JobAvg,
+                    "jobmin": JobMin,
+                    "jobmax": JobMax,
+                    "rate": rate,
+                    "minimages": imagesMin,
+                    "maximages": imagesMax,
+                    "avgimages": imagesAvg,
+                    "Stress_id": self.stressid,
+                    "slicenumber": i["slicenumber"],
+                    "count": i["count"]
+                })
 
-    def errorlog(self):
-        ssh = SSHConnection(host=self.server, port=22, user=self.obj.Host.user, pwd=self.obj.Host.pwd)
-        os.system("rm -rf {}/pm2.zip".format(settings.LOG_PATH))
-        downpath = '/home/biomind/.biomind/lib/versions/{}/logs/pm2'.format(self.obj.version)
-        ospath = '{}/pm2.zip'.format(settings.LOG_PATH)
-        ssh.download(ospath, downpath)
-        errorLogger(self.stressid, self.obj.version, ospath)
-        ssh.close()
+            except Exception as e:
+                logger.error(e)
+                continue
 
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean
 
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
+def errorlog(self):
+    ssh = SSHConnection(host=self.server, port=22, user=self.obj.Host.user, pwd=self.obj.Host.pwd)
+    os.system("rm -rf {}/pm2.zip".format(settings.LOG_PATH))
+    downpath = '/home/biomind/.biomind/lib/versions/{}/logs/pm2'.format(self.obj.version)
+    ospath = '{}/pm2.zip'.format(settings.LOG_PATH)
+    ssh.download(ospath, downpath)
+    errorLogger(self.stressid, self.obj.version, ospath)
+    ssh.close()
 
-    def getParm(self):  # 外部获得内部信息函数
-        return self.parm
+
+def setFlag(self, parm):  # 外部停止线程的操作函数
+    self.Flag = parm  # boolean
+
+
+def setParm(self, parm):  # 外部修改内部信息函数
+    self.Parm = parm
+
+
+def getParm(self):  # 外部获得内部信息函数
+    return self.parm

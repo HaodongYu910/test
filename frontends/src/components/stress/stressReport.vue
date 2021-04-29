@@ -173,9 +173,9 @@
                             <el-form :inline="true" :model="filters" @submit.native.prevent>
                                 <el-form-item>
                                     <el-select v-model="filters.type" placeholder="类型">
-                                        <el-option key="jz" label="基准测试" value="jz"/>
-                                        <el-option key="hh" label="混合测试" value="hh"/>
-                                        <el-option key="dy" label="单一测试" value="dy"/>
+                                        <el-option key="JZ" label="基准测试" value="JZ"/>
+                                        <el-option key="HH" label="混合测试" value="HH"/>
+                                        <el-option key="DY" label="单一测试" value="DY"/>
                                     </el-select>
                                 </el-form-item>
                                 <el-select v-model="filters.models" placeholder="模型">
@@ -229,9 +229,9 @@
                         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
                             <el-form :inline="true" :model="filters">
                                 <el-select v-model="filters.type" placeholder="类型">
-                                    <el-option key="jz" label="基准测试" value="jz"/>
-                                    <el-option key="hh" label="混合测试" value="hh"/>
-                                    <el-option key="dy" label="单一测试" value="dy"/>
+                                    <el-option key="JZ" label="基准测试" value="JZ"/>
+                                    <el-option key="HH" label="混合测试" value="HH"/>
+                                    <el-option key="DY" label="单一测试" value="DY"/>
                                 </el-select>
                                 <el-select v-model="filters.checkversion" placeholder="比对版本"
                                            @click.native="getversion()">
@@ -271,7 +271,7 @@
                                 <template slot-scope="scope">
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.predavg)">{{ scope.row.predavg }}</span>
+                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.jobavg)">{{ scope.row.jobavg }}</span>
                                     </el-row>
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
@@ -283,7 +283,7 @@
                                 <template slot-scope="scope">
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.predmedian)">{{ scope.row.predmedian }}</span>
+                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.jobmedian)">{{ scope.row.jobmedian }}</span>
                                     </el-row>
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
@@ -295,7 +295,7 @@
                                 <template slot-scope="scope">
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.predmin)">{{ scope.row.predmin }}</span>
+                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.jobmin)">{{ scope.row.jobmin }}</span>
                                     </el-row>
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
@@ -307,7 +307,7 @@
                                 <template slot-scope="scope">
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.predmax)">{{ scope.row.predmax }}</span>
+                                        <span style="margin-left: 10px" :class="valuestatus(scope.row.jobmax)">{{ scope.row.jobmax }}</span>
                                     </el-row>
                                     <el-row>
                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
@@ -376,7 +376,7 @@
     }
 
     .statuscssc {
-        color: #666666;
+        color: #1dc5a3;
     }
 </style>
 
@@ -400,7 +400,7 @@
                 props: {multiple: false}, // 控制级联选择 是否允许多选
                 versions: {},
                 filters: {
-                    type: "jz",
+                    type: "JZ",
                     models: 1
                 },
                 chartData: {
@@ -505,14 +505,26 @@
             }
             ,
             // 样式 显示
-            valuestatus: function (a) {
-                if (a === "匹配成功") {
-                    return 'statuscssb';
+            valuestatus: function (i) {
+                if (!/-/g.test(i)) {
+                    console.log("2")
+                    i = 0
+                } else if (!/\+/g.test(i)) {
+                    i = 1
                 } else {
-                    return 'statuscssa';
+                    console.log("1")
+                    i = 2
                 }
-            }
-            ,
+                switch (i) {
+                    case 0:
+                        return 'statuscssa';
+                    case 1:
+                        return 'statuscssb';
+                    case 2:
+                        return 'statuscssc';
+                }
+
+            },
             // 跳转数据详情页面
             showDetail(index, row) {
                 this.$router.push({

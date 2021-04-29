@@ -22,7 +22,7 @@ plt.rcParams['font.family'] = ['Times New Roman']
 
 # plt.rcParams.update({'font.size': 12})
 
-def stressdataFigure(model, rtype):
+def stressdataFigure(model, StressType):
 
     rows = []
     dictColumns = {}
@@ -55,7 +55,7 @@ def stressdataFigure(model, rtype):
     else:
         # 其他模型数据 处理
         columns = ['version', 'Prediction', 'Job']
-        obj = stress_result.objects.filter(modelname__in=models, type__in=rtype).order_by("version")
+        obj = stress_result.objects.filter(modelname__in=models, type__in=StressType).order_by("version")
         # 循环 数据 按 版本分类
         for j in obj:
             try:
@@ -78,6 +78,7 @@ def stressdataFigure(model, rtype):
         "columns": columns,
         "rows": rows
     }
+
 
 # # 绘制 创建与解决问题数据
 # def dataframe(platform, sprint_version):
