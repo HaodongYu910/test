@@ -42,7 +42,7 @@ class stress_result_Serializer(serializers.ModelSerializer):
         model = stress_result
         fields = ('id', 'version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
                   'single', 'median', 'min', 'max', 'coef', 'rate',
-                  'jobavg', 'jobmedian', 'jobmin', 'jobmax',
+                  'jobavg', 'jobmedian', 'jobmin', 'jobmax', 'start_date', 'end_date', 'tps',
                   'minimages', 'maximages', 'avgimages', 'Stress',
                   'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
@@ -56,7 +56,7 @@ class stress_result_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress_result
         fields = ('version', 'modelname', 'type', 'slicenumber', 'count', 'avg',
-                  'single', 'median', 'min', 'max', 'coef', 'rate',
+                  'single', 'median', 'min', 'max', 'coef', 'rate', 'start_date', 'end_date', 'tps',
                   'jobavg', 'jobmedian', 'jobmin', 'jobmax', 'minimages', 'maximages', 'avgimages', 'Stress')
 
 

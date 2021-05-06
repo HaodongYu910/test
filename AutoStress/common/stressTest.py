@@ -11,7 +11,7 @@ from AutoProject.common.biomind import Restart
 from ..common.manual import ManualThread
 from ..common.single import SingleThread
 from ..common.hybrid import HybridThread
-from ..common.saveResult import ResultThread
+
 
 logger = logging.getLogger(__name__)
 

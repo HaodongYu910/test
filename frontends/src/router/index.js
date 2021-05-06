@@ -89,6 +89,7 @@ export default new Router({
                 },
                 {
                     path: '/durationData',
+                    name: 'durationData',
                     component: resolve => require(['../components/DicomTool/duration/durationDetail.vue'], resolve),
                     meta: {title: '持续化详情'}
 

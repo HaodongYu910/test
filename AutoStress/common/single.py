@@ -19,14 +19,13 @@ from django.conf import settings
 import threading
 
 from ..models import stress, stress_record
-from ..serializers import stress_result_Deserializer
+
 from AutoDicom.models import duration_record, dicom
-from AutoDicom.common.deletepatients import delete_patients_duration
 
 from AutoProject.utils.graphql.graphql import *
 from AutoProject.common.transport import SSHConnection
 
-from ..common.saveResult import ResultThread
+from ..common.saveResult import ResultStatistics
 from ..common.jmeter import JmeterThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -58,6 +57,7 @@ class SingleThread(threading.Thread):
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
+        self.end_date = ''
 
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
@@ -141,20 +141,21 @@ class SingleThread(threading.Thread):
         dicomobj = dicom.objects.filter(predictor=model,
                                         stressstatus__in=['1', '2'],
                                         status=True)
+
+        end = int(self.obj.single) * 400
         try:
-            file_end = int(self.obj.loop_count)
             while True:
-                if filecount > file_end:
+                if filecount > end:
                     self.CountData.append(dcmcount)
                     break
-                if file_end >= filecount > int(dicomobj.count()):
-                    logger.info("重新加载数据 file_end：{0}，{1}，{2}".format(file_end, filecount, int(dicomobj.count())))
+                if end >= filecount > int(dicomobj.count()):
+                    logger.info("重新加载数据 file_end：{0}，{1}".format(filecount, int(dicomobj.count())))
                     dicomobj = dicom.objects.filter(predictor=model,
                                                     stressstatus__in=['1', '2'],
                                                     status=True)
                 for j in dicomobj:
                     self.CountData.append(dcmcount)
-                    if filecount > file_end:
+                    if filecount > end:
                         break
                     else:
                         src_folder = str(j.route)
@@ -204,7 +205,10 @@ class SingleThread(threading.Thread):
             try:
                 q = self.QueData(model=i)
                 threads = []
-                self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                self.end_date = (
+                            start_date + datetime.timedelta(hours=int(self.obj.single))).strftime(
+                    "%Y-%m-%d %H:%M:%S")
                 try:
                     for i in range(self.thread_num):
                         t = threading.Thread(target=self.durationAnony, args=(q,))
@@ -215,13 +219,14 @@ class SingleThread(threading.Thread):
                         t.join()
                         time.sleep(1)
 
-                    self.obj.end_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    self.obj.save()
+                    ResultStatistics(
+                        stressid=self.obj.stressid,
+                        stressType='DY',
+                        start_date=start_date,
+                        end_date=self.end_date
+                    )
 
-                    result = ResultThread(stressid=self.obj.stressid, stressType='DY')
-                    result.setDaemon(True)
-                    result.start()
-                    time.sleep(180)
+                    time.sleep(10)
                     ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
                     ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
                     time.sleep(500)
@@ -237,16 +242,18 @@ class SingleThread(threading.Thread):
     # 混合测试发送数据
     def durationAnony(self, q):
         while not q.empty():
-            if self.Flag is False:
+            start = datetime.datetime.now()
+            if self.Flag is False or str(start) > self.obj.end_date:
+                logger.info("break {}".format(testData[2]))
                 break
-            testdata = q.get()
-            full_fn_fake = testdata[1]
+            testData = q.get()
+            full_fn_fake = testData[1]
             try:
-                data = self.anonymization(testdata[0], full_fn_fake, testdata[2])
+                data = self.anonymization(testData[0], full_fn_fake, testData[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
             try:
-                if testdata[3] in self.CountData:
+                if testData[3] in self.CountData:
                     stress_record.objects.create(**data)
             except Exception as e:
                 logger.error('[获取数据失败]： [{0}]'.format(e))

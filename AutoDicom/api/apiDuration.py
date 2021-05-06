@@ -43,7 +43,7 @@ class getDuration(APIView):
                 durationType = ['Nightly']
             else:
                 durationType = ["持续化", "Nightly"]
-            page_size = int(request.GET.get("page_size", 20))
+            page_size = int(request.GET.get("page_size", 10))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")

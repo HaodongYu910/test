@@ -6,7 +6,7 @@ from AutoProject.common.api_response import JsonResponse
 from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 from AutoProject.models import dictionary
-from ..common.saveResult import ResultThread
+from ..common.saveResult import ResultStatistics
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -73,12 +73,8 @@ class stressResultsave(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-
         try:
-            result = ResultThread(stressid=data['stressid'], stressType="HH")
-            result.setDaemon(True)
-            result.start()
-
+            ResultStatistics(stressid=data['stressid'])
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)

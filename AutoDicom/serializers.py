@@ -39,7 +39,7 @@ class dicomdata_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = dicom
         fields = (
-        'id', 'patientid','patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote','graphql', 'predictor', 'imagecount', 'fileid',
+        'id', 'patientid', 'patientname', 'studyinstanceuid', 'diseases', 'slicenumber', 'vote', 'graphql', 'predictor', 'imagecount', 'fileid',
         'diagnosis', 'remark', 'type', 'route', 'status', 'stressstatus')
 
 class duration_record_Serializer(serializers.ModelSerializer):

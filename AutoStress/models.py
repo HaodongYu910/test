@@ -63,7 +63,9 @@ class stress_record(models.Model):
     error = models.TextField(max_length=2000, blank=True, null=True, verbose_name="error")
     Stress = models.ForeignKey(stress, null=True, on_delete=models.CASCADE, verbose_name='Stress')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
-
+    start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
+    end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
+    tps = models.FloatField(blank=True, null=True, verbose_name="压测tps")
 
     def __unicode__(self):
         return self.version
