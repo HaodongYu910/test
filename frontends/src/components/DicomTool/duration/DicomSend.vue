@@ -254,17 +254,17 @@
                         </el-row>
                         <el-row>
                             <el-col :span="8">
-                                <el-form-item label="传输服务器用户名" prop="destIP">
+                                <el-form-item label="传输服务器用户名" prop="destUSR">
                                     <el-input id="destUSR" v-model="getDicomForm.destUSR" placeholder="biomind"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="8">
-                                <el-form-item label="传输服务器密码" prop="destIP">
+                                <el-form-item label="传输服务器密码" prop="destPSW">
                                     <el-input id="destPSW" v-model="getDicomForm.destPSW" placeholder="biomind"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="15">
-                                <el-form-item label="" prop="getDicomStart">
+                                <el-form-item label="" prop="DicomStart">
                                     <el-button type="primary" @click="getDicomStart('form')">开始提取</el-button>
                                 </el-form-item>
                             </el-col>
@@ -282,13 +282,13 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="10">
-                                <el-form-item label="匿名名称（以什么开头）" prop="anon-name">
-                                    <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
+                                <el-form-item label="匿名名称（以什么开头）" prop="anon_name">
+                                    <el-input id="anon_name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="8">
-                                <el-form-item label="匿名后文件夹名" prop="anon-disease">
-                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
+                                <el-form-item label="匿名后文件夹名" prop="anon_disease">
+                                    <el-input id="anon_disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
                                 </el-form-item>
                             </el-col>
                         </el-row>
@@ -476,7 +476,7 @@
 
     import {
         getduration,
-        getdurationverifydata,
+        get_dicom_start,
         getGroupBase,
         addduration,
         delduration,
@@ -607,7 +607,7 @@
                     destPSW: '',
                     destIP: '',
                     destUSR: '',
-                    PID: ''
+                    PID: '',
                 },
                 getDicomFormVisible: false, // 匿名化界面是否显示
                 getDicomFormRules: {
@@ -1139,6 +1139,7 @@
                         const self = this
                         self.addLoading = true
                         // NProgress.start();
+                        console.log("jinlaile")
                         const params = JSON.stringify({
                             PID: self.getDicomForm.PID,
                             destIP: self.getDicomForm.destIP,
@@ -1177,6 +1178,7 @@
                     }
                 })
             },
+
             // 新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {
