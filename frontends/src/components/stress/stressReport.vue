@@ -159,7 +159,6 @@
                                 </el-row>
                             </el-col>
                         </el-row>
-
                     </el-col>
                 </el-row>
 
@@ -400,6 +399,7 @@
                 props: {multiple: false}, // 控制级联选择 是否允许多选
                 versions: {},
                 filters: {
+
                     type: "JZ",
                     models: 1
                 },
@@ -566,6 +566,7 @@
                 }
             }
             ,
+
             // 压测项目模型
             stressmodel() {
                 this.listLoading = true
@@ -609,6 +610,7 @@
                 })
             }
             ,
+
             // 获取保存结论列表
             getSaveReport() {
                 this.listLoading = true
@@ -676,6 +678,7 @@
                             this.FailData = {
                                 columns: ['状态', '数量'],
                                 rows: data.report.errorData
+
                             }
                     } else {
                         self.$message.error({

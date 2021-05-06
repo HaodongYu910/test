@@ -59,4 +59,5 @@ class MonitorThread(threading.Thread):
         self.Parm = parm
 
     def getParm(self):  # 外部获得内部信息函数
+
         return self.parm

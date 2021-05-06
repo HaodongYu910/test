@@ -24,6 +24,7 @@ plt.rcParams['font.family'] = ['Times New Roman']
 
 def stressdataFigure(model, StressType):
 
+
     rows = []
     dictColumns = {}
     # 模型 ID

@@ -151,6 +151,7 @@ export default new Router({
                     path: '/goldDetail',
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准详情'}
+                    
                 },
                 {
                     path: '/report/goldid=:goldid',
@@ -178,17 +179,12 @@ export default new Router({
                 {
                     path: '/stressdata',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
-                    meta: {title: '性能测试'}
+                    meta: {title: '性能数据'}
                 },
                 {
                     path: '/stressHome',
                     component: resolve => require(['../components/stress/stressList.vue'], resolve),
                     meta: {title: '性能测试'}
-                },
-                {
-                    path: '/stressResult',
-                    component: resolve => require(['../components/stress/stressResult.vue'], resolve),
-                    meta: {title: '性能结果'}
                 },
                 {
                     path: '/data',

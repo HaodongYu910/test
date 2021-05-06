@@ -38,6 +38,7 @@ class test(APIView):
 
 
             #NightlyReportTask()
+
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))

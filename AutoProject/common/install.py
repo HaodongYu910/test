@@ -63,6 +63,7 @@ class InstallThread(threading.Thread):
         path = "{0}/Installation{1}.log".format(settings.LOG_PATH, self.id)
         with open(path, 'w', encoding='utf-8') as f:
             f.write("-----------Welcome Link:{}-----------\n".format(self.obj.Host.host))
+
     # 检查磁盘大小
     def checkDisk(self):
         Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
@@ -125,6 +126,7 @@ class InstallThread(threading.Thread):
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：停止旧服务 & 安装新版本\n")
                     self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
                     self.ssh.command("cd {0};nohup sshpass -p {1} bash setup_engine.sh > install.log 2>&1 &".format(self.obj.version, self.pwd))
+
                     while True:
                         time.sleep(120)
                         result = bytes.decode(self.ssh.cmd(
@@ -140,7 +142,6 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
-
             try:
                 if int(self.obj.testcase) in [1, 3]:
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）更新 配置文件'.format(self.obj.Host.host))

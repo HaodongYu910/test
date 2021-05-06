@@ -234,7 +234,7 @@
                             </el-row>
                         </el-card>
                     </el-col>
-                    <el-col :span="8">
+          <el-col :span="8">
                         <el-divider>Jmeter-文件上传</el-divider>
                         <el-upload
                                 class="upload-demo"
@@ -263,6 +263,7 @@
 
         <!--新增界面-->
         <el-dialog title="新增测试" :visible.sync="addFormVisible" :close-on-click-modal="false"
+
                    style="width: 120%; right: 0.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row :gutter="24">

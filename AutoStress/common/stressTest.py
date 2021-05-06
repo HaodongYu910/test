@@ -12,7 +12,6 @@ from ..common.manual import ManualThread
 from ..common.single import SingleThread
 from ..common.hybrid import HybridThread
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -68,4 +67,5 @@ class StressThread(threading.Thread):
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
+
 

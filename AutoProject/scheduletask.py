@@ -186,3 +186,4 @@ def NightlyReportTask():
         except Exception as e:
             logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
             continue
+

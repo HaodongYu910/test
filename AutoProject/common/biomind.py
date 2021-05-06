@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 # biomind命令
 
 # 服务器重启
+
 def Restart(**kwargs):
     try:
         server = Server.objects.get(id=kwargs["id"])
