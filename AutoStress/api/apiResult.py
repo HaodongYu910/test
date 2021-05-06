@@ -3,11 +3,10 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import logging
 from AutoProject.common.api_response import JsonResponse
-from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 from AutoProject.models import dictionary
-from  ..common.saveResult import ResultThread
+from ..common.saveResult import ResultThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -43,81 +42,6 @@ class StressModel(APIView):
         return JsonResponse(data={"data": options
                                   }, code="0", msg="成功")
 
-
-class stressResult(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def parameter_check(self, data):
-        """
-        验证参数
-        :param data:
-        :return:
-        """
-        try:
-            # 必传参数 version
-            if not data["version"] or not data["checkversion"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 version,checkversion！")
-
-        except KeyError:
-            return JsonResponse(code="999996", msg="参数有误！")
-
-    def post(self, request):
-        """
-        预测时间 压测结果
-        :param request:
-        :return:
-        """
-        data = JSONParser().parse(request)
-        result = self.parameter_check(data)
-        if result:
-            return result
-
-        try:
-            type = data["type"]
-            if type == 'jz':
-                prediction = stress_result.objects.filter(version=data['version'],
-                                                          type__in=['predictionJZ', 'lung_prediction'])
-                job = stress_result.objects.filter(version=data['version'], type__in=['jobJZ', 'lung_jobJZ'])
-
-                predictionb = stress_result.objects.filter(version=data['checkversion'],
-                                                           type__in=['predictionJZ', 'lung_JZ'])
-                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobJZ', 'lung_jobJZ'])
-
-                predictionresult = dataCheck(prediction, predictionb)
-                jobresult = dataCheck(job, jobb)
-                diffresult = dataCheck(job, prediction)
-            elif type == 'dy':
-                prediction = stress_result.objects.filter(version=data['version'],
-                                                          type__in=['predictiondy', 'lung_dy'])
-                job = stress_result.objects.filter(version=data['version'], type__in=['jobdy', 'lung_jobdy'])
-
-                predictionb = stress_result.objects.filter(version=data['checkversion'],
-                                                           type__in=['predictiondy', 'lung_dy'])
-                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['jobdy', 'lung_jobdy'])
-
-                predictionresult = dataCheck(prediction, predictionb)
-                jobresult = dataCheck(job, jobb)
-                diffresult = dataCheck(job, prediction)
-            else:
-                prediction = stress_result.objects.filter(version=data['version'],
-                                                          type__in=['prediction', 'lung_prediction'])
-                job = stress_result.objects.filter(version=data['version'], type__in=['job', 'lung_job'])
-
-                predictionb = stress_result.objects.filter(version=data['checkversion'],
-                                                           type__in=['prediction', 'lung_prediction'])
-                jobb = stress_result.objects.filter(version=data['checkversion'], type__in=['job', 'lung_job'])
-
-                predictionresult = dataCheck(prediction, predictionb)
-                jobresult = dataCheck(job, jobb)
-                diffresult = dataCheck(job, prediction)
-            return JsonResponse(data={"predictionresult": predictionresult,
-                                      "jobresult": jobresult,
-                                      "diffresult": diffresult
-                                      }, code="0", msg="成功")
-
-        except Exception as e:
-            return JsonResponse(msg="失败", code="999991", exception=e)
 
 
 class stressResultsave(APIView):

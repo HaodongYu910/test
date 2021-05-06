@@ -29,21 +29,17 @@
             <!--列表-->
             <el-table
                     v-loading="listLoading"
-                    :data="stresslist"
+                    :data="goldlist"
                     highlight-current-row
                     style="width: 100%;"
-                    @selection-change="selsChange">
-                <el-table-column prop="ID" label="ID" min-width="4%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.id }}</span>
-                    </template>
-                </el-table-column>
+                >
+
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="patientname" label="patientname" min-width="8%" sortable>
+                <el-table-column prop="patientname" label="patientname" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
                     </template>
@@ -68,12 +64,12 @@
                              src="../../../assets/img/shibai.png"/>
                     </template>
                 </el-table-column>
-                <el-table-column label="预测时间" min-width="8%" sortable>
+                <el-table-column label="预测时间" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.time }} 秒</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="slice" min-width="8%" sortable>
+                <el-table-column label="slice" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                     </template>
@@ -85,22 +81,21 @@
                 </el-table-column>
                 <el-table-column label="标准" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.result)">{{ scope.row.diagnosis }}</span>
+                        <span style="margin-left: 10px; color: #1c84c6">{{ scope.row.diagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="实际" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px" :class="valuestatus(scope.row.result)">{{ scope.row.aidiagnosis }}</span>
+                        <span style="margin-left: 10px; color: #5a78f0">{{ scope.row.aidiagnosis }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="结果" min-width="8%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px"
-                              :class="valuestatus(scope.row.result)">{{ scope.row.result }}</span>
+                              :class="resultstatus(scope.row.result)">{{ scope.row.result }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" min-width="8px">
+                <el-table-column label="操作" min-width="15%">
                     <template slot-scope="scope">
                         <!--          <el-button v-if=scope.row.edit  type="success"  size="small" icon="el-icon-circle-check-outline" @click="handleEdit(scope.$index, scope.row)">Ok</el-button>-->
                         <!--          <el-button v-else type="primary" size="small" icon="el-icon-edit" @click=scope.row.edit=!scope.row.edit>Edit</el-button>-->
@@ -126,21 +121,15 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, getdicomurl
-    } from '@/router/api'
-    import {stresssave} from "../../../router/api";
+       getsmokerecord, getsmokestart, getdicomurl
+    } from '@/router/api';
 
-    // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
             return {
                 filters: {
-                    diseases: null,
-                    slicenumber: null,
                     diseases: '',
-                    server: '',
-                    version: '',
                     status: ''
                 },
                 total: 0,
@@ -148,36 +137,28 @@
                 page_size: 50,
                 listLoading: false,
                 sels: [], // 列表选中列
-
-                // 新增界面数据
-                addForm: {
-                    diseases: '',
-                    server: '192.168.1.208',
-                    studyinstanceuid: ''
-                },
-                addFormVisible: false, // 新增界面是否显示
-                addLoading: false,
-                addFormRules: {
-                    diseases: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
-                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
-                    ]
-                }
-
             }
+        },
+        // 更新消息弹出，调用更新数据接口
+        ToMonitor(index,row) {
+                this.$notify.success({
+                    title: '即将跳转到list页面',
+                    message: '即将跳转到list页面',
+                    showClose: false
+                });
+                this.checkExpress(index,row);
         },
         created() {
             // 实现轮询
              this.clearTimeSet=window.setInterval(() => {
               setTimeout(this.getdata(), 0);
-            }, 10000);
+            }, 30000);
             this.getParams();
           },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
         },
         mounted() {
-            this.gethost();
             this.getParams();
             this.getdata();
         },
@@ -186,108 +167,44 @@
 			  this.getdata();
 			  },
         methods: {
+            resultstatus: function (resultstatus) {
+                if (resultstatus === "匹配成功") {
+                    return 'successCss';
+                }
+                else if (resultstatus === "匹配失败") {
+                    return 'failCss';
+                }
+                else {
+                    return 'errorCss';
+                }
+            },
             getParams() {
                 this.routerParams = this.$route.query;
-                this.goldid = this.$route.params.goldid
-            },
-            valuestatus: function (a) {
-                if (a === "匹配成功") {
-                    return 'statuscssb';
-                } else {
-                    return 'statuscssa';
-                }
-            },
-            gethost() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    page_size:100
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getHost(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom", type: "gold",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.bases = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            smoketest() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    server_ip: self.filters.server,
-                    diseases: self.filters.diseases,
-                    version: self.filters.version
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getsmokestart(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.$message.success({
-                            message: "运行中！~~~~~",
-                            center: true
-                        })
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
+                this.gold_id =  this.routerParams.gold_id;
+                this.diseases = this.routerParams.diseases;
             },
             // 获取数据列表
             getdata() {
                 this.listLoading = true
+                if (this.filters.diseases!=''){
+                    this.diseases = this.filters.diseases;
+                };
                 const self = this
                 const params = {
                     page: self.page,
-                    smokeid: this.goldid,
-                    diseases:this.filters.diseases,
+                    gold_id: this.gold_id,
+                    diseases:this.diseases,
                     status:this.filters.status
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getsmokerecord(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.page = data.page
-                        self.stresslist = data.data
+                        this.total = data.total
+                        this.page = data.page
+                        this.goldlist = data.data
+                        console.log()
                     } else {
                         self.$message.error({
                             message: msg,
@@ -302,39 +219,6 @@
             },
             selsChange: function (sels) {
                 this.sels = sels
-            },
-            // 批量删除
-            batchRemove: function () {
-                const ids = this.sels.map(item => item.id)
-                const self = this
-                this.$confirm('确认删除选中记录吗？', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true
-                    // NProgress.start();
-                    const self = this
-                    const params = {ids: ids}
-                    const header = {
-                        'Content-Type': 'application/json',
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    }
-                    deldicomdata(header, params).then(_data => {
-                        const {msg, code, data} = _data
-                        if (code === '0') {
-                            self.$message({
-                                message: '删除成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                        self.getdata()
-                    })
-                })
             },
             handleR: function (index, row) {
                 this.$confirm('确认重新测试吗?', '提示', {
@@ -367,7 +251,7 @@
                 })
             },
             handleU: function (index, row) {
-                this.$confirm('跳转到imageview页面?', '提示', {
+                this.$confirm('打开imageview页面?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
@@ -384,22 +268,32 @@
                     getdicomurl(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
-                            console.log(JSON.stringify(data.url))
-                            window.location.href = JSON.stringify(data.url),
-                                //刷新当前页面
-                                // window.location.reload();
-                                self.$message({
+                            const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+                            const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+                            const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+                            const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+                            const left = ((width / 2) - (800 / 2)) + dualScreenLeft
+                            const top = ((height / 2) - (800 / 2)) + dualScreenTop
+                            const newWindow = window.open(data.url, 'title', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + '800' + ', height=' + '800' + ', top=' + top + ', left=' + left)
+
+                              // Puts focus on the newWindow
+                            if (window.focus) {
+                                newWindow.focus()
+                            }
+                            self.$message({
                                     message: '成功',
                                     center: true,
                                     type: 'success'
-                                })
+                            })
                         } else {
                             self.$message.error({
                                 message: msg,
                                 center: true,
                             })
                         }
-                        self.getdata()
+                        this.getdata()
                     });
                 })
             }
@@ -419,15 +313,15 @@
         top: 10px;
     }
 
-    .statuscssa {
+    .errorCss {
         color: #E61717
     }
 
-    .statuscssb {
+    .successCss {
         color: #67c23a;
     }
 
-    .statuscssc {
-        color: #666666;
+    .failCss {
+        color: #b8763c;
     }
 </style>

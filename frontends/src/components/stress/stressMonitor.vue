@@ -27,68 +27,34 @@
                       @selection-change="selsChange"
                       width="100%">
                 <el-table-column type="selection" min-width="5%"></el-table-column>
-                <el-table-column prop="version" label="版本" min-width="8%" show-overflow-tooltip sortable>
+                <el-table-column prop="Endpoint" label="Endpoint" min-width="20%" sortable>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.version }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="服务" min-width="20%" sortable>
-                    <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
-                                     style='text-decoration: none;color: #0000ff;'>
-                            <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
-                        </router-link>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="type" label="数据类型" min-width="20%" show-overflow-tooltip>
+                <el-table-column prop="State" label="State" min-width="20%" show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="每日发送" min-width="10%">
+                <el-table-column label="Labels" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="实际数量" min-width="10%">
+                <el-table-column label="Last Scrape" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="结束时间" min-width="10%">
+                <el-table-column label="Scrape Duration" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="延时时间" min-width="10%">
+                <el-table-column label="Error" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="延时数量" min-width="10%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="series延时" min-width="10%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.series }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="DDS" min-width="12%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px;color: #02C874;">{{ scope.row.dds }}</span>
-                    </template>
-                </el-table-column>
-
-                <el-table-column prop="sendstatus" label="状态" min-width="10%" sortable>
-                    <template slot-scope="scope">
-                        <img v-show="scope.row.sendstatus"
-                             style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
-                             src="../../assets/img/qidong.png"/>
-                        <img v-show="!scope.row.sendstatus"
-                             style="width:15px;height:15px;margin-right:5px;margin-bottom:5px"
-                             src="../../assets/img/ting-zhi.png"/>
                     </template>
                 </el-table-column>
                 <el-table-column label="操作" min-width="20%">
@@ -96,20 +62,11 @@
                         <el-row>
                             <el-button :type="typestatus(scope.row.sendstatus)" size="small"
                                        @click="handleChangeStatus(scope.$index, scope.row)">
-                                {{scope.row.sendstatus===false?'启用':'停用'}}
+                                {{scope.row.sendstatus===false?'重启':'停用'}}
                             </el-button>
                             <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                             </el-button>
                         </el-row>
-                        <el-row>
-                            <el-button type="info" size="small" @click="showDetail(scope.$index, scope.row)">数据
-                            </el-button>
-
-                            <el-button type="primary" size="small" :style="{ display: displaystatus(scope.row.type) }" @click="showReport(scope.$index, scope.row)">报告
-                            </el-button>
-                        </el-row>
-
-
                     </template>
                 </el-table-column>
             </el-table>
@@ -239,82 +196,6 @@
                             </el-row>
                         </el-form>
                     </el-row>
-                    <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="options" v-model="addForm.senddata" clearable :props="props"
-                                             @click.native="getBase()"></el-cascader>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                           <el-form-item label="选择版本" prop='version'>
-                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
-                                       @click.native="Installversion()">
-                                <el-option
-                                        v-for="item in versionlist"
-                                        :key="item"
-                                        :label="item"
-                                        :value="item"
-                                />
-                            </el-select>
-                        </el-form-item>
-                        </el-col>
-                    </el-row>
-                    <el-divider>匿名配置</el-divider>
-
-                    <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="每日发送" prop='sendcount'>
-                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0"
-                                                 :max="100000"
-                                                 label="每日发送"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="结束时间">
-                            <el-date-picker v-model="addForm.end_time" type="datetime"
-                                            placeholder="选择日期" value-format="yyyy-MM-dd HH:mm:ss"></el-date-picker>
-                        </el-form-item>
-                        </el-col>
-                    </el-row>
-                    <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="addForm.sleepcount" @change="handleChange" :min="0"
-                                                 :max="99999"
-                                                 label="延时数量"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="addForm.sleeptime" @change="handleChange" :min="0" :max="5000"
-                                                 label="延时时间（秒）"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="15">
-                                <el-form-item label="DDS服务" prop="dds">
-                                    <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
-                                               @click.native="gethost()">
-                                        <el-option
-                                                v-for="(item,index) in tags"
-                                                :key="item.host"
-                                                :label="item.name"
-                                                :value="item.host"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="series延时" prop="series">
-                                    <el-switch v-model="addForm.series" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                    </el-form>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="addFormVisible = false">取消</el-button>
@@ -324,7 +205,6 @@
         </div>
     </div>
 </template>
-
 <script>
     // import NProgress from 'nprogress'
 

@@ -202,14 +202,10 @@ class Delbasedata(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    dicomobj = dicom.objects.filter(fileid=data["id"])
-                    for i in dicomobj:
-                        delobj = dicom.objects.filter(id=i.id)
-                        delobj.delete()
+                    dicom.objects.filter(fileid=j).delete()
                 except Exception as e:
                     logger.error("删除dicom表数据失败")
-                obj = dicom_base.objects.filter(id=j)
-                obj.delete()
+                dicom_base.objects.filter(id=j).delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")

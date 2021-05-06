@@ -1,19 +1,28 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db import transaction
 from AutoProject.models import pid
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
+
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.saveResult import *
-from ..common.PerformanceResult import *
+
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
 from ..common.hybrid import HybridThread
 from ..common.single import SingleThread
 from ..common.manual import ManualThread
+from ..common.stressTest import StressThread
+from ..common.saveResult import ResultThread
+from ..common.PerformanceResult import dictionary
+from AutoProject.models import uploadfile
+from ..models import stress
+import os
+import shutil
+
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -30,8 +39,8 @@ class stressRun(APIView):
         """
         try:
             # 必传参数 stressid
-            if not data["stressid"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
+            if not data["ids"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 ids！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -44,31 +53,34 @@ class stressRun(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
+        stressid = data["ids"][0]
         if result:
             return result
         try:
             # 基准测试
-            if data['type'] is True:
-                Manual = ManualThread(stressid=data['stressid'])
+            if data['type'] == 'jz':
+                Manual = ManualThread(stressid=stressid)
                 Manual.setDaemon(True)
                 Manual.start()
             # 混合测试
-            elif data['type'] is False:
-                # St.AutoPrediction()
-                Hybrid = HybridThread(stressid=data['stressid'])
+            elif data['type'] == 'hh':
+                Hybrid = HybridThread(stressid=stressid)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
             # 单一测试
-            else:
-                single = SingleThread(stressid=data['stressid'])
+            elif data['type'] == 'dy':
+                single = SingleThread(stressid=stressid)
                 single.setDaemon(True)
                 single.start()
+            # 性能测试
+            else:
+                stresstest = StressThread(stressid=stressid)
+                stresstest.setDaemon(True)
+                stresstest.start()
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
-
-
 
 class stressStop(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -81,9 +93,9 @@ class stressStop(APIView):
         :return:
         """
         try:
-            # 必传参数 stressid
-            if not data["stressid"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 loadserver, dicom, loop_time！")
+            # 必传参数 ids
+            if not data["ids"]:
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 ids！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -99,25 +111,16 @@ class stressStop(APIView):
         if result:
             return result
         try:
-            obj = stress.objects.get(stressid=data["stressid"])
+            stressid = data["ids"][0]
+            obj = stress.objects.get(stressid=stressid)
             obj.status = False
             obj.teststatus = '已停止'
             obj.save()
-            if obj.teststatus == "单一测试开始":
-                stoptest = SingleThread(stressid=data["stressid"])
+            if obj.teststatus == "单一测试":
+                stoptest = SingleThread(stressid=stressid)
 
-            elif obj.teststatus == "混合测试开始":
-                stoptest = HybridThread(stressid=data["stressid"])
-                durationid = '0' + str(data["stressid"])
-                drobj = duration_record.objects.filter(duration_id=durationid, imagecount=None)
-                # 删除未发送完的错误数据
-                try:
-                    for j in drobj:
-                        j.delete()
-                        delete_patients_duration(j.studyinstanceuid, obj.Host_id, "studyinstanceuid", False)
-                except Exception as e:
-                    logger.error("删除未发送完的错误数据失败：{}".format(e))
-
+            elif obj.teststatus == "混合开始":
+                stoptest = HybridThread(stressid=stressid)
                 # 删除文件夹
                 try:
                     folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))
@@ -126,11 +129,14 @@ class stressStop(APIView):
                 except Exception as e:
                     logger.error("删除文件夹失败：{}".format(e))
                 # 统计报告
-                result = ResultThread(stressid=data['stressid'])
+                result = ResultThread(stressid=stressid)
                 result.setDaemon(True)
                 result.start()
+            elif obj.teststatus == "基准测试":
+                stoptest = ManualThread(stressid=stressid)
             else:
-                stoptest = ManualThread(stressid=data["stressid"])
+                stoptest = StressThread(stressid=stressid)
+
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
 
@@ -151,7 +157,7 @@ class stressList(APIView):
         :return:
         """
         try:
-            page_size = int(request.GET.get("page_size", 20))
+            page_size = int(request.GET.get("page_size", 5))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")

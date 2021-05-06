@@ -22,7 +22,6 @@ def backup(**kwargs):
             localpath = '/files/History_version/{0}/{1}'.format(version, version)
             downssh.download(localpath, downpath)
             downssh.close()
-            return True
         else:
             filelist = downssh.cmd("ls /lfs/nextcloud/data/mengyue.he@biomind.ai/files/Version_for_QA/")
             for i in str(filelist, encoding="utf-8").split('\n'):
@@ -36,7 +35,7 @@ def backup(**kwargs):
             logger.info("下载备份最新安装包{0}.zip".format(version[:-4]))
             downssh.download(localpath, downpath)
             downssh.close()
-            return True
+        return True
     except Exception as e:
         logger.error("下载最新版本报错{}".format(e))
         return False

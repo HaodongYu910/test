@@ -2,6 +2,7 @@
 import paramiko
 import logging
 import uuid
+import time
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -17,7 +18,7 @@ pwd：密码
 
 class SSHConnection:
     # 初始化连接创建Transport通道
-    def __init__(self, host='192.168.1.172', port=22, user='biomind', pwd='biomind'):
+    def __init__(self, host='192.168.1.169', port=22, user='biomind', pwd='biomind'):
         self.host = host
         self.port = port
         self.user = user
@@ -112,14 +113,35 @@ class SSHConnection:
         result = stdout.read()
         return result
 
+    def command(self, cmd, result_print=None, nohup=False):
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname=self.host, port=self.port, username=self.user,
+                    password=self.pwd)
+        if nohup:
+            cmd += ' & \n '
+            invoke = ssh.invoke_shell()
+            invoke.send(cmd)
+            # 等待命令执行完成
+            time.sleep(2)
+        else:
+            stdin, stdout, stderr = ssh.exec_command(cmd)
+            result = stdout.read()
+            if result_print:
+                lines = result
+                for line in lines:
+                    print(line)
 
-# if __name__ == '__main__':
 #
+# if __name__ == '__main__':
+#     import collections
 #     ssh = SSHConnection()
-#     a = ssh.cmd("biomind log")
+
+#     a = ssh.command("nohup unzip -o QaInstall.zip > zz.log 2>&1 &")
 #     print(bytes.decode(a))
-# #
+#
 #     ssh.close()
+
 
 # # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
 # print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))

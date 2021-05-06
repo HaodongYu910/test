@@ -37,7 +37,37 @@ def AddJournal(**kw):
     with open(path, 'a', encoding='utf-8') as f:
         f.write(kw["content"])
 
-def readJournal(name):
+def readJournal(server, name, pwd):
+    full_log = '{0}/{1}.log'.format(settings.LOG_PATH, name)
+    if not os.path.exists(full_log):
+        strTxt = "------------暂无日志输出-------------"
+    else:
+        with open(full_log, 'r', encoding='utf-8') as f:
+            strTxt = f.read()  # 将txt文件的所有内容读入到字符串txtstr中
+    try:
+        Journal = []
+        downssh = SSHConnection(host=server, pwd=pwd)
+        for i in ["install", "restart"]:
+            try:
+                downpath = '/home/biomind/{}.log'.format(i)
+                localpath = '{0}/{1}.log'.format(settings.LOG_PATH, i)
+                downssh.download(localpath, downpath)
+                with open(localpath, 'r', encoding='utf-8') as f:
+                    Journal.append(f.read())   # 将txt文件的所有内容读入到字符串txtstr中
+            except:
+                Journal.append("------------暂无日志输出-------------")
+                continue
+        downssh.close()
+        return strTxt, Journal[0], Journal[1]
+    except Exception as e:
+        logger.error(e)
+        return "------------暂无日志输出-------------","------------暂无日志输出-------------", "------------暂无日志输出-------------"
+
+
+
+
+
+def restartJournal(name):
     full_log = '{0}/{1}.log'.format(settings.LOG_PATH, name)
     if not os.path.exists(full_log):
         return ""

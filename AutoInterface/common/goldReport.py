@@ -3,15 +3,14 @@ from django.db.models import Count, Case, When
 from AutoProject.common.message import sendMessage
 import datetime
 import logging
-import threading
 
 logger = logging.getLogger(__name__)
 
 
 
 # 执行冒烟测试
-class GoldReportThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
+class GoldReport:
+    def __init__(self, *args):
         self.id = args[0]
         self.smobj = gold_test.objects.get(id=self.id)
         self.smobj.starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -86,21 +85,6 @@ class GoldReportThread(threading.Thread):
             return {}
         return data
 
-    def sendMessage(self):
-        result = []
-        for k in ['成功', '失败']:
-            smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
-            result.append(smobj.count())
-        smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
-            result[1])
-        total = int(result[0]) + int(result[1]) + int(smerror)
-        sendMessage(touser='', toparty='132',
-                    message='【Nightly Build -金标准测试】 \n 测试版本：{0} \n 测试服务：{1}  \n 共计预测：{2} \n 预测成功：{3}  预测失败：{4}  \n 匹配成功：{5}  匹配失败：{6}  \n 详细报告查看：http:192.168.1.121/#/report/goldid={7}'.format(
-                        self.smobj.version, self.smobj.Host.host, total,
-                        int(result[0]) + int(result[1]), result[0], result[1], smerror, self.smobj.id
-
-                    ))
-
     def errorData(self):
         try:
             recorddata = {}
@@ -119,11 +103,3 @@ class GoldReportThread(threading.Thread):
             return errorData
         except Exception as e:
             logger.error("预测趋势数据生成失败：{0}".format(e))
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean
-
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
-
-    def getParm(self):  # 外部获得内部信息函数
-        return self.count

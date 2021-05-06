@@ -18,14 +18,14 @@ from django.db import transaction
 from django.conf import settings
 import threading
 
-from ..models import stress
+from ..models import stress, stress_record
 from ..serializers import stress_result_Deserializer
 from AutoDicom.models import duration_record, dicom
 from AutoDicom.common.deletepatients import delete_patients_duration
 
 from AutoProject.utils.graphql.graphql import *
 
-
+from ..common.saveResult import ResultThread
 from ..common.jmeter import JmeterThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -77,14 +77,12 @@ class HybridThread(threading.Thread):
             logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
         try:
             study_uid = ds.StudyInstanceUID
-            studyolduid = ds.StudyInstanceUID
-            Seriesinstanceuid = ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             rand_uid = str(info.get("rand_uid"))
             fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
             cur_date = info.get("cur_date")
             cur_time = info.get("cur_time")
-            diseases = info.get("diseases")
+            predictor = info.get("predictor")
         except Exception as e:
             logging.error(
                 'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
@@ -107,35 +105,30 @@ class HybridThread(threading.Thread):
         ds.SOPInstanceUID = self.norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
         ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), 'ST', rand_uid), 24)
+            '{0}{1}{2}'.format(str(predictor), 'ST', rand_uid), 24)
 
         ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), 'st', rand_uid), 24)
+            '{0}{1}{2}'.format(str(predictor), 'st', rand_uid), 24)
         ds.AccessionNumber = fake_acc_number
 
         ds.StudyDate = cur_date
         ds.StudyTime = cur_time
         ds.SeriesDate = cur_date
         ds.SeriesTime = cur_time
-        # ds.ContentDate = cur_date
-        # ds.ContentTime = cur_time
-        # ds.AcquisitionDate = cur_date
-        # ds.AcquisitionTime = cur_time
 
-        # send_time = ds.StudyDate + "-" + ds.StudyTime
         try:
             ds.save_as(full_fn_fake)
         except Exception as e:
             logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
         return {
-            "patientid": ds.PatientID,
-            "patientname": ds.PatientName,
-            "accessionnumber": ds.AccessionNumber,
-            "studyinstanceuid": ds.StudyInstanceUID,
-            "studyolduid": studyolduid,
-            "sendserver": self.server,
-            "diseases": diseases,
-            "duration_id": '0{}'.format(self.obj.stressid)
+            "version": self.obj.version,
+            "studyuid": ds.StudyInstanceUID,
+            "slicenumber":  info.get("slicenumber"),
+            "images":  info.get("images"),
+            "modelname": predictor,
+            "type": 'HH',
+            "Stress_id": self.obj.stressid,
+            "Host_id": self.obj.Host_id
         }
 
     # 混合测试列队
@@ -169,7 +162,9 @@ class HybridThread(threading.Thread):
                         try:
                             # "fake_name": get_fake_name(rand_uid, keyword),
                             info = {
-                                "diseases": j.diseases,
+                                "slicenumber": j.slicenumber,
+                                "images": j.imagecount,
+                                "predictor": j.predictor,
                                 "rand_uid": get_rand_uid(),
                                 "cur_date": get_date(),
                                 "cur_time": get_time()
@@ -198,8 +193,14 @@ class HybridThread(threading.Thread):
 
     # 匿名混合测试
     def run(self):
+        # 开始时间
+        self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        # 结束时间
+        self.obj.end_date = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
+            "%Y-%m-%d %H:%M:%S")
         self.obj.status = True
-        self.obj.teststatus = '混合测试开始'
+        self.obj.teststatus = '混合开始'
         self.obj.save()
         if self.obj.jmeterstatus is True:
             jmeter = JmeterThread(stressid=self.obj.stressid)
@@ -217,13 +218,18 @@ class HybridThread(threading.Thread):
             for t in threads:
                 t.join()
                 time.sleep(1)
-        except Exception as e:
+            self.obj.status = False
+            self.obj.teststatus = '测试结束'
+            self.obj.save()
+            result = ResultThread(stressid=self.obj.stressid, stressType='HH')
             logger.error("Thread Run Fail：{0}".format(e))
 
     # 混合测试发送数据
     def durationAnony(self, q):
         while not q.empty():
-            if self.Flag is False:
+            # 开始时间
+            start = datetime.datetime.now()
+            if self.Flag is False or str(start) > self.obj.end_date:
                 break
             testdata = q.get()
             full_fn_fake = testdata[1]
@@ -233,25 +239,16 @@ class HybridThread(threading.Thread):
                 logger.error("匿名失败:{}".format(e))
             try:
                 if testdata[3] in self.CountData:
-                    create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-                    data["update_time"] = create_time
-                    data["create_time"] = create_time
-                    duration_record.objects.create(**data)
+                    logger.info("数据{}".format(data))
+                    stress_record.objects.create(**data)
             except Exception as e:
                 logger.error('[获取数据失败]： [{0}]'.format(e))
             try:
-                self.sync_send_file(full_fn_fake, data["studyinstanceuid"])
+                self.sync_send_file(full_fn_fake, data["studyuid"])
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
 
-    def connect_influx(self, data):
-        try:
-            influxdata = 'duration,durationid={0},studyuid="{1}",starttime="{2}",endtime="{3}",avgtime="{4}"'.format(
-                self.obj.stressid, data["studyuid"], data["starttime"], data["endtime"], data["time"])
-            requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
-        except Exception as e:
-            logger.error("保存connect_influx数据错误{}".format(e))
 
     def get_fake_name(self, rand_uid, fake_prefix):
         ts = time.localtime(time.time())
@@ -268,17 +265,8 @@ class HybridThread(threading.Thread):
                 "-aet", self.local_aet,
                 file_name
             ]
-            starttime = time.time()
             popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
             popen.communicate()
-            endtime = time.time()
-
-            self.connect_influx({'studyuid': studyuid,
-                                 'time': str('%.2f' % (float(endtime - starttime))),
-                                 'starttime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime)),
-                                 'endtime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(endtime))
-
-                                 })
             os.remove(file_name)
         except Exception as e:
             logging.error('send_file error: {0}'.format(e))

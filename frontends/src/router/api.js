@@ -136,6 +136,10 @@ export const loadFigure = (headers, params) => {
   return axios.post(`${test}/project/jira/figure `, params, headers).then(res => res.data)
 }
 
+// 重启 创建用户
+export const getCreateRestart = (headers, params) => {
+  return axios.post(`${test}/project/createRestart `, params, headers).then(res => res.data)
+}
 // 获取工作任务
 export const loadtodo = (headers, params) => {
   return axios.get(`${test}/project/todo `, { params: params }, headers).then(res => res.data)
@@ -208,7 +212,10 @@ export const DisableInstall = (headers, params) => {
 export const getInstallReport = (headers, params) => {
   return axios.post(`${test}/project/install/getReport`, params, headers).then(res => res.data)
 }
-
+// 重启 | 创建用户
+export const getCreateRestart = (headers, params) => {
+  return axios.post(`${test}/project/createRestart`, params, headers).then(res => res.data)
+}
 
 // 获取自动化测试结果
 export const getTestResultList = (headers, params) => {

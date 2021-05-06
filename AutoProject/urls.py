@@ -13,6 +13,7 @@ from .api.apInstall import *
 from .api.api import test
 from .api import dynamic
 from .api import member
+from .api import apiMessage
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -64,5 +65,7 @@ urlpatterns = [
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
     url(r'deploy', Install.as_view()),
+    url(r'createRestart', getRestart.as_view()),
+    url(r'wechatMessage', apiMessage.sendMessage.as_view()),
     url(r'totest', test.as_view()),
 ]

@@ -257,9 +257,7 @@ class UpdateGroup(APIView):
                     # 修改数据
                     serializer.update(instance=Groupobj, validated_data=data)
             try:
-                obj = dicom_group_detail.objects.filter(group__id=groupId)
-                for i in obj:
-                    i.delete()
+                dicom_group_detail.objects.filter(group__id=groupId).delete()
                 for j in data["groupData"]:
                     detail = dicomGroup_detail_Deserializer(data={
                         "group": groupId,
@@ -306,13 +304,10 @@ class DelGroup(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    groupObj = dicom_group_detail.objects.filter(group__id=data["id"])
-                    for i in groupObj:
-                        i.delete()
+                    dicom_group_detail.objects.filter(group__id=data["id"]).delete()
                 except Exception as e:
                     logger.error("删除数据失败：{}".format(e))
-                obj = dicom_group.objects.get(id=j)
-                obj.delete()
+                dicom_group.objects.get(id=j).delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")

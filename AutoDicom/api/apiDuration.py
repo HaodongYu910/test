@@ -39,17 +39,20 @@ class getDuration(APIView):
         try:
             Host = request.GET.get("server")
             if request.GET.get("type") != '持续化':
-                type = ["正常", "匿名"]
+                durationType = ["正常", "匿名"]
+            elif request.GET.get("type") == 'Nightly':
+                durationType = ['Nightly']
             else:
-                type = ["持续化"]
+                durationType = ["持续化", "Nightly"]
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if Host:
-            obi = duration.objects.filter(Host=Host, type__in=type).order_by("-sendstatus")
+            obi = duration.objects.filter(Host=Host, type__in=durationType).order_by("-sendstatus")
+
         else:
-            obi = duration.objects.filter(type__in=type).order_by("-id").order_by("-sendstatus")
+            obi = duration.objects.filter(type__in=durationType).order_by("-id").order_by("-sendstatus")
 
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
@@ -371,9 +374,9 @@ class delDuration(APIView):
         try:
             for i in data["ids"]:
                 try:
-                    obj = duration.objects.get(id=i)
+                    duration.objects.get(id=i).delete()
                     try:
-                        obj.delete()
+                        duration_record.objects.filter(duration_id=i).delete()
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999994", msg="删除失败！")
                 except ObjectDoesNotExist:

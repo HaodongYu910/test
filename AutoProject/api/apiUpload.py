@@ -96,7 +96,7 @@ class DelUpload(APIView):
             data = JSONParser().parse(request)
             obj = uploadfile.objects.get(id=data["id"])
             obj.delete()
-            file_name = "{0}/{2}".format(obj.fileurl,obj.filename)
+            file_name = "{0}/{1}".format(obj.fileurl, obj.filename)
             os.remove(file_name)
             return JsonResponse(code="0", msg="删除成功")
         except ObjectDoesNotExist:

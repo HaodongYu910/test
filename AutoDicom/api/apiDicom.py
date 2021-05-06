@@ -5,11 +5,12 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_base, duration_record
+from ..models import dicom_base, duration_record, duration
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
 from ..common.Dicom import SendQueThread
+from AutoInterface.models import gold_record
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -202,8 +203,7 @@ class deldicomdata(APIView):
             return result
         try:
             for j in data["ids"]:
-                obj = dicom.objects.filter(id=j)
-                obj.delete()
+                dicom.objects.filter(id=j).delete()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
@@ -408,15 +408,18 @@ class dicomUrl(APIView):
             type = data['type']
             try:
                 if type == 'gold':
-                    obj = dicom.objects.get(id=data['id'])
-                    kc, url = listUrl(obj.hostid, obj.studyinstanceuid)
+                    obj = gold_record.objects.get(id=data['id'])
+                    kc, url = listUrl(obj.gold.Host.id, obj.studyinstanceuid)
                 elif type == 'duration':
                     obj = duration_record.objects.get(id=data['id'])
-                    kc, url = listUrl(obj.hostid, obj.studyinstanceuid)
+                    durObj = duration.objects.get(id=obj.duration_id)
+                    kc, url = listUrl(durObj.Host_id, obj.studyinstanceuid)
                 else:
                     dicomdata = dicom.objects.filter(vote=None)
+                if url == False:
+                    return JsonResponse(code="999993", msg="未查询到相关数据！")
             except ObjectDoesNotExist:
-                return JsonResponse(code="999994", msg="数据未预测，请先预测！")
+                return JsonResponse(code="999994", msg="数据错误！")
             return JsonResponse(code="0", msg="成功", data={
                 "url": url,
                 "kc": kc

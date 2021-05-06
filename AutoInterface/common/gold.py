@@ -1,13 +1,13 @@
 from AutoProject.utils.keycloak.login_kc import *
 from AutoDicom.models import dicom
 from AutoProject.utils.graphql.graphql import *
-from AutoProject.models import dictionary
+from AutoProject.models import dictionary, message_group
 from AutoProject.utils.graphql.graphql_ai_status import graphql_ai_status
 from AutoDicom.common.dicomBase import checkuid
 from AutoInterface.models import gold_record, gold_test
 import queue
 from django.db.models import Count, Case, When
-from AutoProject.common.message import sendMessage
+from AutoProject.common.message import sendMessage, MessageGroup
 import datetime
 import time
 import threading
@@ -65,6 +65,7 @@ def checkdata(data, kc):
     data["aistatus"] = airesult["aistatus"]
     gold_record.objects.create(**data)
 
+
 # 预测验证记录
 def predictionCheck(result, data, error):
     data["aidiagnosis"] = ''
@@ -107,6 +108,7 @@ def delresult(serverID, ids):
             logger.error("删除失败{0}".format(obj.studyinstanceuid))
             continue
 
+
 # 执行冒烟测试
 class GoldThread(threading.Thread):
     def __init__(self, *args, **kwargs):
@@ -114,6 +116,7 @@ class GoldThread(threading.Thread):
         self.Flag = True  # 停止标志位
         self.count = 0  # 用来被外部访问的
         self.id = args[0]
+        self.type = args[1]
         self.smobj = gold_test.objects.get(id=self.id)
         self.smobj.starttime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.serverIP = self.smobj.Host.host
@@ -144,9 +147,9 @@ class GoldThread(threading.Thread):
                         "result": "匹配成功",
                         "starttime": str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")),
                         "graphql": i.graphql
-                        })
+                    })
                 except Exception as e:
-                    logger.error("队列生成错误{0}：{1}".format(i.studyinstanceuid,e))
+                    logger.error("队列生成错误{0}：{1}".format(i.studyinstanceuid, e))
                     continue
             return q
         except Exception as e:
@@ -168,7 +171,6 @@ class GoldThread(threading.Thread):
         except Exception as e:
             logger.error("队列生成失败：{0}".format(e))
 
-
         self.smobj.completiontime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.smobj.status = False
         self.smobj.save()
@@ -185,7 +187,6 @@ class GoldThread(threading.Thread):
                 del testdata["graphql"]
             except Exception as e:
                 predictionCheck(prediction, testdata, e)
-                continue
             testdata["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # 断言
             try:
@@ -198,21 +199,39 @@ class GoldThread(threading.Thread):
                 gold_record.objects.create(**testdata)
                 continue
 
-
     def sendMessage(self):
-        result = []
-        for k in ['成功', '失败']:
-            smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
-            result.append(smobj.count())
-        smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
-            result[1])
-        total = int(result[0]) + int(result[1]) + int(smerror)
-        sendMessage(touser='', toparty='132',
-                    message='【Nightly Build -金标准测试】 \n 测试版本：{0} \n 测试服务：{1}  \n 共计预测：{2} \n 预测成功：{3}  预测失败：{4}  \n 匹配成功：{5}  匹配失败：{6}  \n 详细报告查看：http:192.168.1.121/#/report/goldid={7}'.format(
-                        self.smobj.version, self.smobj.Host.host, total,
-                        int(result[0]) + int(result[1]), result[0], result[1], smerror, self.smobj.id
+        try:
+            logger.info("test")
+            MessObj = message_group.objects.get(type=self.type, status=True)
+            result = []
+            for k in ['成功', '失败']:
+                smobj = gold_record.objects.filter(gold_id=self.id, result__contains=k)
+                result.append(smobj.count())
+            smerror = int(gold_record.objects.filter(gold_id=self.id).count()) - int(result[0]) - int(
+                result[1])
+            total = int(result[0]) + int(result[1]) + int(smerror)
 
-                    ))
+            params = {
+                "msgtype": "markdown",
+                "markdown": {
+                    "content": MessObj.content.format(
+                        self.smobj.version,
+                        self.smobj.Host.host,
+                        total,
+                        int(result[0]) + int(result[1]),
+
+                        smerror,
+                        result[0],
+                        result[1],
+                        self.smobj.id),
+                      "mentioned_list": MessObj.mentioned_list.split(","),
+                    # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
+                }
+            }
+            logger.info(params)
+            MessageGroup(send_url=MessObj.send_url, params=params)
+        except Exception as e:
+            logger.error(e)
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

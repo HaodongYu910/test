@@ -10,7 +10,7 @@ from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
 import logging
-from AutoProject.common.InstallSmoke import InGoldThread
+from AutoProject.common.install import smokeThread
 
 import os
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -33,7 +33,7 @@ class Smoketest(APIView):
             if version is None or version == "":
                 return JsonResponse(code="999998", msg="参数错误（必传参数：version 可选参数：serverIP）")
             else:
-                testThread = InGoldThread(version=version)
+                testThread = smokeThread(version=version)
                 # 设为保护线程，主进程结束会关闭线程
                 testThread.setDaemon(True)
                 # 开始线程

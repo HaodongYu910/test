@@ -68,24 +68,28 @@ def checkuid(serverID, serverIP, dicomid):
     if len(result_db) == 0:
         logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
-        thread_Send.run()
+        thread_Send.DicomSend()
     # 重复数据 先删除后再发送新数据
     elif len(result_db) > 2:
         logger.info(" delete file{}".format(obj.studyinstanceuid))
         delete_patients_duration(obj.studyinstanceuid, serverID, 'StudyInstanceUID', False)
         logger.info("send file：{}".format(obj.studyinstanceuid))
         thread_Send = SendQueThread(route=obj.route, hostid=serverID)
-        thread_Send.run()
+        thread_Send.DicomSend()
 
 
 # 数据跳转listview url
 def listUrl(hostid, studyuid):
     obj = Server.objects.get(id=hostid)
     kc = login_keycloak(hostid)
-    result_db = connect_postgres(host=hostid, database="orthanc",
-                                    sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
+    try:
+        result_db = connect_postgres(host=hostid, database="orthanc",
+                                        sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
-    url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
+        url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])
+    except Exception as e:
+        logger.error("生成url失败：{}".format(e))
+        return kc.raw_token, False
     return kc.raw_token, url
 
 
@@ -141,6 +145,7 @@ def voteData(uid, orthanc_ip, diseases, kc):
     except Exception as e:
         return vote, None, None
     return str(vote), imagecount, slicenumber
+
 
 # 生成graphql 接口 json
 def graphql_query(studyuid,vote,predictorid,predictor):

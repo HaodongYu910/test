@@ -31,7 +31,10 @@ const ReportTitle = () => import('../components/home/Dashboard.vue');
 Vue.use(Router);
 
 export default new Router({
+    mode:'history',
+    base:'/',
     routes: [
+
         {
             path: '/',
             redirect: '/home'
@@ -88,7 +91,7 @@ export default new Router({
                 },
                 {
                     path: '/durationData',
-                    component: resolve => require(['../components/DicomTool/duration/durationData.vue'], resolve),
+                    component: resolve => require(['../components/DicomTool/duration/durationDetail.vue'], resolve),
                     meta: {title: '持续化详情'}
 
                 },
@@ -146,18 +149,9 @@ export default new Router({
 
                 },
                 {
-                    path: '/gold/goldid=:goldid',
+                    path: '/goldDetail',
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
-                    meta: {title: '金标准'},
-                    hidden: true,
-                    children: [
-                        {
-                            path: '/detail/goldid=:goldid',
-                            component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
-                            meta: {title: '金标准详情'}, name: '金标准详情', leaf: true
-                        },
-
-                    ]
+                    meta: {title: '金标准详情'}
                 },
                 {
                     path: '/report/goldid=:goldid',
@@ -185,17 +179,12 @@ export default new Router({
                 {
                     path: '/stressdata',
                     component: resolve => require(['../components/stress/stressData.vue'], resolve),
-                    meta: {title: '性能测试'}
+                    meta: {title: '性能数据'}
                 },
                 {
                     path: '/stressHome',
                     component: resolve => require(['../components/stress/stressList.vue'], resolve),
                     meta: {title: '性能测试'}
-                },
-                {
-                    path: '/stressResult',
-                    component: resolve => require(['../components/stress/stressResult.vue'], resolve),
-                    meta: {title: '性能结果'}
                 },
                 {
                     path: '/data',
