@@ -476,10 +476,6 @@
 
     import {
         getduration,
-<<<<<<< HEAD
-        get_dicom_start,
-=======
->>>>>>> 595f51d617630f1d97266792080b283e5b21282a
         getGroupBase,
         addduration,
         delduration,

@@ -222,6 +222,7 @@ class HybridThread(threading.Thread):
             self.obj.teststatus = '测试结束'
             self.obj.save()
             result = ResultThread(stressid=self.obj.stressid, stressType='HH')
+        except Exception as e:
             logger.error("Thread Run Fail：{0}".format(e))
 
     # 混合测试发送数据

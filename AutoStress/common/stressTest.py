@@ -51,11 +51,10 @@ class StressThread(threading.Thread):
                 "%Y-%m-%d %H:%M:%S")
             self.obj.start_date = start
             self.obj.end_date = end
-
-                while str(start) < str(end):
-                    start = datetime.datetime.now()
-                Restart(id=self.obj.Host.id)
-                time.sleep(300)
+            while str(start) < str(end):
+                start = datetime.datetime.now()
+            Restart(id=self.obj.Host.id)
+            time.sleep(300)
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试

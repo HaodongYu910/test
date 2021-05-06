@@ -664,8 +664,10 @@
                             this.FailData = {
                                 columns: ['状态', '数量'],
                                 rows: data.report.errorData
-   
-                    } else {
+
+                            }
+                    }
+                    else {
                         self.$message.error({
                             message: msg,
                             center: true
