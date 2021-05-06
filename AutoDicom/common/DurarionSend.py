@@ -1,13 +1,11 @@
 # coding=utf-8
 import logging
 import threading
-import os
-import shutil
+import os, shutil
 import pydicom
 import logging
 import subprocess as sp
-import time, datetime
-import numpy as np
+import time,datetime
 import random
 import math
 import socket
@@ -17,19 +15,11 @@ import queue
 from django.db import transaction
 from django.conf import settings
 import threading
-
-from ..models import stress, stress_record
-from ..serializers import stress_result_Deserializer
-from AutoDicom.models import duration_record, dicom
-from AutoDicom.common.deletepatients import delete_patients_duration
-
-from AutoProject.utils.graphql.graphql import *
-
-from ..common.saveResult import ResultStatistics
-from ..common.jmeter import JmeterThread
+from AutoDicom.models import duration_record, dicom, duration
+from ..common.deletepatients import delete_patients_duration
+from ..serializers import duration_record_Serializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
-
 
 
 def get_date():
@@ -47,16 +37,19 @@ def get_rand_uid():
     return "%08d" % rand_val
 
 
-class HybridThread(threading.Thread):
+class AnonyThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         self.Flag = True  # 停止标志位
         self.count = 0  # 可用来被外部访问
-        self.obj = stress.objects.get(stressid=kwargs["stressid"])
-        self.keyword = 'ST' + str(kwargs["stressid"])
+        self.obj = duration.objects.get(id=kwargs["id"])
+        self.patientid = self.obj.patientid if self.obj.patientid is not None else '_'
+        self.patientname = self.obj.patientname if self.obj.patientname is not None else '_'
+        self.keyword = str(self.patientname) + str(self.patientid) + str(kwargs["id"])
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
+        self.SeriesInstanceUID = ''
 
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
@@ -67,7 +60,6 @@ class HybridThread(threading.Thread):
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
 
-    # 匿名化数据
     def anonymization(self, full_fn, full_fn_fake, info):
         study_uid = ''
         series_uid = ''
@@ -77,12 +69,14 @@ class HybridThread(threading.Thread):
             logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
         try:
             study_uid = ds.StudyInstanceUID
+            studyolduid = ds.StudyInstanceUID
+            Seriesinstanceuid = ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
             rand_uid = str(info.get("rand_uid"))
             fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
             cur_date = info.get("cur_date")
             cur_time = info.get("cur_time")
-            predictor = info.get("predictor")
+            diseases = info.get("diseases")
         except Exception as e:
             logging.error(
                 'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
@@ -105,52 +99,50 @@ class HybridThread(threading.Thread):
         ds.SOPInstanceUID = self.norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
         ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'ST', rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), self.patientid, rand_uid), 24)
 
         ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'st', rand_uid), 24)
+            '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)
         ds.AccessionNumber = fake_acc_number
 
         ds.StudyDate = cur_date
         ds.StudyTime = cur_time
         ds.SeriesDate = cur_date
         ds.SeriesTime = cur_time
+        # ds.ContentDate = cur_date
+        # ds.ContentTime = cur_time
+        # ds.AcquisitionDate = cur_date
+        # ds.AcquisitionTime = cur_time
 
+        # send_time = ds.StudyDate + "-" + ds.StudyTime
         try:
             ds.save_as(full_fn_fake)
         except Exception as e:
             logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
         return {
-            "version": self.obj.version,
-            "studyuid": ds.StudyInstanceUID,
-            "slicenumber":  info.get("slicenumber"),
-            "images":  info.get("images"),
-            "modelname": predictor,
-            "type": 'HH',
-            "Stress_id": self.obj.stressid,
-            "Host_id": self.obj.Host_id
-        }
+            "patientid": ds.PatientID,
+            "patientname": ds.PatientName,
+            "accessionnumber": ds.AccessionNumber,
+            "studyinstanceuid": ds.StudyInstanceUID,
+            "studyolduid": studyolduid,
+            "sendserver": self.server,
+            "diseases": diseases,
+            "duration_id": self.obj.id
+        },Seriesinstanceuid
 
-    # 混合测试列队
     def QueData(self):
         q = queue.Queue()
         filecount = 1
         dcmcount = 0
-        logger.info("测试集合：{}".format(self.obj.testdata.split(",")))
-        dicomobj = dicom.objects.filter(predictor__in=self.obj.testdata.split(","),
-                                        stressstatus__in=['1', '2'],
-                                        status=True)
+        dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","))
         try:
-            file_end = int(self.obj.loop_count)
+            file_end = int(self.obj.sendcount)
             while True:
                 if filecount > file_end:
                     self.CountData.append(dcmcount)
                     break
                 if file_end >= filecount > int(dicomobj.count()):
-                    logger.info("重新加载数据 file_end：{0}，{1}，{2}".format(file_end, filecount, int(dicomobj.count())))
-                    dicomobj = dicom.objects.filter(predictor__in=self.obj.testdata.split(","),
-                                                    stressstatus__in=['1', '2'],
-                                                    status=True)
+                    dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True)
                 for j in dicomobj:
                     self.CountData.append(dcmcount)
                     if filecount > file_end:
@@ -162,9 +154,7 @@ class HybridThread(threading.Thread):
                         try:
                             # "fake_name": get_fake_name(rand_uid, keyword),
                             info = {
-                                "slicenumber": j.slicenumber,
-                                "images": j.imagecount,
-                                "predictor": j.predictor,
+                                "diseases": j.diseases,
                                 "rand_uid": get_rand_uid(),
                                 "cur_date": get_date(),
                                 "cur_time": get_time()
@@ -178,7 +168,6 @@ class HybridThread(threading.Thread):
                                 if (os.path.splitext(fn)[1] in ['.dcm'] == False):
                                     continue
                                 try:
-                                    # logger.info("队列数据:{}".format([full_fn, full_fn_fake, info, dcmcount]))
                                     q.put([full_fn, full_fn_fake, info, dcmcount])
                                 except Exception as e:
                                     logging.error("[匿名错误]:{}".format(e))
@@ -186,26 +175,15 @@ class HybridThread(threading.Thread):
                         except Exception as e:
                             logger.error("遍历文件：{}".format(e))
                     filecount = filecount + 1
-
+            logger.info("self:{}".format(self.CountData))
             return q
         except Exception as e:
             logger.error("队列错误：{}".format(e))
 
-    # 匿名混合测试
+    # 匿名数据队列
     def run(self):
-        # 开始时间
-        self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
-        # 结束时间
-        self.obj.end_date = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
-            "%Y-%m-%d %H:%M:%S")
-        self.obj.status = True
-        self.obj.teststatus = '混合开始'
+        self.obj.sendstatus = False
         self.obj.save()
-        if self.obj.jmeterstatus is True:
-            jmeter = JmeterThread(stressid=self.obj.stressid)
-            jmeter.setDaemon(True)
-            jmeter.start()
         q = self.QueData()
         threads = []
 
@@ -218,43 +196,54 @@ class HybridThread(threading.Thread):
             for t in threads:
                 t.join()
                 time.sleep(1)
-            self.obj.status = False
-            self.obj.teststatus = '测试结束'
-            self.obj.save()
-
-
-            ResultStatistics(
-                stressid=self.obj.stressid
-            )
+            # for i in range(self.thread_num):
+            #     threads[i].start()
+            # for i in range(self.thread_num):
+            #     threads[i].join()
 
         except Exception as e:
-            logger.error("Thread Run Fail：{0}".format(e))
+            logger.error("队列生成失败：{0}".format(e))
 
-    # 混合测试发送数据
     def durationAnony(self, q):
         while not q.empty():
-            # 开始时间
-            start = datetime.datetime.now()
-            if self.Flag is False or str(start) > self.obj.end_date:
-                break
             testdata = q.get()
             full_fn_fake = testdata[1]
             try:
-                data = self.anonymization(testdata[0], full_fn_fake, testdata[2])
+                data,Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
             try:
+                self.delayed(Seriesinstanceuid, testdata[3])
+            except Exception as e:
+                logger.error("等待:{}".format(e))
+            try:
                 if testdata[3] in self.CountData:
-                    logger.info("数据{}".format(data))
-                    stress_record.objects.create(**data)
+                    create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+                    data["update_time"] = create_time
+                    data["create_time"] = create_time
+                    duration_record.objects.create(**data)
             except Exception as e:
                 logger.error('[获取数据失败]： [{0}]'.format(e))
             try:
-                self.sync_send_file(full_fn_fake, data["studyuid"])
+                self.sync_send_file(full_fn_fake, data["studyinstanceuid"])
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
 
+            # try:
+            #     study_fakeinfos["count"] = int(study_fakeinfos["count"]) + 1
+            #     self.delayed(study_fakeinfos)
+            # except Exception as e:
+            #     logging.error('errormsg: failed delayed{0} ---报错：{1}]'.format(full_fn_fake, e))
+            #     continue
+
+    def connect_influx(self, data):
+        try:
+            influxdata = 'duration,durationid={0},studyuid="{1}",starttime="{2}",endtime="{3}",avgtime="{4}"'.format(
+                self.obj.id, data["studyuid"], data["starttime"], data["endtime"], data["time"])
+            requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
+        except Exception as e:
+            logger.error("保存connect_influx数据错误{}".format(e))
 
     def get_fake_name(self, rand_uid, fake_prefix):
         ts = time.localtime(time.time())
@@ -266,13 +255,22 @@ class HybridThread(threading.Thread):
             commands = [
                 "storescu",
                 self.obj.Host.host,
-                self.obj.Host.port,
+                self.obj.port,
                 "-aec", self.obj.Host.remarks,
                 "-aet", self.local_aet,
                 file_name
             ]
+            starttime = time.time()
             popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
             popen.communicate()
+            endtime = time.time()
+
+            self.connect_influx({'studyuid': studyuid,
+                                 'time': str('%.2f' % (float(endtime - starttime))),
+                                 'starttime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime)),
+                                 'endtime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(endtime))
+
+                                 })
             os.remove(file_name)
         except Exception as e:
             logging.error('send_file error: {0}'.format(e))
@@ -283,28 +281,34 @@ class HybridThread(threading.Thread):
             str_dest = str_dest[1:]
         return str_dest
 
+    # 判断是否 同一个 Series
+    def delayed(self, SeriesID, Num):
+        if self.obj.sleepcount is not None:
+            imod = divmod(int(Num), int(self.obj.sleepcount))
+            if imod[1] == 0:
+                time.sleep(int(self.obj.sleeptime))
+        if self.obj.series is True:
+            if SeriesID != self.SeriesInstanceUID:
+                time.sleep(int(self.obj.sleeptime))
+                self.SeriesInstanceUID = SeriesID
+
     def durationStop(self):
         # 改变状态
-        self.obj.status = False
+        self.obj.sendstatus = False
         self.obj.save()
-        self.Flag = False
-
-        drobj = duration_record.objects.filter(Duration="0{}".format(self.obj.stressid), imagecount=None)
-        # 删除错误数据
-        for j in drobj:
-            delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
-        drobj.delete()
-        # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
-
+        # drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
+        # # 删除错误数据
+        # for j in drobj:
+        #     delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
+        # drobj.delete()
+        # # 删除 文件夹
+        # folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
+        #                                                                      str(self.obj.patientid),
+        #                                                                      str(self.id))
+        # if os.path.exists(folder):
+        #     shutil.rmtree(folder)
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
-        if self.obj.jmeterstatus is True:
-            stoptest = JmeterThread(stressid=self.obj.stressid)
-            # 设为保护线程，主进程结束会关闭线程
-            stoptest.setFlag = False
         self.Flag = parm  # boolean
 
     def setParm(self, parm):  # 外部修改内部信息函数

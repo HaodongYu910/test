@@ -187,7 +187,6 @@ class GoldThread(threading.Thread):
                 del testdata["graphql"]
             except Exception as e:
                 predictionCheck(prediction, testdata, e)
-                continue
             testdata["completiontime"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             # 断言
             try:
@@ -220,9 +219,9 @@ class GoldThread(threading.Thread):
                         self.smobj.Host.host,
                         total,
                         int(result[0]) + int(result[1]),
+                        smerror,
                         result[0],
                         result[1],
-                        smerror,
                         self.smobj.id),
                       "mentioned_list": MessObj.mentioned_list.split(","),
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")

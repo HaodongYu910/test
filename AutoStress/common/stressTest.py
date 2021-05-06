@@ -11,7 +11,6 @@ from AutoProject.common.biomind import Restart
 from ..common.manual import ManualThread
 from ..common.single import SingleThread
 from ..common.hybrid import HybridThread
-from ..common.saveResult import ResultThread
 
 logger = logging.getLogger(__name__)
 
@@ -29,9 +28,6 @@ class StressThread(threading.Thread):
 
     def run(self):
         try:
-            self.obj.teststatus = "基准测试"
-            self.obj.status = True
-            self.obj.save()
             logger.info("基准测试开始")
             Manual = ManualThread(stressid=self.id)
             Manual.setDaemon(True)
@@ -42,47 +38,34 @@ class StressThread(threading.Thread):
             logger.error("基准测试失败：{}".format(e))
 
         try:
-            self.obj.teststatus = "混合测试"
-            self.obj.status = True
-            self.obj.save()
+            if self.Flag is True:
+                Single = SingleThread(stressid=self.id)
+                Single.setDaemon(True)
+                Single.run()
+
+        except Exception as e:
+            logger.error("单一测试失败：{}".format(e))
+
+        try:
+            # 开始时间
+            start = datetime.datetime.now()
+            # 结束时间
+            end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
+                "%Y-%m-%d %H:%M:%S")
             if self.Flag is True:
                 logger.info("混合测试开始")
                 Hybrid = HybridThread(stressid=self.id)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
-                # 结束时间
-                start = datetime.datetime.now()
-                # 结束时间
-                end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime("%Y-%m-%d %H:%M:%S")
-                while str(start) < end:
+                while str(start) < str(end):
                     start = datetime.datetime.now()
-
-                result = ResultThread(stressid=self.obj.stressid)
-                result.setDaemon(True)
-                result.start()
                 Restart(id=self.obj.Host.id)
                 time.sleep(300)
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
 
-        try:
-            self.obj.teststatus = "混合测试"
-            self.obj.status = True
-            self.obj.save()
-            if self.Flag is True:
-                Single = SingleThread(stressid=self.id)
-                Single.setDaemon(True)
-                Single.run()
-        except Exception as e:
-            logger.error("单一测试失败：{}".format(e))
-            # 混合测试
-
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
 
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
 
-    def getParm(self):  # 外部获得内部信息函数
-        return self.parm

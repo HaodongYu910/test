@@ -526,7 +526,7 @@
             // 实现轮询
             this.InstalllTimeSet = window.setInterval(() => {
                 setTimeout(this.getInstalllist(), 0);
-            }, 10000);
+            }, 30000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.InstalllTimeSet);

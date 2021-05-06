@@ -7,7 +7,7 @@
                     <el-form-item label="服务器" prop="server">
                         <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
                             <el-option key="" label="" value=""></el-option>
-                            <el-option v-for="(item,index) in tags"
+                            <el-option v-for="(item,index) in Host"
                                        :key="item.id"
                                        :label="item.name"
                                        :value="item.id"
@@ -37,7 +37,7 @@
                 </el-table-column>
                 <el-table-column prop="type" label="服务" min-width="20%" sortable>
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
+                        <router-link v-if="scope.row.server" :to="{ name: 'durationData', params: {durationid: scope.row.id} }"
                                      style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
@@ -173,14 +173,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sendcount" :min="0"
                                                  :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="editForm.loop_time" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.loop_time" :min="0"
                                                  :max="100000"
                                                  label="持续时间（时）"></el-input-number>
                             </el-form-item>
@@ -189,14 +189,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="editForm.sleepcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sleepcount" :min="0"
                                                  :max="99999"
                                                  label="延时数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="editForm.sleeptime" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sleeptime" :min="0"
                                                  :max="5000"
                                                  label="延时时间（秒）"></el-input-number>
                             </el-form-item>
@@ -209,7 +209,7 @@
                                     <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
                                                @click.native="gethost()">
                                         <el-option
-                                                v-for="(item,index) in tags"
+                                                v-for="(item,index) in Host"
                                                 :key="item.host"
                                                 :label="item.name"
                                                 :value="item.host"
@@ -304,7 +304,7 @@
                                         <el-select v-model="addForm.Host" placeholder="请选择"
                                                    @click.native="gethost()">
                                             <el-option
-                                                    v-for="(item,index) in tags"
+                                                    v-for="(item,index) in Host"
                                                     :key="item.id"
                                                     :label="item.name"
                                                     :value="item.id"
@@ -366,14 +366,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.sendcount" :min="0"
                                                  :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="addForm.loop_time" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.loop_time" :min="0"
                                                  :max="100000"
                                                  label="持续时间（时）"></el-input-number>
                             </el-form-item>
@@ -382,14 +382,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="addForm.sleepcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.sleepcount" :min="0"
                                                  :max="99999"
                                                  label="延时数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="addForm.sleeptime" @change="handleChange" :min="0" :max="5000"
+                                <el-input-number v-model="addForm.sleeptime" :min="0" :max="5000"
                                                  label="延时时间（秒）"></el-input-number>
                             </el-form-item>
                         </el-col>
@@ -401,7 +401,7 @@
                                     <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
                                                @click.native="gethost()">
                                         <el-option
-                                                v-for="(item,index) in tags"
+                                                v-for="(item,index) in Host"
                                                 :key="item.host"
                                                 :label="item.name"
                                                 :value="item.host"
@@ -432,7 +432,6 @@
 
     import {
         getduration,
-        getdurationverifydata,
         getGroupBase,
         addduration,
         delduration,
@@ -447,11 +446,10 @@
 
     import {anonStart} from "../../../router/api";
 
-    // import ElRow from "element-ui/packages/row/src/row";
     export default {
-        // components: {ElRow},
         data() {
             return {
+                Host:[],
                 typeoptions: [{
                     value: '匿名',
                     label: '匿名'
@@ -463,33 +461,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                groupOptions: [{
-                    value: 'test',
-                    label: 'test',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }, {
-                    value: 'Gold',
-                    label: 'Gold',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }],
+                groupOptions: [],
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -585,7 +557,7 @@
             // 实现轮询
             this.clearTimeSet = window.setInterval(() => {
                 setTimeout(this.getDurationlist(), 0);
-            }, 20000);
+            }, 30000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -594,7 +566,6 @@
             this.getDurationlist()
             this.gethost()
             this.getBase()
-            this.durationVerifyData()
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -664,7 +635,6 @@
                             this.tableData = JSON.parse(json)
                         })
                     } else {
-                        console.log('error submit')
                         return false
                     }
                 })
@@ -690,50 +660,13 @@
                     }
                 )
             },
-            // 获取版本信息
-            getversion() {
-                const params = {
-                    type: '1'
-                }
-                const headers = {
-                    'Content-Type': 'application/json'
-                }
-                getVersion(headers, params).then(_data => {
-                    const {msg, code, data} = _data
-                    if (code != '0') {
-                        this.$message.error(msg)
-                        return
-                    }
-                    // 请求正确时执行的代码
-                    var mydata = data.data
-                    var json = JSON.stringify(mydata)
-                    this.tags = JSON.parse(json)
-                })
-            },
-            durationVerifyData() {
-                const params = {}
-                const headers = {
-                    'Content-Type': 'application/json'
-                }
-                durationverifydata(headers, params).then(_data => {
-                    const {msg, code, data} = _data
-                    if (code != '0') {
-                        this.$message.error(msg)
-                        return
-                    }
-                    // 请求正确时执行的代码
-                    var mydata = data.data
-                    var json = JSON.stringify(mydata)
-                    this.tags = JSON.parse(json)
-                })
-            },
             // 获取getBase列表
             getBase() {
                 this.listLoading = true
                 const self = this
                 const params = {
                     selecttype: "dicom",
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -778,7 +711,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -787,8 +720,7 @@
                     if (code === '0') {
                         self.total = data.total
                         self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
+                        this.Host = JSON.parse(JSON.stringify(self.list))
                     } else {
                         self.$message.error({
                             message: msg,
@@ -879,7 +811,7 @@
                 };
                 if (row.sendstatus) {
                     disable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -897,7 +829,7 @@
                     });
                 } else {
                     enable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -974,7 +906,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             updateduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code} = _data
                                 self.editLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1079,7 +1011,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             addduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code } = _data
                                 self.addLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1148,7 +1080,7 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     delduration(header, params).then(_data => {
-                        const {msg, code, data} = _data
+                        const {msg, code } = _data
                         if (code === '0') {
                             self.$message({
                                 message: '删除成功',

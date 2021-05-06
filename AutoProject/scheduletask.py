@@ -98,7 +98,7 @@ def DurationSyTask():
 # 持续化定时任务启动
 def DurationTask():
     logger.info("持续化定时任务启动！~~")
-    obj = duration.objects.filter(sendstatus=True, type='持续化')
+    obj = duration.objects.filter(status=True, type='持续化')
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
@@ -152,16 +152,16 @@ def DurationReportTask():
 
 def NightlyReportTask():
     logger.info("持续化报告定时任务启动！~~")
-    obj = duration.objects.filter(sendstatus=True, type='Nightly')
-    try:
-        for i in obj:
+    obj = duration.objects.filter(status=True, type='Nightly')
+
+    for i in obj:
+        try:
             record = duration_record.objects.filter(duration_id=i.id).values(
                 "duration_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
                 success=Count(Case(When(aistatus__in=[2, 3], then=0))),
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
                 count=Count('id'))
-
 
             # 查询发送信息 数据 发送 企业微信
             messObj = message_group.objects.get(type="durationNightly", status=True)
@@ -179,9 +179,11 @@ def NightlyReportTask():
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
                 }
             }
+            i.status = False
+            i.save()
             logger.info(params)
             MessageGroup(send_url=messObj.send_url, params=params)
-            i.sendstatus = False
-            i.save()
-    except Exception as e:
-        logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
+        except Exception as e:
+            logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
+            continue
+
