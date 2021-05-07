@@ -25,7 +25,7 @@ from AutoDicom.common.deletepatients import delete_patients_duration
 
 from AutoProject.utils.graphql.graphql import *
 
-from ..common.saveResult import ResultThread
+from ..common.saveResult import ResultStatistics
 from ..common.jmeter import JmeterThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -221,7 +221,11 @@ class HybridThread(threading.Thread):
             self.obj.status = False
             self.obj.teststatus = '测试结束'
             self.obj.save()
-            result = ResultThread(stressid=self.obj.stressid, stressType='HH')
+
+            ResultStatistics(
+                stressid=self.obj.stressid
+            )
+
         except Exception as e:
             logger.error("Thread Run Fail：{0}".format(e))
 
