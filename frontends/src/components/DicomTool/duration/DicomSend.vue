@@ -476,6 +476,7 @@
 
     import {
         getduration,
+        get_dicom_start,
         getGroupBase,
         addduration,
         delduration,
@@ -1130,7 +1131,7 @@
                                     center: true
                                 })
                                 self.$refs['getDicomForm'].resetFields()
-                                self.getDicomVisible = false
+                                self.getDicomFormVisible = false
                             }
                         })
                     }
