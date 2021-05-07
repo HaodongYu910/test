@@ -26,6 +26,7 @@ def getDicomServe(PID, destIP, destUSR, destPSW):
         nothing
     '''
     # 获取PID对应路径
+    logging.info("start extract dicom file PID:[{0}], route:[{1}], destination:[{2}]")
     tmp1 = duration_record.objects.get(patientname=PID)  # 从duration_record表中读取PID对应行
     UID = tmp1.studyolduid  # 得到PID对应的old studyUID
     tmp2 = dicom.objects.get(studyinstanceuid=UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
@@ -41,6 +42,7 @@ def getDicomServe(PID, destIP, destUSR, destPSW):
         # local_path = 'C:\\Users\\yuhaodong\\Desktop\\train\\data.zip'
         local_path = '/home/biomind/data.zip'
         dest.upload(local_path, dest_route)  # 传输数据
+        logging.info("success extract dicom file PID:[{0}], route:[{1}], destination:[{2}]".format(PID, dicom_route, destIP))
         # os.system('cd ~ && rm -rf data.zip')  # 删除文件
     except Exception as e:
         logging.error("scp数据至服务器失败:[{0}]".format(e))
