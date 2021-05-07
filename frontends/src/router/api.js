@@ -212,11 +212,11 @@ export const DisableInstall = (headers, params) => {
 export const getInstallReport = (headers, params) => {
   return axios.post(`${test}/project/install/getReport`, params, headers).then(res => res.data)
 }
+
 // 重启 | 创建用户
 export const getCreateRestart = (headers, params) => {
   return axios.post(`${test}/project/createRestart`, params, headers).then(res => res.data)
 }
-
 // 获取自动化测试结果
 export const getTestResultList = (headers, params) => {
   return axios.get(`${test}/api/report/auto_test_report`, { params: params, headers: headers }).then(res => res.data)
@@ -463,6 +463,12 @@ export const delduration = (headers, params) => {
 export const anonStart = (headers, params) => {
   return axios.post(`${test}/dicom/tool/anonymization`, params, headers).then(res => res.data)
 }
+
+// 启动提取dicom文件
+export const get_dicom_start = (headers, params) => {
+  return axios.post(`${test}/dicom/tool/get_dicom`, params, headers).then(res => res.data)
+}
+
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {
   return axios.post(`${test}/dicom/duration/enable_duration`, params, headers).then(res => res.data)

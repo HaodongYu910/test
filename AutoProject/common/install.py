@@ -138,6 +138,7 @@ class InstallThread(threading.Thread):
                         else:
                             time.sleep(30)
 
+
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
@@ -145,7 +146,9 @@ class InstallThread(threading.Thread):
             try:
                 if int(self.obj.testcase) in [1, 3]:
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）更新 配置文件'.format(self.obj.Host.host))
+
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：备份更新配置文件\n")
+
                     cache(id=self.obj.Host_id)
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本更新文件失败原因：{1}".format(self.obj.version, e))
@@ -157,7 +160,9 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）重启服务'.format(self.obj.Host.host))
                 self.ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
+
                 time.sleep(120)
+
                 AddJournal(name="Installation{}".format(self.id), content="【服务状态】\n" + bytes.decode(self.ssh.cmd("docker ps;")))
             except:
                 self.installStatus(status=False, type=4)
@@ -169,6 +174,7 @@ class InstallThread(threading.Thread):
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+
 
     # 检查服务状态
     def Judging_state(self):
@@ -206,6 +212,7 @@ class InstallThread(threading.Thread):
                 else:
                     time.sleep(30)
                     b = b + 1
+
 
         except Exception as e:
             self.obj.status = False

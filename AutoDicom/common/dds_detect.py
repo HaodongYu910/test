@@ -1,4 +1,5 @@
 from pip._internal.utils import logging
+
 from AutoProject.common.PostgreSQL import *
 from ..models import duration_record
 

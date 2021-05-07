@@ -40,6 +40,7 @@ class StressReport:
                 success = aiObj[0]["success"] + aiObj[0]["warn"]
                 fail = aiObj[0]["fail"]
 
+
             for j in self.obj.testdata.split(","):
                 dictObj = dictionary.objects.get(id=j)
                 models[j] = dictObj.key

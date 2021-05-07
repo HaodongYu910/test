@@ -33,6 +33,7 @@
                     highlight-current-row
                     style="width: 100%;"
                 >
+
                 <el-table-column prop="patientid" label="patientid" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.patientid }}</span>

@@ -3,6 +3,7 @@ import time
 import datetime
 import logging
 
+
 from AutoProject.common.transport import SSHConnection
 import threading
 from django.conf import settings
@@ -22,6 +23,7 @@ class MonitorThread(threading.Thread):
         self.user = self.obj.Host.user
         self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
+
         self.ssh.cmd("wget https://ifileserver.biomind.com.cn/index.php/s/4dMqo7F2meb4cTp/download -O ./monitor.zip --no-check-certificate;unzip ./monitor.zip;")
 
     def run(self):
@@ -36,17 +38,20 @@ class MonitorThread(threading.Thread):
         except Exception as e:
             logger.error(e)
 
-    def run(self):
-        try:
-            pass
-        except Exception as e:
-            logger.error(e)
 
     def run(self):
         try:
             pass
         except Exception as e:
             logger.error(e)
+
+
+    def run(self):
+        try:
+            pass
+        except Exception as e:
+            logger.error(e)
+
 
 
     def installStatus(self, status, type):

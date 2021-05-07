@@ -1,5 +1,6 @@
 #! /usr/bin/env python
 # coding=utf-8
+
 from AutoProject.models import message_group, dictionary, Server
 from AutoDicom.models import duration_record, duration
 from django.conf import settings
@@ -19,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 __author__ = ""
 __version__ = ""
-
 
 #
 # def mail_task():
@@ -46,6 +46,7 @@ __version__ = ""
 #             logger.info('[ 休息时间] ' + datetime.datetime.now())
 #     except Exception as e:
 #         logger.error('[Error] ' + e)
+
 
 
 # 同步持续化数据结果
@@ -156,6 +157,7 @@ def NightlyReportTask():
 
     for i in obj:
         try:
+
             record = duration_record.objects.filter(duration_id=i.id).values(
                 "duration_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
@@ -179,6 +181,7 @@ def NightlyReportTask():
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
                 }
             }
+
             i.status = False
             i.save()
             logger.info(params)

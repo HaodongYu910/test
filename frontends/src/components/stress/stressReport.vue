@@ -70,6 +70,7 @@
                             </el-row>
                             <el-row label-position="left">
                                 <el-col style="width: 50%" label-position="left" align="center">
+
                                     <el-table
                                             :data="stressData"
                                             style="width: 100%">
@@ -491,7 +492,6 @@
                     message: '图表已更新',
                     showClose: false
                 });
-
             }
             ,
             // 更新消息弹出，调用更新数据接口
@@ -658,6 +658,7 @@
                         this.diff = data.diffresult  // job 数据 - 预测数据 结果
                         this.chartData = data.chartData  // 各个版本预测时间对比
                         this.DataChart.rows = data.LineData  // 预测时间
+
                         this.stressData = [{
                             strategy: '基准测试',
                             vu: this.basedata.synchroniz,
@@ -680,7 +681,8 @@
                                 rows: data.report.errorData
 
                             }
-                    } else {
+                    }
+                    else {
                         self.$message.error({
                             message: msg,
                             center: true

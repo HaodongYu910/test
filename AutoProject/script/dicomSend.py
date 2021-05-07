@@ -27,7 +27,7 @@ import socket
 # # 链接InfluxDB时序数据库
 #
 # def connect_influx(data):
-#     posturl = 'http://127.0.0.1:8086/write?db=autotest'
+#     posturl = 'http://127.0.0.1:8086/write?db=AutoTest'
 #     requests.post(posturl, data=data)
 
 # 链接mysql数据库

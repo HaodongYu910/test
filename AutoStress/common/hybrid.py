@@ -222,7 +222,6 @@ class HybridThread(threading.Thread):
             self.obj.teststatus = '测试结束'
             self.obj.save()
 
-
             ResultStatistics(
                 stressid=self.obj.stressid
             )

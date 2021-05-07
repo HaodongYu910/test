@@ -9,7 +9,7 @@
 # Distribution / packaging
 logs
 cache
-migrations
+*migrations
 .Python
 env/
 build/

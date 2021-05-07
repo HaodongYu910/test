@@ -58,7 +58,6 @@ class SingleThread(threading.Thread):
         self.thread_num = 4
         self.CountData = []
         self.end_date = ''
-
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
             self.local_aet = 'QA38'
