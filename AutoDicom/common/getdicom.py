@@ -26,20 +26,22 @@ def getDicomServe(PID, destIP, destUSR, destPSW):
         nothing
     '''
     # 获取PID对应路径
-    tmp1 = duration_record.objects.get(patientid=PID)  # 从duration_record表中读取PID对应行
+    tmp1 = duration_record.objects.get(patientname=PID)  # 从duration_record表中读取PID对应行
     UID = tmp1.studyolduid  # 得到PID对应的old studyUID
     tmp2 = dicom.objects.get(studyinstanceuid=UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
     dicom_route = tmp2.route  # 得到该studyUID对应的存储路径
-    route_list = dicom_route.rsplit("/",1)  # 分割路径，得到路径和文件名
-    fn_route = route_list[0]    # 路径
+    route_list = dicom_route.rsplit("/", 1)  # 分割路径，得到路径和文件名
+    fn_route = route_list[0]  # 路径
     fn = route_list[1]  # 文件名
     # 连接服务器scp数据
     try:
-        os.system("cd {0} && zip -r /home/biomind/data.zip {1}".format(fn_route, fn))  # 打包文件
-        dest = SSHConnection(host=destIP, user=destUSR, pwd=destPSW)    # 链接目标服务器
-        dest_route = "/home/biomind/"
-        dest.upload(dicom_route, dest_route)    # 传输数据
-        os.system("cd ~ && rm -rf data.zip")    # 删除文件
+        os.system('cd {0} && zip -r /home/biomind/data.zip {1}'.format(fn_route, fn))  # 打包文件
+        dest = SSHConnection(host=destIP, user=destUSR, pwd=destPSW)  # 链接目标服务器
+        dest_route = '/home/biomind/data.zip'
+        # local_path = 'C:\\Users\\yuhaodong\\Desktop\\train\\data.zip'
+        local_path = '/home/biomind/data.zip'
+        dest.upload(local_path, dest_route)  # 传输数据
+        # os.system('cd ~ && rm -rf data.zip')  # 删除文件
     except Exception as e:
         logging.error("scp数据至服务器失败:[{0}]".format(e))
 
