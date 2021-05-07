@@ -7,12 +7,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class GraphQLDriver():
+
+class GraphQLDriver:
     def __init__(self, graphql_url, keycloakclient=None):
         self.graphql_url = graphql_url
         self.kc = keycloakclient
 
-    def execute_query(self, query, timeout=60):
+    def execute_query(self, query, timeout=600):
         if self.kc is not None:
             r = self.kc.post(
                 url=self.graphql_url,
@@ -60,10 +61,11 @@ class GraphQLDriver():
         '''
             Return the result of graphql query
         '''
-        return re.sub("\"(\w+)\":", r'\1:',json.dumps(payload))
+        return re.sub("\"(\w+)\":", r'\1:', json.dumps(payload))
 
     def post_to_db(self, prediction, study_uid, index):
-        gql='mutation{{hanalyticsData(index:\"{}\" value:\"{}\" studyUID:\"{}\")}}'.format(index, json.dumps(prediction).replace('\"', '\\\"'), study_uid)
+        gql = 'mutation{{hanalyticsData(index:\"{}\" value:\"{}\" studyUID:\"{}\")}}'.format(index, json.dumps(
+            prediction).replace('\"', '\\\"'), study_uid)
         return self.execute_query(gql)
 
     def get_archive_url(self, dicomAE, level, uid):
@@ -147,4 +149,3 @@ class GraphQLDriver():
         query = '{{studies(dicomAE:"{}" StudyInstanceUID:"{}"){{LatestProtocol}}}}'.format(
             dicomAE, StudyInstanceUID)
         return self.execute_query(query, timeout)
-

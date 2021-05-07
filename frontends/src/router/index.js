@@ -31,10 +31,8 @@ const ReportTitle = () => import('../components/home/Dashboard.vue');
 Vue.use(Router);
 
 export default new Router({
-    mode:'history',
-    base:'/',
-    routes: [
 
+    routes: [
         {
             path: '/',
             redirect: '/home'
@@ -91,6 +89,7 @@ export default new Router({
                 },
                 {
                     path: '/durationData',
+                    name: 'durationData',
                     component: resolve => require(['../components/DicomTool/duration/durationDetail.vue'], resolve),
                     meta: {title: '持续化详情'}
 
@@ -152,6 +151,7 @@ export default new Router({
                     path: '/goldDetail',
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准详情'}
+                    
                 },
                 {
                     path: '/report/goldid=:goldid',

@@ -40,7 +40,7 @@
                 </el-table-column>
                 <el-table-column prop="type" label="服务" min-width="20%" sortable>
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
+                        <router-link v-if="scope.row.server" :to="{ name: 'durationData', params: {durationid: scope.row.id} }"
                                      style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
@@ -505,33 +505,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                groupOptions: [{
-                    value: 'test',
-                    label: 'test',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }, {
-                    value: 'Gold',
-                    label: 'Gold',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }],
+                groupOptions: [],
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -763,7 +737,7 @@
                 const self = this
                 const params = {
                     selecttype: "dicom",
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -808,7 +782,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -908,7 +882,7 @@
                 };
                 if (row.sendstatus) {
                     disable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -926,7 +900,7 @@
                     });
                 } else {
                     enable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -1013,7 +987,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             updateduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code} = _data
                                 self.editLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1166,7 +1140,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             addduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code } = _data
                                 self.addLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1235,7 +1209,7 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     delduration(header, params).then(_data => {
-                        const {msg, code, data} = _data
+                        const {msg, code } = _data
                         if (code === '0') {
                             self.$message({
                                 message: '删除成功',

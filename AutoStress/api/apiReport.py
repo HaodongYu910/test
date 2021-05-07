@@ -48,23 +48,44 @@ class stressReport(APIView):
         try:
             stressId = int(request.GET.get("stressId"))
             obj = stress.objects.get(stressid=stressId)
-            ChartType = request.GET.get("type", "jz")
+            ChartType = request.GET.get("type", "JZ")
             checkversion = request.GET.get("checkversion", obj.version)
             models = ["", str(request.GET.get("models", "1")).strip()]
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="必传 stressId!")
-        dictObj = dictionary.objects.get(id=models[1])
-        st = StressReport(stressId)
+        # 报告信息
+        st = StressReport(stressId, ChartType)
         report = st.report()
-        result, chartData, LineData = st.ChartData(ChartType=ChartType,
-                                                   models=models,
-                                                   version=checkversion)
-        return JsonResponse(data={"report": report,
-                                  "result": result,
-                                  "chartData": chartData,
-                                  "LineData": LineData,
-                                  "modelsName": dictObj.value
-                                  }, code="0", msg="成功")
+
+        # 返回各个版本折线图表 数据
+        try:
+            chartData = st.ChartData(model=models)
+        except Exception as e:
+            logger.error("chartData fail:{}".format(e))
+            chartData = []
+
+        # 返回 预测时间 折线图
+        try:
+            LineData = st.recordLine(models[1])
+        except Exception as e:
+            logger.error("LineData fail:{}".format(e))
+            LineData = []
+        # 判断是否相同版本 返回 预测 版本比较数据
+        try:
+            result = st.dataCheck(CheckVersion=checkversion)
+        except Exception as e:
+            logger.error("resultData fail:{}".format(e))
+            result = []
+
+        return JsonResponse(
+            data={"report": report,
+                  "result": result,
+                  "chartData": chartData,
+                  "LineData": LineData,
+                  "modelsName": dictionary.objects.get(id=models[1]).value
+                  },
+            code="0",
+            msg="成功")
 
 
 class SaveAnalysis(APIView):
