@@ -42,7 +42,11 @@
                 <template slot-scope="scope">
                     <el-button type="warning" size="small" @click="handleChangeProtocol(scope.$index, scope.row)">{{scope.row.protocol===false?'Https':'Http'}}</el-button>
                     <el-button size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>
+<!--                    <el-button type="danger" size="small" @click="handleDel(scope.$index, scope.row)">删除</el-button>-->
+                    <el-button type="primary" size="small" @click="handleCreate(scope.$index, scope.row)">创建用户
+                        </el-button>
+<!--                         <el-button type="danger" size="small" @click="Restart(scope.$index, scope.row)">重启-->
+<!--                        </el-button>-->
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
                 </template>
             </el-table-column>
@@ -116,13 +120,40 @@
                 <el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
             </div>
         </el-dialog>
+
+        <!--新增用户界面-->
+        <el-dialog title="添加用户" :visible.sync="createFormVisible" :close-on-click-modal="false"
+                   style="width: 75%; left: 12.5%">
+            <el-form :model="createForm" label-width="80px" :rules="createFormRules" ref="addForm">
+                <el-divider>基本配置</el-divider>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                       <el-form-item label="账号" prop='version'>
+                            <el-input v-model.trim="createForm.user" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="12">
+                        <el-form-item label="密码" prop='version'>
+                            <el-input v-model.trim="createForm.pwd" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="createFormVisible = false">取消</el-button>
+                <el-button type="primary" @click.native="CreateUser" :loading="addLoading">保存</el-button>
+            </div>
+        </el-dialog>
+
     </div>
 </template>
 
 <script>
     //import NProgress from 'nprogress'
-    import { getHost, delHost, disableHost, enableHost,
-    updateHost, addHost,disableHostProtocol,enableHostProtocol} from '../../../router/api'
+    import {
+        getHost, delHost, disableHost, enableHost,
+        updateHost, addHost, disableHostProtocol, enableHostProtocol, getCreateRestart
+    } from '../../../router/api'
     export default {
         data() {
             var checkIp = (rule, value, callback) => {
@@ -142,6 +173,18 @@
                 listLoading: false,
                 sels: [],//列表选中列
                 project_id:1,
+                createFormVisible: false,//新增用户界面是否显示
+                createLoading: false,
+                createFormRules: {
+                    user: [
+                        {required: true, message: '请输入用户', trigger: 'blur'}
+                    ]
+                },
+                //新增用户界面数据
+                createForm: {
+                    user: '',
+                    pwd: '',
+                },
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
@@ -216,6 +259,40 @@
                 var regPort = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5]):([0-9]|[1-9]\d|[1-9]\d{2}|[1-9]\d{3}|[1-5]\d{4}|6[0-4]\d{3}|65[0-4]\d{2}|655[0-2]\d|6553[0-5])$$/;
 
                 return regPort.test(ip) || reg.test(ip);
+            },
+             //显示新增界面
+            handleCreate: function (index, row) {
+                this.createFormVisible = true;
+                this.createForm = Object.assign({}, row);
+                this.createForm[pwd] = 1
+            },
+            //  创建用户或重启
+            CreateUser() {
+                this.listLoading = true
+                let self = this;
+                const params = {
+                    id: this.createForm.id,
+                    type: 2,
+                    user: this.createForm.user,
+                    pwd: this.createForm.pwd,
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getCreateRestart(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        this.createFormVisible = false,
+                         self.$message.success({
+                            message: msg,
+                            center: true
+                        })
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
             },
             // 获取HOST列表
             getServer() {

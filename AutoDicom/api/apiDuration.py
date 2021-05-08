@@ -322,6 +322,8 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
+            obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            obj.save()
             if obj.type == "匿名":
                 durationThread = DurationThread(id=data["id"])
                 durationThread.setDaemon(True)
@@ -335,7 +337,6 @@ class EnableDuration(APIView):
                 durationThread.setDaemon(True)
                 # 开始线程
                 durationThread.start()
-
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")

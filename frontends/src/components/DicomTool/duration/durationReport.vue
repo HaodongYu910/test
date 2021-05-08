@@ -102,7 +102,7 @@
                                 <el-select v-model="diseases" placeholder="请选择病种"
                                            @click.native="getReport()">
                                     <el-option
-                                            v-for="key in model"
+                                            v-for="key in models"
                                             :key="key"
                                             :label="key"
                                             :value="key"
@@ -280,6 +280,10 @@
 
     export default {
         data() {
+            this.SummaryData ={}
+            this.FailData ={}
+            this.chartData = {}
+            this.models= []
             this.chartDataZoom = [{type: 'slider'}]
             this.SummarySettings = {
                 roseType: 'radius'
@@ -322,12 +326,12 @@
                 this.$notify.success({
                     title: '提示',
                     type: 'warning',
-                    message: '5秒后跳转到 Grafana 性能监控服务，  用户：admin 密码：biomind',
+                    message: '打开 Grafana 性能监控服务，  用户：admin 密码：biomind',
                     showClose: false
                 });
-                const start_date = this.basedata[0].start_date
-                const end_date = this.basedata[0].statistics_date
-                const loadserver = this.basedata[0].server
+                const start_date = this.basedata.start_date
+                const end_date = this.basedata.statistics_date
+                const loadserver = this.basedata.server
 
                 if (start_date === null) {
                     var startstamp = new Date().getTime();
@@ -341,15 +345,24 @@
                     var enddate = end_date.replace(/-/g, '/');
                     var endstamp = new Date(enddate).getTime();
                 }
-                this.timer = setTimeout(() => {   //设置延迟执行
-                    {
-                        window.location.href = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
-                            startstamp + "&to=" + endstamp + "&var-host_name=" +
-                            loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
-                    }
-                    ;
-                }, 5000);
 
+                const url = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                    startstamp + "&to=" + endstamp + "&var-host_name=" +
+                    loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
+                const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
+
+                const width = window.innerWidth ? window.innerWidth : document.documentElement.clientWidth ? document.documentElement.clientWidth : screen.width
+                const height = window.innerHeight ? window.innerHeight : document.documentElement.clientHeight ? document.documentElement.clientHeight : screen.height
+
+                const left = ((width / 2) - (1500 / 2)) + dualScreenLeft
+                const top = ((height / 2) - (800 / 2)) + dualScreenTop
+                const newWindow = window.open(url, '服务监控', 'toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=yes, copyhistory=no, width=' + '1500' + ', height=' + '800' + ', top=' + top + ', left=' + left)
+
+                // Puts focus on the newWindow
+                if (window.focus) {
+                    newWindow.focus()
+                }
                 // //刷新当前页面
                 // window.location.reload();
             },
@@ -398,9 +411,8 @@
                     if (code === '0') {
                         this.basedata = data.data.basedata
                         this.durationData = data.data.durationData
-                        const chartData = {"columns": data.data.model, "rows": data.data.durationLineData}
-                        this.model = data.data.diseases
-                        this.chartData = chartData
+                        this.chartData = {"columns": data.data.model, "rows": data.data.durationLineData}
+                        this.models = data.data.diseases
                         this.SummaryData = {
                             columns: ['状态', '数量'],
                             rows: [
