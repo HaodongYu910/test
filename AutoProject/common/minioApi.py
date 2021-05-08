@@ -4,7 +4,6 @@ import logging
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-
 class Bucket:
     def __init__(self, host="192.168.2.99:80", access_key='biomind', secret_key='biomind123'):
         # 使用endpoint、access key和secret key来初始化self.minioClient对象。
@@ -32,9 +31,9 @@ class Bucket:
     # 列出所有的存储桶 list_buckets函数
     def get_bucket_list(self):
         try:
-            buckets = self.minioClient.list_buckets()
+            buckets = self.minioClient.list_buckets(name='biomind-ha-se')
             for bucket in buckets:
-                logger.info(bucket.name, bucket.creation_date)  # 获取桶的名称和创建时间
+                print(bucket.name, bucket.creation_date)  # 获取桶的名称和创建时间
         except InvalidResponseError as err:
             logger.error(err)
 
@@ -49,10 +48,10 @@ class Bucket:
     # 列出存储桶中所有对象  或者使用 list_objects_v2也可
     def get_bucket_files(self):
         try:
-            objects = self.minioClient.list_objects('testfiles', prefix=None,
+            objects = self.minioClient.list_objects('biomind-ha-se', prefix=None,
                                                     recursive=True)  # prefix用于过滤的对象名称前缀
             for obj in objects:
-                logger.info(obj.bucket_name, obj.object_name.encode('utf-8'), obj.last_modified,
+                print(obj.bucket_name, obj.object_name.encode('utf-8'), obj.last_modified,
                       obj.etag, obj.size, obj.content_type)
         except InvalidResponseError as err:
             logger.error(err)
@@ -71,7 +70,7 @@ class Bucket:
     # 获取存储桶的当前策略
     def bucket_policy(self):
         try:
-            policy = self.minioClient.get_bucket_policy('testfiles')
+            policy = self.minioClient.get_bucket_policy('2.19')
             logger.info(policy)
         except InvalidResponseError as err:
             logger.error(err)
@@ -87,7 +86,8 @@ class Bucket:
     def bucket_notification(self):
         try:
             # 获取存储桶的通知配置。
-            notification = self.minioClient.get_bucket_notification('testfiles')
+            notification = self.minioClient.get_bucket_notification('biomind-ha-se')
+            print(notification)
             logger.info(notification)
             # 如果存储桶上没有任何通知：
             # notification  == {}
@@ -111,4 +111,4 @@ class Bucket:
 
 
 if __name__ == '__main__':
-    Bucket().bucket_notification()
+    Bucket().get_bucket_list()
