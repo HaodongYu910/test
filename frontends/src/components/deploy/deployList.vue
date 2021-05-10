@@ -214,7 +214,14 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="选择版本" prop='version'>
+                       <el-form-item label="新增版本" prop='version'>
+                            <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                        </el-form-item>
+                    </el-col>
+                    </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="12">
+                        <el-form-item label="已有版本" prop='version'>
                             <el-select v-model="addForm.version" placeholder="请选择安装版本"
                                        @click.native="Installversion()">
                                 <el-option
@@ -226,30 +233,18 @@
                             </el-select>
                         </el-form-item>
                     </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="8">
+
+                    <el-col :span="6">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.installstatus"
                                 active-color="#13ce66"
                                 inactive-color="#ff4949"
                                 active-text="全新安装"
-                                inactive-text="升级安装">
+                                inactive-text="">
                         </el-switch>
                     </el-col>
-
-                    <el-col :span="8">
-                        <el-switch
-                                style="display: block"
-                                v-model="addForm.testcase"
-                                active-color="#13ce66"
-                                inactive-color="#ff4949"
-                                active-text=""
-                                inactive-text="更新备份">
-                        </el-switch>
-                    </el-col>
-                    <el-col :span="8">
+                    <el-col :span="6">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.cache"

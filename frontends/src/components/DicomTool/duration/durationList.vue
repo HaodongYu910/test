@@ -347,6 +347,7 @@
         data() {
             return {
                 Hosts:[],
+                versionlist:[],
                 typeoptions: [{
                     value: '匿名',
                     label: '匿名'

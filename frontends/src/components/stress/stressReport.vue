@@ -382,7 +382,7 @@
 
 <script>
     import {
-        getstressversion, getstressmodel, getStressReport, getbase, getreportfigure, saveAnalysis
+        getstressversion, getstressmodel, getStressReport, saveAnalysis
     } from '@/router/api'
 
     export default {
@@ -617,7 +617,7 @@
                 const self = this
                 const params = {
                     stressid: this.stressId,
-                    summary: this.summary
+                    summary: this.basedata.summary
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 saveAnalysis(headers, params).then((res) => {

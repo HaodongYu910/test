@@ -63,9 +63,6 @@ class stress_record(models.Model):
     error = models.TextField(max_length=2000, blank=True, null=True, verbose_name="error")
     Stress = models.ForeignKey(stress, null=True, on_delete=models.CASCADE, verbose_name='Stress')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
-    start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
-    end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
-    tps = models.FloatField(blank=True, null=True, verbose_name="压测tps")
 
     def __unicode__(self):
         return self.version
@@ -101,6 +98,9 @@ class stress_result(models.Model):
     maximages = models.TextField(max_length=10, blank=True, null=True, verbose_name="影像张数")
     avgimages = models.TextField(max_length=10, blank=True, null=True, verbose_name="影像张数")
     Stress = models.ForeignKey(stress, null=True, on_delete=models.CASCADE, verbose_name='Stress')
+    start_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测开始时间")
+    end_date = models.CharField(max_length=20, blank=True, null=True, verbose_name="压测结束时间")
+    tps = models.FloatField(blank=True, null=True, verbose_name="压测tps")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

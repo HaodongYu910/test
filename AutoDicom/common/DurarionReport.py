@@ -1,7 +1,7 @@
 # coding=utf-8
 import logging
 from django.db.models import Count, When, Case, Max, Min, Avg, Q
-import time, datetime
+import datetime
 from AutoProject.scheduletask import DurationTask
 import time
 import json
@@ -27,7 +27,7 @@ class ReportThread(threading.Thread):
     def __init__(self, **kwargs):
         self.obj = duration.objects.get(id=kwargs["id"])
         self.server = self.obj.Host.host
-        self.statistics_date = '{} 00:00:00'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
+        self.statistics_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.diseases = kwargs["diseases"]
         self.dis = []
         self.durationData = []

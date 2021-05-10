@@ -120,7 +120,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
         logger.error("删除旧的性能结果数据数据失败")
 
     # 按模型 查询成功失败 数量
-    obj = stress_record.objects.filter(
+    recordObj = stress_record.objects.filter(
         Stress_id=obj.stressid, type=stressType, slicenumber__isnull=True).values("modelname").annotate(
         count=Count(1),
         ModelAvg=Avg('sec'),
@@ -138,7 +138,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
     )
 
     # 循环数据保存
-    for i in obj:
+    for i in recordObj:
         try:
             total = i["success"] + i["warn"] + i["fail"]
 
@@ -175,7 +175,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
             logger.error(e)
             continue
             # 按模型 查询成功失败 数量
-    obj = stress_record.objects.filter(
+    recordObj = stress_record.objects.filter(
         Stress_id=obj.stressid, type=stressType, slicenumber__isnull=False).values(
         "slicenumber").annotate(
         count=Count(1),
@@ -193,7 +193,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
         fail=Count(Case(When(aistatus=1, then=0))),
     )
     # 循环数据保存
-    for i in obj:
+    for i in recordObj:
         try:
             total = i["success"] + i["warn"] + i["fail"]
             ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))

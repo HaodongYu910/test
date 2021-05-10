@@ -141,7 +141,7 @@ class HybridThread(threading.Thread):
                                         stressstatus__in=['1', '2'],
                                         status=True)
         try:
-            file_end = int(self.obj.loop_count)
+            file_end = int(self.obj.duration) * 400
             while True:
                 if filecount > file_end:
                     self.CountData.append(dcmcount)
@@ -195,7 +195,6 @@ class HybridThread(threading.Thread):
     def run(self):
         # 开始时间
         self.obj.start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
         # 结束时间
         self.obj.end_date = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
             "%Y-%m-%d %H:%M:%S")
@@ -218,6 +217,7 @@ class HybridThread(threading.Thread):
             for t in threads:
                 t.join()
                 time.sleep(1)
+
             self.obj.status = False
             self.obj.teststatus = '测试结束'
             self.obj.save()
