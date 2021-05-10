@@ -55,3 +55,12 @@ import json
 # parm = {"version": 1, "host": 2}
 # data = requests.post(server_url, parm)
 # vop_data = json.loads(data.content)
+
+
+
+import requests
+requests.post(url='http://192.168.1.120:7000/project/install/ansible',
+              json={'id': 1,
+                    'tag_version': 1,
+                    'model_version':2
+                    })

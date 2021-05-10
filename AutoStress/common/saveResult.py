@@ -175,7 +175,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
             logger.error(e)
             continue
             # 按模型 查询成功失败 数量
-    recordObj = stress_record.objects.filter(
+    ObjRecord = stress_record.objects.filter(
         Stress_id=obj.stressid, type=stressType, slicenumber__isnull=False).values(
         "slicenumber").annotate(
         count=Count(1),
@@ -193,7 +193,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
         fail=Count(Case(When(aistatus=1, then=0))),
     )
     # 循环数据保存
-    for i in recordObj:
+    for i in ObjRecord:
         try:
             total = i["success"] + i["warn"] + i["fail"]
             ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))
