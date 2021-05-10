@@ -168,6 +168,47 @@ class getRestart(APIView):
             return JsonResponse(code="999985", msg="重启失败!")
         return JsonResponse(code="0", msg="成功")
 
+class AnsibleInstall(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 server
+            if not data["id"]:
+                return JsonResponse(code="999996", msg="参数有误！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        Ansible 安装版本
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        tag_version = data["tag_version"]
+        model_version = data["model_version"]
+        if result:
+            return result
+        try:
+            # obj = install.objects.get(id=data["id"])
+            dictionary.objects.create(**{
+                "key": tag_version,
+                "value": model_version,
+                "type": 'history',
+                'status': True
+            })
+            return JsonResponse(code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(code="999995", msg="{0}".format(e))
 
 class AddInstall(APIView):
     authentication_classes = (TokenAuthentication,)

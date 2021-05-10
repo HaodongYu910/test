@@ -64,6 +64,7 @@ urlpatterns = [
     url(r'install/getReport', getInstallReport.as_view()),
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
+    url(r'install/ansible', AnsibleInstall.as_view()),
     url(r'deploy', Install.as_view()),
     url(r'createRestart', getRestart.as_view()),
     url(r'wechatMessage', apiMessage.sendMessage.as_view()),

@@ -1087,6 +1087,7 @@
                             const {msg, code, data} = _data
                             self.addLoading = false
                             if (code === '0') {
+
                                 if (data['url'] === "") {
                                     self.$message({
                                         message: 'get dicom start',

@@ -129,31 +129,6 @@ def MessageGroup(send_url, params):
         requests.post(send_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
-#     obj = message_group.objects.get(type=messageType)
-#     if obj.msgtype =="image":
-#         params ={
-#     "msgtype": "image",
-#     "image": {
-#         "base64": "DATA",
-#         "md5": "MD5"
-#     }
-# }
-#     elif obj.msgtype =="news":
-#         params = {
-#             "msgtype": "news",
-#             "news": {
-#                "articles": [
-#                    {
-#                        "title":"中秋节礼品领取",
-#                        "description" : "今年中秋节公司有豪礼相送",
-#                        "url" : "www.qq.com",
-#                        "picurl" : "http://res.mail.qq.com/node/ww/wwopenmng/images/independent/doc/test_pic_msg1.png"
-#                    }
-#                 ]
-#             }
-#         }
-#     else:
-#         params =
 
 
 
@@ -195,4 +170,34 @@ def sendMessage(touser='',toparty='',message='Message'):
         requests.post(msgsend_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
+
+
+# Ansible 消息推送
+def AnsibleMessage(**kwargs):
+
+    if kwargs[" channel"] == "#production_build_radiology":
+        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+        params = {
+            "msgtype": "text",
+            "text": {
+                "content": "{0} Fail：{1}".format(kwargs[" channel"], kwargs["msg"]),
+                "mentioned_list": ["@all"],
+                "mentioned_mobile_list": ["@all"]
+                    }
+                }
+    else:
+        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+        params = {
+            "msgtype": "text",
+            "text": {
+                "content": "{0} Fail：{1}".format(kwargs[" channel"], kwargs["msg"]),
+                "mentioned_list": ["@all"],
+                "mentioned_mobile_list": ["@all"]
+            }
+        }
+    try:
+        MessageGroup(send_url, params)
+    except Exception as e:
+        logger.error("send Message fail :{}".format(e))
+
 

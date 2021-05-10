@@ -323,6 +323,7 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            obj.status = True
             obj.save()
             if obj.type == "匿名":
                 durationThread = DurationThread(id=data["id"])
