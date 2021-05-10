@@ -1088,13 +1088,27 @@
                             self.addLoading = false
                             if (code === '0') {
 
-                                self.$message({
-                                    message: 'get dicom start',
-                                    center: true,
-                                    type: 'success'
-                                })
-                                self.$refs['getDicomForm'].resetFields()
-                                self.getDicomFormVisible = false
+                                if (data['url'] === "") {
+                                    self.$message({
+                                        message: 'get dicom start',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+                                else {
+                                    this.$router.push({
+                                        path: data['url'],
+                                    });
+                                    self.$message({
+                                        message: 'get dicom to local start',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
                             } else if (code === '999997') {
                                 self.$message.error({
                                     message: msg,

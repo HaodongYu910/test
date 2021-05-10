@@ -56,3 +56,22 @@ def getDicomServe(PID, destIP, destUSR, destPSW):
     # s.close()  # 关闭linux连接
 
     return
+
+def get_to_local(PID):
+    # 获取PID对应路径
+    try:
+        logging.info("start extract dicom file PID:[{0}] to local Download".format(PID))
+        tmp1 = duration_record.objects.get(patientname=PID)  # 从duration_record表中读取PID对应行
+        UID = tmp1.studyolduid  # 得到PID对应的old studyUID
+        tmp2 = dicom.objects.get(studyinstanceuid=UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
+        dicom_route = tmp2.route  # 得到该studyUID对应的存储路径
+        route_list = dicom_route.rsplit("/", 1)  # 分割路径，得到路径和文件名
+        fn_route = route_list[0]  # 路径
+        fn = route_list[1]  # 文件名
+        os.system('cd {0} && zip -r /home/biomind/data.zip {1} && mv /home/biomind/data.zip /home/biomind/Biomind_Test_Platform/static/data.zip'.format(fn_route, fn))  # 打包文件
+        url = "/static/data.zip"
+    except Exception as e:
+        logging.error("error happend {0}".format(e))
+    return url
+
+

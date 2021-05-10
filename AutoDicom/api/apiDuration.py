@@ -463,10 +463,15 @@ class get_dicomAPI_2nd(APIView):
             destIP = data['destIP']  # 发送目标服务器ip
             destUSR = data['destUSR']  # 发送目标服务器用户名
             destPSW = data['destPSW']  # 发送目标服务器密码
-
-            t = threading.Thread(target=getDicomServe(PID, destIP, destUSR, destPSW))
-            t.start()
-            return JsonResponse(code="0", msg="开始提取数据" , data=data)
+            if destIP and destPSW and destPSW:
+                t = threading.Thread(target=getDicomServe(PID, destIP, destUSR, destPSW))
+                t.start()
+                data['rul'] = ""
+                return JsonResponse(code="0", msg="开始提取数据至服务器" , data=data)
+            else:
+                url = get_to_local(PID)
+                data['url'] = url
+                return JsonResponse(code="0", msg="开始提取数据至本地" , data=data)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
 
