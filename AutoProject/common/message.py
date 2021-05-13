@@ -181,7 +181,7 @@ def AnsibleMessage(**kwargs):
                 "msgtype": "text",
                 "text": {
                     "content": "【{0} Production Build Radiology Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
-                        kwargs["version"], kwargs["job_name"], kwargs["AWXURL"], kwargs["ArtifactURL"], kwargs["msg"]),
+                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
                     "mentioned_list": ["@yinhang"]
                 }
             }
@@ -191,7 +191,7 @@ def AnsibleMessage(**kwargs):
                 "msgtype": "text",
                 "text": {
                     "content": "【Nightly Build {0} Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
-                        kwargs["version"], kwargs["job_name"],kwargs["AWXURL"], kwargs["ArtifactURL"], kwargs["msg"]),
+                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
                     "mentioned_list": ["@all"]
                 }
             }
@@ -201,7 +201,7 @@ def AnsibleMessage(**kwargs):
             params = {
                 "msgtype": "text",
                 "text": {
-                    "content": "{} 版本构建成功！".format(kwargs["version"]),
+                    "content": "{} 版本构建成功！".format(data["version"]),
                 }
             }
         else:
@@ -209,7 +209,7 @@ def AnsibleMessage(**kwargs):
             params = {
                 "msgtype": "text",
                 "text": {
-                    "content": "Nightly Build {} Success".format(kwargs["version"])
+                    "content": "Nightly Build {} Success".format(data["version"])
                 }
             }
     try:
