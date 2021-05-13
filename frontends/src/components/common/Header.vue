@@ -135,6 +135,7 @@
         display: table-cell;
         vertical-align: middle;
         text-align: center;
+        margin-top: 12.5px;
     }
     .header-right{
         float: right;

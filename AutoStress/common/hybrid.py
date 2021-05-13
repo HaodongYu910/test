@@ -141,7 +141,7 @@ class HybridThread(threading.Thread):
                                         stressstatus__in=['1', '2'],
                                         status=True)
         try:
-            file_end = int(self.obj.duration) * 400
+            file_end = int(self.obj.duration) * 50
             while True:
                 if filecount > file_end:
                     self.CountData.append(dcmcount)
