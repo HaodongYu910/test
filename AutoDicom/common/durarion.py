@@ -73,7 +73,7 @@ class DicomData(threading.Thread):
 class DurationThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
+        self.Flag = True
         self.count = 0  # 可用来被外部访问
         self.obj = duration.objects.get(id=kwargs["id"])
         self.patientid = self.obj.patientid if self.obj.patientid is not None else '_'
@@ -251,7 +251,7 @@ class DurationThread(threading.Thread):
 
     def durationAnony(self, q):
         while not q.empty():
-            if self.Flag is False:
+            if not os.path.exists(self.full_fn_fake):
                 break
             self.count = self.count + 1
             testdata = q.get()
@@ -260,7 +260,6 @@ class DurationThread(threading.Thread):
                 data, Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
-
             try:
                 if testdata[3] in self.CountData:
                     create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
@@ -297,6 +296,7 @@ class DurationThread(threading.Thread):
         try:
             commands = [
                 "storescu",
+                "-xs",  # 压缩方式
                 self.obj.Host.host,
                 self.obj.port,
                 "-aec", self.obj.Host.remarks,
@@ -307,7 +307,6 @@ class DurationThread(threading.Thread):
             popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
             popen.communicate()
             endtime = time.time()
-
             self.connect_influx({'studyuid': studyuid,
                                  'time': str('%.2f' % (float(endtime - starttime))),
                                  'starttime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime)),
@@ -340,23 +339,11 @@ class DurationThread(threading.Thread):
     # 停止
     def durationStop(self):
         # 改变状态
-        drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
-        # 删除错误数据
-        for j in drobj:
-            delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
-        drobj.delete()
+        self.Flag = False
         # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
-                                                                             str(self.obj.patientid),
-                                                                             str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
-
-
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.durationStop()
-        self.Flag = parm  # boolean
-
+        shutil.rmtree(self.full_fn_fake)
+        self.obj.sendstatus =False
+        self.obj.save()
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm

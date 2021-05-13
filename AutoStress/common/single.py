@@ -242,7 +242,7 @@ class SingleThread(threading.Thread):
     def durationAnony(self, q):
         while not q.empty():
             start = datetime.datetime.now()
-            if self.Flag is False or str(start) > self.obj.end_date:
+            if not os.path.exists(self.full_fn_fake) or str(start) > self.obj.end_date:
                 logger.info("break {}".format(testData[2]))
                 break
             testData = q.get()
@@ -296,9 +296,7 @@ class SingleThread(threading.Thread):
         self.obj.save()
         self.Flag = False
         # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
+        shutil.rmtree(self.full_fn_fake)
 
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
@@ -307,6 +305,7 @@ class SingleThread(threading.Thread):
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
         self.Flag = parm  # boolean
+        shutil.rmtree(self.full_fn_fake)
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm

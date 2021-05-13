@@ -180,7 +180,7 @@ class AnsibleInstall(APIView):
         """
         try:
             # 必传参数 server
-            if not data["id"]:
+            if not data["tag_version"]:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -194,6 +194,7 @@ class AnsibleInstall(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
+        logger.info(data)
         tag_version = data["tag_version"]
         model_version = data["model_version"]
         if result:
