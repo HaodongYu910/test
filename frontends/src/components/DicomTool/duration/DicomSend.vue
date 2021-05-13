@@ -1097,6 +1097,16 @@
                                     self.$refs['getDicomForm'].resetFields()
                                     self.getDicomFormVisible = false
                                 }
+                                if (data['url'] === "we dont have this data"){
+                                    self.$message({
+                                        message: 'DB没这条数据，换一个吧',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+
                                 else {
                                     this.$router.push({
                                         path: data['url'],
