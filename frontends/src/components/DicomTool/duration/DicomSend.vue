@@ -1098,7 +1098,7 @@
                                 }
                                 if (data['url'] === "we dont have this data"){
                                     self.$message({
-                                        message: 'get dicom start filed, We did not record this data in DB',
+                                        message: 'DB没这条数据，换一个吧',
                                         center: true,
                                         type: 'success'
                                     })
