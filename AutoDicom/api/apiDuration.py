@@ -465,7 +465,7 @@ class get_dicomAPI_2nd(APIView):
             if destIP and destPSW and destPSW:
                 t = threading.Thread(target=getDicomServe(PID, destIP, destUSR, destPSW))
                 t.start()
-                data['rul'] = ""
+                data['url'] = ""
                 return JsonResponse(code="0", msg="开始提取数据至服务器" , data=data)
             else:
                 url = get_to_local(PID)
