@@ -1096,6 +1096,16 @@
                                     self.$refs['getDicomForm'].resetFields()
                                     self.getDicomFormVisible = false
                                 }
+                                if (data['url'] === "we dont have this data"){
+                                    self.$message({
+                                        message: 'get dicom start filed, We did not record this data in DB',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+
                                 else {
                                     this.$router.push({
                                         path: data['url'],

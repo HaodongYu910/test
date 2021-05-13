@@ -62,10 +62,16 @@ def get_to_local(PID):
     try:
         logging.info("start extract dicom file PID:[{0}] to local Download".format(PID))
         tmp1 = duration_record.objects.filter(patientname=PID)  # 从duration_record表中读取PID对应行
+        tmp_UID = ""
         for i in tmp1:
-            UID = i.studyolduid  # 得到PID对应的old studyUID
-        logging.info(" we get UID {0}".format(UID))
-        tmp2 = dicom.objects.get(studyinstanceuid=UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
+            tmp_UID = i.studyolduid  # 得到PID对应的old studyUID
+        logging.info(" we get UID {0}".format(tmp_UID))
+        if tmp_UID == "":
+            tmp_url = "we dont have this data"
+            return tmp_url
+
+        tmp2 = dicom.objects.filter(studyinstanceuid=tmp_UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
+        dicom_route = ""
         for i in tmp2:
             dicom_route = i.route  # 得到该studyUID对应的存储路径
         logging.info("we get route {0}".format(dicom_route))
@@ -74,9 +80,7 @@ def get_to_local(PID):
         fn = route_list[1]  # 文件名
         os.system('cd {0} && zip -r /home/biomind/data.zip {1} && mv /home/biomind/data.zip /home/biomind/Biomind_Test_Platform/static/data.zip'.format(fn_route, fn))  # 打包文件
         logging.info("execute shell command success")
-        url = "/static/data.zip"
+        tmp_url = "/static/data.zip"
     except Exception as e:
         logging.error("error happend {0}".format(e))
-    return url
-
-
+    return tmp_url
