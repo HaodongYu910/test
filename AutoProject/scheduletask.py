@@ -103,11 +103,13 @@ def DurationTask():
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
-                durationThread = DurationThread(id=i.id)
-                durationThread.setDaemon(True)
+                logger.info("持续化定时任务{}！".format(i.id))
+                dThread = DurationThread(id=i.id)
+                dThread.setDaemon(True)
                 # 开始线程
-                durationThread.start()
+                dThread.start()
             else:
+                logger.info("持续化定时任务停止{}！".format(i.id))
                 i.status = False
                 i.save()
     except Exception as e:
@@ -115,11 +117,11 @@ def DurationTask():
 
 
 def DurationReportTask():
-    logger.info("持续化报告定时任务启动！~~")
     obj = duration.objects.filter(sendstatus=True, type='持续化')
     statistics_date = '{} 00:00:00'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
     try:
         for i in obj:
+            logger.info("持续化报告定时任务启动！~~")
             record = duration_record.objects.filter(duration_id=i.id,
                                                     create_time__lte=statistics_date).values(
                 "duration_id").annotate(

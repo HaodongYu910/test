@@ -171,30 +171,47 @@ def sendMessage(touser='',toparty='',message='Message'):
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
 
-
 # Ansible 消息推送
 def AnsibleMessage(**kwargs):
-
-    if kwargs[" channel"] == "#production_build_radiology":
-        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
-        params = {
-            "msgtype": "text",
-            "text": {
-                "content": "{0} Fail：{1}".format(kwargs[" channel"], kwargs["msg"]),
-                "mentioned_list": ["@all"],
-                "mentioned_mobile_list": ["@all"]
-                    }
+    data = kwargs["data"]
+    if data["status"] == "fail":
+        if data["channel"] == "#production_build_radiology":
+            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "【{0} Production Build Radiology Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
+                        kwargs["version"], kwargs["job_name"], kwargs["AWXURL"], kwargs["ArtifactURL"], kwargs["msg"]),
+                    "mentioned_list": ["@yinhang"]
                 }
-    else:
-        send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
-        params = {
-            "msgtype": "text",
-            "text": {
-                "content": "{0} Fail：{1}".format(kwargs[" channel"], kwargs["msg"]),
-                "mentioned_list": ["@all"],
-                "mentioned_mobile_list": ["@all"]
             }
-        }
+        else:
+            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "【Nightly Build {0} Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
+                        kwargs["version"], kwargs["job_name"],kwargs["AWXURL"], kwargs["ArtifactURL"], kwargs["msg"]),
+                    "mentioned_list": ["@all"]
+                }
+            }
+    else:
+        if data["channel"] == "#production_build_radiology":
+            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "{} 版本构建成功！".format(kwargs["version"]),
+                }
+            }
+        else:
+            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "Nightly Build {} Success".format(kwargs["version"])
+                }
+            }
     try:
         MessageGroup(send_url, params)
     except Exception as e:

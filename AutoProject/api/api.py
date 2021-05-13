@@ -24,20 +24,7 @@ class test(APIView):
 
         data = JSONParser().parse(request)
         try:
-            obj = stress_result.objects.filter(type__in=["lung_JZ"])
-            obb = stress_result.objects.filter(type__in=["lung_jobJZ"])
-            for i in obj:
-                for j in obb:
-                    if i.version == j.version and i.modelname == j.modelname and i.slicenumber ==j.slicenumber:
-                        i.type = 'JZ'
-                        i.jobavg = j.avg
-                        i.jobmedian = j.median
-                        i.jobmin = j.min
-                        i.jobmax = j.max
-                        i.save()
-
-
-            #NightlyReportTask()
+            DurationTask()
 
             return JsonResponse(code="0", msg="成功")
         except Exception as e:

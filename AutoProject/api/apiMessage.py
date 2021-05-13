@@ -24,7 +24,7 @@ class sendMessage(APIView):
         data = JSONParser().parse(request)
         try:
             logger.info("AnsibleMessage：{}".format(data))
-            AnsibleMessage(msg=data["msg"], type=data["type"])
+            AnsibleMessage(data=data)
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
