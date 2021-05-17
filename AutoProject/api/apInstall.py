@@ -194,16 +194,18 @@ class AnsibleInstall(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
-        logger.info(data)
-        tag_version = data["tag_version"]
-        model_version = data["model_version"]
         if result:
             return result
         try:
-            # obj = install.objects.get(id=data["id"])
+            obj = dictionary.objects.get(key=data["tag_version"], type='history', status=True)
+            obj.status = False
+            obj.save()
+        except ObjectDoesNotExist:
+            logger.info("Ansible 版本:{}".format(data))
+        try:
             dictionary.objects.create(**{
-                "key": tag_version,
-                "value": model_version,
+                "key": data["tag_version"],
+                "value": data["model_version"],
                 "type": 'history',
                 'status': True
             })

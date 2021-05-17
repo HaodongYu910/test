@@ -40,7 +40,6 @@ def get_rand_uid():
 class DicomData(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
         self.count = 1  # 可用来被外部访问
         self.files = kwargs["files"]
         self.end = kwargs["end"]
@@ -73,7 +72,6 @@ class DicomData(threading.Thread):
 class DurationThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
-        self.Flag = True
         self.count = 0  # 可用来被外部访问
         self.obj = duration.objects.get(id=kwargs["id"])
         self.patientid = self.obj.patientid if self.obj.patientid is not None else '_'
@@ -338,8 +336,6 @@ class DurationThread(threading.Thread):
             logger.error("delayed:{}".format(e))
     # 停止
     def durationStop(self):
-        # 改变状态
-        self.Flag = False
         # 删除 文件夹
         shutil.rmtree(self.full_fn_fake)
         self.obj.sendstatus =False
