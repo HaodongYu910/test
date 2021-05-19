@@ -80,7 +80,7 @@ class InstallThread(threading.Thread):
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）删除旧缓存'.format(self.obj.Host.host))
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：删除旧缓存\n")
                 self.ssh.cmd(
-                        "rm -rf cache orthanc.json install.log restart.log {};".format(self.obj.version))
+                        "rm -rf cache orthanc.json install.log restart.log;")
             except Exception as e:
                 logger.error(e)
             # 备份原cache
@@ -108,31 +108,22 @@ class InstallThread(threading.Thread):
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
                     self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
 
-                    self.ssh.command("sshpass -p {0} bash install_qa.sh {1}".format(
+                    self.ssh.command("nohup sshpass -p {0} bash install_qa.sh {1} > install.log 2>&1 &".format(
                         self.obj.Host.pwd,
                         self.obj.version))
+                    # 校验是否安装完成
+                    while True:
+                        time.sleep(60)
+                        if "No such file or directory" in str(self.ssh.cmd("cd cache;")):
+                            break
+                        else:
+                            time.sleep(15)
 
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format(self.obj.version, e))
                 self.installStatus(status=False, type=3)
                 return
-            # 安装版本
-            # try:
-            #     while True:
-            #             time.sleep(60)
-            #             result = bytes.decode(self.ssh.cmd(
-            #                 "ls /home/biomind/.biomind/lib/versions/{}/deps/Biomind-Management/".format(
-            #                     self.obj.version)))
-            #             if ('build' in result) is True:
-            #                 time.sleep(60)
-            #                 break
-            #             else:
-            #                 time.sleep(40)
-            #
-            # except Exception as e:
-            #     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
-            #     self.installStatus(status=False, type=3)
-            #     return
+
             try:
                 self.installStatus(status=True, type=4)
                 self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
@@ -220,7 +211,6 @@ class smokeThread(threading.Thread):
         # 版本号
         self.version = kwargs["version"]
         self.server = Server.objects.get(id='13')
-
 
     def run(self):
         try:

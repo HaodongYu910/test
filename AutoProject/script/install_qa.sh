@@ -1,5 +1,8 @@
 #! /bin/bash
-#
+
+version=$1
+versions="2.18.4-istroke 2.19.1-radiology 2.19.0-radiology 2.18.4-radiology 2.18.3-radiology 2.18.3-istroke 2.18.2-radiology 2.18.1-radiology 2.18.5-radiology 2.18.6-radiology 2.18.7-radiology 2.19.2-radiology 2.19.3-radiology 2.19.4-radiology 2.19.5-radiology 2.19.6-radiology"
+
 echo ""
 echo "================================================================================"
 echo "                          Download AI Engine"
@@ -8,29 +11,39 @@ echo "==========================================================================
 echo ""
 echo "Instructions:"
 
-
 ###  version
-echo "#####################   version ########################"
-version=$1
+echo "#####################$version ########################"
 
+if [[ $versions == *$version* ]];then
+  name="${version}.zip"
+  echo "包含 ${name}"
+else
+  name="${version}.tgz"
+  echo "不包含 ${name}"
+fi
 
 ### removing ago folder
 echo "#################### old build has been removed ############################"
-sudo rm -rf $version
+sudo rm -rf $version $name
 
 ### ans for downloading packages and docker_registry
 
-my_var=`rclone ls oss://biomind-ha-se/versions/$version.tgz`
+my_var=`rclone ls oss://biomind-ha-se/versions/$name`
 
 echo $my_var
 
 echo "#################### rclone download $version ############################"
-rclone copy -P oss://biomind-ha-se/versions/$version.tgz /home/biomind/ --transfers=8
+rclone copy -P oss://biomind-ha-se/versions/$name /home/biomind/ --transfers=8
 
 
-echo "#################### pigz -p 8 -d $version.tgz  ############################"
-pigz -p 8 -d $version.tgz
-tar -xvf $version.tar
+echo "#################### tar|| zip - $name   ############################"
+if [[ $versions == *$version* ]];then
+    echo "unzip -o ${version}.zip"
+    unzip -o "${version}.zip"
+else
+    echo "tar -zxvf ${version}.tgz"
+    tar -zxvf "${version}.tgz"
+fi
 
 echo "################################### installing $version AI Engine ###################################"
 cd ~/$version
@@ -57,10 +70,9 @@ sleep 5
 
 echo ""
 echo "################################### config ###########################################"
-echo " "
-### fixed permssion
-mv orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
-mv cache /home/biomind/.biomind/var/biomind/cache
+echo ""
+mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
+mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
 
 ### report
 #biomind report prod master
