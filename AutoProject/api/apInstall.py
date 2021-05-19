@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
-from ..common.install import InstallThread, smokeThread
+from ..common.install import InstallThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
 from ..models import install, Server

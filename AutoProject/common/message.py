@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 import logging
-from ..models import message_group, message_detail
+from ..models import message_group, message_detail, dictionary
 
 logger = logging.getLogger(__name__)
 
@@ -173,10 +173,11 @@ def sendMessage(touser='',toparty='',message='Message'):
 
 # Ansible 消息推送
 def AnsibleMessage(**kwargs):
+    obj = message_group.objects.get(type='ansible', status=True)
     data = kwargs["data"]
     if data["status"] == "fail":
         if data["channel"] == "#production_build_radiology":
-            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            #obj.send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
             params = {
                 "msgtype": "text",
                 "text": {
@@ -186,7 +187,6 @@ def AnsibleMessage(**kwargs):
                 }
             }
         else:
-            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
             params = {
                 "msgtype": "text",
                 "text": {
@@ -197,7 +197,6 @@ def AnsibleMessage(**kwargs):
             }
     else:
         if data["channel"] == "#production_build_radiology":
-            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
             params = {
                 "msgtype": "text",
                 "text": {
@@ -205,7 +204,6 @@ def AnsibleMessage(**kwargs):
                 }
             }
         else:
-            send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
             params = {
                 "msgtype": "text",
                 "text": {
@@ -213,7 +211,7 @@ def AnsibleMessage(**kwargs):
                 }
             }
     try:
-        MessageGroup(send_url, params)
+        MessageGroup(obj.send_url, params)
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
 

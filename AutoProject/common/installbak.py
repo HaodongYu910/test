@@ -107,13 +107,12 @@ class InstallThread(threading.Thread):
             try:
                 if self.Flag is True:
                     self.installStatus(status=True, type=3)
-                    logger.info('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR))
-                    sendMessage(touser='', toparty='132', message='【安装部署】：（{0}） 下载安装版本'.format(self.obj.Host.host))
+                    sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）rclone 下载安装版本'.format(self.obj.Host.host))
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
-                    self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
+                    self.ssh.cmd("rclone copy oss://biomind-ha-se/versions/{}.tgz /home/biomind/".format(
+                        self.obj.version))
 
-                    self.ssh.cmd("sshpass -p {0} bash install_qa.sh {1} > install.log 2>&1 &".format(
-                        self.obj.Host.pwd,
+                    self.ssh.cmd("pigz -p 8 -d {}.tgz".format(
                         self.obj.version))
 
             except Exception as e:
@@ -122,7 +121,11 @@ class InstallThread(threading.Thread):
                 return
             # 安装版本
             try:
-                while True:
+                if self.Flag is True:
+                    self.ssh.command(
+                        "cd {0};nohup sshpass -p {1} bash setup_engine.sh > install.log 2>&1 &".format(self.obj.version,
+                                                                                                       self.pwd))
+                    while True:
                         time.sleep(60)
                         result = bytes.decode(self.ssh.cmd(
                             "ls /home/biomind/.biomind/lib/versions/{}/deps/Biomind-Management/".format(
@@ -143,7 +146,9 @@ class InstallThread(threading.Thread):
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
                 sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）重启服务'.format(self.obj.Host.host))
                 self.ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
+
                 time.sleep(120)
+
                 AddJournal(name="Installation{}".format(self.id), content="【服务状态】\n" + bytes.decode(self.ssh.cmd("docker ps;")))
             except:
                 self.installStatus(status=False, type=4)

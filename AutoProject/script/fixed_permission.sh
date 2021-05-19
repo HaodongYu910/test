@@ -17,7 +17,7 @@ sleep 10
 
 cp config .biomind/
 
-biomind start
+biomind restart
 sleep 10
 
 echo "restart finished"
