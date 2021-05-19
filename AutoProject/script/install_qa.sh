@@ -21,12 +21,6 @@ sudo rm -rf $version
 ### ans for downloading packages and docker_registry
 
 my_var=`rclone ls oss://biomind-ha-se/versions/$version.tgz`
-if [ -z "$my_var" ]
-then
-      echo "\$version is NULL"
-else
-      echo "\$version is NOT NULL"
-fi
 
 echo $my_var
 
@@ -35,8 +29,8 @@ rclone copy -P oss://biomind-ha-se/versions/$version.tgz /home/biomind/ --transf
 
 
 echo "#################### pigz -p 8 -d $version.tgz  ############################"
-tar -xvf -d $version.tgz
-# pigz -p 8 -d $version.tgz
+pigz -p 8 -d $version.tgz
+tar -xvf $version.tar
 
 echo "################################### installing $version AI Engine ###################################"
 cd ~/$version

@@ -8,10 +8,6 @@ import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
 from ..models import install, dictionary, message_group, Server
-from AutoInterface.models import gold_test, gold_record
-from AutoInterface.common.gold import GoldThread
-from AutoUI.models import autoui, auto_uirecord
-
 from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
@@ -112,7 +108,7 @@ class InstallThread(threading.Thread):
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
                     self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
 
-                    self.ssh.cmd("sshpass -p {0} bash install_qa.sh {1} > install.log 2>&1 &".format(
+                    self.ssh.command("sshpass -p {0} bash install_qa.sh {1}".format(
                         self.obj.Host.pwd,
                         self.obj.version))
 
@@ -121,22 +117,22 @@ class InstallThread(threading.Thread):
                 self.installStatus(status=False, type=3)
                 return
             # 安装版本
-            try:
-                while True:
-                        time.sleep(60)
-                        result = bytes.decode(self.ssh.cmd(
-                            "ls /home/biomind/.biomind/lib/versions/{}/deps/Biomind-Management/".format(
-                                self.obj.version)))
-                        if ('build' in result) is True:
-                            time.sleep(60)
-                            break
-                        else:
-                            time.sleep(40)
-
-            except Exception as e:
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
-                self.installStatus(status=False, type=3)
-                return
+            # try:
+            #     while True:
+            #             time.sleep(60)
+            #             result = bytes.decode(self.ssh.cmd(
+            #                 "ls /home/biomind/.biomind/lib/versions/{}/deps/Biomind-Management/".format(
+            #                     self.obj.version)))
+            #             if ('build' in result) is True:
+            #                 time.sleep(60)
+            #                 break
+            #             else:
+            #                 time.sleep(40)
+            #
+            # except Exception as e:
+            #     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}版本安装包失败原因：{1}".format(self.obj.version, e))
+            #     self.installStatus(status=False, type=3)
+            #     return
             try:
                 self.installStatus(status=True, type=4)
                 self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
