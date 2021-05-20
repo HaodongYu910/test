@@ -173,9 +173,18 @@ sleep 2
 #sudo chown biomind:biomind -R ~/.biomind/var/biomind/*
 
 echo ""
-echo "################################### start biomind ###########################################"
-### start biomind
-biomind start prod master &
+echo "################################### fixed permission ###########################################"
+echo " "
+### fixed permssion
+bash ~/.biomind/lib/current/installer/biomind.sh install
+sleep 5
+
+echo ""
+echo "################################### config ###########################################"
+echo " "
+### fixed permssion
+mv orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
+mv cache /home/biomind/.biomind/var/biomind/cache
 
 ### report
 #biomind report prod master

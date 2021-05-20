@@ -56,11 +56,11 @@ def cache(**kwargs):
         ssh = SSHConnection(host=server.host, pwd=server.pwd)
         ssh.cmd("rm -rf cache.zip;")
         ssh.upload("/files1/classifier/orthanc.json",
-                   "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+                   "/home/biomind/orthanc.json")
         ssh.upload("/files1/classifier/cache.zip",
                    "/home/biomind/cache.zip")
         ssh.cmd(
-            "mv /home/biomind/.biomind/var/biomind/cache cachebak;unzip -o cache.zip -d /home/biomind/.biomind/var/biomind/;")
+            "unzip -o cache.zip;")
         ssh.close()
     except Exception as e:
         logger.error("更新配置文件失败----失败原因：{0}".format(e))

@@ -58,9 +58,9 @@ import json
 
 
 
-import requests
-requests.post(url='http://192.168.1.120:7000/project/install/ansible',
-              json={'id': 1,
-                    'tag_version': 1,
-                    'model_version':2
-                    })
+# import requests
+# requests.post(url='http://192.168.1.120:7000/project/install/ansible',
+#               json={'id': 1,
+#                     'tag_version': 1,
+#                     'model_version':2
+#                     })
