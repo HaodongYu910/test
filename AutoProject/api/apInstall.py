@@ -15,7 +15,7 @@ from AutoDicom.common.deletepatients import *
 from ..models import install, Server
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
-
+from AutoInterface.models import gold_record
 import os
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -99,7 +99,7 @@ class getInstall(APIView):
         :return:
         """
         try:
-            page_size = int(request.GET.get("page_size", 10))
+            page_size = int(request.GET.get("page_size", 5))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
@@ -118,6 +118,17 @@ class getInstall(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = install_Deserializer(obm, many=True)
+        for i in serialize.data:
+            if i["status"] is True:
+                try:
+                    testThread = InstallThread(id=i["id"])
+                    i["cleantime"], i["uptime"], i["restarttime"] = testThread.getParm()
+                except:
+                    i["cleantime"], i["uptime"], i["restarttime"] = "", "", ""
+            elif i["smokeid"] is not None:
+
+                goldObj = gold_record.objects.filter(gold_id=i["smokeid"])
+                i["progress"] = '%.2f' % (int(goldObj.count()) / int(121) * 100)
 
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,

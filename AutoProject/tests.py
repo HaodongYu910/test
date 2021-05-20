@@ -64,5 +64,3 @@ import json
 #                     'tag_version': 1,
 #                     'model_version':2
 #                     })
-
-
