@@ -70,7 +70,7 @@ class duration(models.Model):
     aet = models.CharField(max_length=20, blank=True, null=True, verbose_name="aet")
     patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
     patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientname")
-    dicom = models.CharField(max_length=100, blank=True, null=True, verbose_name="dicom数据")
+    dicom = models.CharField(max_length=500, blank=True, null=True, verbose_name="dicom数据")
     group = models.CharField(max_length=200, blank=True, null=True, verbose_name="组信息")
     sendcount = models.IntegerField(blank=True, null=True, verbose_name="共计发送")
     start_time = models.CharField(max_length=20, blank=True, null=True, verbose_name="开始时间")
