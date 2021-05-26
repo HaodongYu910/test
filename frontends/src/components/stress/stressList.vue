@@ -21,7 +21,7 @@
                         </el-button>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试
+                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">测试
                         </el-button>
                     </el-form-item>
                     <el-form-item>
@@ -403,9 +403,8 @@
                             <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
                             <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
                         </el-upload>
-                        <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
-                        <el-row>
-                        </el-row>
+                        <el-progress :stroke-width="16" :percentage="100"></el-progress>
+
                     </el-col>
                 </el-row>
             </el-form>
