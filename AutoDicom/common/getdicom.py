@@ -7,10 +7,8 @@ import pydicom
 from tqdm import tqdm
 import time
 import logging
-
 from AutoDicom.models import *
 from AutoProject.common.transport import SSHConnection
-
 logger = logging.getLogger(__name__)
 
 
@@ -68,6 +66,7 @@ def get_to_local(PID):
         logging.info(" we get UID {0}".format(tmp_UID))
         if tmp_UID == "":
             tmp_url = "we dont have this data"
+            logging.info("we dont have this data")
             return tmp_url
 
         tmp2 = dicom.objects.filter(studyinstanceuid=tmp_UID)  # 利用得到的old studyUID 去dicom表中读取其所在行
@@ -84,3 +83,4 @@ def get_to_local(PID):
     except Exception as e:
         logging.error("error happend {0}".format(e))
     return tmp_url
+

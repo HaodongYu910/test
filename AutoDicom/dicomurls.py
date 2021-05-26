@@ -20,7 +20,7 @@ urlpatterns = [
     url(r'dicomData', dicomData.as_view()),
     url(r'dicomdetail', dicomDetail.as_view()),
     url(r'update', dicomUpdate.as_view()),
-    url(r'del_dicomData', deldicomdata.as_view()),
+    url(r'delDDD', deldicomdata.as_view()),
     url(r'dicomcsv', dicomcsv.as_view()),
     url(r'dicomSend', dicomSend.as_view()),
     url(r'delete_patients', deletePatients.as_view()),

@@ -382,7 +382,7 @@ export const enableBenchmarkstatus = (headers, params) => {
 //------------------- Dicom  -------------------
 // 删除数据
 export const deldicomdata = (headers, params) => {
-  return axios.post(`${test}/dicom/del_dicomData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/delDDD`, params, headers).then(res => res.data)
 }
 // 修改dicom数据
 export const updatedicomdata = (headers, params) => {
