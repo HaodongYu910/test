@@ -164,6 +164,10 @@ export const delreport = (headers, params) => {
 export const addupload = (headers, params) => {
   return axios.post(`${test}/project/addupload`, params, headers).then(res => res.data)
 }
+// 文件发送上传zip文件
+export const addzipupload = (headers, params) => {
+  return axios.post(`${test}/project/addzipupload`, params, headers).then(res => res.data)
+}
 // 上传文件
 export const delupload = (headers, params) => {
   return axios.post(`${test}/project/delupload`, params, headers).then(res => res.data)

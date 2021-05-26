@@ -384,6 +384,7 @@
                     <el-upload
                             class="upload-demo"
                             action="#"
+                            drag="true"
                             :file-list="fileList"
                             :on-change="changeData"
                             multiple

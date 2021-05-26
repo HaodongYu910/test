@@ -46,6 +46,7 @@ urlpatterns = [
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
     url(r'addupload', AddUpload.as_view()),  # 文件上传
+    url(r'addzipupload', AddZipUpload.as_view()),  # 文件上传
     url(r'delupload', DelUpload.as_view()),  # 文件上传
     url(r'upload', getUpload.as_view()),  # 文件列表
     url(r'dictionary/list', Dictionary.as_view()),

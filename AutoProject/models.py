@@ -263,7 +263,7 @@ class uploadfile(models.Model):
         """
     id = models.AutoField(primary_key=True)
     filename = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件名")
-    fileurl = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件路径")
+    fileurl = models.CharField(max_length=300, blank=True, null=True, verbose_name="文件路径")
     fileid = models.IntegerField(blank=True, null=True, verbose_name="关联文件id")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')

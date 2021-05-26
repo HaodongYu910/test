@@ -34,9 +34,9 @@
                     <el-button type="primary" @click="getbaseList">查询</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="handleAdd">新增</el-button>
+                    <el-button type="primary" @click="handleAdd">新增病种</el-button>
                 </el-form-item>
-                <el-button type="warning" :disabled="this.sels.length===0" @click="batchSend">发送数据</el-button>
+<!--                <el-button type="warning" :disabled="this.sels.length===0" @click="batchSend">发送数据</el-button>-->
             </el-form>
         </el-col>
 
@@ -89,8 +89,8 @@
             </el-table-column>
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
-                    <el-button type ="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handlecount(scope.$index, scope.row)">同步</el-button>
+                    <el-button type ="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑病种</el-button>
+                    <el-button type="primary" size="small" @click="handleSupplement(scope.$index, scope.row)">补充病人数据</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -107,11 +107,11 @@
         </el-col>
 
         <!--编辑界面-->
-        <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false"
+        <el-dialog title="编辑病种" :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                 <el-form-item label="文件路径">
-                    <el-input v-model="editForm.content"></el-input>
+                    <el-input v-model="editForm.content" :disabled="true"></el-input>
                 </el-form-item>
                 <el-row :gutter="24">
                     <el-col :span="12">
@@ -151,25 +151,25 @@
         </el-dialog>
 
         <!--新增界面-->
-        <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
+        <el-dialog title="新增病种" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-row :gutter="24">
+                <el-row>
                     <el-col :span="12">
                         <el-form-item label="病种名称" prop='remarks'>
-                            <el-input v-model.trim="addForm.remarks" auto-complete="off"></el-input>
+                            <el-input v-model.trim="addForm.remarks" auto-complete="off" style="width: 215px;height:32px;"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="文件路径" prop='content'>
-                            <el-input v-model.trim="addForm.content" auto-complete="off"></el-input>
+                            <el-input v-model.trim="addForm.content" auto-complete="off" style="width: 215px;height:32px;"></el-input>
                         </el-form-item>
                     </el-col>
                 </el-row>
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="数据类型" prop="environment">
-                                <el-select v-model="addForm.type" placeholder="请选择类型" @click.native="getfile()">
+                        <el-form-item label="数据类型" prop='type'>
+                                <el-select v-model="addForm.type" placeholder="请选择" @click.native="getfile()">
                                     <el-option v-for="(item,index) in filetype"
                                                :key="item.value"
                                                :label="item.remarks"
@@ -179,7 +179,7 @@
                         </el-form-item>
                     </el-col>
                         <el-col :span="12">
-                            <el-form-item label="模型" prop='predictor'>
+                            <el-form-item label="模型类型" prop='predictor'>
                                 <el-select v-model="addForm.predictor" placeholder="请选择" @click.native="getDict()">
                                     <el-option v-for="(item,index) in model"
                                                :key="item.id"
@@ -190,12 +190,68 @@
                             </el-form-item>
                         </el-col>
                 </el-row>
+                <el-alert title="使用帮助" type="success">
+                    <template slot='title'>
+                        <div class="iconSize">使用帮助:</div>
+                        <div class="iconSize">1、病种名称:测试部自定义病种名称，一个病种下可以有多个病人数据,此处是新增病种，如已有该病种，请在列表处直接添加病人数据</div>
+                        <div class="iconSize">2、文件路径:该病种（N）个病人数据所在文件夹</div>
+                        <div class="iconSize">3、数据类型:测试用途不同，需要不同的类型数据</div>
+                        <div class="iconSize">4、模型类型:开发部定义，该病种使用哪种模型算法进行智能分析</div>
+                        <div class="iconSize">5、上传数据:点击后，数据将自动上传测试服务器，下一步请到Dicom发送中选择发送到哪个被测服务器上</div>
+                    </template>
+                </el-alert>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
+                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">上传数据</el-button>
             </div>
         </el-dialog>
+
+        <!--补充病人数据界面-->
+        <el-dialog title="补充病人数据" :visible.sync="supplementVisible" :close-on-click-modal="false"
+                   style="width: 75%; left: 12.5%">
+            <el-form :model="supplemenForm" label-width="80px" ref="supplementForm" enctype="multipart/form-data">
+                <el-form-item label="文件路径">
+                    <el-input v-model="supplemenForm.content" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="文件id">
+                    <el-input v-model="supplemenForm.id" :disabled="true"></el-input>
+                </el-form-item>
+
+                <el-form-item label="名称" :disabled="true">
+                     <el-upload
+                      class="upload-demo"
+                      ref="upload"
+                      :limit="1"
+                      action="FakeAction"
+                      :on-preview="handlePreview"
+                      :on-exceed="handleExceed"
+                      :on-change="handleChange"
+                      :file-list="fileList"
+                      :show-file-list="showFileName"
+
+                      :auto-upload="false">
+                      <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
+                      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload()" :disabled=dataupshow>补充数据上传</el-button>
+<!--                      <div slot="tip" class="el-upload__tip">只能上传zip文件</div>-->
+                    </el-upload>
+                </el-form-item>
+
+                <el-alert title="使用帮助" type="success">
+                    <template slot='title'>
+                        <div class="iconSize">使用帮助:</div>
+<!--                        <div class="iconSize">1.只能上传zip文件，且不超过500kb</div>-->
+                        <div class="iconSize">将病人数据打包zip格式，选择文件，点击补充数据上传</div>
+                    </template>
+                </el-alert>
+            </el-form>
+<!--            <div slot="footer" class="dialog-footer">-->
+<!--                <el-button @click.native="supplementVisible = false">取消</el-button>-->
+<!--                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>-->
+<!--            </div>-->
+        </el-dialog>
+
+
     </section>
 </template>
 
@@ -203,19 +259,26 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary
+        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary, addupload, addzipupload
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
             return {
+                dataupshow:false,
+                file: '',
+                fileList: [],
+                filetype:[],
+                tags:[],
+                model:[],
                 filters: {
                     type: '',
                     remarks: '',
                     selecttype: 'dicom',
                     status: true
                 },
+                showFileName: false,
                 baseData: [],
                 total: 0,
                 page: 1,
@@ -250,16 +313,32 @@
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {
+                    remarks: [
+                        { required: true, message: '请填写病种名称', trigger: 'blur' }
+                    ],
+                    content: [
+                        { required: true, message: '请填写文件上传所在目录', trigger: 'blur' }
+                    ],
                     type: [
-                        {required: true, message: '请选择类型', trigger: 'blur'}
+                        { required: true, message: '请填写数据类型', trigger: 'change' }
                     ]
+                },
+
+                supplementVisible: false,//补充病人数据界面是否显示
+                //补充病人数据界面数据
+                supplemenForm: {
+                    id:'',
+                    content: '',
+                    files: '',
                 },
                 //新增界面数据
                 addForm: {
+                    remarks:'',
                     content: '',
-                    select_type: 'dicom',
-                    type: 'endurance',
-                    description: ''
+                    type:''
+                    // select_type: 'dicom',
+                    // type: 'endurance',
+                    // description: ''
                 }
 
             }
@@ -452,6 +531,13 @@
                 this.editFormVisible = true;
                 this.editForm = Object.assign({}, row);
             },
+            //显示补充病人数据界面
+            handleSupplement: function (index, row) {
+                this.showFileName = false//不显示列表
+                this.fileList = []//清空列表数据
+                this.supplementVisible = true;
+                this.supplemenForm = Object.assign({}, row);
+            },
             //显示新增界面
             handleAdd: function () {
                 this.addFormVisible = true;
@@ -461,7 +547,7 @@
                     status: true,
                     remarks: null,
                     other: null,
-                    type: 'endurance',
+                    // type: 'endurance',
                     predictor: ''
                 };
             },
@@ -635,8 +721,65 @@
                         self.getbaseList()
                     });
                 })
-            }
+            },
+
+            handleChange(file, fileList) {
+              if(file.name.indexOf(".zip") >= 0 ) {
+                  this.showFileName = true
+                    this.fileList = fileList;
+              }else{
+                  this.$message({
+                      showClose: true,
+                      message: ('上传文件格式不正确'),
+                      type: 'warning'
+                  });
+                  this.showFileName = false
+                  this.fileList = []
+              }
+            },
+            //上传补充病人数据
+            submitUpload() {
+                this.dataupshow=true
+                let params = new FormData();
+                  this.fileList.forEach(item => {
+                    params.append("files", item.raw);
+                });
+                params.append('type', this.supplemenForm.content)
+                params.append('id', this.supplemenForm.id)
+
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                addzipupload(headers, params).then((res) => {
+                    this.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        // alert("ok")
+                        // this.$message(data.filename,'上传成功');
+                        this.$message({
+                            showClose: true,
+                          message: (data.filename+'上传成功'),
+                          type: 'success'
+                        });
+                        this.dataupshow=false
+                        this.supplementVisible = false;
+                    } else {
+                        this.dataupshow=false
+                        this.$message({
+                            showClose: true,
+                            message: (msg),
+                            type: 'error'
+                        });
+                    }
+                })
+            },
+            handlePreview(file) {
+              console.log(file);
+            },
+            handleExceed(files, fileList) {
+              this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+            },
+
         },
+
         mounted() {
             this.getbaseList();
         }
@@ -645,5 +788,11 @@
 </script>
 
 <style>
+     .iconSize{
+        font-size: 14px;
+        padding: 10px;
+        font-weight: bold;
+
+}
 
 </style>

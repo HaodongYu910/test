@@ -63,8 +63,9 @@ axios.interceptors.response.use(res => {
                     });
                 }
                 else if (error.response.status === 500) {
+                    // message()
                     router.push({
-                        path: "/error/500"
+                        path: "/deploy"
                     });
                 }
                 else if (error.response.status === 502) {

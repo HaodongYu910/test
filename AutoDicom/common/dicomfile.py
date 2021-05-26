@@ -8,6 +8,7 @@ from ..models import dicom_base, dicom
 from django.db.models import Max
 import shutil
 import time
+import uuid
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
@@ -33,7 +34,11 @@ def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
+            # study_uid = ds.StudyInstanceUID
+            # ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
             study_uid = ds.StudyInstanceUID
+            if str(study_uid).count("__") is False:
+                study_uid = '__'.join([ds.StudyInstanceUID, str(uuid.uuid1())])
             try:
                 study_infos["No"] = study_infos["No"] + 1
                 if study_infos.__contains__(study_uid) is False:
@@ -107,7 +112,8 @@ def fileUpdate(id):
     while src_folder[-1] == '/':
         src_folder = src_folder[0:-1]
     updateFolder(
-        src_folder=src_folder,
+        src_folder="C:\D\MRP",
+        # src_folder=src_folder,
         study_infos=study_infos,
         diseases=obj.remarks,
         foldType=obj.type,
