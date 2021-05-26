@@ -75,6 +75,7 @@ class InstallThread(threading.Thread):
     def clean(self):
         self.cleanstart = time.time()
         self.installStatus(status=True, type=2)
+        self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
         # 查看磁盘空间 输出日志
         self.checkDisk()
         # 删除旧的版本配置
@@ -82,7 +83,6 @@ class InstallThread(threading.Thread):
             deldata(self.obj.server, self.id, self.pwd)
         # 删除旧缓存
         try:
-            self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）删除旧缓存'.format(self.obj.Host.host))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：删除旧缓存\n")
             self.ssh.cmd(
@@ -94,11 +94,14 @@ class InstallThread(threading.Thread):
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）备份 配置文件'.format(self.obj.Host.host))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：备份配置文件\n")
 
-            if int(self.obj.testcase) in [1, 3]:
+            if "No such file or directory" in str(self.ssh.cmd(" cd /home/biomind/.biomind/var/biomind/cache/;")):
                 cache(id=self.obj.Host_id)
             else:
                 self.ssh.cmd(
-                    "cp -r /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache;cp -r /home/biomind/.biomind/var/biomind/orthanc/orthanc.json /home/biomind/orthanc.json")
+                    "cp -r /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache")
+                self.ssh.cmd(
+                    "cp -r /home/biomind/.biomind/var/biomind/orthanc/orthanc.json /home/biomind/orthanc.json")
+
             self.cleanstop = time.time()
         except Exception as e:
             logger.error(e)
@@ -124,10 +127,10 @@ class InstallThread(threading.Thread):
                     # 校验是否安装完成
                     while True:
                         time.sleep(60)
-                        if "No such file or directory" in str(self.ssh.cmd("cd cache;")):
+                        if "No such file or directory" in str(self.ssh.cmd("cd QInstall;")):
                             break
                         else:
-                            time.sleep(15)
+                            time.sleep(5)
                 self.upstop = time.time()
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format(self.obj.version, e))
@@ -174,27 +177,25 @@ class InstallThread(threading.Thread):
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：createUser \n")
                     createUser(user="biomind3d", pwd="engine3D.", protocol=self.obj.Host.protocol,
                                server=self.obj.Host.host)
-                    self.installStatus(status=True, type=5)
+                    self.installStatus(status=False, type=5)
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装部署完成'.format(self.obj.Host.host))
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装完成\n")
 
                     if self.obj.smokeid == 0:
                         AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
                         goldsmoke(version=self.obj.version)
-                        self.installStatus(status=False, type=6)
                     if self.obj.uid == 0:
                         goldsmoke(version=self.obj.version)
-                        self.installStatus(status=False, type=7)
 
                     return True
                 elif b == 10:
+                    self.installStatus(status=False, type=5)
                     sendMessage(touser='', toparty='132', message='【注意】：（{0}）安装部署可能失败请看下'.format(self.obj.Host.host))
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装部署可能失败请看下\n")
                     return False
                 else:
                     time.sleep(30)
                     b = b + 1
-
 
         except Exception as e:
             self.obj.status = False

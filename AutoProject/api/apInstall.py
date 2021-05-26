@@ -16,56 +16,30 @@ from ..models import install, Server
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
 from AutoInterface.models import gold_record
-import os
+from ..common.frontend import frontend
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class Install(APIView):
+class InstallDeploy(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
-    def get(self, request):
+    def post(self, request):
         """
         自动部署
-        保存版本信息
         :param request:
         :return:
         user
         """
 
-        version = request.GET.get("version")
+        data = JSONParser().parse(request)
         try:
-            if version is None or version == "":
-                return JsonResponse(code="999998", msg="参数错误（必传参数：version 可选参数：serverIP）")
-            else:
-                obj = dictionary.objects.filter(key=version[:-4], type="history")
-                if obj.count() < 1:
-                    data = {
-                        "key": version[:-4],
-                        "value": "/files/History_version/{0}/{1}".format(version[:-4], version),
-                        "type": "history",
-                        "status": 1
-                    }
-                    dictionary.objects.create(**data)
-                    try:
-                        installObj = install.objects.filter(status=False, crontab='crontab')
-                        if int(installObj.count()) > 0:
-                            # 循环安装部署
-                            for j in installObj:
-                                j.version = version[:-4]
-                                j.save()
-                                testThread = InstallThread(id=j.id)
-                                testThread.setDaemon(True)
-                                # 开始线程
-                                testThread.start()
-                        else:
-                            logger.info("无定时部署服务")
-                    except Exception as e:
-                        logger.error("定时部署服务失败：{}".format(e))
-                return JsonResponse(code="0", msg="Success")
-
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999998", msg="错误")
+            logger.info("InstallDeploy：{}".format(data))
+            frontend(version=data["version"],
+                     host=data["server"])
+            return JsonResponse(code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(code="999995", msg="{0}".format(e))
 
 
 class getInstallVersion(APIView):
@@ -120,13 +94,12 @@ class getInstall(APIView):
         serialize = install_Deserializer(obm, many=True)
         for i in serialize.data:
             if i["status"] is True:
-                try:
-                    testThread = InstallThread(id=i["id"])
-                    i["cleantime"], i["uptime"], i["restarttime"] = testThread.getParm()
-                except:
-                    i["cleantime"], i["uptime"], i["restarttime"] = "", "", ""
+                # try:
+                #     testThread = InstallThread(id=i["id"])
+                #     i["cleantime"], i["uptime"], i["restarttime"] = testThread.getParm()
+                # except:
+                i["cleantime"], i["uptime"], i["restarttime"] = "", "", ""
             elif i["smokeid"] is not None:
-
                 goldObj = gold_record.objects.filter(gold_id=i["smokeid"])
                 i["progress"] = '%.2f' % (int(goldObj.count()) / int(121) * 100)
 
