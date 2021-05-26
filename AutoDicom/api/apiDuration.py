@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.db import transaction
 from django.db.models import Avg
 from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
@@ -9,6 +10,7 @@ import threading
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import pid
+from ..common.getdicom import *
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
@@ -19,7 +21,6 @@ from AutoDicom.common.dicomBase import baseTransform
 from ..common.durarion import DurationThread
 import datetime, os
 from AutoProject.scheduletask import DurationSyTask
-
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -38,17 +39,20 @@ class getDuration(APIView):
         try:
             Host = request.GET.get("server")
             if request.GET.get("type") != '持续化':
-                type = ["正常", "匿名"]
+                durationType = ["正常", "匿名"]
+            elif request.GET.get("type") == 'Nightly':
+                durationType = ['Nightly']
             else:
-                type = ["持续化"]
-            page_size = int(request.GET.get("page_size", 20))
+                durationType = ["持续化", "Nightly"]
+            page_size = int(request.GET.get("page_size", 10))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if Host:
-            obi = duration.objects.filter(Host=Host, type__in=type).order_by("-sendstatus")
+            obi = duration.objects.filter(Host=Host, type__in=durationType).order_by("-sendstatus")
+
         else:
-            obi = duration.objects.filter(type__in=type).order_by("-id").order_by("-sendstatus")
+            obi = duration.objects.filter(type__in=durationType).order_by("-id").order_by("-sendstatus")
 
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
@@ -61,9 +65,9 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            obj = duration_record.objects.filter(duration_id=i["id"],create_time__gte = i["update_time"])
+            obj = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
-            i["dicom"] = baseTransform(i["dicom"],'base')
+            i["dicom"] = baseTransform(i["dicom"], 'base')
 
         return JsonResponse(data={"data": dataSerializer.data,
                                   "page": page,
@@ -129,7 +133,7 @@ class durationData(APIView):
             obm = paginator.page(1)
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
-        serialize = duration_record_Deserializer(obm, many=True) # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
+        serialize = duration_record_Deserializer(obm, many=True)  # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
         durationData = serialize.data
 
         return JsonResponse(data={"data": durationData,
@@ -137,6 +141,7 @@ class durationData(APIView):
                                   "total": total,
                                   "count": count
                                   }, code="0", msg="成功")
+
 
 class addDuration(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -171,7 +176,7 @@ class addDuration(APIView):
         try:
             dicomdata = ''
             hostobj = Server.objects.get(id=data['Host'])
-            data['server']= hostobj.host
+            data['server'] = hostobj.host
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
                 if i[0] == "虚拟组":
@@ -190,6 +195,7 @@ class addDuration(APIView):
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="添加失败:{}！".format(e))
+
 
 class updateDuration(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -272,14 +278,13 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            obj.sendstatus = False
-            obj.save()
             if obj.type == "正常":
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.setFlag = False
             else:
+                logger.info("Stop Duration Thread {}".format(data["id"]))
                 durationThread = DurationThread(id=data["id"])
-                durationThread.setFlag = False
+                durationThread.durationStop()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -316,6 +321,9 @@ class EnableDuration(APIView):
         # 查找id是否存在
         try:
             obj = duration.objects.get(id=data["id"])
+            obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            obj.status = True
+            obj.save()
             if obj.type == "匿名":
                 durationThread = DurationThread(id=data["id"])
                 durationThread.setDaemon(True)
@@ -329,7 +337,6 @@ class EnableDuration(APIView):
                 durationThread.setDaemon(True)
                 # 开始线程
                 durationThread.start()
-
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
@@ -411,8 +418,8 @@ class deletePatients(APIView):
             return result
         #
         try:
-            data=delete_patients_duration(data['deldata'], data['serverID'], data['testtype'], data['fuzzy'])
-            return JsonResponse(code="0", msg="成功",data=data)
+            data = delete_patients_duration(data['deldata'], data['serverID'], data['testtype'], data['fuzzy'])
+            return JsonResponse(code="0", msg="成功", data=data)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
 
@@ -426,12 +433,12 @@ class anonymizationAPI_2nd(APIView):
         data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
         try:
             name = data['anon_name']
-            #addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
+            # addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
             addr = data['anon_addr']
             disease = data['anon_disease']
             wPN = data['wPN']
             wPID = data['wPID']
-            ap_addr = data['appointed_addr'] # appointed storage address
+            ap_addr = data['appointed_addr']  # appointed storage address
 
             # 将匿名化后的数据入库
             # 调用后端服务，对传入的文件夹进行匿名化
@@ -440,6 +447,33 @@ class anonymizationAPI_2nd(APIView):
             return JsonResponse(code="0", msg="匿名化开始")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
+
+
+class get_dicomAPI_2nd(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    # 发送post请求
+    def post(self, request):
+        data = JSONParser().parse(request)  # 将传入的json数据转换为可识别的内容
+        try:
+            PID = data['PID']  # 待查询数据的patientname
+            # addr = 'C:\\Users\\yuhaodong\\Desktop\\train'
+            destIP = data['destIP']  # 发送目标服务器ip
+            destUSR = data['destUSR']  # 发送目标服务器用户名
+            destPSW = data['destPSW']  # 发送目标服务器密码
+            if destIP and destPSW and destPSW:
+                t = threading.Thread(target=getDicomServe(PID, destIP, destUSR, destPSW))
+                t.start()
+                data['url'] = ""
+                return JsonResponse(code="0", msg="开始提取数据至服务器" , data=data)
+            else:
+                url = get_to_local(PID)
+                data['url'] = url
+                return JsonResponse(code="0", msg="开始提取数据至本地" , data=data)
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="出问题了....")
+
 
 class ddsDataVerifyAPI(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -452,11 +486,12 @@ class ddsDataVerifyAPI(APIView):
             time = data['search_duration']
             id = data['id']
 
-            t= threading.Thread(target=dataVerify(ip,id))
+            t = threading.Thread(target=dataVerify(ip, id))
             t.start()
             return JsonResponse(code="0", msg="开始搜索")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="出问题了....")
+
 
 class getDurationTB(APIView):
     authentication_classes = (TokenAuthentication,)

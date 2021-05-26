@@ -7,7 +7,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.saveResult import *
 from ..common.PerformanceResult import *
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
@@ -34,6 +33,7 @@ class stressVersion(APIView):
         serialize = stress_Deserializer(obj, many=True)
         return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
+
 # 获取压测列表
 class stressReport(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -48,53 +48,45 @@ class stressReport(APIView):
         try:
             stressId = int(request.GET.get("stressId"))
             obj = stress.objects.get(stressid=stressId)
-            type = request.GET.get("type", "jz")
+            ChartType = request.GET.get("type", "JZ")
             checkversion = request.GET.get("checkversion", obj.version)
-            models = ["", str(request.GET.get("models")).strip()]
+            models = ["", str(request.GET.get("models", "1")).strip()]
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="必传 stressId!")
-        st = StressReport(stressId)
+        # 报告信息
+        st = StressReport(stressId, ChartType)
         report = st.report()
 
-        if type == 'jz':
-            stressType = ['predictionJZ', 'jobJZ']
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['predictionJZ', 'lung_prediction'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['jobJZ', 'lung_jobJZ'])
+        # 返回各个版本折线图表 数据
+        try:
+            chartData = st.ChartData(model=models)
+        except Exception as e:
+            logger.error("chartData fail:{}".format(e))
+            chartData = []
 
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['predictionJZ', 'lung_JZ'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['jobJZ', 'lung_jobJZ'])
-            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        elif type == 'dy':
-            stressType = ['predictiondy', 'jobdy']
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['predictiondy', 'lung_dy'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['jobdy', 'lung_jobdy'])
+        # 返回 预测时间 折线图
+        try:
+            LineData = st.recordLine(models[1])
+        except Exception as e:
+            logger.error("LineData fail:{}".format(e))
+            LineData = []
+        # 判断是否相同版本 返回 预测 版本比较数据
+        try:
+            result = st.dataCheck(CheckVersion=checkversion)
+        except Exception as e:
+            logger.error("resultData fail:{}".format(e))
+            result = []
 
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['predictiondy', 'lung_dy'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['jobdy', 'lung_jobdy'])
+        return JsonResponse(
+            data={"report": report,
+                  "result": result,
+                  "chartData": chartData,
+                  "LineData": LineData,
+                  "modelsName": dictionary.objects.get(id=models[1]).value
+                  },
+            code="0",
+            msg="成功")
 
-            result = list(map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        else:
-            prediction = stress_result.objects.filter(version=obj.version,
-                                                      type__in=['prediction', 'lung_prediction'])
-            job = stress_result.objects.filter(version=obj.version, type__in=['job', 'lung_job'])
-
-            predictionb = stress_result.objects.filter(version=checkversion,
-                                                       type__in=['prediction', 'lung_prediction'])
-            jobb = stress_result.objects.filter(version=checkversion, type__in=['job', 'lung_job'])
-            stressType = ['prediction', 'job']
-            result = list(result=map(dataCheck, [[prediction, predictionb], [job, jobb], [job, prediction]]))
-        chartData = stressdataFigure(models, stressType)
-
-        return JsonResponse(data={"report": report,
-                                  "predictionresult": result[0],
-                                  "jobresult": result[1],
-                                  "diffresult": result[2],
-                                  "chartData": chartData
-                                  }, code="0", msg="成功")
 
 class SaveAnalysis(APIView):
     authentication_classes = (TokenAuthentication,)

@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 import logging
-from ..models import message_group, message_detail
+from ..models import message_group, message_detail, dictionary
 
 logger = logging.getLogger(__name__)
 
@@ -129,31 +129,6 @@ def MessageGroup(send_url, params):
         requests.post(send_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
-#     obj = message_group.objects.get(type=messageType)
-#     if obj.msgtype =="image":
-#         params ={
-#     "msgtype": "image",
-#     "image": {
-#         "base64": "DATA",
-#         "md5": "MD5"
-#     }
-# }
-#     elif obj.msgtype =="news":
-#         params = {
-#             "msgtype": "news",
-#             "news": {
-#                "articles": [
-#                    {
-#                        "title":"中秋节礼品领取",
-#                        "description" : "今年中秋节公司有豪礼相送",
-#                        "url" : "www.qq.com",
-#                        "picurl" : "http://res.mail.qq.com/node/ww/wwopenmng/images/independent/doc/test_pic_msg1.png"
-#                    }
-#                 ]
-#             }
-#         }
-#     else:
-#         params =
 
 
 
@@ -195,4 +170,49 @@ def sendMessage(touser='',toparty='',message='Message'):
         requests.post(msgsend_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
+
+# Ansible 消息推送
+def AnsibleMessage(**kwargs):
+    obj = message_group.objects.get(type='ansible', status=True)
+    data = kwargs["data"]
+    if data["status"] == "fail":
+        if data["channel"] == "#production_build_radiology":
+            #obj.send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "【{0} Production Build Radiology Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
+                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
+                    "mentioned_list": ["@yinhang"]
+                }
+            }
+        else:
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "【Nightly Build {0} Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
+                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
+                    "mentioned_list": ["@all"]
+                }
+            }
+    else:
+        if data["channel"] == "#production_build_radiology":
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "{} 版本构建成功！".format(data["version"]),
+                }
+            }
+        else:
+            params = {
+                "msgtype": "text",
+                "text": {
+                    "content": "Nightly Build {} Success".format(data["version"])
+                }
+            }
+    try:
+        MessageGroup(obj.send_url, params)
+    except Exception as e:
+        logger.error("send Message fail :{}".format(e))
+
 

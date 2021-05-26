@@ -1,3 +1,4 @@
+# encoding=utf-8
 import re, os, sys
 from ..models import errorlog
 final = []

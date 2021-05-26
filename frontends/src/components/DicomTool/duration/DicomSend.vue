@@ -7,7 +7,7 @@
                     <el-form-item label="服务器" prop="server">
                         <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
                             <el-option key="" label="" value=""></el-option>
-                            <el-option v-for="(item,index) in tags"
+                            <el-option v-for="(item,index) in Host"
                                        :key="item.id"
                                        :label="item.name"
                                        :value="item.id"
@@ -23,6 +23,9 @@
                     <el-form-item>
                         <el-button type="primary" @click="handleAnon">匿名化文件夹</el-button>
                     </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="handleGetDicom">获取Dicom文件</el-button>
+                    </el-form-item>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -37,7 +40,7 @@
                 </el-table-column>
                 <el-table-column prop="type" label="服务" min-width="20%" sortable>
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: '持续化详情', params: {durationidf: scope.row.id}}"
+                        <router-link v-if="scope.row.server" :to="{ name: 'durationData', params: {durationid: scope.row.id} }"
                                      style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
@@ -173,14 +176,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="editForm.sendcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sendcount" :min="0"
                                                  :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="editForm.loop_time" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.loop_time" :min="0"
                                                  :max="100000"
                                                  label="持续时间（时）"></el-input-number>
                             </el-form-item>
@@ -189,14 +192,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="editForm.sleepcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sleepcount" :min="0"
                                                  :max="99999"
                                                  label="延时数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="editForm.sleeptime" @change="handleChange" :min="0"
+                                <el-input-number v-model="editForm.sleeptime" :min="0"
                                                  :max="5000"
                                                  label="延时时间（秒）"></el-input-number>
                             </el-form-item>
@@ -209,7 +212,7 @@
                                     <el-select v-model="editForm.dds" placeholder="请选择DDS服务"
                                                @click.native="gethost()">
                                         <el-option
-                                                v-for="(item,index) in tags"
+                                                v-for="(item,index) in Host"
                                                 :key="item.host"
                                                 :label="item.name"
                                                 :value="item.host"
@@ -232,6 +235,46 @@
                 </div>
             </el-dialog>
 
+            <!--提取dicom文件-->
+            <el-dialog title="提取dicom文件" :visible.sync="getDicomFormVisible" :close-on-click-modal="false"
+                       style="width: 75%; left: 12.5%">
+                <el-form :model="getDicomForm" label-width="80px" :rules="getDicomFormRules" ref="getDicomForm">
+                    <el-form :inline="true" :model="filters" @submit.native.prevent>
+                        <el-row>
+                            <el-col :span="8">
+                                <el-form-item label="患者姓名" prop="PID">
+                                    <el-input id="PID" v-model="getDicomForm.PID" placeholder="BioMind_001"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器地址（ip）" prop="destIP">
+                                    <el-input id="destIP" v-model="getDicomForm.destIP" placeholder="192.168.1.100"/>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+                        <el-row>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器用户名" prop="destUSR">
+                                    <el-input id="destUSR" v-model="getDicomForm.destUSR" placeholder="biomind"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="8">
+                                <el-form-item label="传输服务器密码" prop="destPSW">
+                                    <el-input id="destPSW" v-model="getDicomForm.destPSW" placeholder="biomind"/>
+                                </el-form-item>
+                            </el-col>
+                            <el-col :span="15">
+                                <el-form-item label="" prop="DicomStart">
+                                    <el-button type="primary" @click="getDicomStart('form')">开始提取</el-button>
+                                </el-form-item>
+                            </el-col>
+                        </el-row>
+
+                    </el-form>
+                </el-form>
+
+            </el-dialog>
+
             <!--匿名化文件夹界面-->
             <el-dialog title="匿名化文件夹" :visible.sync="anonFormVisible" :close-on-click-modal="false"
                        style="width: 75%; left: 12.5%">
@@ -239,13 +282,13 @@
                     <el-form :inline="true" :model="filters" @submit.native.prevent>
                         <el-row>
                             <el-col :span="10">
-                                <el-form-item label="匿名名称（以什么开头）" prop="anon-name">
-                                    <el-input id="anon-name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
+                                <el-form-item label="匿名名称（以什么开头）" prop="anon_name">
+                                    <el-input id="anon_name" v-model="anonForm.anon_name" placeholder="匿名名称"/>
                                 </el-form-item>
                             </el-col>
                             <el-col :span="8">
-                                <el-form-item label="匿名后文件夹名" prop="anon-disease">
-                                    <el-input id="anon-disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
+                                <el-form-item label="匿名后文件夹名" prop="anon_disease">
+                                    <el-input id="anon_disease" v-model="anonForm.anon_disease" placeholder="文件名"/>
                                 </el-form-item>
                             </el-col>
                         </el-row>
@@ -291,6 +334,7 @@
                 </el-form>
 
             </el-dialog>
+
             <!--新增界面-->
             <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                        style="width: 100%; left: 10%">
@@ -304,7 +348,7 @@
                                         <el-select v-model="addForm.Host" placeholder="请选择"
                                                    @click.native="gethost()">
                                             <el-option
-                                                    v-for="(item,index) in tags"
+                                                    v-for="(item,index) in Host"
                                                     :key="item.id"
                                                     :label="item.name"
                                                     :value="item.id"
@@ -366,14 +410,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="发送数量" prop='sendcount'>
-                                <el-input-number v-model="addForm.sendcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.sendcount" :min="0"
                                                  :max="100000"
                                                  label="发送数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="持续时间（时）" prop='loop_time'>
-                                <el-input-number v-model="addForm.loop_time" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.loop_time" :min="0"
                                                  :max="100000"
                                                  label="持续时间（时）"></el-input-number>
                             </el-form-item>
@@ -382,14 +426,14 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="addForm.sleepcount" @change="handleChange" :min="0"
+                                <el-input-number v-model="addForm.sleepcount" :min="0"
                                                  :max="99999"
                                                  label="延时数量"></el-input-number>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="addForm.sleeptime" @change="handleChange" :min="0" :max="5000"
+                                <el-input-number v-model="addForm.sleeptime" :min="0" :max="5000"
                                                  label="延时时间（秒）"></el-input-number>
                             </el-form-item>
                         </el-col>
@@ -401,7 +445,7 @@
                                     <el-select v-model="addForm.dds" placeholder="请选择DDS服务"
                                                @click.native="gethost()">
                                         <el-option
-                                                v-for="(item,index) in tags"
+                                                v-for="(item,index) in Host"
                                                 :key="item.host"
                                                 :label="item.name"
                                                 :value="item.host"
@@ -432,7 +476,7 @@
 
     import {
         getduration,
-        getdurationverifydata,
+        get_dicom_start,
         getGroupBase,
         addduration,
         delduration,
@@ -447,11 +491,10 @@
 
     import {anonStart} from "../../../router/api";
 
-    // import ElRow from "element-ui/packages/row/src/row";
     export default {
-        // components: {ElRow},
         data() {
             return {
+                Host:[],
                 typeoptions: [{
                     value: '匿名',
                     label: '匿名'
@@ -463,33 +506,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                groupOptions: [{
-                    value: 'test',
-                    label: 'test',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }, {
-                    value: 'Gold',
-                    label: 'Gold',
-                    children: [{
-                        value: 1,
-                        label: 'Lung'
-                    }, {
-                        value: 1,
-                        label: 'Brain'
-                    }, {
-                        value: 13,
-                        label: 'SWI'
-                    }]
-                }],
+                groupOptions: [],
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -558,6 +575,33 @@
                     ],
                 },
 
+                // get dicom initial
+                getDicomForm: {
+                    destPSW: '',
+                    destIP: '',
+                    destUSR: '',
+                    PID: '',
+                },
+                getDicomFormVisible: false, // 匿名化界面是否显示
+                getDicomFormRules: {
+                    destPSW: [
+                        {required: true, message: '目标服务器密码', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    destIP: [
+                        {required: true, message: '目标服务器地址', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    destUSR: [
+                        {required: true, message: '目标服务器用户名', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    PID: [
+                        {required: true, message: '患者姓名', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                },
+
                 addForm: {
                     port: '4242',
                     type: '匿名',
@@ -585,7 +629,7 @@
             // 实现轮询
             this.clearTimeSet = window.setInterval(() => {
                 setTimeout(this.getDurationlist(), 0);
-            }, 20000);
+            }, 30000);
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -594,7 +638,6 @@
             this.getDurationlist()
             this.gethost()
             this.getBase()
-            this.durationVerifyData()
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -664,7 +707,6 @@
                             this.tableData = JSON.parse(json)
                         })
                     } else {
-                        console.log('error submit')
                         return false
                     }
                 })
@@ -690,50 +732,13 @@
                     }
                 )
             },
-            // 获取版本信息
-            getversion() {
-                const params = {
-                    type: '1'
-                }
-                const headers = {
-                    'Content-Type': 'application/json'
-                }
-                getVersion(headers, params).then(_data => {
-                    const {msg, code, data} = _data
-                    if (code != '0') {
-                        this.$message.error(msg)
-                        return
-                    }
-                    // 请求正确时执行的代码
-                    var mydata = data.data
-                    var json = JSON.stringify(mydata)
-                    this.tags = JSON.parse(json)
-                })
-            },
-            durationVerifyData() {
-                const params = {}
-                const headers = {
-                    'Content-Type': 'application/json'
-                }
-                durationverifydata(headers, params).then(_data => {
-                    const {msg, code, data} = _data
-                    if (code != '0') {
-                        this.$message.error(msg)
-                        return
-                    }
-                    // 请求正确时执行的代码
-                    var mydata = data.data
-                    var json = JSON.stringify(mydata)
-                    this.tags = JSON.parse(json)
-                })
-            },
             // 获取getBase列表
             getBase() {
                 this.listLoading = true
                 const self = this
                 const params = {
                     selecttype: "dicom",
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -778,7 +783,7 @@
                 this.listLoading = true
                 const self = this
                 const params = {
-                    page_size: 100
+                    page_size: 1000
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -787,8 +792,7 @@
                     if (code === '0') {
                         self.total = data.total
                         self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
+                        this.Host = JSON.parse(JSON.stringify(self.list))
                     } else {
                         self.$message.error({
                             message: msg,
@@ -879,7 +883,7 @@
                 };
                 if (row.sendstatus) {
                     disable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -897,7 +901,7 @@
                     });
                 } else {
                     enable_duration(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                        let {msg, code } = _data;
                         self.listLoading = false;
                         if (code === '0') {
                             self.$message({
@@ -948,6 +952,16 @@
                 }
             }
             ,
+            //显示获取dicom影像面板
+            handleGetDicom: function () {
+                this.getDicomFormVisible = true
+                this.getDicomForm = {
+                    destPSW: '',
+                    destUSR: '',
+                    PID: '',
+                    destIP:''
+                }
+            },
             // 编辑
             editSubmit: function () {
                 const self = this
@@ -974,7 +988,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             updateduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code} = _data
                                 self.editLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1050,6 +1064,79 @@
                     }
                 })
             },
+
+            // 开始提取dicom文件
+            getDicomStart: function () {
+                this.$refs.getDicomForm.validate((valid) => {
+                    if (valid) {
+                        const self = this
+                        self.addLoading = true
+                        // NProgress.start();
+                        console.log("jinlaile")
+                        const params = JSON.stringify({
+                            PID: self.getDicomForm.PID,
+                            destIP: self.getDicomForm.destIP,
+                            destUSR: self.getDicomForm.destUSR,
+                            destPSW: self.getDicomForm.destPSW,
+                        })
+                        const header = {
+                            'Content-Type': 'application/json',
+                            Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                        }
+                        get_dicom_start(header, params).then(_data => {
+                            const {msg, code, data} = _data
+                            self.addLoading = false
+                            if (code === '0') {
+
+                                if (data['url'] === "") {
+                                    self.$message({
+                                        message: 'get dicom start',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+                                if (data['url'] === "we dont have this data"){
+                                    self.$message({
+                                        message: 'DB没这条数据，换一个吧',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+
+                                else {
+                                    this.$router.push({
+                                        path: data['url'],
+                                    });
+                                    self.$message({
+                                        message: 'get dicom to local start',
+                                        center: true,
+                                        type: 'success'
+                                    })
+                                    self.$refs['getDicomForm'].resetFields()
+                                    self.getDicomFormVisible = false
+                                }
+                            } else if (code === '999997') {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true
+                                })
+                                self.$refs['getDicomForm'].resetFields()
+                                self.getDicomFormVisible = false
+                            }
+                        })
+                    }
+                })
+            },
+
             // 新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {
@@ -1079,7 +1166,7 @@
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             }
                             addduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
+                                const {msg, code } = _data
                                 self.addLoading = false
                                 if (code === '0') {
                                     self.$message({
@@ -1148,7 +1235,7 @@
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
                     delduration(header, params).then(_data => {
-                        const {msg, code, data} = _data
+                        const {msg, code } = _data
                         if (code === '0') {
                             self.$message({
                                 message: '删除成功',

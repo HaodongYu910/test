@@ -136,6 +136,10 @@ export const loadFigure = (headers, params) => {
   return axios.post(`${test}/project/jira/figure `, params, headers).then(res => res.data)
 }
 
+// 重启 创建用户
+export const getCreateRestart = (headers, params) => {
+  return axios.post(`${test}/project/createRestart `, params, headers).then(res => res.data)
+}
 // 获取工作任务
 export const loadtodo = (headers, params) => {
   return axios.get(`${test}/project/todo `, { params: params }, headers).then(res => res.data)
@@ -211,10 +215,6 @@ export const DisableInstall = (headers, params) => {
 // 冒烟报告
 export const getInstallReport = (headers, params) => {
   return axios.post(`${test}/project/install/getReport`, params, headers).then(res => res.data)
-}
-// 重启 | 创建用户
-export const getCreateRestart = (headers, params) => {
-  return axios.post(`${test}/project/createRestart`, params, headers).then(res => res.data)
 }
 
 // 获取自动化测试结果
@@ -386,7 +386,7 @@ export const enableBenchmarkstatus = (headers, params) => {
 //------------------- Dicom  -------------------
 // 删除数据
 export const deldicomdata = (headers, params) => {
-  return axios.post(`${test}/dicom/del_dicomData`, params, headers).then(res => res.data)
+  return axios.post(`${test}/dicom/delDDD`, params, headers).then(res => res.data)
 }
 // 修改dicom数据
 export const updatedicomdata = (headers, params) => {
@@ -463,6 +463,12 @@ export const delduration = (headers, params) => {
 export const anonStart = (headers, params) => {
   return axios.post(`${test}/dicom/tool/anonymization`, params, headers).then(res => res.data)
 }
+
+// 启动提取dicom文件
+export const get_dicom_start = (headers, params) => {
+  return axios.post(`${test}/dicom/tool/get_dicom`, params, headers).then(res => res.data)
+}
+
 // 修改duration发送状态
 export const enable_duration = (headers, params) => {
   return axios.post(`${test}/dicom/duration/enable_duration`, params, headers).then(res => res.data)

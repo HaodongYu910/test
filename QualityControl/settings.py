@@ -34,7 +34,7 @@ SITE_JENKINURL = "http://192.168.2.58:8080"  # JENKINS 地址
 
 # influxdb 数据库
 Influxdb = '192.168.1.121'
-InfluxDataBase = 'autotest'
+InfluxDataBase = 'AutoTest'
 InfluxdbUser = ''
 InfluxdbPassWd = ''
 
@@ -353,7 +353,7 @@ CORS_ALLOW_HEADERS = (
 CRONJOBS = [
     ('*/30 * * * *', 'AutoProject.scheduletask.DurationSyTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 每30 分同步一次
-    ('30 00 * * *', 'AutoProject.scheduletask.DurationTask',
+    ('15 01 * * *', 'AutoProject.scheduletask.DurationTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化任务启动
     ('30 09 * * *', 'AutoProject.scheduletask.DurationReportTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化报告任务

@@ -1,0 +1,45 @@
+version: '3'
+ 
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: 12345
+    networks:
+      net-django:
+        ipv4_address: 127.0.0.1
+ 
+  web:
+    build: .
+    #command: python3 manage.py runserver 0.0.0.0:8000
+    privileged: true
+    #ports:
+    #  - 8000:8000
+    depends_on:
+      - db
+    networks:
+      net-django:
+        ipv4_address: 127.0.0.1
+    #command: uwsgi --chdir=/code/hello --module=hello.wsgi --master --socket 0.0.0.0:8000
+    command: uwsgi --ini /code/hello/conf/uwsgi.ini  #注意：在这里的路径是容器内的项目所在的路径，而不是宿主机放项目的路径
+ 
+  nginx:
+    container_name: nginx-container
+    restart: always
+    depends_on:
+      - web
+    links:
+      - "web:web"
+    build: ./nginx
+    ports:
+      - 8080:80
+    networks:
+      net-django:
+        ipv4_address: 127.0.0.1
+ 
+networks:
+  net-django:
+    ipam:
+      config:
+        - subnet: 127.0.0.1/24

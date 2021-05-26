@@ -56,7 +56,7 @@ python manage.py collectstatic     //后台样式
 
 ## 使用说明 ##
 
-### Autotest ###
+### AutoTest ###
 settings.py // 配置文件
 urls.py     //总路由文件
 

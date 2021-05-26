@@ -59,9 +59,9 @@
                     style="width: 100%;"
                     @selection-change="selsChange">
                 <el-table-column type="selection" min-width="4%"/>
-                <el-table-column prop="ID" label="ID" min-width="4%">
+                <el-table-column prop="别名" label="别名" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.id }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.remark }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="patientid" label="Patientid" min-width="10%" sortable>
@@ -94,7 +94,7 @@
                         <span style="margin-left: 10px">{{ scope.row.type }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="标准诊断" min-width="15   %">
+                <el-table-column label="标准诊断" min-width="15%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.diagnosis }}</span>
                     </template>

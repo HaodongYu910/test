@@ -17,10 +17,10 @@ from AutoDicom.common.durarion import DurationThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
+# biomind命令
 
+# 服务器重启
 
-
-# biomind命令  服务器重启
 def Restart(**kwargs):
     try:
         server = Server.objects.get(id=kwargs["id"])
@@ -56,11 +56,11 @@ def cache(**kwargs):
         ssh = SSHConnection(host=server.host, pwd=server.pwd)
         ssh.cmd("rm -rf cache.zip;")
         ssh.upload("/files1/classifier/orthanc.json",
-                   "/home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+                   "/home/biomind/orthanc.json")
         ssh.upload("/files1/classifier/cache.zip",
                    "/home/biomind/cache.zip")
         ssh.cmd(
-            "mv /home/biomind/.biomind/var/biomind/cache cachebak;unzip -o cache.zip -d /home/biomind/.biomind/var/biomind/;")
+            "unzip -o cache.zip;")
         ssh.close()
     except Exception as e:
         logger.error("更新配置文件失败----失败原因：{0}".format(e))
@@ -73,7 +73,7 @@ def goldsmoke(version):
                 "diseases": "19,44,31,32,21,33,23,24,20,30,22,25,26",
                 "status": True,
                 "Host_id": 13,
-                "thread": 2,
+                "thread": 1,
                 "count": 127
                 }
 
@@ -99,7 +99,8 @@ def durationTest(**kwargs):
                 "patientname": 'Dt',
                 "dicom": "1,2,3,4,5,6,7,8,9,10,11,13,14,35,45",
                 "sendcount": 258,
-                "sleepcount": 1000,
+                "sleepcount": 100,
+
                 "sleeptime": 3,
                 "series": False,
                 "sendstatus": True,

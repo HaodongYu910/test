@@ -29,7 +29,7 @@ class autoui_Deserializer(serializers.ModelSerializer):
 
 class autorecord_Serializer(serializers.ModelSerializer):
     """
-    autotest测试数据记录表序列化
+    AutoTest测试数据记录表序列化
 
      """
 
@@ -43,7 +43,7 @@ class autorecord_Serializer(serializers.ModelSerializer):
 
 class autorecord_Deserializer(serializers.ModelSerializer):
     """
-    autotest测试数据记录表反序列化
+    AutoTest测试数据记录表反序列化
     """
     class Meta:
         model = auto_uirecord
