@@ -25,7 +25,7 @@ fi
 ### removing ago folder
 echo "#################### old build has been removed ############################"
 sudo rm -rf $version $name
-
+mkdir QInstall
 ### ans for downloading packages and docker_registry
 
 my_var=`rclone ls oss://biomind-ha-se/versions/$name`
@@ -47,40 +47,40 @@ fi
 
 echo "################################### installing $version AI Engine ###################################"
 cd ~/$version
-bash setup_engine.sh
+sshpass -p biomind bash setup_engine.sh
 
 sleep 2
 
-echo ""
-echo "################################## install 3D modules ######################################"
-### install biomind 3D
-cd ~/$version/engine/deps/Biomind-3D/
-bash setup_install prod master
-sleep 2
-
-### set the permission
-#sudo chown biomind:biomind -R ~/.biomind/var/biomind/*
+#echo ""
+#echo "################################## install 3D modules ######################################"
+#### install biomind 3D
+#cd ~/$version/engine/deps/Biomind-3D/
+#bash setup_install prod master
+#sleep 2
+#
+#### set the permission
+##sudo chown biomind:biomind -R ~/.biomind/var/biomind/*
 
 echo ""
 echo "################################### fixed permission ###########################################"
 echo " "
 ### fixed permssion
 bash ~/.biomind/lib/current/installer/biomind.sh install
-sleep 5
-
+sleep 3
 echo ""
-echo "################################### config ###########################################"
+echo "################################### cache config ###########################################"
 echo ""
+echo "rm -rf QInstall"
+sudo rm -rf /home/biomind/QInstall
+echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
 mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
+echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"
 mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
 
 ### report
 #biomind report prod master
-
 #echo ""
 #echo "fixed permission"
 ### fixed permssion
 #bash ~/.biomind/lib/current/installer/biomind.sh install
-
-
 echo "##################################### installation has been done #############################"
