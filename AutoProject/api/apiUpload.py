@@ -94,13 +94,11 @@ class AddZipUpload(APIView):
         :return:
         """
         try:
-
-            print("Start : %s" % time.ctime())
             filetype = request.POST.get("type", None)
             id = request.POST.get("id", None)
             # file_path = filetype
             # file_path = 'c:\\DD'.format(filetype)
-            
+
             file_path = 'c:\\DD'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
@@ -115,7 +113,16 @@ class AddZipUpload(APIView):
                     # actualSize = os.path.getsize(FilePath)
                     # print(actualSize)
 
-            data={
+            # z = zipfile.ZipFile('C:\\DD\\allure-2.7.0.zip', 'r')
+            z = zipfile.ZipFile(''.join([file_path, '\\', File.name]), 'r')
+            # z.extractall(path=r"C:\\DD")
+            z.extractall(path=file_path)
+            z.close()
+
+            if os.path.exists(''.join([file_path, '\\', File.name])):  # 如果文件存在
+                os.remove(''.join([file_path, '\\', File.name]))
+
+            data = {
                 "filename": File.name,
                 "fileurl": file_path,
                 "type": "zip",
@@ -125,16 +132,6 @@ class AddZipUpload(APIView):
             }
             filedata = uploadfile.objects.create(**data)
 
-            # z = zipfile.ZipFile('C:\\DD\\allure-2.7.0.zip', 'r')
-            z = zipfile.ZipFile(''.join([file_path, '\\', File.name]), 'r')
-            # z.extractall(path=r"C:\\DD")
-            z.extractall(path=file_path)
-            z.close()
-
-            if os.path.exists(''.join([file_path, '\\', File.name])):  # 如果文件存在
-                os.remove(''.join([file_path, '\\', File.name]))
-            time.sleep(30)
-            print("End : %s" % time.ctime())
             return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id}
                                 )
         except Exception as e:
