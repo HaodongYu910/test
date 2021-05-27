@@ -1,3 +1,5 @@
+import time
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from rest_framework.authentication import TokenAuthentication
@@ -10,7 +12,6 @@ import logging,os
 import zipfile
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
-
 
 class getUpload(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -93,25 +94,32 @@ class AddZipUpload(APIView):
         :return:
         """
         try:
+
+            print("Start : %s" % time.ctime())
             filetype = request.POST.get("type", None)
             id = request.POST.get("id", None)
             # file_path = filetype
             # file_path = 'c:\\DD'.format(filetype)
+            
             file_path = 'c:\\DD'
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             File = request.FILES.get("files", None)
-            # print(File.size)
-
-            with open("{0}/{1}".format(file_path, File.name), 'wb+') as f:
+            # request.session[id] = File.size+","+request.session[os.path.join(file_path, File.name)]
+            FilePath = "{0}/{1}".format(file_path, File.name)
+            with open(FilePath, 'wb+') as f:
                 # 分块写入文件
                 for chunk in File.chunks():
                     f.write(chunk)
+                    # 试试获取文件大小
+                    # actualSize = os.path.getsize(FilePath)
+                    # print(actualSize)
 
             data={
                 "filename": File.name,
                 "fileurl": file_path,
                 "type": "zip",
+                "size": File.size,
                 "status": True,
                 "fileid": int(id)
             }
@@ -124,16 +132,48 @@ class AddZipUpload(APIView):
             z.close()
 
             if os.path.exists(''.join([file_path, '\\', File.name])):  # 如果文件存在
-                # 删除文件，可使用以下两种方法。
                 os.remove(''.join([file_path, '\\', File.name]))
-                # os.unlink(path)
-
-
+            time.sleep(30)
+            print("End : %s" % time.ctime())
             return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id}
                                 )
         except Exception as e:
             logger.info(e)
             return JsonResponse(code="999995", msg="上传文件失败！")
+
+class getProgress(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self, request):
+        """
+        上传文件
+        :param request:django
+        :return:
+        """
+        try:
+            id = request.data.get("id", None)
+            print(id)
+            fileList = uploadfile.objects.filter(fileid=id).order_by('id')
+            files = list(fileList)
+            if len(files) > 0:
+                file = files[-1]
+                size = int(file.size)
+                if size is not None:
+                    actualSize = int(os.path.getsize(file.fileurl,file.filename))
+                    print('yinggai=', size)
+                    print('实际=', actualSize)
+                else:
+                    return JsonResponse(code="999995", msg="该病种没有上传任何数据!")
+            else:
+                return JsonResponse(code="999995", msg="未找到该病种！")
+
+            return JsonResponse(code="0", msg="成功", data={"bfb": 10}
+                                )
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(code="999995", msg="上传文件失败！")
+
 
 class DelUpload(APIView):
     authentication_classes = (TokenAuthentication,)

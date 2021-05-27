@@ -29,7 +29,7 @@ def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
         full_fn = os.path.join(src_folder, fn)
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
-        elif (os.path.isdir(full_fn)):
+        elif (os.path.isdir(full_fn)): #如果它是个文件夹
             updateFolder(full_fn, study_infos, diseases, foldType, id,predictor)
             continue
         try:

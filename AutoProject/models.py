@@ -266,6 +266,7 @@ class uploadfile(models.Model):
     fileurl = models.CharField(max_length=300, blank=True, null=True, verbose_name="文件路径")
     fileid = models.IntegerField(blank=True, null=True, verbose_name="关联文件id")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    size = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件大小")
     status = models.BooleanField(default=False, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")

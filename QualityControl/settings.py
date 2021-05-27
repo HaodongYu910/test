@@ -164,7 +164,8 @@ LOGGING = {
 #     "email": "mail"
 # }
 
-ALLOWED_HOSTS = ['*', ]
+ALLOWED_HOSTS = ['192.168.2.163', ]
+# ALLOWED_HOSTS = ['*', ]
 
 AUTH_PROFILE_MODULE = 'djangoadmin.AutoProject.UserProfile'
 
