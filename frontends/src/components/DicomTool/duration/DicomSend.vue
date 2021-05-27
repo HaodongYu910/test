@@ -81,9 +81,9 @@
                         <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
                     </template>
                 </el-table-column>
-                <el-table-column label="series延时" min-width="10%">
+                <el-table-column label="series延时" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.series }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.series == true ? '已开启' : '已关闭' }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="DDS" min-width="12%">

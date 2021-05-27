@@ -232,10 +232,14 @@
 
                       :auto-upload="false">
                       <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-                      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload()" :disabled=dataupshow>补充数据上传</el-button>
+                      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload()" :disabled="isUploadingStatusMap[this.supplemenForm.id]">补充数据上传</el-button>
 <!--                      <div slot="tip" class="el-upload__tip">只能上传zip文件</div>-->
                     </el-upload>
                 </el-form-item>
+                <div class="progress-box" v-if="isUploadingByIdMap[supplemenForm.id]">
+                    <div>上传进度：</div>
+                    <el-progress :text-inside="true" :stroke-width="24" :percentage="isUploadingByIdMap[supplemenForm.id]" status="success" class="progress-item"></el-progress>
+                </div>
 
                 <el-alert title="使用帮助" type="success">
                     <template slot='title'>
@@ -259,7 +263,8 @@
     //import NProgress from 'nprogress'
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary, addupload, addzipupload
+        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary, addupload, addzipupload,
+        getFileUploadProgress
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -339,8 +344,17 @@
                     // select_type: 'dicom',
                     // type: 'endurance',
                     // description: ''
+                },
+                noneFileListFlag: true,
+                isUploadingByIdMap: {},
+                isUploadingStatusMap: {},
+                fileSizeMap: {
+                    A: 10,
+                    B: 1.5,
+                    C: 0.8,
+                    D: 0.5,
+                    E: 0.2
                 }
-
             }
         },
         mounted() {
@@ -726,6 +740,7 @@
             handleChange(file, fileList) {
               if(file.name.indexOf(".zip") >= 0 ) {
                   this.showFileName = true
+                  this.noneFileListFlag = false
                     this.fileList = fileList;
               }else{
                   this.$message({
@@ -734,12 +749,27 @@
                       type: 'warning'
                   });
                   this.showFileName = false
+                  this.noneFileListFlag = true
                   this.fileList = []
               }
             },
             //上传补充病人数据
             submitUpload() {
                 this.dataupshow=true
+                this.isUploadingByIdMap = {
+                    ...this.isUploadingByIdMap,
+                    [this.supplemenForm.id]: 1
+                }
+                this.isUploadingStatusMap = {
+                    ...this.isUploadingStatusMap,
+                    [this.supplemenForm.id]: true 
+                }
+                const fileSize = this.fileList.length ? this.fileList[0].size / 1024 / 1024 / 1024 : 1;
+                const fileSizeMapVal = this.getCurrFileSize(+fileSize)
+                const progress = this.fileSizeMap[fileSizeMapVal]
+
+                let tempVal = this.supplemenForm.id
+                window[`interval-${tempVal}`] = this.queryCurrUploadingProgress(this.supplemenForm.id, progress)
                 let params = new FormData();
                   this.fileList.forEach(item => {
                     params.append("files", item.raw);
@@ -751,9 +781,19 @@
                 addzipupload(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
+                    console.log(code)
+                    this.isUploadingStatusMap = {
+                        ...this.isUploadingStatusMap,
+                        [tempVal]: false 
+                    }
+                    clearInterval(window[`interval-${tempVal}`])
                     if (code === '0') {
                         // alert("ok")
                         // this.$message(data.filename,'上传成功');
+                        this.isUploadingByIdMap = {
+                            ...this.isUploadingByIdMap,
+                            [tempVal]: 100
+                        }
                         this.$message({
                             showClose: true,
                           message: (data.filename+'上传成功'),
@@ -762,12 +802,25 @@
                         this.dataupshow=false
                         this.supplementVisible = false;
                     } else {
+                        this.isUploadingByIdMap = {
+                            ...this.isUploadingByIdMap,
+                            [tempVal]: 0
+                        }
                         this.dataupshow=false
                         this.$message({
                             showClose: true,
                             message: (msg),
                             type: 'error'
                         });
+                    }
+                }).catch(err => {
+                    this.isUploadingStatusMap = {
+                        ...this.isUploadingStatusMap,
+                        [tempVal]: false 
+                    }
+                    this.isUploadingByIdMap = {
+                        ...this.isUploadingByIdMap,
+                        [tempVal]: 1
                     }
                 })
             },
@@ -777,6 +830,34 @@
             handleExceed(files, fileList) {
               this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
             },
+            queryCurrUploadingProgress(id, progress) {
+                const fileSize = this.fileList
+                return setInterval(() => {
+                    const currProgressVal = +this.isUploadingByIdMap[id]
+                    // console.log('id-currProgressVal', id, currProgressVal)
+                    if(currProgressVal < 99) {
+                        this.isUploadingByIdMap = {
+                            ...this.isUploadingByIdMap,
+                            [id]: currProgressVal + +progress > 99 ? 99 : currProgressVal + +progress
+                        }
+                    }
+                }, 1000)
+            },
+            getCurrFileSize(fileSize) {
+                let val = 'A'
+                if(fileSize >= 10) {
+                    val = 'E'
+                } else if(fileSize >= 5){
+                    val = 'D'
+                } else if(fileSize >= 2){
+                    val = 'C'
+                } else if(fileSize >= 1) {
+                    val = 'B'
+                } else {
+                    val = 'A'
+                }
+                return val
+            }
 
         },
 
@@ -788,11 +869,18 @@
 </script>
 
 <style>
-     .iconSize{
+    .iconSize{
         font-size: 14px;
         padding: 10px;
         font-weight: bold;
-
-}
+    }
+    .progress-box {
+        display: flex;
+        margin-bottom: 15px;
+    }
+    .progress-item {
+        padding: 0 10px 0 15px;
+        flex: 1;
+    }
 
 </style>

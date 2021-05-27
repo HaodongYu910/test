@@ -37,12 +37,12 @@
             </el-table-column>
             <el-table-column label="开始时间" min-width="20%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD ')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.createTime  | dateformat('YYYY-MM-DD')}}</span>
                 </template>
             </el-table-column>
             <el-table-column label="结束日期" min-width="20%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD ')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.LastUpdateTime  | dateformat('YYYY-MM-DD')}}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="10%">
