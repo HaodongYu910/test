@@ -66,15 +66,19 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
     obj = stress.objects.get(stressid=stressid)
     server = obj.Host.host
     uids = ''
+    if stressType == "HH":
+        start_date = obj.start_date
+        end_date = obj.end_date
     # 测试数据查询
     for i in stress_record.objects.filter(Stress_id=stressid, type=stressType):
         uids = uids + '\'' + str(i.studyuid) + '\','
 
     for j in ['aistatus', 'jobmetrics', 'predictionrecord']:
         try:
+
             # 查询sql
             sqlOjb = dictionary.objects.get(key=j, type='stresssql', status=True)
-            sql = sqlOjb.value.format(obj.start_date, obj.end_date, uids[:-1])
+            sql = sqlOjb.value.format(start_date, end_date, uids[:-1])
 
             # 查询结果
             result = connect_postgres(database="orthanc",

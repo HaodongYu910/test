@@ -14,6 +14,7 @@ from .api.api import test
 from .api import dynamic
 from .api import member
 from .api import apiMessage
+from .api.apiSonar import getsonar
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -66,6 +67,7 @@ urlpatterns = [
     url(r'install/version', getInstallVersion.as_view()),
     url(r'install/ansible', AnsibleInstall.as_view()),
     url(r'deploy', InstallDeploy.as_view()),
+    url(r'sonar', getsonar.as_view()),
     url(r'createRestart', getRestart.as_view()),
     url(r'wechatMessage', apiMessage.sendMessage.as_view()),
     url(r'totest', test.as_view()),
