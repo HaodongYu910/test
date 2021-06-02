@@ -121,6 +121,7 @@ media_id	是	文件id，通过下文的文件上传接口获取
 
 """
 
+
 def MessageGroup(send_url, params):
     # """
     # 发送消息
@@ -131,8 +132,7 @@ def MessageGroup(send_url, params):
         logger.error("send Message fail :{}".format(e))
 
 
-
-def sendMessage(touser='',toparty='',message='Message'):
+def sendMessage(touser='', toparty='', message='Message'):
     """
     固定参数:corpid,appsecret，agentid
     """
@@ -171,48 +171,17 @@ def sendMessage(touser='',toparty='',message='Message'):
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
 
-# Ansible 消息推送
-def AnsibleMessage(**kwargs):
-    obj = message_group.objects.get(type='ansible', status=True)
+
+# devopsMessage 消息推送
+def devopsMessage(**kwargs):
     data = kwargs["data"]
-    if data["status"] == "fail":
-        if data["channel"] == "#production_build_radiology":
-            #obj.send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
-            params = {
-                "msgtype": "text",
-                "text": {
-                    "content": "【{0} Production Build Radiology Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
-                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
-                    "mentioned_list": ["@yinhang"]
-                }
-            }
-        else:
-            params = {
-                "msgtype": "text",
-                "text": {
-                    "content": "【Nightly Build {0} Fail】 \n Job_Name: {1} \n JobURL: {2} \n ArtifactURL {3} \n {4}".format(
-                        data["version"], data["job_name"], data["AWXURL"], data["ArtifactURL"], data["msg"]),
-                    "mentioned_list": ["@all"]
-                }
-            }
-    else:
-        if data["channel"] == "#production_build_radiology":
-            params = {
-                "msgtype": "text",
-                "text": {
-                    "content": "{} 版本构建成功！".format(data["version"]),
-                }
-            }
-        else:
-            params = {
-                "msgtype": "text",
-                "text": {
-                    "content": "Nightly Build {} Success".format(data["version"])
-                }
-            }
+    obj = message_group.objects.get(type=data["type"], status=True)
     try:
-        MessageGroup(obj.send_url, params)
+        if data["params"]["msgtype"] == "text":
+            try:
+                data["params"]["text"]["mentioned_list"] = obj.mentioned_list.split(",")
+            except KeyError:
+                data["params"]["text"]["mentioned_list"] =[]
+        requests.post(obj.send_url, data=json.dumps(data["params"]))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
-
-
