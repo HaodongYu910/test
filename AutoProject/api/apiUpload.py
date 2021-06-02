@@ -7,6 +7,7 @@ from AutoProject.common.api_response import JsonResponse
 from ..models import uploadfile
 from ..serializers import uploadfile_Deserializer
 import logging,os
+import zipfile
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -81,6 +82,58 @@ class AddUpload(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="没有需要上传的文件！")
 
+class AddZipUpload(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def post(self, request):
+        """
+        上传文件
+        :param request:django
+        :return:
+        """
+        try:
+            filetype = request.POST.get("type", None)
+            id = request.POST.get("id", None)
+            # file_path = filetype
+            # file_path = 'c:\\DD'.format(filetype)
+            file_path = 'c:\\DD'
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
+            File = request.FILES.get("files", None)
+            # print(File.size)
+
+            with open("{0}/{1}".format(file_path, File.name), 'wb+') as f:
+                # 分块写入文件
+                for chunk in File.chunks():
+                    f.write(chunk)
+
+            data={
+                "filename": File.name,
+                "fileurl": file_path,
+                "type": "zip",
+                "status": True,
+                "fileid": int(id)
+            }
+            filedata = uploadfile.objects.create(**data)
+
+            # z = zipfile.ZipFile('C:\\DD\\allure-2.7.0.zip', 'r')
+            z = zipfile.ZipFile(''.join([file_path, '\\', File.name]), 'r')
+            # z.extractall(path=r"C:\\DD")
+            z.extractall(path=file_path)
+            z.close()
+
+            if os.path.exists(''.join([file_path, '\\', File.name])):  # 如果文件存在
+                # 删除文件，可使用以下两种方法。
+                os.remove(''.join([file_path, '\\', File.name]))
+                # os.unlink(path)
+
+
+            return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id}
+                                )
+        except Exception as e:
+            logger.info(e)
+            return JsonResponse(code="999995", msg="上传文件失败！")
 
 class DelUpload(APIView):
     authentication_classes = (TokenAuthentication,)
