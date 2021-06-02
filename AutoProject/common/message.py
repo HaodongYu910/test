@@ -172,39 +172,16 @@ def sendMessage(touser='', toparty='', message='Message'):
         logger.error("send Message fail :{}".format(e))
 
 
-# Ansible 消息推送
-def AnsibleMessage(**kwargs):
+# devopsMessage 消息推送
+def devopsMessage(**kwargs):
     data = kwargs["data"]
     obj = message_group.objects.get(type=data["type"], status=True)
-    if data["msgtype"] == "text":
-        # if data["channel"] == "#production_build_radiology":
-        #     #obj.send_url = 'https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=cd8a05b4-37b9-49e6-925a-a3aa6cc87d6c'
-        params = {
-            "msgtype": "text",
-            "text": data["params"],
-            "mentioned_list": obj.user
-        }
-    elif data["msgtype"] == "image":
-        params = {
-            "msgtype": "markdown",
-            "markdown": data["params"]
-        }
-    elif data["msgtype"] == "image":
-        params = {
-            "msgtype": "image",
-            "image": data["params"]
-        }
-    elif data["msgtype"] == "news":
-        params = {
-            "msgtype": "news",
-            "news": data["params"]
-        }
-    elif data["msgtype"] == "file":
-        params = {
-            "msgtype": "file",
-            "file": data["params"]
-        }
     try:
-        MessageGroup(obj.send_url, params)
+        if data["params"]["msgtype"] == "text":
+            try:
+                data["params"]["text"]["mentioned_list"] = obj.mentioned_list.split(",")
+            except KeyError:
+                data["params"]["text"]["mentioned_list"] =[]
+        requests.post(obj.send_url, data=json.dumps(data["params"]))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
