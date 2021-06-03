@@ -7,7 +7,7 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, dictionary, message_group, Server
+from ..models import install, dictionary, project_version, Server
 from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
@@ -51,6 +51,7 @@ class InstallThread(threading.Thread):
         # 性能测试id
         self.id = kwargs["id"]
         self.obj = install.objects.get(id=self.id)
+        self.versionObj = project_version.objects.get(id=self.obj.version)
         self.user = self.obj.Host.user
         self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
@@ -121,9 +122,12 @@ class InstallThread(threading.Thread):
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
                     self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
 
-                    self.ssh.command("nohup sshpass -p {0} bash install_qa.sh {1} > install.log 2>&1 &".format(
+                    self.ssh.command("nohup sshpass -p {0} bash install_qa.sh {1} {2} {3}> install.log 2>&1 &".format(
                         self.obj.Host.pwd,
-                        self.obj.version))
+                        self.versionObj.version,
+                        self.versionObj.package_name,
+                        self.versionObj.path
+                    ))
                     # 校验是否安装完成
                     while True:
                         time.sleep(60)
@@ -133,7 +137,7 @@ class InstallThread(threading.Thread):
                             time.sleep(5)
                 self.upstop = time.time()
             except Exception as e:
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format(self.obj.version, e))
+                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format( self.versionObj.version, e))
                 self.installStatus(status=False, type=3)
                 return
             # 重启 服务
@@ -141,7 +145,7 @@ class InstallThread(threading.Thread):
         except Exception as e:
             self.obj.status = False
             self.obj.save()
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format( self.versionObj.version, e))
 
     def restart(self):
         try:
@@ -183,9 +187,9 @@ class InstallThread(threading.Thread):
 
                     if self.obj.smokeid == 0:
                         AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
-                        goldsmoke(version=self.obj.version)
+                        goldsmoke(version=self.versionObj.version)
                     if self.obj.uid == 0:
-                        goldsmoke(version=self.obj.version)
+                        goldsmoke(version=self.versionObj.version)
 
                     return True
                 elif b == 10:
@@ -201,7 +205,7 @@ class InstallThread(threading.Thread):
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id),
-                       content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+                       content="【安装部署】：安装{0}失败原因：{1}".format( self.versionObj.version, e))
             return False
     # 变更状态
     def installStatus(self, status, type):
@@ -257,7 +261,7 @@ class smokeThread(threading.Thread):
             logger.info("Nightly Build Version:{}：持续化测试".format(self.version))
             durationTest(version=self.version, server=self.server.host, aet=self.server.remarks)
         except Exception as e:
-            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format(self.obj.version, e))
+            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format( self.versionObj.version, e))
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

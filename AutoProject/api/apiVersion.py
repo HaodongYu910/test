@@ -23,18 +23,23 @@ class getVersion(APIView):
 
     def get(self, request):
         """
-        获取Install 版本
+        获取项目Version 版本
         :param request:
         :return:
         """
         try:
-            version = []
-            obj = dictionary.objects.filter(status=True, type='history').order_by("-key")
-            for i in obj:
-                version.append(i.key)
+            history = int(request.GET.get("history", True))
+            projectId = int(request.GET.get("projectId"))
+            try:
+                if projectId:
+                    obj = project_version.objects.filter(status=history, project_id=projectId).order_by("-id")
+            except ObjectDoesNotExist:
+                return JsonResponse(code="999996", msg="参数有误!请传项目ID")
+            serialize = ProjectVersionSerializer(obj, many=True)
+            return JsonResponse(data={"data": serialize.data}, code="0", msg="成功")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取版本失败!")
-        return JsonResponse(data={"data": version}, code="0", msg="成功")
+
 
 
 class AddVersion(APIView):
@@ -85,7 +90,7 @@ class AddVersion(APIView):
             except:
                 data["package_name"] = f"{data['version']}1.tgz"
             data["status"] = True
-            data["path"] = "oss://biomind-ha-rt/{0}/{1}/{2}".format(
+            data["path"] = "oss://biomind/{0}/{1}/{2}".format(
                 data["project"], data["type"], data["package_name"])
             try:
                 data["project"] = int(Project.objects.get(version=data["project"]).id)

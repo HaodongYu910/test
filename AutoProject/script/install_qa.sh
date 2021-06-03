@@ -1,7 +1,10 @@
 #! /bin/bash
 
 version=$1
-versions="2.18.4-istroke 2.19.1-radiology 2.19.0-radiology 2.18.4-radiology 2.18.3-radiology 2.18.3-istroke 2.18.2-radiology 2.18.1-radiology 2.18.5-radiology 2.18.6-radiology 2.18.7-radiology 2.19.2-radiology 2.19.3-radiology 2.19.4-radiology 2.19.5-radiology 2.19.6-radiology"
+package_name=$2
+path=$3
+
+
 
 echo ""
 echo "================================================================================"
@@ -13,36 +16,31 @@ echo "Instructions:"
 
 ###  version
 echo "#####################$version ########################"
-
-if [[ $versions == *$version* ]];then
-  name="${version}.zip"
-  echo "包含 ${name}"
-else
-  name="${version}.tgz"
-  echo "不包含 ${name}"
-fi
-
+echo $package_name
+echo $path
 ### removing ago folder
 echo "#################### old build has been removed ############################"
-sudo rm -rf $version $name
+sudo rm -rf $version
+sudo rm -rf $package_name
+
 mkdir QInstall
 ### ans for downloading packages and docker_registry
 
-my_var=`rclone ls oss://biomind-ha-se/versions/$name`
+my_var=`rclone ls $path`
 
 echo $my_var
 
 echo "#################### rclone download $version ############################"
-rclone copy -P oss://biomind-ha-se/versions/$name /home/biomind/ --transfers=8
+rclone copy -P $path /home/biomind/ --transfers=8
 
 
 echo "#################### tar|| zip - $name   ############################"
-if [[ $versions == *$version* ]];then
-    echo "unzip -o ${version}.zip"
-    unzip -o "${version}.zip"
+if [[ ${$package_name##*.} == "zip" ]];then
+    echo "unzip -o $package_name"
+    unzip -o $package_name
 else
-    echo "tar -zxvf ${version}.tgz"
-    tar -zxvf "${version}.tgz"
+    echo "tar -zxvf $package_name"
+    tar -zxvf $package_name
 fi
 
 echo "################################### installing $version AI Engine ###################################"
