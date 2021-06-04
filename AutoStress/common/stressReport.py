@@ -54,7 +54,6 @@ class StressReport:
                     "models": models,
                     "start_date": self.obj.start_date,
                     "end_date": self.obj.end_date,
-                    "server": self.obj.Host.host,
                     "benchmark": self.obj.benchmark,
                     "single": self.obj.single,
                     "synchroniz": self.obj.synchroniz,

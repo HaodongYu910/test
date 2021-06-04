@@ -350,3 +350,27 @@ class message_detail(models.Model):
         verbose_name = "message_detail"
         verbose_name_plural = "message_detail"
         db_table = 'message_detail'
+
+
+class project_version(models.Model):
+    """
+          项目版本
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
+    branch = models.CharField(max_length=20, blank=True, null=True, verbose_name="分支")
+    package_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="包名")
+    path = models.TextField(max_length=1000, blank=True, null=True, verbose_name="路径")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='所属项目')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='修改时间')
+    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "project_version"
+        verbose_name_plural = "project_version"
+        db_table = 'project_version'
