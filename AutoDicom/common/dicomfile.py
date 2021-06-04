@@ -4,7 +4,9 @@ import os
 import pydicom
 from tqdm import tqdm
 import logging
-from ..models import dicom_base, dicom
+
+from AutoProject.models import uploadfile
+from ..models import dicom_base, dicom, dicom_relation
 from django.db.models import Max
 import shutil
 import time
@@ -22,41 +24,46 @@ def norm_string(str):
 
 
 # 更新文件到 测试目录 安装类型分类重新命名
-def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
+def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predictor, history_uid):
     file_names = os.listdir(src_folder)
     file_names.sort()
+    dicom_relation_data = {}
+    folder_fake = ""#最终路径
+    temporary_uid = history_uid
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
             continue
         elif (os.path.isdir(full_fn)): #如果它是个文件夹
-            updateFolder(full_fn, study_infos, diseases, foldType, id,predictor)
+            updateFolder(custom, full_fn, study_infos, diseases, foldType, id,predictor,temporary_uid)
             continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
-            # study_uid = ds.StudyInstanceUID
-            # ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
             study_uid = ds.StudyInstanceUID
-            if str(study_uid).count("__") is False:
-                study_uid = '__'.join([ds.StudyInstanceUID, str(uuid.uuid1())])
+            ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
             try:
                 study_infos["No"] = study_infos["No"] + 1
                 if study_infos.__contains__(study_uid) is False:
                     try:
-                        objdicom = dicom.objects.get(studyinstanceuid=study_uid, fileid=id)
-                        if not os.path.exists(objdicom.route):
-                            os.mkdir(objdicom.route)
+                        #规范化数据时候，不论成功失败都要记录哪个成功，哪个失败
+                        dicom_relation_data["baseid"] = id
+                        dicom_relation_data["old_path"] = full_fn
+                        dicom_relation_data["custom"] = custom
+                        dicom_relation_data["type"] = foldType
+                        dicom_relation_data["predictor"] = predictor
+                        dicom_relation_data["fail_uid"] = study_uid
+                        # dicom_relation["new_path"] = folder_fake
+                        # dicom_relation["success_uid"] = study_uid
+
+                        objdicom = dicom.objects.get(studyinstanceuid=study_uid)
+                        #数据库中已经存在这个检查号
+                        if study_uid in temporary_uid:
+                           pass
                         else:
-                            shutil.rmtree(objdicom.route)
-                            time.sleep(2)
-                            os.mkdir(objdicom.route)
-                        study_infos[study_uid] = {
-                            "patientid": objdicom.patientid,
-                            "patientname": objdicom.patientname,
-                            "folder_fake": objdicom.route
-                        }
-                        # logger.info('---更新：{}----'.format(study_infos[study_uid]))
+                            relation = dicom_relation.objects.create(**dicom_relation_data)
+                            temporary_uid.append(study_uid)
                     except Exception as e:
+                        #数据库中没找到这个检查号
                         obj = dicom.objects.all().aggregate(Max('id'))
                         filename = str(int(obj["id__max"]) + 1)
                         if ds.PatientName:
@@ -70,7 +77,8 @@ def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
                             patientid = patientname
                             ds.PatientID = patientid
                         filename = "{0}{1}".format(str(patientname), str(int(obj["id__max"]) + 1))
-                        folder_fake = '/files1/dicomTest/{0}/{1}/{2}'.format(foldType, diseases, filename)
+                        folder_fake = '/files1/dicomTest/{0}/{1}/{2}'.format(foldType, diseases, study_uid)
+                        # folder_fake = "C:\D\MRP1" + '/dicomTest/{0}/{1}/{2}'.format(foldType, diseases, study_uid)
                         study_infos[study_uid] = {
                             "patientid": patientid,
                             "patientname": patientname,
@@ -90,6 +98,11 @@ def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
                             "status": True
                         }
                         dicom.objects.create(**data)
+                        #保存上传记录和对应关系和结果
+                        dicom_relation_data["fail_uid"] = ""
+                        dicom_relation_data["new_path"] = folder_fake
+                        dicom_relation_data["success_uid"] = study_uid
+                        relation = dicom_relation.objects.create(**dicom_relation_data)
 
                 ds.PatientName = str(study_infos[study_uid]["patientname"])
                 ds.PatientID = str(study_infos[study_uid]["patientid"])
@@ -105,20 +118,32 @@ def updateFolder(src_folder, study_infos, diseases, foldType, id, predictor):
 
 # 更新文件
 def fileUpdate(id):
-    obj = dicom_base.objects.get(id=id)
-    study_infos = {}
-    study_infos["No"] = 0
-    src_folder = obj.content
-    while src_folder[-1] == '/':
-        src_folder = src_folder[0:-1]
-    updateFolder(
-        src_folder="C:\D\MRP",
-        # src_folder=src_folder,
-        study_infos=study_infos,
-        diseases=obj.remarks,
-        foldType=obj.type,
-        id=id,
-        predictor=obj.predictor
-    )
-    obj.other = int(len(study_infos)) - 1
-    obj.save()
+    try:
+        obj = dicom_base.objects.get(id=id)
+        uploadfileResult = uploadfile.objects.filter(fileid=id)
+        if uploadfileResult.exists() is False:
+            pass
+        files = list(uploadfileResult)
+        loadfile = files[-1]
+
+        study_infos = {}
+        study_infos["No"] = 0
+        logger.info("12323")
+        src_folder = obj.content
+        while src_folder[-1] == '/':
+            src_folder = src_folder[0:-1]
+        updateFolder(
+            custom=loadfile.fileurl,
+            src_folder=loadfile.fileurl,
+            # src_folder=src_folder,
+            study_infos=study_infos,
+            diseases=obj.remarks,
+            foldType=obj.type,
+            id=id,
+            predictor=obj.predictor,
+            history_uid=[]
+        )
+        obj.other = int(len(study_infos)) - 1
+        obj.save()
+    except Exception as e:
+        logger.error(e)

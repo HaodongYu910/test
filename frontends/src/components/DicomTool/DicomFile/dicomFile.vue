@@ -91,6 +91,7 @@
                 <template slot-scope="scope">
                     <el-button type ="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑病种</el-button>
                     <el-button type="primary" size="small" @click="handleSupplement(scope.$index, scope.row)">补充病人数据</el-button>
+                    <el-button type="primary" size="small" @click="ViewResults(scope.$index, scope.row)">查看结果</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -110,12 +111,12 @@
         <el-dialog title="编辑病种" :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-form-item label="文件路径">
-                    <el-input v-model="editForm.content" :disabled="true"></el-input>
-                </el-form-item>
+<!--                <el-form-item label="文件路径">-->
+<!--                    <el-input v-model="editForm.content" :disabled="true"></el-input>-->
+<!--                </el-form-item>-->
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="分类" prop='type'>
+                        <el-form-item label="数据类型" prop='type'>
                             <el-select v-model="editForm.type" placeholder="请选择" auto-complete="off" :disabled="true">
                                 <el-option v-for="item in options" :key="item.value" :label="item.label"
                                            :value="item.value">
@@ -124,12 +125,12 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="类型">
-                            <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>
-                        </el-form-item>
+<!--                        <el-form-item label="查询类型">-->
+<!--                            <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>-->
+<!--                        </el-form-item>-->
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="模型" prop='predictor'>
+                        <el-form-item label="模型类型" prop='predictor'>
                             <el-select v-model="editForm.predictor" placeholder="请选择" @click.native="getDict()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
@@ -140,7 +141,7 @@
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-form-item label="名称">
+                <el-form-item label="病种名称">
                     <el-input v-model="editForm.remarks"></el-input>
                 </el-form-item>
             </el-form>
@@ -161,13 +162,6 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                        <el-form-item label="文件路径" prop='content'>
-                            <el-input v-model.trim="addForm.content" auto-complete="off" style="width: 215px;height:32px;"></el-input>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row>
-                    <el-col :span="12">
                         <el-form-item label="数据类型" prop='type'>
                                 <el-select v-model="addForm.type" placeholder="请选择" @click.native="getfile()">
                                     <el-option v-for="(item,index) in filetype"
@@ -178,8 +172,10 @@
                                 </el-select>
                         </el-form-item>
                     </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="模型类型" prop='predictor'>
+                </el-row>
+                <el-row>
+                    <el-col :span="12">
+                        <el-form-item label="模型类型" prop='predictor'>
                                 <el-select v-model="addForm.predictor" placeholder="请选择" @click.native="getDict()">
                                     <el-option v-for="(item,index) in model"
                                                :key="item.id"
@@ -187,23 +183,25 @@
                                                :value="item.id"
                                     />
                                 </el-select>
-                            </el-form-item>
+                        </el-form-item>
+                    </el-col>
+                        <el-col :span="12">
+
                         </el-col>
                 </el-row>
                 <el-alert title="使用帮助" type="success">
                     <template slot='title'>
                         <div class="iconSize">使用帮助:</div>
-                        <div class="iconSize">1、病种名称:测试部自定义病种名称，一个病种下可以有多个病人数据,此处是新增病种，如已有该病种，请在列表处直接添加病人数据</div>
-                        <div class="iconSize">2、文件路径:该病种（N）个病人数据所在文件夹</div>
-                        <div class="iconSize">3、数据类型:测试用途不同，需要不同的类型数据</div>
-                        <div class="iconSize">4、模型类型:开发部定义，该病种使用哪种模型算法进行智能分析</div>
-                        <div class="iconSize">5、上传数据:点击后，数据将自动上传测试服务器，下一步请到Dicom发送中选择发送到哪个被测服务器上</div>
+                        <div class="iconSize">1、病种名称:测试部自定义病种名称，一个病种下可以有多个病人数据,此处是新增病种</div>
+                        <div class="iconSize">2、数据类型:测试用途不同，需要不同的类型数据</div>
+                        <div class="iconSize">3、模型类型:开发部定义，该病种使用哪种模型算法进行智能分析</div>
+                        <div class="iconSize">4、提交，下一步请添加病人数据</div>
                     </template>
                 </el-alert>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="addFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">上传数据</el-button>
+                <el-button type="primary" @click.native="addSubmit" :loading="addLoading">提交</el-button>
             </div>
         </el-dialog>
 
@@ -216,6 +214,9 @@
                 </el-form-item>
                 <el-form-item label="文件id">
                     <el-input v-model="supplemenForm.id" :disabled="true"></el-input>
+                </el-form-item>
+                <el-form-item label="定义名称">
+                    <el-input v-model="supplemenForm.custom"></el-input>
                 </el-form-item>
 
                 <el-form-item label="名称" :disabled="true">
@@ -264,7 +265,7 @@
     import {
         getbase, Delbasedata, Disablebase, Enablebase,
         UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary, addupload, addzipupload,
-        getFileUploadProgress
+        getFileUploadProgress, getDataResult
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -272,6 +273,7 @@
         data() {
             return {
                 dataupshow:false,
+                file_path :'',
                 file: '',
                 fileList: [],
                 filetype:[],
@@ -321,9 +323,9 @@
                     remarks: [
                         { required: true, message: '请填写病种名称', trigger: 'blur' }
                     ],
-                    content: [
-                        { required: true, message: '请填写文件上传所在目录', trigger: 'blur' }
-                    ],
+                    // content: [
+                    //     { required: true, message: '请填写文件上传所在目录', trigger: 'blur' }
+                    // ],
                     type: [
                         { required: true, message: '请填写数据类型', trigger: 'change' }
                     ]
@@ -333,6 +335,7 @@
                 //补充病人数据界面数据
                 supplemenForm: {
                     id:'',
+                    custom:'',
                     content: '',
                     files: '',
                 },
@@ -349,11 +352,11 @@
                 isUploadingByIdMap: {},
                 isUploadingStatusMap: {},
                 fileSizeMap: {
-                    A: 10,
-                    B: 1.5,
-                    C: 0.8,
-                    D: 0.5,
-                    E: 0.2
+                    A: 10,   //<1G
+                    B: 1.2,   //<2G
+                    C: 0.8,     //<5G
+                    D: 0.4,     //<10Gset
+                    E: 0.2      //>10G
                 }
             }
         },
@@ -517,23 +520,33 @@
                         }
                     });
                 } else {
-                    Enablebase(headers, params).then(_data => {
-                        let {msg, code, data} = _data;
+                    if(row.other == 0){
+                        this.$message({
+                            showClose: true,
+                            message: '病人数据=0,请添加病人数据刷新页面,之后点击启用',
+                            type: 'error'
+                        });
                         self.listLoading = false;
-                        if (code === '0') {
-                            self.$message({
-                                message: '启用成功',
-                                center: true,
-                                type: 'success'
-                            });
-                            row.status = !row.status;
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                    });
+                    }else{
+                        Enablebase(headers, params).then(_data => {
+                            let {msg, code, data} = _data;
+                            self.listLoading = false;
+                            if (code === '0') {
+                                self.$message({
+                                    message: '启用成功',
+                                    center: true,
+                                    type: 'success'
+                                });
+                                row.status = !row.status;
+                            } else {
+                                self.$message.error({
+                                    message: msg,
+                                    center: true,
+                                })
+                            }
+                        });
+                    }
+
                 }
             },
             handleCurrentChange(val) {
@@ -551,6 +564,31 @@
                 this.fileList = []//清空列表数据
                 this.supplementVisible = true;
                 this.supplemenForm = Object.assign({}, row);
+            },
+            //查看结果
+            ViewResults: function (index, row) {
+                // this.$refs.addForm.validate((valid) => {
+                //     this.$message({
+                //         message: row.content + "," + row.id + "," + this.file_path,
+                //         center: true,
+                //         type: 'success'
+                //     });
+                let params = JSON.stringify({
+                    file_path: this.file_path,
+                });
+                let header = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                };
+                getDataResult(header, params).then(_data => {
+                    let {msg, code, data} = _data;
+                        this.$message({
+                        message: msg,
+                        center: true,
+                        // type: 'success'
+                    });
+                })
+                // });
             },
             //显示新增界面
             handleAdd: function () {
@@ -776,6 +814,7 @@
                 });
                 params.append('type', this.supplemenForm.content)
                 params.append('id', this.supplemenForm.id)
+                params.append('custom', this.supplemenForm.custom)
 
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 addzipupload(headers, params).then((res) => {
@@ -790,6 +829,7 @@
                     if (code === '0') {
                         // alert("ok")
                         // this.$message(data.filename,'上传成功');
+                        this.file_path=data.file_path,
                         this.isUploadingByIdMap = {
                             ...this.isUploadingByIdMap,
                             [tempVal]: 100
@@ -838,10 +878,10 @@
                     if(currProgressVal < 99) {
                         this.isUploadingByIdMap = {
                             ...this.isUploadingByIdMap,
-                            [id]: currProgressVal + +progress > 99 ? 99 : currProgressVal + +progress
+                            [id]: currProgressVal + +progress > 99 ? 99 : +((currProgressVal + +progress / 2).toFixed(1))
                         }
                     }
-                }, 1000)
+                }, 500)
             },
             getCurrFileSize(fileSize) {
                 let val = 'A'
