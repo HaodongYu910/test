@@ -67,7 +67,8 @@ class getDuration(APIView):
             # 已发送的数据统计
             obj = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
-            i["dicom"] = baseTransform(i["dicom"], 'base')
+            i["dicomLabel"] = baseTransform(i["dicom"], 'base')
+
 
         return JsonResponse(data={"data": dataSerializer.data,
                                   "page": page,

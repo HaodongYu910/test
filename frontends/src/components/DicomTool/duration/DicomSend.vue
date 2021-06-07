@@ -53,7 +53,7 @@
                 </el-table-column>
                 <el-table-column prop="type" label="数据类型" min-width="20%" show-overflow-tooltip>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.dicomLabel }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="预计数量" min-width="10%">
@@ -141,8 +141,13 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="groupOptions" v-model="editForm.senddata" clearable :props="props"
+                                <el-cascader :options="groupOptions" v-model="editForm.dicomLabel" clearable :props="props"
                                              @click.native="getgroupbase()"></el-cascader>
+                            </el-form-item>
+                        </el-col>
+                        <el-col>
+                            <el-form-item label="xinde shujuleixing:" prop='senddata123'>
+                                    <el-input label="fasongde leixing" id="123123" v-model="editForm.dicomLabel"/>
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
@@ -868,6 +873,8 @@
             ,
             // 显示编辑界面
             handleEdit: function (index, row) {
+                console.log('row', row)
+                console.log('test', row.dicom)
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
             }
