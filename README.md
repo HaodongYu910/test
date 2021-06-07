@@ -97,10 +97,14 @@ __isnull	True 与 __exact=None的区别
 
 ## docker 建立方式 ##
   cd Biomind_Test_platform
-$  docker build -f dockerfile -t qa:{current_tag} .
-$  docker save -o qa:{current_tag}.tar qa:{current_tag}
-$  sh qa_platform.sh install qa:{current_tag}.tar
-$  qa start
+  
+  docker build -f dockerfile -t qa:{current_tag} .
+  
+  docker save -o qa:{current_tag}.tar qa:{current_tag}
+  
+  sh qa_platform.sh install qa:{current_tag}.tar
+  
+  qa start
 
 
 ## 其他注意事项 ##
