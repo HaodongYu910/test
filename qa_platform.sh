@@ -46,6 +46,6 @@ elif [[ $command = start ]]; then
     if docker ps -a  | grep -w -q -i "qa"; then
         docker ps -a  | grep "qa" | awk '{print $1}' | xargs docker rm -f 
     fi
-    docker run --restart always -d --net="host" -it --name 'qa' -p 9000:9000 -v `pwd`:/usr/src/dicommaster $image_tag
+    docker run --restart always -d --net="host" -it --name 'qa' -p 9000:9000 -v `pwd`:/usr/src/Biomind_Test_Platform $image_tag
     echo "biomind test platform start success"
 fi

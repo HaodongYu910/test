@@ -18,4 +18,4 @@ RUN pip3 install -r ./requirements.txt
 # RUN ssh-keyscan git.biomind.com.cn >> /root/.ssh/known_hosts
 # # clone仓库
 # RUN git clone git@git.biomind.com.cn:QA/Biomind_Test_Platform.git /usr/src/Biomind_test_platform
-# CMD bash /usr/src/Biomind_test_platform/start.sh
+CMD bash /usr/srcBiomind_Test_Platform/start.sh
