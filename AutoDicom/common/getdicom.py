@@ -2,7 +2,7 @@
 import os
 import random
 
-import paramiko
+# import paramiko
 import pydicom
 from tqdm import tqdm
 import time

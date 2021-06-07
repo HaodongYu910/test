@@ -764,6 +764,12 @@ export const addbaseData = (headers, params) => {
     .post(`${test}/dicom/base/addData`, params, headers)
     .then((res) => res.data);
 };
+// 添加数据获取结果
+export const getDataResult = (headers, params) => {
+  return axios
+    .post(`${test}/dicom/base/getResult`, params, headers)
+    .then((res) => res.data);
+};
 // 修改基础数据
 export const UpdatebaseData = (headers, params) => {
   return axios
