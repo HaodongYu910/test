@@ -53,13 +53,12 @@ class getInstallVersion(APIView):
         :return:
         """
         try:
-            version = []
             groupChildren = {}
             groupOptions = []
             try:
                 Obj = project_version.objects.all().order_by("-id")
                 for i in Obj:
-                    if groupChildren.__contains__(i.version) is False:
+                    if groupChildren.__contains__(i.branch) is False:
                         children = {
                             "value": i.id,
                             "label": i.package_name[:-4]

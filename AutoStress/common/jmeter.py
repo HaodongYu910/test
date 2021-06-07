@@ -35,7 +35,6 @@ class JmeterThread(threading.Thread):
         self.server = self.obj.Host.host
         self.testdata = self.obj.testdata
         self.kc = login_keycloak(self.obj.Host_id)
-        self.single = 20
 
     # 执行 jmeter 脚本
     def run(self):

@@ -53,6 +53,11 @@ export default new Router({
                     meta: {title: '项目列表'}
                 },
                 {
+                    path: '/projectVersion',
+                    component: resolve => require(['../components/project/ProjectVersion.vue'], resolve),
+                    meta: {title: '项目版本'}
+                },
+                {
                     path: '/message',
                     component: resolve => require(['../components/page/Tabs.vue'], resolve),
                     meta: {title: '消息中心'}

@@ -22,6 +22,7 @@ echo $path
 echo "#################### old build has been removed ############################"
 sudo rm -rf $version
 sudo rm -rf $package_name
+sudo rm -rf Qt
 
 mkdir QInstall
 ### ans for downloading packages and docker_registry
@@ -35,7 +36,7 @@ rclone copy -P $path /home/biomind/ --transfers=8
 
 
 echo "#################### tar|| zip - $name   ############################"
-if [[ ${$package_name##*.} == "zip" ]];then
+if [[ ${package_name##*.} == "zip" ]];then
     echo "unzip -o $package_name"
     unzip -o $package_name
 else
@@ -63,17 +64,17 @@ echo ""
 echo "################################### fixed permission ###########################################"
 echo " "
 ### fixed permssion
-bash ~/.biomind/lib/current/installer/biomind.sh install
-sleep 3
+#bash ~/.biomind/lib/current/installer/biomind.sh install
+#sleep 3
 echo ""
 echo "################################### cache config ###########################################"
 echo ""
-echo "rm -rf QInstall"
-sudo rm -rf /home/biomind/QInstall
-echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
-mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
-echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"
-mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
+echo "rm -rf QInstall/"
+mv QInstall Qt
+#echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
+#mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
+#echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"
+#mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
 
 ### report
 #biomind report prod master

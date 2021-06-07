@@ -28,17 +28,31 @@ class getVersion(APIView):
         :return:
         """
         try:
-            history = int(request.GET.get("history", True))
-            projectId = int(request.GET.get("projectId"))
-            try:
-                if projectId:
-                    obj = project_version.objects.filter(status=history, project_id=projectId).order_by("-id")
-            except ObjectDoesNotExist:
-                return JsonResponse(code="999996", msg="参数有误!请传项目ID")
-            serialize = ProjectVersionSerializer(obj, many=True)
-            return JsonResponse(data={"data": serialize.data}, code="0", msg="成功")
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="获取版本失败!")
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        version = request.GET.get("version")
+        name = request.GET.get("name")
+        if version:
+            obi = project_version.objects.filter(version__contains=version).order_by("-id")
+        elif name:
+            obi = project_version.objects.filter(version__contains=name).order_by("-id")
+        else:
+            obi = project_version.objects.all().order_by("-id")
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        serialize = ProjectVersionSerializer(obm, many=True)
+        return JsonResponse(data={"data": serialize.data,
+                                  "page": page,
+                                  "total": total
+                                  }, code="0", msg="成功")
 
 
 
