@@ -54,7 +54,7 @@
                                 title: '项目列表'
                             },
                             {
-                                index: 'SmokeList',
+                                index: 'projectVersion',
                                 title: '版本管理'
                             },
                             {

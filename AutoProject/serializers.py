@@ -82,7 +82,7 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     """
     项目版本版本信息序列化
     """
-    project = serializers.CharField(source='Project.name')
+    # project = serializers.CharField(source='Project.name')
     update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
 

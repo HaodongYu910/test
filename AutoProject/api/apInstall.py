@@ -12,7 +12,7 @@ from AutoProject.serializers import install_Deserializer
 from ..common.install import InstallThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
-from ..models import install, Server
+from ..models import install, Server ,project_version
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
 from AutoInterface.models import gold_record
@@ -53,13 +53,35 @@ class getInstallVersion(APIView):
         :return:
         """
         try:
-            version = []
-            obj = dictionary.objects.filter(status=True, type='history').order_by("-key")
-            for i in obj:
-                version.append(i.key)
+            groupChildren = {}
+            groupOptions = []
+            try:
+                Obj = project_version.objects.all().order_by("-id")
+                for i in Obj:
+                    if groupChildren.__contains__(i.branch) is False:
+                        children = {
+                            "value": i.id,
+                            "label": i.package_name[:-4]
+                        }
+                        groupChildren[i.branch] = [children]
+                    else:
+                        groupChildren[i.branch].append({
+                            "value": i.id,
+                            "label": i.package_name[:-4]
+                        })
+            except Exception as e:
+                logger.error("查询dicom文件报错：{}".format(e))
+
+            for k, v in groupChildren.items():
+                groupOptions.append({
+                    "value": k,
+                    "label": k,
+                    "children": v
+                })
+
+            return JsonResponse(data={"groupOptions": groupOptions}, code="0", msg="成功")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取版本失败!")
-        return JsonResponse(data={"data": version}, code="0", msg="成功")
 
 
 class getInstall(APIView):
@@ -93,6 +115,7 @@ class getInstall(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = install_Deserializer(obm, many=True)
         for i in serialize.data:
+            i["version"] = project_version.objects.get(id=i["version"]).package_name[:-4]
             if i["status"] is True:
                 # try:
                 #     testThread = InstallThread(id=i["id"])
@@ -227,25 +250,10 @@ class AddInstall(APIView):
             return result
         try:
             obj = Server.objects.get(id=data["Host"])
+            data["version"] = str(data["version"][1])
             data["server"] = obj.host
             data["smokeid"] = 0 if data["smokeid"] is True else None
             data["uid"] = 0 if data["uid"] is True else None
-            if data["testcase"] is True and data["cache"] is True:
-                # 更新备份同时更新 cache
-                data["testcase"] = 3
-
-            elif data["testcase"] is True and data["cache"] is False:
-                # 更新备份 不更新 cache
-                data["testcase"] = 0
-
-            elif data["testcase"] is False and data["cache"] is True:
-                # 不更新备份 更新 cache
-                data["testcase"] = 1
-            elif data["testcase"] is False and data["cache"] is False:
-                # 不更新备份 & cache
-                data["testcase"] = 2
-            else:
-                data["testcase"] = None
             Installadd = install_Deserializer(data=data)
 
             with transaction.atomic():

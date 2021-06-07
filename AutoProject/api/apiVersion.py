@@ -23,18 +23,37 @@ class getVersion(APIView):
 
     def get(self, request):
         """
-        获取Install 版本
+        获取项目Version 版本
         :param request:
         :return:
         """
         try:
-            version = []
-            obj = dictionary.objects.filter(status=True, type='history').order_by("-key")
-            for i in obj:
-                version.append(i.key)
+            page_size = int(request.GET.get("page_size", 20))
+            page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="获取版本失败!")
-        return JsonResponse(data={"data": version}, code="0", msg="成功")
+            return JsonResponse(code="999985", msg="page and page_size must be integer!")
+        version = request.GET.get("version")
+        name = request.GET.get("name")
+        if version:
+            obi = project_version.objects.filter(version__contains=version).order_by("-id")
+        elif name:
+            obi = project_version.objects.filter(version__contains=name).order_by("-id")
+        else:
+            obi = project_version.objects.all().order_by("-id")
+        paginator = Paginator(obi, page_size)  # paginator对象
+        total = paginator.num_pages  # 总页数
+        try:
+            obm = paginator.page(page)
+        except PageNotAnInteger:
+            obm = paginator.page(1)
+        except EmptyPage:
+            obm = paginator.page(paginator.num_pages)
+        serialize = ProjectVersionSerializer(obm, many=True)
+        return JsonResponse(data={"data": serialize.data,
+                                  "page": page,
+                                  "total": total
+                                  }, code="0", msg="成功")
+
 
 
 class AddVersion(APIView):
@@ -85,7 +104,7 @@ class AddVersion(APIView):
             except:
                 data["package_name"] = f"{data['version']}1.tgz"
             data["status"] = True
-            data["path"] = "oss://biomind-ha-rt/{0}/{1}/{2}".format(
+            data["path"] = "oss://biomind/{0}/{1}/{2}".format(
                 data["project"], data["type"], data["package_name"])
             try:
                 data["project"] = int(Project.objects.get(version=data["project"]).id)

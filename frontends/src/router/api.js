@@ -52,6 +52,16 @@ export const getProjectDetail = (headers, params) => {
     })
     .then((res) => res.data);
 };
+// 获取项目版本
+export const getProVersion = (headers, params) => {
+  return axios
+    .get(`${test}/project/version/list`, {
+      params: params,
+      headers: headers,
+    })
+    .then((res) => res.data);
+};
+
 // 获取测试地址列表
 export const getHost = (headers, params) => {
   return axios
@@ -61,6 +71,7 @@ export const getHost = (headers, params) => {
     })
     .then((res) => res.data);
 };
+
 // 修改测试地址列表
 export const updateHost = (headers, params) => {
   return axios

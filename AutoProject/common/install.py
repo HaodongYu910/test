@@ -7,7 +7,7 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, dictionary, message_group, Server
+from ..models import install, dictionary, project_version, Server
 from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
@@ -22,7 +22,10 @@ def deldata(server, InstallID, passwd):
         sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 开始删除旧版本'.format(server))
         AddJournal(name="Installation{}".format(InstallID), content="【安装部署】：停止旧服务")
         ssh = SSHConnection(host=server, pwd=passwd)
+        ssh.shcmd("biomind wipe")
         ssh.shcmd("sshpass -p y docker system prune")
+        ssh.shcmd("docker rmi - f $(docker images -qa)")
+        ssh.shcmd("sshpass -p {} sudo rm -rf /lfs/docker/volumes/*".format(passwd))
         AddJournal(name="Installation{}".format(InstallID), content="【安装部署】：docker system prune")
         ssh.cmd("docker volume rm $(docker volume ls -q)")
         AddJournal(name="Installation{}".format(InstallID), content="【安装部署】：docker volume rm $(docker volume ls -q)")
@@ -51,13 +54,12 @@ class InstallThread(threading.Thread):
         # 性能测试id
         self.id = kwargs["id"]
         self.obj = install.objects.get(id=self.id)
+        self.versionObj = project_version.objects.get(id=self.obj.version)
         self.user = self.obj.Host.user
         self.pwd = self.obj.Host.pwd
         self.ssh = SSHConnection(host=self.obj.server, pwd=self.pwd)
-        self.cleanstop = ''
-        self.upstop = ''
-        self.restop = ''
         self.localpath = "{}/AutoProject/script/download_qa.sh".format(settings.BASE_DIR)
+        self.cacheTag = ''
 
     # 检查磁盘大小
     def checkDisk(self):
@@ -73,14 +75,22 @@ class InstallThread(threading.Thread):
 
 
     def clean(self):
-        self.cleanstart = time.time()
         self.installStatus(status=True, type=2)
         self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
         # 查看磁盘空间 输出日志
         self.checkDisk()
         # 删除旧的版本配置
         if self.obj.installstatus is True:
+            self.cacheTag ='cacheTag'
+            self.ssh.cmd(
+                "cp -r /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache")
+            self.ssh.cmd(
+                "cp -r /home/biomind/.biomind/var/biomind/orthanc/orthanc.json /home/biomind/orthanc.json")
             deldata(self.obj.server, self.id, self.pwd)
+        elif "No such file or directory" in str(self.ssh.cmd(" cd /home/biomind/.biomind/var/biomind/cache/;")):
+            cache(id=self.obj.Host_id)
+            self.cacheTag = 'cacheTag'
+
         # 删除旧缓存
         try:
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）删除旧缓存'.format(self.obj.Host.host))
@@ -89,41 +99,36 @@ class InstallThread(threading.Thread):
                 "rm -rf cache orthanc.json install.log restart.log;")
         except Exception as e:
             logger.error(e)
-        # 备份原cache
-        try:
-            sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）备份 配置文件'.format(self.obj.Host.host))
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：备份配置文件\n")
 
-            if "No such file or directory" in str(self.ssh.cmd(" cd /home/biomind/.biomind/var/biomind/cache/;")):
-                cache(id=self.obj.Host_id)
-            else:
-                self.ssh.cmd(
-                    "cp -r /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache")
-                self.ssh.cmd(
-                    "cp -r /home/biomind/.biomind/var/biomind/orthanc/orthanc.json /home/biomind/orthanc.json")
-
-            self.cleanstop = time.time()
-        except Exception as e:
-            logger.error(e)
 
     def run(self):
         try:
+
             self.obj.starttime = datetime.datetime.now()
             self.installStatus(status=True, type=1)
             self.clean()
-            self.upstart = time.time()
             # 上传安装版本
             try:
                 if self.Flag is True:
                     self.installStatus(status=True, type=3)
                     logger.info('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR))
                     sendMessage(touser='', toparty='132', message='【安装部署】：（{0}） 下载安装版本'.format(self.obj.Host.host))
-                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
-                    self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
 
-                    self.ssh.command("nohup sshpass -p {0} bash install_qa.sh {1} > install.log 2>&1 &".format(
+                    self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR), '/home/biomind/install_qa.sh')
+                    AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
+
+                    logger.info("CMD：{}".format("nohup sshpass -p {0} bash /home/biomind/install_qa.sh {1} {2} {3}> install.log 2>&1".format(
                         self.obj.Host.pwd,
-                        self.obj.version))
+                        str(self.versionObj.version),
+                        str(self.versionObj.package_name),
+                        self.versionObj.path
+                    )))
+                    self.ssh.command("nohup sshpass -p {0} bash /home/biomind/install_qa.sh {1} {2} {3}> install.log 2>&1".format(
+                        self.obj.Host.pwd,
+                        str(self.versionObj.version),
+                        str(self.versionObj.package_name),
+                        self.versionObj.path
+                    ))
                     # 校验是否安装完成
                     while True:
                         time.sleep(60)
@@ -131,9 +136,8 @@ class InstallThread(threading.Thread):
                             break
                         else:
                             time.sleep(5)
-                self.upstop = time.time()
             except Exception as e:
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format(self.obj.version, e))
+                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format( self.versionObj.version, e))
                 self.installStatus(status=False, type=3)
                 return
             # 重启 服务
@@ -141,11 +145,14 @@ class InstallThread(threading.Thread):
         except Exception as e:
             self.obj.status = False
             self.obj.save()
-            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
 
     def restart(self):
         try:
-            self.restime = time.time()
+            if self.cacheTag:
+                self.ssh.cmd("mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
+                self.ssh.cmd("mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/")
+
             self.installStatus(status=True, type=4)
             self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
@@ -154,7 +161,6 @@ class InstallThread(threading.Thread):
             time.sleep(120)
             AddJournal(name="Installation{}".format(self.id),
                        content="【服务状态】\n" + bytes.decode(self.ssh.cmd("docker ps;")))
-            self.restop = time.time()
         except:
             self.installStatus(status=False, type=4)
             return
@@ -183,9 +189,9 @@ class InstallThread(threading.Thread):
 
                     if self.obj.smokeid == 0:
                         AddJournal(name="Installation{}".format(self.id), content="【安装部署】：执行金标准测试\n")
-                        goldsmoke(version=self.obj.version)
+                        goldsmoke(version=self.versionObj.version)
                     if self.obj.uid == 0:
-                        goldsmoke(version=self.obj.version)
+                        goldsmoke(version=self.versionObj.version)
 
                     return True
                 elif b == 10:
@@ -201,7 +207,7 @@ class InstallThread(threading.Thread):
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id),
-                       content="【安装部署】：安装{0}失败原因：{1}".format(self.obj.version, e))
+                       content="【安装部署】：安装{0}失败原因：{1}".format( self.versionObj.version, e))
             return False
     # 变更状态
     def installStatus(self, status, type):
@@ -214,24 +220,6 @@ class InstallThread(threading.Thread):
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm
-
-    def getParm(self):  # 外部获得内部信息函数
-        if self.cleanstop:
-            self.cleantime = "耗时：{}".format(str(round(self.cleanstop - self.cleanstart, 2)))
-            if self.upstop:
-                self.uptime = "耗时：{}".format(str(round(self.upstop - self.upstart, 2)))
-                if self.restime:
-                    self.restarttime = "耗时：{}".format(str(round(self.restop - self.restime, 2)))
-                else:
-                    self.restarttime = "耗时：{}".format(str(round(time.time() - self.restime, 2)))
-            else:
-                self.uptime = "耗时：{}".format(str(round(time.time() - self.upstart, 2)))
-                self.restarttime = ''
-        else:
-            self.cleantime = "耗时：{}".format(str(round(time.time() - self.cleanstart, 2)))
-            self.uptime = ''
-            self.restarttime = ''
-        return self.cleantime, self.uptime, self.restarttime
 
 
 class smokeThread(threading.Thread):
@@ -257,7 +245,7 @@ class smokeThread(threading.Thread):
             logger.info("Nightly Build Version:{}：持续化测试".format(self.version))
             durationTest(version=self.version, server=self.server.host, aet=self.server.remarks)
         except Exception as e:
-            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format(self.obj.version, e))
+            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format( self.versionObj.version, e))
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
