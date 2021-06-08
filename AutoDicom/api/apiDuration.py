@@ -177,6 +177,8 @@ class addDuration(APIView):
             dicomdata = ''
             hostobj = Server.objects.get(id=data['Host'])
             data['server'] = hostobj.host
+            if data["type"] == '持续化':
+                data["version"] = str(data["version"][1])
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
                 if i[0] == "虚拟组":

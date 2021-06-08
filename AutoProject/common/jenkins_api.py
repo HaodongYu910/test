@@ -54,6 +54,7 @@ class jenkinsbuild:
         return build
 
 if __name__ == '__main__':
+    a = jenkinsbuild()
     pass
     #jenkinsbuild().disable_job(job_name="Radiology-Sonar", param_dict={"BRANCH": "master","projectName": "Biomind-Radiology"})
 #     # print(getBuild("Duration_test"))

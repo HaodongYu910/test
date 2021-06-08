@@ -104,10 +104,10 @@ def DurationTask():
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
                 logger.info("持续化定时任务{}！".format(i.id))
-                dThread = DurationThread(id=i.id)
-                dThread.setDaemon(True)
+                DT = DurationThread(id=i.id)
+                DT.setDaemon(True)
                 # 开始线程
-                dThread.start()
+                DT.start()
             else:
                 logger.info("持续化定时任务停止{}！".format(i.id))
                 i.status = False
