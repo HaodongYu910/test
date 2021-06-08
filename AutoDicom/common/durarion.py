@@ -226,7 +226,7 @@ class DurationThread(threading.Thread):
 
         # 补充数据
         listsum = copylist(listsum, int(self.obj.sendcount))
-        # print(listsum)
+        logger.info("listsum:{}".format(listsum))
 
         # 优先查询组
         for j in listsum:
@@ -251,11 +251,13 @@ class DurationThread(threading.Thread):
                         continue
                     try:
                         q.put([full_fn, full_fn_fake, info, dcmcount])
+                        logger.info("qq==",q)
                     except Exception as e:
                         logging.error("[匿名错误]:{}".format(e))
                         continue
             except Exception as e:
                 logger.error("遍历文件：{}".format(e))
+        return q
 
         # try:
         #     file_end = int(self.obj.sendcount)
@@ -312,7 +314,9 @@ class DurationThread(threading.Thread):
         threads = []
 
         try:
+            # logger.info("test start")
             for i in range(self.thread_num):
+                # logger.info("test start1111111111111")
                 t = threading.Thread(target=self.durationAnony, args=(q,))
                 # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
                 t.start()
@@ -335,6 +339,8 @@ class DurationThread(threading.Thread):
                 break
             self.count = self.count + 1
             testdata = q.get()
+
+            logger.info(testdata)
             full_fn_fake = testdata[1]
             try:
                 data, Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
