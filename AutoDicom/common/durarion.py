@@ -1,4 +1,5 @@
 # coding=utf-8
+import copy
 import logging
 import threading
 import os, shutil
@@ -35,6 +36,43 @@ def get_time():
 def get_rand_uid():
     rand_val = random.randint(1, math.pow(10, 16) - 1)
     return "%08d" % rand_val
+
+
+def Myinster(dicta):
+    dicta = dict(sorted(dicta.items(), key=lambda i: -len(i[1])))
+    listsum = []
+    l = 0
+    start = 0
+    step = 2
+    for key, value in dicta.items():
+        if start == 0:
+            listsum = list(value)
+            start = start + 1
+            continue
+        for i in value:
+            # print((start + step * l))
+            listsum.insert((start + step * l), i)
+            l = l + 1
+        # print(listsum)
+        start = start + 1
+        step = step + 1
+        l = 0
+    return listsum
+
+def copylist(listsum, count):
+    while len(listsum) < count:
+        listA = copy.deepcopy(listsum)
+        listsum = listA + listsum
+    return listsum[:count]
+
+def grouping(dictsum, dicom):
+    if dictsum.get(dicom.diseases) is None:
+        sum = set()
+        sum.add(dicom)
+    else:
+        sum = dictsum.get(dicom.diseases)
+        sum.add(dicom)
+    dictsum[dicom.diseases] = sum
 
 
 class DicomData(threading.Thread):
@@ -175,52 +213,96 @@ class DurationThread(threading.Thread):
                 dicomID.append(i.dicom_id)
         # 查询发送数据
         dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
-        try:
-            file_end = int(self.obj.sendcount)
-            while True:
-                if filecount > file_end:
-                    self.CountData.append(dcmcount)
-                    break
-                if file_end >= filecount > int(dicomObj.count()):
-                    # 查询发送数据
-                    dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
-                # 优先查询组
-                for j in dicomObj:
-                    self.CountData.append(dcmcount)
-                    if filecount > file_end:
-                        break
-                    else:
-                        src_folder = str(j.route)
-                        while src_folder[-1] == '/':
-                            src_folder = src_folder[0:-1]
-                        try:
-                            # "fake_name": get_fake_name(rand_uid, keyword),
-                            info = {
-                                "diseases": j.diseases,
-                                "rand_uid": get_rand_uid(),
-                                "cur_date": get_date(),
-                                "cur_time": get_time()
-                            }
-                            file_names = os.listdir(src_folder)
-                            file_names.sort()
-                            for fn in file_names:
-                                dcmcount = dcmcount + 1
-                                full_fn = os.path.join(src_folder, fn)
-                                full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
-                                if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-                                    continue
-                                try:
-                                    q.put([full_fn, full_fn_fake, info, dcmcount])
-                                except Exception as e:
-                                    logging.error("[匿名错误]:{}".format(e))
-                                    continue
-                        except Exception as e:
-                            logger.error("遍历文件：{}".format(e))
-                    filecount = filecount + 1
-            logger.info("self:{}".format(self.CountData))
-            return q
-        except Exception as e:
-            logger.error("队列错误：{}".format(e))
+        dicomList = list(dicomObj)
+
+        # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+        dictsum = {}
+        for i in dicomList:
+            grouping(dictsum, i)
+
+        # 变成排好序的数据
+        listsum = Myinster(dictsum)
+        # print(listsum)
+
+        # 补充数据
+        listsum = copylist(listsum, int(self.obj.sendcount))
+        # print(listsum)
+
+        # 优先查询组
+        for j in listsum:
+            self.CountData.append(dcmcount)
+            src_folder = str(j.route)
+            while src_folder[-1] == '/':
+                src_folder = src_folder[0:-1]
+            try:
+                info = {
+                    "diseases": j.diseases,
+                    "rand_uid": get_rand_uid(),
+                    "cur_date": get_date(),
+                    "cur_time": get_time()
+                }
+                file_names = os.listdir(src_folder)
+                file_names.sort()
+                for fn in file_names:
+                    dcmcount = dcmcount + 1
+                    full_fn = os.path.join(src_folder, fn)
+                    full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
+                    if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+                        continue
+                    try:
+                        q.put([full_fn, full_fn_fake, info, dcmcount])
+                    except Exception as e:
+                        logging.error("[匿名错误]:{}".format(e))
+                        continue
+            except Exception as e:
+                logger.error("遍历文件：{}".format(e))
+
+        # try:
+        #     file_end = int(self.obj.sendcount)
+        #     while True:
+        #         if filecount > file_end:
+        #             self.CountData.append(dcmcount)
+        #             break
+        #         if file_end >= filecount > int(dicomObj.count()):
+        #             # 查询发送数据
+        #             dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
+        #         # 优先查询组
+        #         for j in dicomObj:
+        #             self.CountData.append(dcmcount)
+        #             if filecount > file_end:
+        #                 break
+        #             else:
+        #                 src_folder = str(j.route)
+        #                 while src_folder[-1] == '/':
+        #                     src_folder = src_folder[0:-1]
+        #                 try:
+        #                     # "fake_name": get_fake_name(rand_uid, keyword),
+        #                     info = {
+        #                         "diseases": j.diseases,
+        #                         "rand_uid": get_rand_uid(),
+        #                         "cur_date": get_date(),
+        #                         "cur_time": get_time()
+        #                     }
+        #                     file_names = os.listdir(src_folder)
+        #                     file_names.sort()
+        #                     for fn in file_names:
+        #                         dcmcount = dcmcount + 1
+        #                         full_fn = os.path.join(src_folder, fn)
+        #                         full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
+        #                         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+        #                             continue
+        #                         try:
+        #                             q.put([full_fn, full_fn_fake, info, dcmcount])
+        #                         except Exception as e:
+        #                             logging.error("[匿名错误]:{}".format(e))
+        #                             continue
+        #                 except Exception as e:
+        #                     logger.error("遍历文件：{}".format(e))
+        #             filecount = filecount + 1
+        #     logger.info("self:{}".format(self.CountData))
+        #     return q
+        # except Exception as e:
+        #     logger.error("队列错误：{}".format(e))
 
     # 匿名数据队列
     def run(self):
