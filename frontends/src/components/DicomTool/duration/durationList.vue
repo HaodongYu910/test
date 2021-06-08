@@ -42,7 +42,7 @@
                 </el-table-column>
                 <el-table-column prop="type" label="数据类型" min-width="20%" show-overflow-tooltip>
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.dicom }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.dicomLabel }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="每日发送" min-width="10%">
@@ -646,6 +646,7 @@
             handleEdit: function (index, row) {
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
+
             }
             ,
             // 改变状态
