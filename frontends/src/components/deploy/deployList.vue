@@ -664,7 +664,7 @@
                     }
                 })
             },
-            // 获取host数据列表
+            // 获取版本列表
             Installversion() {
                 this.listLoading = true
                 let self = this;
