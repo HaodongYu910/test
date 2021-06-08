@@ -204,7 +204,7 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                       <el-form-item label="新增版本" prop='version'>
+                       <el-form-item label="Build版本" prop='version'>
                             <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
@@ -212,19 +212,12 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="已有版本" prop='version'>
-                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
-                                       @click.native="Installversion()">
-                                <el-option
-                                        v-for="item in versionlist"
-                                        :key="item"
-                                        :label="item"
-                                        :value="item"
-                                />
-                            </el-select>
+                            <el-cascader :options="groupOptions" v-model="addForm.version" clearable :props="props"
+                                         @click.native="Installversion()"></el-cascader>
                         </el-form-item>
                     </el-col>
 
-                    <el-col :span="6">
+                    <el-col :span="12">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.installstatus"
@@ -232,16 +225,6 @@
                                 inactive-color="#ff4949"
                                 active-text="全新安装"
                                 inactive-text="">
-                        </el-switch>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-switch
-                                style="display: block"
-                                v-model="addForm.cache"
-                                active-color="#13ce66"
-                                inactive-color="#ff4949"
-                                active-text=""
-                                inactive-text="更新cache">
                         </el-switch>
                     </el-col>
                 </el-row>
@@ -439,6 +422,8 @@
                 id: '',
                 UIlist: [],
                 versionlist: [],
+                props: {multiple: false},
+                groupOptions: [],
                 total: 0,
                 page: 1,
                 page_size:5,
@@ -469,7 +454,7 @@
                     thread: 1,
                     testdata: []
                 },
-
+                journal:{},
                 createFormVisible: false,//新增用户界面是否显示
                 createLoading: false,
                 createFormRules: {
@@ -497,8 +482,6 @@
                     installstatus: false,
                     smokeid: true,
                     uid: false,
-                    testcase: false,
-                    cache: true
                 }
             }
         },
@@ -693,7 +676,7 @@
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.versionlist = data.data
+                        this.groupOptions = data.groupOptions
                     } else {
                         self.$message.error({
                             message: msg,
@@ -823,8 +806,6 @@
                     server: '',
                     smokeid: true,
                     uid: false,
-                    testcase: false,
-                    cache: true
                 };
             },
             //编辑修改
@@ -889,8 +870,6 @@
                                 installstatus: self.addForm.installstatus,
                                 smokeid: self.addForm.smokeid,
                                 uid: self.addForm.uid,
-                                testcase: self.addForm.testcase,
-                                cache: self.addForm.cache,
                                 status: false
                             });
                             let header = {

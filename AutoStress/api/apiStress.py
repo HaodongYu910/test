@@ -15,6 +15,8 @@ from ..common.hybrid import HybridThread
 from ..common.single import SingleThread
 from ..common.manual import ManualThread
 from ..common.stressTest import StressThread
+from ..common.jmeter import JmeterThread
+
 from AutoProject.models import uploadfile
 from ..models import stress
 import os
@@ -69,6 +71,11 @@ class stressRun(APIView):
                 single = SingleThread(stressid=stressid)
                 single.setDaemon(True)
                 single.start()
+            # 单一测试
+            elif data['type'] == 'jmeter':
+                jmeter = JmeterThread(stressid=self.obj.stressid)
+                jmeter.setDaemon(True)
+                jmeter.start()
             # 性能测试
             else:
                 stresstest = StressThread(stressid=stressid)
