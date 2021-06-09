@@ -143,8 +143,8 @@ class DurationThread(threading.Thread):
             acc_number = ds.AccessionNumber
             rand_uid = str(info.get("rand_uid"))
             fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
-            cur_date = info.get("cur_date")
-            cur_time = info.get("cur_time")
+            cur_date = get_date()
+            cur_time = get_time()
             diseases = info.get("diseases")
         except Exception as e:
             logging.error(
@@ -237,9 +237,7 @@ class DurationThread(threading.Thread):
             try:
                 info = {
                     "diseases": j.diseases,
-                    "rand_uid": get_rand_uid(),
-                    "cur_date": get_date(),
-                    "cur_time": get_time()
+                    "rand_uid": get_rand_uid()
                 }
                 file_names = os.listdir(src_folder)
                 file_names.sort()
@@ -258,53 +256,6 @@ class DurationThread(threading.Thread):
             except Exception as e:
                 logger.error("遍历文件：{}".format(e))
         return q
-
-        # try:
-        #     file_end = int(self.obj.sendcount)
-        #     while True:
-        #         if filecount > file_end:
-        #             self.CountData.append(dcmcount)
-        #             break
-        #         if file_end >= filecount > int(dicomObj.count()):
-        #             # 查询发送数据
-        #             dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
-        #         # 优先查询组
-        #         for j in dicomObj:
-        #             self.CountData.append(dcmcount)
-        #             if filecount > file_end:
-        #                 break
-        #             else:
-        #                 src_folder = str(j.route)
-        #                 while src_folder[-1] == '/':
-        #                     src_folder = src_folder[0:-1]
-        #                 try:
-        #                     # "fake_name": get_fake_name(rand_uid, keyword),
-        #                     info = {
-        #                         "diseases": j.diseases,
-        #                         "rand_uid": get_rand_uid(),
-        #                         "cur_date": get_date(),
-        #                         "cur_time": get_time()
-        #                     }
-        #                     file_names = os.listdir(src_folder)
-        #                     file_names.sort()
-        #                     for fn in file_names:
-        #                         dcmcount = dcmcount + 1
-        #                         full_fn = os.path.join(src_folder, fn)
-        #                         full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
-        #                         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-        #                             continue
-        #                         try:
-        #                             q.put([full_fn, full_fn_fake, info, dcmcount])
-        #                         except Exception as e:
-        #                             logging.error("[匿名错误]:{}".format(e))
-        #                             continue
-        #                 except Exception as e:
-        #                     logger.error("遍历文件：{}".format(e))
-        #             filecount = filecount + 1
-        #     logger.info("self:{}".format(self.CountData))
-        #     return q
-        # except Exception as e:
-        #     logger.error("队列错误：{}".format(e))
 
     # 匿名数据队列
     def run(self):

@@ -62,7 +62,7 @@ def saveData(**kwargs):
 
 
 # 测试结果统计 保存结果
-def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=None):
+def ResultStatistics(stressid='', stressType ='DY', start_date='2021-06-08 00:00:00', end_date='2021-06-10 00:00:00'):
     obj = stress.objects.get(stressid=stressid)
     server = obj.Host.host
     uids = ''
@@ -75,7 +75,6 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
 
     for j in ['aistatus', 'jobmetrics', 'predictionrecord']:
         try:
-
             # 查询sql
             sqlOjb = dictionary.objects.get(key=j, type='stresssql', status=True)
             sql = sqlOjb.value.format(start_date, end_date, uids[:-1])

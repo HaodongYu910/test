@@ -11,7 +11,6 @@ import numpy as np
 import random
 import math
 import socket
-import requests
 import time
 import queue
 from django.db import transaction
@@ -202,6 +201,11 @@ class SingleThread(threading.Thread):
         # 按模型 循环预测
         for i in self.obj.testdata.split(","):
             try:
+                logger.info(f"biomind restart host:{self.obj.Host.host}, pwd :{self.obj.Host.pwd}")
+                reSsh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
+                reSsh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
+                time.sleep(400)
+                logger.info("sleep complete")
                 q = self.QueData(model=i)
                 threads = []
                 start_date = datetime.datetime.now()
@@ -217,22 +221,21 @@ class SingleThread(threading.Thread):
                         time.sleep(1)
 
                     time.sleep(10)
-
-                    ResultStatistics(
-                        stressid=self.obj.stressid,
-                        stressType='DY',
-                        start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
-                        end_date=self.end_date.strftime("%Y-%m-%d %H:%M:%S")
-                    )
-
+                    try:
+                        ResultStatistics(
+                            stressid=self.obj.stressid,
+                            stressType='DY',
+                            start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                            end_date=self.end_date.strftime("%Y-%m-%d %H:%M:%S")
+                        )
+                    except Exception as e:
+                        logger.error("ResultStatistics：{0}".format(e))
                     time.sleep(10)
-                    restartssh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
-                    restartssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
-                    time.sleep(300)
                 except Exception as e:
                     logger.error("Thread Run Fail：{0}".format(e))
             except Exception as e:
                 logger.error("Fail：{0}".format(e))
+                continue
 
         self.obj.status = False
         self.obj.teststatus = '测试结束'
