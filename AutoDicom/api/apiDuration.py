@@ -69,7 +69,6 @@ class getDuration(APIView):
             i['send'] = str(obj.count())
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
 
-
         return JsonResponse(data={"data": dataSerializer.data,
                                   "page": page,
                                   "total": total
