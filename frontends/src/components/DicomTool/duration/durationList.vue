@@ -247,17 +247,10 @@
                             </el-form-item>
                         </el-col>
                         <el-col :span="12">
-                           <el-form-item label="选择版本" prop='version'>
-                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
-                                       @click.native="Installversion()">
-                                <el-option
-                                        v-for="item in versionlist"
-                                        :key="item"
-                                        :label="item"
-                                        :value="item"
-                                />
-                            </el-select>
-                        </el-form-item>
+                            <el-form-item label="已有版本" prop='version'>
+                                <el-cascader :options="groupOptions" v-model="addForm.version" clearable :props="props"
+                                             @click.native="Installversion()"></el-cascader>
+                            </el-form-item>
                         </el-col>
                     </el-row>
                     <el-divider>匿名配置</el-divider>
@@ -333,13 +326,11 @@
         addduration,
         delduration,
         updateduration,
-        delete_patients,
         getHost,
-        getVersion,
+        getInstallersion,
         disable_duration,
         enable_duration,
-        getbase,
-        getInstallersion
+        getbase
     } from '@/router/api'
     
     export default {
@@ -445,7 +436,7 @@
             clearInterval(this.clearTimeSet);
         },
         methods: {
-            // 获取host数据列表
+            // 获取版本列表
             Installversion() {
                 this.listLoading = true
                 let self = this;
@@ -457,7 +448,7 @@
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.versionlist = data.data
+                        this.groupOptions = data.groupOptions
                     } else {
                         self.$message.error({
                             message: msg,
