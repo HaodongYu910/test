@@ -97,7 +97,7 @@ class dicomGroup_Serializer(serializers.ModelSerializer):
     class Meta:
         model = dicom_group
         fields = (
-        'id', 'name', 'type', 'remark', 'status')
+        'id', 'name', 'group', 'amount', 'route', 'predictor', 'type', 'remark', 'status', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 

@@ -98,7 +98,9 @@
             <el-table-column label="操作" min-width="25%">
                 <template slot-scope="scope">
                     <el-row>
-                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">查看
+                        <el-button type="warning" size="small" @click="handleLook(scope.$index, scope.row)">查看
+                        </el-button>
+                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                         </el-button>
                         <el-button type="info" size="small"
                                    @click="checkExpress(scope.row.start_date,scope.row.end_date, scope.row.loadserver)">
@@ -417,6 +419,160 @@
                 <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
             </div>
         </el-dialog>
+
+        <!--新增界面-->
+        <el-dialog title="新增测试" :visible.sync="lookFormVisible" :close-on-click-modal="false"
+
+                   style="width: 120%; right: 0.5%">
+            <el-form :model="lookForm" label-width="80px" :rules="lookFormRules" ref="addForm">
+                <el-row :gutter="24">
+                    <el-col :span="5">
+                        <el-form-item label="项目&版本" prop="name">
+                            <el-select v-model="addForm.projectname" placeholder="请选择">
+                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
+                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
+                                <el-option key="神内" label="神内" value="神内"></el-option>
+                                <el-option key="神外" label="神外" value="神外"></el-option>
+                                <el-option key="超声" label="超声" value="超声"></el-option>
+                                <el-option key="放射" label="放射" value="放射"></el-option>
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="3">
+                        <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="服务器" prop='server'>
+                            <el-select v-model="addForm.Host" placeholder="请选择服务器" @click.native="gethost()">
+                                <el-option
+                                        v-for="(item,index) in hosts"
+                                        :key="item.id"
+                                        :label="item.name"
+                                        :value="item.id"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-form-item label="模型" prop='testdata'>
+                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                                <el-option v-for="(item,index) in model"
+                                           :key="item.id"
+                                           :label="item.value"
+                                           :value="item.id"
+                                />
+                            </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="8">
+                        <el-card>
+                            <el-divider>基准-配置</el-divider>
+
+                            <el-form-item label="循环次数" prop='benchmark'>
+                                <el-input-number v-model="addForm.benchmark" @change="handleChange" :min="1" :max="5000"
+                                                 label="基准循环次数"></el-input-number>
+                            </el-form-item>
+
+                        </el-card>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-card>
+                            <el-divider>单一-配置</el-divider>
+
+                            <el-form-item label="测试时间" prop='single'>
+                                <el-input-number v-model="addForm.single" @change="handleChange" :min="0" :max="12"
+                                                 label="单一循环"></el-input-number>
+                                时
+                            </el-form-item>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-card>
+                            <el-divider>混合-配置</el-divider>
+                            <!--                            <el-form-item label="发送数量" prop='loop_count'>-->
+                            <!--                                <el-input-number v-model="addForm.loop_count" @change="handleChange" :min="1"-->
+                            <!--                                                 :max="5000"-->
+                            <!--                                                 label="发送数量"></el-input-number>-->
+                            <!--                            </el-form-item>-->
+                            <el-form-item label="持续时间" prop='thread'>
+                                <el-input-number v-model="addForm.duration" @change="handleChange" :min="1" :max="200"
+                                                 label="持续时间"></el-input-number>
+                                时
+                            </el-form-item>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="16">
+                        <el-card>
+                            <el-divider>Jmeter-配置</el-divider>
+                            <el-row :gutter="24">
+                                <el-col :span="12">
+                                    <el-form-item label="线程数" prop='thread'>
+                                        <el-input-number v-model="addForm.thread" @change="handleChange" :min="1"
+                                                         :max="100"
+                                                         label="线程数"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                                <el-col :span="12">
+                                    <el-form-item label="Ramp-Up" prop='ramp'>
+                                        <el-input-number v-model="addForm.ramp" @change="handleChange" :min="0"
+                                                         :max="5000"
+                                                         label="Ramp-Up"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+                            </el-row>
+                            <el-row>
+                                <el-col :span="12">
+                                    <el-form-item label="并发数" prop='synchroniz'>
+                                        <el-input-number v-model="addForm.synchroniz" @change="handleChange" :min="0"
+                                                         :max="100"
+                                                         label="并发数"></el-input-number>
+                                    </el-form-item>
+                                </el-col>
+
+                                <el-col :span="12">
+                                    <el-form-item label="持续时间" prop='single'>
+                                        <el-input-number v-model="addForm.loop_time" @change="handleChange" :min="0"
+                                                         :max="1000000"
+                                                         label="持续时间"></el-input-number>
+                                        秒
+                                    </el-form-item>
+
+                                </el-col>
+                            </el-row>
+                        </el-card>
+                    </el-col>
+                    <el-col :span="8">
+                        <el-divider>Jmeter-文件上传</el-divider>
+                        <el-upload
+                                class="upload-demo"
+                                action="#"
+                                :file-list="fileList"
+                                :on-change="changeData"
+                                multiple
+                                :http-request="handleRequest"
+                                :before-upload="beforeUpload"
+                                :on-remove="handleRemove"
+                                :before-remove="beforeRemove">
+
+                            <el-button class="btn upload-btn">上传附件</el-button>
+                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                            <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
+                        </el-upload>
+                        <el-progress :stroke-width="16" :percentage="100"></el-progress>
+
+                    </el-col>
+                </el-row>
+            </el-form>
+            <div slot="footer" class="dialog-footer">
+                <el-button @click.native="lookFormVisible = false">取消</el-button>
+                <el-button type="primary" @click.native="addSubmit" :loading="lookLoading">保存</el-button>
+            </div>
+        </el-dialog>
+
     </section>
 </template>
 
@@ -440,7 +596,8 @@
                 page: 1,
                 listLoading: false,
                 sels: [],//列表选中列
-
+                lookFormVisible: false, // 查看页面
+                lookLoading:false,
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
@@ -889,6 +1046,11 @@
             handleCurrentChange(val) {
                 this.page = val;
                 this.stresslistList()
+            },
+            // 运行详情页面
+            handleLook: function (index, row) {
+                this.lookFormVisible = true;
+                this.lookForm = Object.assign({}, row);
             },
             //显示编辑界面
             handleEdit: function (index, row) {

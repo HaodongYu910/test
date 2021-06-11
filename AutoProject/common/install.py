@@ -66,15 +66,18 @@ class InstallThread(threading.Thread):
         path = "{0}/Installation{1}.log".format(settings.LOG_PATH, self.id)
         with open(path, 'w', encoding='utf-8') as f:
             f.write("-----------Welcome Link:{}-----------\n".format(self.obj.Host.host))
-        Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
-        size = Disk.split()[11]
-        AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + Disk)
-        if int(size[:-1]) > 90:
-            sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
-            sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
-
+        try:
+            Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
+            size = Disk.split()[11]
+            AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + Disk)
+            if int(size[:-1]) > 90:
+                sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
+                sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
+        except Exception as e:
+            logger.error(e)
 
     def clean(self):
+        logger.info("clean")
         self.installStatus(status=True, type=2)
         self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
         # 查看磁盘空间 输出日志
@@ -103,7 +106,7 @@ class InstallThread(threading.Thread):
 
     def run(self):
         try:
-
+            logger.info("上传安装版本")
             self.obj.starttime = datetime.datetime.now()
             self.installStatus(status=True, type=1)
             self.clean()
@@ -145,6 +148,7 @@ class InstallThread(threading.Thread):
         except Exception as e:
             self.obj.status = False
             self.obj.save()
+            logger.error(e)
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
 
     def restart(self):
@@ -207,7 +211,7 @@ class InstallThread(threading.Thread):
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id),
-                       content="【安装部署】：安装{0}失败原因：{1}".format( self.versionObj.version, e))
+                       content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
             return False
     # 变更状态
     def installStatus(self, status, type):

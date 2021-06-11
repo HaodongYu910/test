@@ -5,6 +5,21 @@
             <img class="blogo" src="../../assets/img/logo.png"/>
         </div>
         <div class="logo">Biomind Test</div>
+        <div class="logo">
+                <span class="el-dropdown-link">
+                项目空间：
+              </span>
+            <el-dropdown  @command="handleCommand" @click.native="getProjectList">
+              <span class="el-dropdown-link">
+                {{projectname}}<i class="el-icon-arrow-down el-icon--right"></i>
+              </span>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item  v-for="(item,index) in projectList"
+                                   :command="item.name"
+                                   >{{item.name}}</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+        </div>
         <div class="header-right">
             <div class="header-user-con">
                 <!-- 全屏显示 -->
@@ -41,15 +56,21 @@
     </div>
 </template>
 <script>
+    import {getProject} from '../../router/api';
     import bus from '../../utils/bus';
     export default {
         data() {
             return {
                 collapse: false,
                 fullscreen: false,
-                name: 'linxin',
-                message: 2
+                projectname: '晨曦',
+                message: 2,
+                projectList:{},
             }
+        },
+        mounted() {
+            this.getProjectID()
+            this.getProjectList()
         },
         computed:{
             username(){
@@ -58,13 +79,64 @@
             }
         },
         methods:{
+            // 获取详细项目信息
+            getProjectID() {
+                this.listLoading = true;
+                let self = this;
+                let params = {name:this.projectname};
+                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
+                getProject(headers, params).then((res) => {
+                    self.listLoading = false;
+                    let {msg, code, data} = res;
+                    if (code === '0') {
+                        self.total = data.total;
+                        self.projectData = data.data
+
+                        localStorage.removeItem("project_id");
+                        localStorage.setItem("project_id", self.projectData[0]["id"]);
+                        localStorage.removeItem("projectname");
+                        localStorage.setItem("projectname",this.projectname);
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true,
+                        })
+                    }
+
+                });
+            },
+            // 获取项目列表
+            getProjectList() {
+                this.listLoading = true;
+                let self = this;
+                let params = {page_size:999};
+                let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
+                getProject(headers, params).then((res) => {
+                    self.listLoading = false;
+                    let {msg, code, data} = res;
+                    if (code === '0') {
+                        self.total = data.total;
+                        self.projectList = data.data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true,
+                        })
+                    }
+                })
+            },
             // 用户名下拉菜单选择事件
             handleCommand(command) {
                 if(command == 'loginout'){
                     localStorage.removeItem('ms_username')
                     this.$router.push('/login');
                 }
-            },
+                else {
+                    this.projectname =command
+                    this.$message('切换' + command +'项目');
+                    this.getProjectID()
+                }
+              },
             // 侧边栏折叠
             collapseChage(){
                 this.collapse = !this.collapse;
@@ -190,5 +262,12 @@
     }
     .el-dropdown-menu__item{
         text-align: center;
+    }
+    .el-dropdown-link {
+        cursor: pointer;
+        color: #f1f2f3;
+    }
+    .el-icon-arrow-down {
+        font-size: 12px;
     }
 </style>

@@ -61,6 +61,15 @@ export const getProVersion = (headers, params) => {
     })
     .then((res) => res.data);
 };
+// 获取有效项目版本
+export const getVersionInfo = (headers, params) => {
+  return axios
+    .get(`${test}/project/version/info`, {
+      params: params,
+      headers: headers,
+    })
+    .then((res) => res.data);
+};
 
 // 获取测试地址列表
 export const getHost = (headers, params) => {

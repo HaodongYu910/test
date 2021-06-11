@@ -3,53 +3,6 @@ from django.db import models
 # Create your models here.
 from AutoProject.models import Server
 
-class dicom_base(models.Model):
-    """
-      基础数据表
-    """
-    id = models.AutoField(primary_key=True)
-    content = models.CharField(max_length=500, blank=True, null=True, verbose_name="内容")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    select_type = models.CharField(max_length=20, blank=True, null=True, verbose_name="查询类型")
-    remarks = models.CharField(max_length=100, blank=True, null=True, verbose_name="备注")
-    other = models.CharField(max_length=10, blank=True, null=True, verbose_name="数量")
-    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
-    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
-
-    def __unicode__(self):
-        return self.select_type
-
-    class Meta:
-        verbose_name = "基础数据表"
-        verbose_name_plural = "基础数据表"
-        db_table = 'dicom_base'
-
-class dicom_relation(models.Model):
-    """
-      提交记录，关系数据表
-    """
-    id = models.AutoField(primary_key=True)
-    baseid = models.CharField(max_length=50, blank=True, null=True, verbose_name="dicom_base_id")
-    custom = models.CharField(max_length=500, blank=True, null=True, verbose_name="哪次的补充数据")
-    old_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="提交数据时路劲")
-    new_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="新路径")
-    success_uid = models.CharField(max_length=500, blank=True, null=True, verbose_name="成功的uid")
-    fail_uid = models.CharField(max_length=500, blank=True, null=True, verbose_name="失败的uid")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
-    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
-
-    def __unicode__(self):
-        return self.old_path
-
-    class Meta:
-        verbose_name = "提交记录关系表"
-        verbose_name_plural = "提交记录关系表"
-        db_table = 'dicom_relation'
 
 class dicom(models.Model):
     """
@@ -82,6 +35,95 @@ class dicom(models.Model):
         verbose_name = "dicom数据表"
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
+
+class dicom_base(models.Model):
+    """
+      基础数据表
+    """
+    id = models.AutoField(primary_key=True)
+    content = models.CharField(max_length=500, blank=True, null=True, verbose_name="内容")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    select_type = models.CharField(max_length=20, blank=True, null=True, verbose_name="查询类型")
+    remarks = models.CharField(max_length=100, blank=True, null=True, verbose_name="备注")
+    other = models.CharField(max_length=10, blank=True, null=True, verbose_name="数量")
+    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
+    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.select_type
+
+    class Meta:
+        verbose_name = "基础数据表"
+        verbose_name_plural = "基础数据表"
+        db_table = 'dicom_base'
+
+class dicom_group(models.Model):
+    """
+        dicom 分组
+    """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="名称")
+    group = models.CharField(max_length=20, blank=True, null=True, verbose_name="组")
+    amount = models.IntegerField(blank=True, null=True, verbose_name="数量")
+    route = models.CharField(max_length=500, blank=True, null=True, verbose_name="路径")
+    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dicom组表"
+        verbose_name_plural = "dicom组表"
+        db_table = 'dicom_group'
+
+
+class dicom_group_detail(models.Model):
+    """
+          dicom 分组详情
+        """
+    id = models.AutoField(primary_key=True)
+    dicom = models.ForeignKey(to=dicom, null=True, on_delete=models.CASCADE, verbose_name='id')
+    group = models.ForeignKey(to=dicom_group, null=True, on_delete=models.CASCADE, verbose_name='id')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dicom组表"
+        verbose_name_plural = "dicom组表"
+        db_table = 'dicom_group_detail'
+
+class dicom_relation(models.Model):
+    """
+      提交记录，关系数据表
+    """
+    id = models.AutoField(primary_key=True)
+    baseid = models.CharField(max_length=50, blank=True, null=True, verbose_name="dicom_base_id")
+    custom = models.CharField(max_length=500, blank=True, null=True, verbose_name="哪次的补充数据")
+    old_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="提交数据时路劲")
+    new_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="新路径")
+    success_uid = models.CharField(max_length=500, blank=True, null=True, verbose_name="成功的uid")
+    fail_uid = models.CharField(max_length=500, blank=True, null=True, verbose_name="失败的uid")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
+    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.old_path
+
+    class Meta:
+        verbose_name = "提交记录关系表"
+        verbose_name_plural = "提交记录关系表"
+        db_table = 'dicom_relation'
 
 
 class duration(models.Model):
@@ -154,36 +196,3 @@ class duration_record(models.Model):
         verbose_name_plural = "持续化测试记录表"
         db_table = 'duration_record'
 
-class dicom_group(models.Model):
-    """
-          dicom 分组
-        """
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="组名")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
-    status = models.BooleanField(default=False, verbose_name='状态')
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "dicom组表"
-        verbose_name_plural = "dicom组表"
-        db_table = 'dicom_group'
-
-class dicom_group_detail(models.Model):
-    """
-          dicom 分组详情
-        """
-    id = models.AutoField(primary_key=True)
-    dicom = models.ForeignKey(to=dicom, null=True, on_delete=models.CASCADE, verbose_name='id')
-    group = models.ForeignKey(to=dicom_group, null=True, on_delete=models.CASCADE, verbose_name='id')
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "dicom组表"
-        verbose_name_plural = "dicom组表"
-        db_table = 'dicom_group_detail'

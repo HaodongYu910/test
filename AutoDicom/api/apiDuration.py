@@ -7,9 +7,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
+import datetime
 
-from AutoProject.common.api_response import JsonResponse
-from AutoProject.models import pid
 from ..common.getdicom import *
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
@@ -19,8 +18,10 @@ from ..common.deletepatients import *
 from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
 from ..common.durarion import DurationThread
-import datetime, os
+
 from AutoProject.scheduletask import DurationSyTask
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.models import project_version
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -67,8 +68,9 @@ class getDuration(APIView):
             # 已发送的数据统计
             obj = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
+            if i['version'] is not None:
+                i['version'] = project_version.objects.get(id=i['version']).version
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
-
 
         return JsonResponse(data={"data": dataSerializer.data,
                                   "page": page,
@@ -178,8 +180,8 @@ class addDuration(APIView):
             dicomdata = ''
             hostobj = Server.objects.get(id=data['Host'])
             data['server'] = hostobj.host
-            if data["type"] == '持续化':
-                data["version"] = str(data["version"][1])
+
+            data["version"] = data["version"]
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
                 if i[0] == "虚拟组":

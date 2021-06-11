@@ -248,8 +248,15 @@
                         </el-col>
                         <el-col :span="12">
                             <el-form-item label="已有版本" prop='version'>
-                                <el-cascader :options="groupOptions" v-model="addForm.version" clearable :props="props"
-                                             @click.native="Installversion()"></el-cascader>
+                                 <el-select v-model="addForm.version" placeholder="请选择"
+                                                   @click.native="getversion()">
+                                            <el-option
+                                                    v-for="(item,index) in VersionInfo"
+                                                    :key="item.id"
+                                                    :label="item.version"
+                                                    :value="item.id"
+                                            />
+                                        </el-select>
                             </el-form-item>
                         </el-col>
                     </el-row>
@@ -327,7 +334,7 @@
         delduration,
         updateduration,
         getHost,
-        getInstallersion,
+        getVersionInfo,
         disable_duration,
         enable_duration,
         getbase
@@ -337,6 +344,7 @@
         // components: {ElRow},
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 Hosts:[],
                 versionlist:[],
                 typeoptions: [{
@@ -350,7 +358,7 @@
                     label: '持续化'
                 }],
                 props: {multiple: true},
-                groupOptions: [],
+                VersionInfo: {},
                 form: {
                     server_ip: '',
                     fuzzy: '是',
@@ -437,18 +445,19 @@
         },
         methods: {
             // 获取版本列表
-            Installversion() {
+            getversion() {
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    page_size: 100
+                    page_size: 999,
+                    project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getInstallersion(headers, params).then((res) => {
+                getVersionInfo(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.groupOptions = data.groupOptions
+                        this.VersionInfo = data.data
                     } else {
                         self.$message.error({
                             message: msg,

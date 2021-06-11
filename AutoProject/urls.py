@@ -15,7 +15,7 @@ from .api import dynamic
 from .api import member
 from .api import apiMessage
 from .api.apiSonar import getsonar
-from .api.apiVersion import getVersion, AddVersion, UpdateVersion, DelVersion ,DisableVersion ,EnableVersion
+from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,DisableVersion ,EnableVersion
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -74,6 +74,7 @@ urlpatterns = [
     url(r'version/update', UpdateVersion.as_view()),
     url(r'version/add', AddVersion.as_view()),
     url(r'version/list', getVersion.as_view()),
+    url(r'version/info', getVersionInfo.as_view()),
     url(r'deploy', InstallDeploy.as_view()),
     url(r'sonar', getsonar.as_view()),
     url(r'createRestart', getRestart.as_view()),

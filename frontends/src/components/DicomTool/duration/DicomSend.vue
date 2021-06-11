@@ -488,7 +488,6 @@
         updateduration,
         delete_patients,
         getHost,
-        getVersion,
         disable_duration,
         enable_duration,
         getbase
@@ -499,6 +498,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 Host:[],
                 typeoptions: [{
                     value: '匿名',
