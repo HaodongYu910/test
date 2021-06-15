@@ -141,6 +141,7 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="数据类型" prop="senddata">
+
                                 <el-cascader :options="groupOptions" v-model="editForm.senddata" clearable :props="props" ></el-cascader>
 <!--                                <el-cascader  :options="groupOptions" v-model="editForm.dicomLabel" :props="props">-->
 <!--                                             @click.native="getgroupbase()"></el-cascader>-->
