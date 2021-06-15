@@ -1,7 +1,6 @@
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.db import transaction
 from AutoProject.common.api_response import JsonResponse
@@ -12,7 +11,7 @@ from AutoStress.models import stress_result
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class test(APIView):
+class getsonar(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 

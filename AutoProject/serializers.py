@@ -68,6 +68,27 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_memberCount(self, obj):
         return obj.member_project.all().count()
 
+class ProjectVersionDeserializer(serializers.ModelSerializer):
+    """
+    项目版本信息反序列化
+    """
+
+    class Meta:
+        model = project_version
+        fields = ('id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+
+
+class ProjectVersionSerializer(serializers.ModelSerializer):
+    """
+    项目版本版本信息序列化
+    """
+    # project = serializers.CharField(source='Project.name')
+    update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+
+    class Meta:
+        model = project_version
+        fields = ('id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
 
 class ProjectDynamicDeserializer(serializers.ModelSerializer):
     """

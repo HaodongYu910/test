@@ -69,7 +69,6 @@ class getDuration(APIView):
             i['send'] = str(obj.count())
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
 
-
         return JsonResponse(data={"data": dataSerializer.data,
                                   "page": page,
                                   "total": total
@@ -279,14 +278,13 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            obj.sendstatus = False
-            obj.save()
             if obj.type == "正常":
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.setFlag = False
             else:
+                logger.info("Stop Duration Thread {}".format(data["id"]))
                 durationThread = DurationThread(id=data["id"])
-                durationThread.setFlag = False
+                durationThread.durationStop()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -324,6 +322,7 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            obj.status = True
             obj.save()
             if obj.type == "匿名":
                 durationThread = DurationThread(id=data["id"])

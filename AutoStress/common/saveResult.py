@@ -66,15 +66,19 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
     obj = stress.objects.get(stressid=stressid)
     server = obj.Host.host
     uids = ''
+    if stressType == "HH":
+        start_date = obj.start_date
+        end_date = obj.end_date
     # 测试数据查询
     for i in stress_record.objects.filter(Stress_id=stressid, type=stressType):
         uids = uids + '\'' + str(i.studyuid) + '\','
 
     for j in ['aistatus', 'jobmetrics', 'predictionrecord']:
         try:
+
             # 查询sql
             sqlOjb = dictionary.objects.get(key=j, type='stresssql', status=True)
-            sql = sqlOjb.value.format(obj.start_date, obj.end_date, uids[:-1])
+            sql = sqlOjb.value.format(start_date, end_date, uids[:-1])
 
             # 查询结果
             result = connect_postgres(database="orthanc",
@@ -175,7 +179,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
             logger.error(e)
             continue
             # 按模型 查询成功失败 数量
-    recordObj = stress_record.objects.filter(
+    ObjRecord = stress_record.objects.filter(
         Stress_id=obj.stressid, type=stressType, slicenumber__isnull=False).values(
         "slicenumber").annotate(
         count=Count(1),
@@ -193,7 +197,7 @@ def ResultStatistics(stressid='', stressType ='HH', start_date=None, end_date=No
         fail=Count(Case(When(aistatus=1, then=0))),
     )
     # 循环数据保存
-    for i in recordObj:
+    for i in ObjRecord:
         try:
             total = i["success"] + i["warn"] + i["fail"]
             ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))

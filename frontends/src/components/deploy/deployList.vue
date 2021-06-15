@@ -2,15 +2,6 @@
     <section>
         <!--工具条-->
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
-            <el-form-item label="服务器" prop="server">
-                <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
-                    <el-option v-for="(item,index) in tags"
-                               :key="item.id"
-                               :label="item.name"
-                               :value="item.id"
-                    />
-                </el-select>
-            </el-form-item>
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
                     <el-input v-model="filters.name" placeholder="名称" @keyup.enter.native="getInstalllist"></el-input>
@@ -55,14 +46,15 @@
             </el-table-column>
             <el-table-column label="进度" min-width="45%">
                 <el-steps slot-scope="scope" :active="scope.row.type" align-center finish-status="success">
-                    <el-step title="准备中"></el-step>
-                    <el-step title="备份上传"></el-step>
-                    <el-step title="安装部署"></el-step>
-                    <el-step title="重启服务"></el-step>
+                    <el-step title="准备中"   :description= "scope.row.cleantime" ></el-step>
+                    <el-step title="下载安装" :description= "scope.row.uptime"></el-step>
+                    <el-step title="重启服务" :description= "scope.row.restarttime"></el-step>
+                    <el-step title="创建用户" :description= "scope.row.creattime"></el-step>
                     <el-step title="完成"></el-step>
-                    <el-step title="金标准"></el-step>
-                    <el-step title="UI测试"></el-step>
                 </el-steps>
+            </el-table-column>
+            <el-table-column label="冒烟进度" min-width="10%">
+                <el-progress type="circle" :percentage="0" width="55"></el-progress>
             </el-table-column>
             <el-table-column prop="installstatus" label="全新部署" min-width="8%">
                 <template slot-scope="scope">
@@ -91,8 +83,6 @@
                             {{scope.row.status===false?'部 署':'停 止'}}
                         </el-button>
                         <el-button type="warning" size="small" @click="showJournal(scope.$index, scope.row)">日 志
-                        </el-button>
-                        <el-button type="primary" size="small" @click="handleCreate(scope.$index, scope.row)">创建用户
                         </el-button>
                          <el-button type="danger" size="small" @click="Restart(scope.$index, scope.row)">重启
                         </el-button>
@@ -214,7 +204,7 @@
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-                       <el-form-item label="新增版本" prop='version'>
+                       <el-form-item label="Build版本" prop='version'>
                             <el-input v-model.trim="addForm.version" auto-complete="off"></el-input>
                         </el-form-item>
                     </el-col>
@@ -222,19 +212,12 @@
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="已有版本" prop='version'>
-                            <el-select v-model="addForm.version" placeholder="请选择安装版本"
-                                       @click.native="Installversion()">
-                                <el-option
-                                        v-for="item in versionlist"
-                                        :key="item"
-                                        :label="item"
-                                        :value="item"
-                                />
-                            </el-select>
+                            <el-cascader :options="groupOptions" v-model="addForm.version" clearable :props="props"
+                                         @click.native="Installversion()"></el-cascader>
                         </el-form-item>
                     </el-col>
 
-                    <el-col :span="6">
+                    <el-col :span="12">
                         <el-switch
                                 style="display: block"
                                 v-model="addForm.installstatus"
@@ -242,16 +225,6 @@
                                 inactive-color="#ff4949"
                                 active-text="全新安装"
                                 inactive-text="">
-                        </el-switch>
-                    </el-col>
-                    <el-col :span="6">
-                        <el-switch
-                                style="display: block"
-                                v-model="addForm.cache"
-                                active-color="#13ce66"
-                                inactive-color="#ff4949"
-                                active-text=""
-                                inactive-text="更新cache">
                         </el-switch>
                     </el-col>
                 </el-row>
@@ -430,7 +403,7 @@
     //import NProgress from 'nprogress'
     import {
         getInstall, delInstall, DisableInstall, EnableInstall, getInstallersion,
-        updateInstall, addInstall, getJournal, getImage, getHost, getbase, getCreateRestart
+        updateInstall, addInstall, getJournal, getImage, getHost, getCreateRestart
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -449,8 +422,11 @@
                 id: '',
                 UIlist: [],
                 versionlist: [],
+                props: {multiple: false},
+                groupOptions: [],
                 total: 0,
                 page: 1,
+                page_size:5,
                 listLoading: false,
                 sels: [],//列表选中列
                 deploystr: '',
@@ -460,12 +436,6 @@
                 journalVisible: false, //日志页面是否显示
                 imageVisible: false, //错误图像页面是否显示
                 reportVisible: false, //报告页面是否显示
-                fits: ["暂无图片"],
-                reports: ["未生成报告内容"],
-                url: 'http://192.168.1.121/static/UI/demo.jpg',
-                srcList: [
-                    'http://192.168.1.121/static/UI/demo.jpg'
-                ],
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 options: [{label: "Web", value: "Web"}, {label: "App", value: "App"}],
@@ -484,7 +454,7 @@
                     thread: 1,
                     testdata: []
                 },
-
+                journal:{},
                 createFormVisible: false,//新增用户界面是否显示
                 createLoading: false,
                 createFormRules: {
@@ -512,8 +482,6 @@
                     installstatus: false,
                     smokeid: true,
                     uid: false,
-                    testcase: false,
-                    cache: true
                 }
             }
         },
@@ -529,7 +497,6 @@
         },
         mounted() {
             this.gethost()
-            this.getBase()
         },
         directives: {
             focus: {
@@ -697,7 +664,7 @@
                     }
                 })
             },
-            // 获取host数据列表
+            // 获取版本列表
             Installversion() {
                 this.listLoading = true
                 let self = this;
@@ -709,7 +676,7 @@
                     this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        this.versionlist = data.data
+                        this.groupOptions = data.groupOptions
                     } else {
                         self.$message.error({
                             message: msg,
@@ -742,37 +709,13 @@
                     }
                 })
             },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    status: 1,
-                    type: 'gold'
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.model = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
             // 获取列表
             getInstalllist() {
                 this.listLoading = true;
                 let self = this;
                 let params = {
                     page: self.page,
+                    page_size:self.page_size,
                     version: self.filters.version
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
@@ -843,7 +786,6 @@
             handleCurrentChange(val) {
                 this.page = val;
                 this.getInstalllist()
-                this.getBase()
             },
             //显示编辑界面
             handleEdit: function (index, row) {
@@ -864,8 +806,6 @@
                     server: '',
                     smokeid: true,
                     uid: false,
-                    testcase: false,
-                    cache: true
                 };
             },
             //编辑修改
@@ -930,8 +870,6 @@
                                 installstatus: self.addForm.installstatus,
                                 smokeid: self.addForm.smokeid,
                                 uid: self.addForm.uid,
-                                testcase: self.addForm.testcase,
-                                cache: self.addForm.cache,
                                 status: false
                             });
                             let header = {
@@ -1008,7 +946,6 @@
         },
         mounted() {
             this.getInstalllist();
-            this.getBase();
         }
     }
 

@@ -21,7 +21,11 @@
                         </el-button>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">测试
+                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试
+                        </el-button>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-button type="primary" @click="stressTest('jmeter')" :disabled="this.sels.length===0">jmeter
                         </el-button>
                     </el-form-item>
                     <el-form-item>

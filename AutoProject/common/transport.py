@@ -1,5 +1,5 @@
 # coding:utf-8
-import paramiko
+# import paramiko
 import logging
 import uuid
 import time
@@ -23,9 +23,9 @@ class SSHConnection:
         self.port = port
         self.user = user
         self.pwd = pwd
-        self.__transport = paramiko.Transport((self.host, self.port))
+        # self.__transport = paramiko.Transport((self.host, self.port))
         self.__transport.connect(username=self.user, password=self.pwd)
-        self.sftp = paramiko.SFTPClient.from_transport(self.__transport)
+        # self.sftp = paramiko.SFTPClient.from_transport(self.__transport)
 
     # 关闭通道
     def close(self):
@@ -70,10 +70,10 @@ class SSHConnection:
 
     # SSHClient输入命令远程操作主机
     def cmd(self, command):
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
+        # ssh = paramiko.SSHClient()
+        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        # ssh._transport = self.__transport
+        # stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
         # while not stdout.channel.exit_status_ready():
         #     result = stdout.readline()
         #     print(result)
@@ -82,55 +82,58 @@ class SSHConnection:
         #         a = stdout.readlines()
         #         print(a)
         #         break
-        logger.debug(stdout)
-        result = stdout.read()
-        return result
-
+        # logger.debug(stdout)
+        # result = stdout.read()
+        # return result
+        pass
     # SSHClient输入命令远程操作主机
     def shcmd(self, command):
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command, timeout=10)
-        stdin.write("yes\n")
-        out, err = stdout.read(), stderr.read()
-        logger.debug(stdout)
-        result = stdout.read()
-
-        return result
+        pass
+        # ssh = paramiko.SSHClient()
+        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        # ssh._transport = self.__transport
+        # stdin, stdout, stderr = ssh.exec_command(command, timeout=10)
+        # stdin.write("yes\n")
+        # out, err = stdout.read(), stderr.read()
+        # logger.debug(stdout)
+        # result = stdout.read()
+        #
+        # return result
 
     def configure(self, host, PROTOCOL):
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
-        ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command('biomind configure', timeout=10)
-        stdin.write("{}\n".format(host))
-        stdin.write("\n")
-        stdin.write("{}\n".format(PROTOCOL))
-        stdin.write("eno1\n")
-        out, err = stdout.read(), stderr.read()
-        logger.debug(stdout)
-        result = stdout.read()
-        return result
+        pass
+        # ssh = paramiko.SSHClient()
+        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        # ssh._transport = self.__transport
+        # stdin, stdout, stderr = ssh.exec_command('biomind configure', timeout=10)
+        # stdin.write("{}\n".format(host))
+        # stdin.write("\n")
+        # stdin.write("{}\n".format(PROTOCOL))
+        # stdin.write("eno1\n")
+        # out, err = stdout.read(), stderr.read()
+        # logger.debug(stdout)
+        # result = stdout.read()
+        # return result
 
     def command(self, cmd, result_print=None, nohup=False):
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname=self.host, port=self.port, username=self.user,
-                    password=self.pwd)
-        if nohup:
-            cmd += ' & \n '
-            invoke = ssh.invoke_shell()
-            invoke.send(cmd)
-            # 等待命令执行完成
-            time.sleep(2)
-        else:
-            stdin, stdout, stderr = ssh.exec_command(cmd)
-            result = stdout.read()
-            if result_print:
-                lines = result
-                for line in lines:
-                    print(line)
+        pass
+        # ssh = paramiko.SSHClient()
+        # ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        # ssh.connect(hostname=self.host, port=self.port, username=self.user,
+        #             password=self.pwd)
+        # if nohup:
+        #     cmd += ' & \n '
+        #     invoke = ssh.invoke_shell()
+        #     invoke.send(cmd)
+        #     # 等待命令执行完成
+        #     time.sleep(2)
+        # else:
+        #     stdin, stdout, stderr = ssh.exec_command(cmd)
+        #     result = stdout.read()
+        #     if result_print:
+        #         lines = result
+        #         for line in lines:
+        #             print(line)
 
 #
 # if __name__ == '__main__':

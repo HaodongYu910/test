@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_base, dicom
+from ..models import dicom_base, dicom, dicom_relation
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import dictionary
 from ..serializers import dicom_base_Serializer, dicom_base_Deserializer
@@ -85,7 +85,7 @@ class AddbaseData(APIView):
         """
         try:
             # 必传参数 name, version, type
-            if not data["content"] or not data["type"]  or not data['predictor']:
+            if not data["remarks"] or not data["type"]  or not data['predictor']:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -98,18 +98,63 @@ class AddbaseData(APIView):
         :return:
         """
         data = JSONParser().parse(request)
+
+        data["other"] = "0"
+        data["status"] = False
+        data["content"] = "/files1/DICOM/"+str(data.get("type"))+"/"+str(data.get("remarks"))
+        remarks = data["remarks"]
         result = self.parameter_check(data)
         if result:
             return result
 
-        basedata=dicom_base.objects.create(**data)
-        # 创建线程
-        thread_fake_folder = threading.Thread(target=getDicomfile,
-                                              args=(basedata.id,))
-        # 启动线程
-        thread_fake_folder.start()
+        path = str(data["content"])
+        basedata = dicom_base.objects.filter(content=path).count()
+        if basedata == 0:
+            basedata = dicom_base.objects.create(**data)
+            return JsonResponse(code="0", msg="成功")
+        else:
+            return JsonResponse(code="999", msg=" 该类型下已经存在该病种，请更换病种名称")
 
-        return JsonResponse(code="0", msg="成功")
+class getResult(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 name, version, type
+            if not data["file_path"]:
+                return JsonResponse(code="999996", msg="还未上传数据，请先上传数据！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="还未上传数据，请先上传数据！")
+
+    def post(self, request):
+        """
+        新增基础数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+
+        result = self.parameter_check(data)
+        if result:
+            return result
+        path = str(data["file_path"])[2:]
+        relation = dicom_relation.objects.filter(old_path__contains=path)
+        if relation.exists() is False:
+            return JsonResponse(code="999", msg="处理中，请稍后查询")
+        else:
+            res = {}
+            for i in list(relation):
+                if i.success_uid is None:
+                    res[i.fail_uid] = '已存在'
+                else:
+                    res[i.success_uid] = '成功'
+            return JsonResponse(code="0", msg=res)
 
 class UpdatebaseData(APIView):
     authentication_classes = (TokenAuthentication,)

@@ -9,63 +9,37 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
-from ..common.install import InstallThread, smokeThread
+from ..common.install import InstallThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
-from ..models import install, Server
+from ..models import install, Server ,project_version
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
-
-import os
+from AutoInterface.models import gold_record
+from ..common.frontend import frontend
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class Install(APIView):
+class InstallDeploy(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
-    def get(self, request):
+    def post(self, request):
         """
         自动部署
-        保存版本信息
         :param request:
         :return:
         user
         """
 
-        version = request.GET.get("version")
+        data = JSONParser().parse(request)
         try:
-            if version is None or version == "":
-                return JsonResponse(code="999998", msg="参数错误（必传参数：version 可选参数：serverIP）")
-            else:
-                obj = dictionary.objects.filter(key=version[:-4], type="history")
-                if obj.count() < 1:
-                    data = {
-                        "key": version[:-4],
-                        "value": "/files/History_version/{0}/{1}".format(version[:-4], version),
-                        "type": "history",
-                        "status": 1
-                    }
-                    dictionary.objects.create(**data)
-                    try:
-                        installObj = install.objects.filter(status=False, crontab='crontab')
-                        if int(installObj.count()) > 0:
-                            # 循环安装部署
-                            for j in installObj:
-                                j.version = version[:-4]
-                                j.save()
-                                testThread = InstallThread(id=j.id)
-                                testThread.setDaemon(True)
-                                # 开始线程
-                                testThread.start()
-                        else:
-                            logger.info("无定时部署服务")
-                    except Exception as e:
-                        logger.error("定时部署服务失败：{}".format(e))
-                return JsonResponse(code="0", msg="Success")
-
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999998", msg="错误")
+            logger.info("InstallDeploy：{}".format(data))
+            frontend(version=data["version"],
+                     host=data["server"])
+            return JsonResponse(code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(code="999995", msg="{0}".format(e))
 
 
 class getInstallVersion(APIView):
@@ -79,13 +53,35 @@ class getInstallVersion(APIView):
         :return:
         """
         try:
-            version = []
-            obj = dictionary.objects.filter(status=True, type='history').order_by("-key")
-            for i in obj:
-                version.append(i.key)
+            groupChildren = {}
+            groupOptions = []
+            try:
+                Obj = project_version.objects.all().order_by("-id")
+                for i in Obj:
+                    if groupChildren.__contains__(i.branch) is False:
+                        children = {
+                            "value": i.id,
+                            "label": i.package_name[:-4]
+                        }
+                        groupChildren[i.branch] = [children]
+                    else:
+                        groupChildren[i.branch].append({
+                            "value": i.id,
+                            "label": i.package_name[:-4]
+                        })
+            except Exception as e:
+                logger.error("查询dicom文件报错：{}".format(e))
+
+            for k, v in groupChildren.items():
+                groupOptions.append({
+                    "value": k,
+                    "label": k,
+                    "children": v
+                })
+
+            return JsonResponse(data={"groupOptions": groupOptions}, code="0", msg="成功")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取版本失败!")
-        return JsonResponse(data={"data": version}, code="0", msg="成功")
 
 
 class getInstall(APIView):
@@ -99,7 +95,7 @@ class getInstall(APIView):
         :return:
         """
         try:
-            page_size = int(request.GET.get("page_size", 10))
+            page_size = int(request.GET.get("page_size", 5))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
@@ -118,6 +114,17 @@ class getInstall(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = install_Deserializer(obm, many=True)
+        for i in serialize.data:
+            i["version"] = project_version.objects.get(id=i["version"]).package_name[:-4]
+            if i["status"] is True:
+                # try:
+                #     testThread = InstallThread(id=i["id"])
+                #     i["cleantime"], i["uptime"], i["restarttime"] = testThread.getParm()
+                # except:
+                i["cleantime"], i["uptime"], i["restarttime"] = "", "", ""
+            elif i["smokeid"] is not None:
+                goldObj = gold_record.objects.filter(gold_id=i["smokeid"])
+                i["progress"] = '%.2f' % (int(goldObj.count()) / int(121) * 100)
 
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
@@ -168,6 +175,50 @@ class getRestart(APIView):
             return JsonResponse(code="999985", msg="重启失败!")
         return JsonResponse(code="0", msg="成功")
 
+class AnsibleInstall(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 server
+            if not data["tag_version"]:
+                return JsonResponse(code="999996", msg="参数有误！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        Ansible 安装版本
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            obj = dictionary.objects.get(key=data["tag_version"], type='history', status=True)
+            obj.status = False
+            obj.save()
+        except ObjectDoesNotExist:
+            logger.info("Ansible 版本:{}".format(data))
+        try:
+            dictionary.objects.create(**{
+                "key": data["tag_version"],
+                "value": data["model_version"],
+                "type": 'history',
+                'status': True
+            })
+            return JsonResponse(code="0", msg="成功")
+        except Exception as e:
+            return JsonResponse(code="999995", msg="{0}".format(e))
 
 class AddInstall(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -199,25 +250,10 @@ class AddInstall(APIView):
             return result
         try:
             obj = Server.objects.get(id=data["Host"])
+            data["version"] = str(data["version"][1])
             data["server"] = obj.host
             data["smokeid"] = 0 if data["smokeid"] is True else None
             data["uid"] = 0 if data["uid"] is True else None
-            if data["testcase"] is True and data["cache"] is True:
-                # 更新备份同时更新 cache
-                data["testcase"] = 3
-
-            elif data["testcase"] is True and data["cache"] is False:
-                # 更新备份 不更新 cache
-                data["testcase"] = 0
-
-            elif data["testcase"] is False and data["cache"] is True:
-                # 不更新备份 更新 cache
-                data["testcase"] = 1
-            elif data["testcase"] is False and data["cache"] is False:
-                # 不更新备份 & cache
-                data["testcase"] = 2
-            else:
-                data["testcase"] = None
             Installadd = install_Deserializer(data=data)
 
             with transaction.atomic():

@@ -2,7 +2,7 @@ import requests
 import json
 import datetime
 import logging
-from ..models import message_group, message_detail
+from ..models import message_group, message_detail, dictionary
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +121,7 @@ media_id	是	文件id，通过下文的文件上传接口获取
 
 """
 
+
 def MessageGroup(send_url, params):
     # """
     # 发送消息
@@ -129,35 +130,9 @@ def MessageGroup(send_url, params):
         requests.post(send_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
-#     obj = message_group.objects.get(type=messageType)
-#     if obj.msgtype =="image":
-#         params ={
-#     "msgtype": "image",
-#     "image": {
-#         "base64": "DATA",
-#         "md5": "MD5"
-#     }
-# }
-#     elif obj.msgtype =="news":
-#         params = {
-#             "msgtype": "news",
-#             "news": {
-#                "articles": [
-#                    {
-#                        "title":"中秋节礼品领取",
-#                        "description" : "今年中秋节公司有豪礼相送",
-#                        "url" : "www.qq.com",
-#                        "picurl" : "http://res.mail.qq.com/node/ww/wwopenmng/images/independent/doc/test_pic_msg1.png"
-#                    }
-#                 ]
-#             }
-#         }
-#     else:
-#         params =
 
 
-
-def sendMessage(touser='',toparty='',message='Message'):
+def sendMessage(touser='', toparty='', message='Message'):
     """
     固定参数:corpid,appsecret，agentid
     """
@@ -196,3 +171,17 @@ def sendMessage(touser='',toparty='',message='Message'):
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
 
+
+# devopsMessage 消息推送
+def devopsMessage(**kwargs):
+    data = kwargs["data"]
+    obj = message_group.objects.get(type=data["type"], status=True)
+    try:
+        if data["params"]["msgtype"] == "text":
+            try:
+                data["params"]["text"]["mentioned_list"] = obj.mentioned_list.split(",")
+            except KeyError:
+                data["params"]["text"]["mentioned_list"] =[]
+        requests.post(obj.send_url, data=json.dumps(data["params"]))
+    except Exception as e:
+        logger.error("send Message fail :{}".format(e))

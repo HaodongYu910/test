@@ -204,10 +204,8 @@ class SingleThread(threading.Thread):
             try:
                 q = self.QueData(model=i)
                 threads = []
-                start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.end_date = (
-                            start_date + datetime.timedelta(hours=int(self.obj.single))).strftime(
-                    "%Y-%m-%d %H:%M:%S")
+                start_date = datetime.datetime.now()
+                self.end_date = start_date + datetime.timedelta(hours=int(self.obj.single))
                 try:
                     for i in range(self.thread_num):
                         t = threading.Thread(target=self.durationAnony, args=(q,))
@@ -218,17 +216,19 @@ class SingleThread(threading.Thread):
                         t.join()
                         time.sleep(1)
 
+                    time.sleep(10)
+
                     ResultStatistics(
                         stressid=self.obj.stressid,
                         stressType='DY',
-                        start_date=start_date,
-                        end_date=self.end_date
+                        start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                        end_date=self.end_date.strftime("%Y-%m-%d %H:%M:%S")
                     )
 
                     time.sleep(10)
-                    ssh = SSHConnection(host=self.obj.server, pwd=self.obj.Host.pwd)
-                    ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
-                    time.sleep(500)
+                    restartssh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
+                    restartssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
+                    time.sleep(300)
                 except Exception as e:
                     logger.error("Thread Run Fail：{0}".format(e))
             except Exception as e:
@@ -241,8 +241,7 @@ class SingleThread(threading.Thread):
     # 混合测试发送数据
     def durationAnony(self, q):
         while not q.empty():
-            start = datetime.datetime.now()
-            if self.Flag is False or str(start) > self.obj.end_date:
+            if not os.path.exists(self.full_fn_fake) or datetime.datetime.now() > self.end_date:
                 logger.info("break {}".format(testData[2]))
                 break
             testData = q.get()
@@ -296,9 +295,7 @@ class SingleThread(threading.Thread):
         self.obj.save()
         self.Flag = False
         # 删除 文件夹
-        folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(self.id))
-        if os.path.exists(folder):
-            shutil.rmtree(folder)
+        shutil.rmtree(self.full_fn_fake)
 
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
@@ -307,6 +304,7 @@ class SingleThread(threading.Thread):
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
         self.Flag = parm  # boolean
+        shutil.rmtree(self.full_fn_fake)
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm

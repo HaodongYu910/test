@@ -234,8 +234,9 @@ class HybridThread(threading.Thread):
         while not q.empty():
             # 开始时间
             start = datetime.datetime.now()
-            if self.Flag is False or str(start) > self.obj.end_date:
+            if not os.path.exists(self.full_fn_fake) or str(start) > self.obj.end_date:
                 break
+
             testdata = q.get()
             full_fn_fake = testdata[1]
             try:
@@ -304,6 +305,8 @@ class HybridThread(threading.Thread):
             stoptest = JmeterThread(stressid=self.obj.stressid)
             # 设为保护线程，主进程结束会关闭线程
             stoptest.setFlag = False
+        # 删除 文件夹
+        shutil.rmtree(self.full_fn_fake)
         self.Flag = parm  # boolean
 
     def setParm(self, parm):  # 外部修改内部信息函数

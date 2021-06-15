@@ -37,6 +37,7 @@ urlpatterns = [
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
     url(r'base/getdata', getBase.as_view()),
     url(r'base/addData', AddbaseData.as_view()),
+    url(r'base/getResult', getResult.as_view()),
     url(r'base/upData', UpdatebaseData.as_view()),
     url(r'base/disablebase', Disablebase.as_view()),
     url(r'base/enablebase', Enablebase.as_view()),

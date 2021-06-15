@@ -14,6 +14,8 @@ from .api.api import test
 from .api import dynamic
 from .api import member
 from .api import apiMessage
+from .api.apiSonar import getsonar
+from .api.apiVersion import getVersion, AddVersion, UpdateVersion, DelVersion ,DisableVersion ,EnableVersion
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -47,6 +49,8 @@ urlpatterns = [
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
     url(r'addupload', AddUpload.as_view()),  # 文件上传
+    url(r'addzipupload', AddZipUpload.as_view()),  # 文件上传zip
+    url(r'getProgress', getProgress.as_view()),
     url(r'delupload', DelUpload.as_view()),  # 文件上传
     url(r'upload', getUpload.as_view()),  # 文件列表
     url(r'dictionary/list', Dictionary.as_view()),
@@ -64,7 +68,14 @@ urlpatterns = [
     url(r'install/getReport', getInstallReport.as_view()),
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
-    url(r'deploy', Install.as_view()),
+    url(r'version/enable', EnableVersion.as_view()),
+    url(r'version/disable', DisableVersion.as_view()),
+    url(r'version/del', DelVersion.as_view()),
+    url(r'version/update', UpdateVersion.as_view()),
+    url(r'version/add', AddVersion.as_view()),
+    url(r'version/list', getVersion.as_view()),
+    url(r'deploy', InstallDeploy.as_view()),
+    url(r'sonar', getsonar.as_view()),
     url(r'createRestart', getRestart.as_view()),
     url(r'wechatMessage', apiMessage.sendMessage.as_view()),
     url(r'totest', test.as_view()),
