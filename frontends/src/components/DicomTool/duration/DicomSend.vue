@@ -145,11 +145,11 @@
                                              @click.native="getgroupbase()"></el-cascader>
                             </el-form-item>
                         </el-col>
-                        <el-col>
-                            <el-form-item label="xinde shujuleixing:" prop='senddata123'>
-                                    <el-input label="fasongde leixing" id="123123" v-model="editForm.dicomLabel"/>
-                            </el-form-item>
-                        </el-col>
+<!--                        <el-col>-->
+<!--                            <el-form-item label="xinde shujuleixing:" prop='senddata123'>-->
+<!--                                    <el-input label="fasongde leixing" id="123123" v-model="editForm.dicomLabel"/>-->
+<!--                            </el-form-item>-->
+<!--                        </el-col>-->
                         <el-col :span="12">
                             <el-form-item label="发送类型" prop="type">
                                 <el-select v-model="editForm.type" placeholder="请选择类型">
