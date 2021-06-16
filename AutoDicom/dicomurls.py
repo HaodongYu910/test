@@ -43,6 +43,7 @@ urlpatterns = [
     url(r'base/enablebase', Enablebase.as_view()),
     url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
+    url(r'group/dicomadd', DicomAdd.as_view()),
     url(r'group/groupadd', AddGroup.as_view()),
     url(r'group/groupup', UpdateGroup.as_view()),
     url(r'group/disablegroup', DisableGroup.as_view()),

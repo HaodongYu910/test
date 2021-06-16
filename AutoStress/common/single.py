@@ -222,12 +222,14 @@ class SingleThread(threading.Thread):
 
                     time.sleep(10)
                     try:
-                        ResultStatistics(
+                        Result = ResultStatistics(
                             stressid=self.obj.stressid,
                             stressType='DY',
                             start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
                             end_date=self.end_date.strftime("%Y-%m-%d %H:%M:%S")
                         )
+                        Result.QueryResults()
+
                     except Exception as e:
                         logger.error("ResultStatistics：{0}".format(e))
                     time.sleep(10)

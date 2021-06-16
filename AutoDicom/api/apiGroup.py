@@ -15,8 +15,8 @@ from AutoProject.common.regexUtil import *
 from AutoDicom.common.dicomfile import fileUpdate
 import threading
 
-
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
+
 
 class getGroupBase(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -101,16 +101,18 @@ class getGroup(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
+            project_id = int(request.GET.get("project_id", 1))
+            group = request.GET.get("group")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         name = request.GET.get("name")
         remark = request.GET.get("remark")
         if name:
-            obi = dicom_group.objects.filter(name=name).order_by("-id")
+            obi = dicom_group.objects.filter(name=name, project_id=project_id, group=group).order_by("-id")
         elif remark:
-            obi = dicom_group.objects.filter(remark=remark).order_by("-id")
+            obi = dicom_group.objects.filter(remark=remark, project_id=project_id, group=group).order_by("-id")
         else:
-            obi = dicom_group.objects.all().order_by("-id")
+            obi = dicom_group.objects.filter(project_id=project_id, group=group).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -124,6 +126,7 @@ class getGroup(APIView):
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
+
 
 class GroupInfo(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -156,6 +159,56 @@ class GroupInfo(APIView):
         return JsonResponse(data={"info": info,
                                   "groupData": groupInfo
                                   }, code="0", msg="成功")
+
+
+class DicomAdd(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 ids
+            if not data["ids"] and not data["groupId"]:
+                return JsonResponse(code="999996", msg="必传参数 groupId ,ids 参数有误！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        新增组数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否相同名称的组
+        try:
+            dicom_group.objects.get(id=data["groupId"])
+        except:
+            return JsonResponse(code="999997", msg="无此组名")
+        try:
+            for i in data["ids"]:
+                if len(dicom_group_detail.objects.filter(dicom_id=int(i))):
+                    continue
+                detail = dicomGroup_detail_Deserializer(data={
+                    "group": data["groupId"],
+                    "dicom": int(i)
+                })
+                with transaction.atomic():
+                    detail.is_valid()
+                    detail.save()
+        except Exception as e:
+            logger.error("增加group detail 数据失败，报错：{}".format(e))
+            return JsonResponse(code="999995", msg="新增失败：{}".format(e))
+        return JsonResponse(code="0", msg="成功")
 
 
 class AddGroup(APIView):
@@ -197,18 +250,19 @@ class AddGroup(APIView):
             group.save()
             groupID = group.data.get("id")
         try:
-           for i in data["groupData"]:
-               detail = dicomGroup_detail_Deserializer(data={
-                   "group": groupID,
-                   "dicom": int(i)
-               })
-               with transaction.atomic():
-                   detail.is_valid()
-                   detail.save()
+            for i in data["groupData"]:
+                detail = dicomGroup_detail_Deserializer(data={
+                    "group": groupID,
+                    "dicom": int(i)
+                })
+                with transaction.atomic():
+                    detail.is_valid()
+                    detail.save()
         except Exception as e:
             logger.error("增加group detail 数据失败，报错：{}".format(e))
             return JsonResponse(code="999995", msg="新增失败：{}".format(e))
         return JsonResponse(code="0", msg="成功")
+
 
 class UpdateGroup(APIView):
     authentication_classes = (TokenAuthentication,)

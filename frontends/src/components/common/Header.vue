@@ -6,11 +6,11 @@
         </div>
         <div class="logo">Biomind Test</div>
         <div class="logo">
-                <span class="el-dropdown-link">
+                <span class="el-head-title">
                 项目空间：
               </span>
             <el-dropdown  @command="handleCommand" @click.native="getProjectList">
-              <span class="el-dropdown-link">
+              <span class="el-head-info">
                 {{projectname}}<i class="el-icon-arrow-down el-icon--right"></i>
               </span>
               <el-dropdown-menu slot="dropdown">
@@ -258,6 +258,19 @@
     }
     .el-dropdown-link{
         color: #fff;
+        cursor: pointer;
+    }
+    .el-head-title{
+
+        color: #fff;
+        font-size: 14px;
+        font-family:"微软雅黑","PingFang SC";
+        cursor: pointer;
+    }
+    .el-head-info{
+        color: #fff;
+        font-size: 12px;
+        font-family:"微软雅黑","PingFang SC";
         cursor: pointer;
     }
     .el-dropdown-menu__item{

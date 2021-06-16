@@ -806,7 +806,8 @@
                                 type: '持续化',
                                 sendstatus: false,
                                 status: false,
-                                Host: this.addForm.Host
+                                Host: this.addForm.Host,
+                                project_id:this.project_id
                             })
                             const header = {
                                 'Content-Type': 'application/json',

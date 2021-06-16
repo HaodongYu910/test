@@ -92,6 +92,7 @@ class dicomData(APIView):
         diseases = request.GET.get("diseases")
         slicenumber = request.GET.get("slicenumber")
         dicomtype = request.GET.get("type")
+        patientid = request.GET.get("patientid")
         if dicomtype:
             if diseases == '' and slicenumber != '':
                 obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=dicomtype).order_by("-id")
@@ -102,6 +103,8 @@ class dicomData(APIView):
                                            type=dicomtype).order_by("-id")
             else:
                 obi = dicom.objects.filter(type=dicomtype).order_by("-id")
+        elif patientid:
+            obi = dicom.objects.filter(patientid__contains=patientid).order_by("-id")
         else:
             if diseases == '' and slicenumber != '':
                 obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")

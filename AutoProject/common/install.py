@@ -133,12 +133,16 @@ class InstallThread(threading.Thread):
                         self.versionObj.path
                     ))
                     # 校验是否安装完成
+                    QI = 1
                     while True:
-                        time.sleep(60)
                         if "No such file or directory" in str(self.ssh.cmd("cd QInstall;")):
                             break
+                        elif QI > 9:
+                            break
                         else:
-                            time.sleep(5)
+                            time.sleep(30)
+                            QI = QI + 1
+
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format( self.versionObj.version, e))
                 self.installStatus(status=False, type=3)

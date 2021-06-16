@@ -21,15 +21,6 @@
                         />
                     </el-select>
                 </el-form-item>
-                <el-form-item label="服务器" prop="server">
-                    <el-select v-model="filters.server" placeholder="请选择服务" @click.native="gethost()">
-                        <el-option v-for="(item,index) in tags"
-                                   :key="item.id"
-                                   :label="item.name"
-                                   :value="item.id"
-                        />
-                    </el-select>
-                </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getbaseList">查询</el-button>
                 </el-form-item>

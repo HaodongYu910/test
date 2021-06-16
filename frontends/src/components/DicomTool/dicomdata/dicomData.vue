@@ -5,15 +5,15 @@
             <el-col :span="22" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item label="筛选">
-                    <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
-                        <el-option key="" label="" value=""></el-option>
-                                    <el-option v-for="(item,index) in filetype"
-                                               :key="item.value"
-                                               :label="item.remarks"
-                                               :value="item.value"
-                                    />
-                                </el-select>
-                </el-form-item>
+                        <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
+                            <el-option key="" label="" value=""></el-option>
+                            <el-option v-for="(item,index) in filetype"
+                                       :key="item.value"
+                                       :label="item.remarks"
+                                       :value="item.value"
+                            />
+                        </el-select>
+                    </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
                             <el-option key="" label="" value=""></el-option>
@@ -23,6 +23,9 @@
                                        :value="item.remarks"
                             />
                         </el-select>
+                    </el-form-item>
+                    <el-form-item>
+                        <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getdata"></el-input>
                     </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
@@ -37,24 +40,14 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="stressD">压测数据</el-button>
-                    <el-form-item label="同步" prop="server">
-                        <el-select v-model="filters.server" placeholder="请选择同步的服务" @click.native="gethost()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.id"
-                                       :label="item.name"
-                                       :value="item.id"
-                            />
-                        </el-select>
-                    </el-form-item>
-                    <el-button type="primary" @click="getdetail">同步</el-button>
+<!--                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>-->
+                    <el-button type="primary" :disabled="this.sels.length===0" @click="handleCollection">收藏</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
             <el-table
                     v-loading="listLoading"
-                    :data="stresslist"
+                    :data="datalist"
                     highlight-current-row
                     style="width: 100%;"
                     @selection-change="selsChange">
@@ -106,8 +99,8 @@
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑
                         </el-button>
                         <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
-                        {{scope.row.status===false?'启用':'禁用'}}
-                    </el-button>
+                            {{scope.row.status===false?'启用':'禁用'}}
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -156,10 +149,10 @@
                         </el-col>
                     </el-row>
                     <el-form-item label="挂载">
-                        <el-input type="textarea" :rows="10" v-model="editForm.vote"  auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.vote" auto-complete="off"></el-input>
                     </el-form-item>
                     <el-form-item label="Graphql">
-                        <el-input type="textarea" :rows="10" v-model="editForm.graphql"  auto-complete="off"></el-input>
+                        <el-input type="textarea" :rows="10" v-model="editForm.graphql" auto-complete="off"></el-input>
                     </el-form-item>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -168,7 +161,30 @@
                 </div>
             </el-dialog>
 
-            <!--新增界面-->
+            <!--收藏界面-->
+            <el-dialog
+                    :visible.sync="CollectionFormVisible"
+                    :close-on-click-modal="false"
+                    style="width: 30%; left: 62%"
+            >
+                    <el-row :gutter="24">
+                        <el-col :span="15">
+                                <el-select v-model="groupId" placeholder="请选择组">
+                                    <el-option v-for="(item,index) in dicomgrouplist"
+                                               :key="item.id"
+                                               :label="item.name"
+                                               :value="item.id"
+                                    />
+                                </el-select>
+                        </el-col>
+                        <el-col :span="9">
+                            <el-button type="primary" :loading="collectionLoading" @click.native="Collection">保存</el-button>
+                        </el-col>
+                    </el-row>
+
+            </el-dialog>
+
+            <!--收藏界面-->
             <el-dialog
                     title="新增"
                     :visible.sync="addFormVisible"
@@ -177,17 +193,6 @@
             >
                 <el-form ref="addForm" :model="addForm" label-width="80px" :rules="addFormRules">
                     <el-row :gutter="24">
-                        <el-col :span="10">
-                            <el-form-item label="服务器" prop="server">
-                                <el-select v-model="addForm.server" placeholder="请选择" @click.native="gethost()">
-                                    <el-option v-for="(item,index) in tags"
-                                               :key="item.host"
-                                               :label="item.name"
-                                               :value="item.host"
-                                    />
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
                         <el-col :span="12">
                             <el-form-item label="patientid" prop="patientid">
                                 <el-input v-model.trim="addForm.patientid" auto-complete="off"/>
@@ -225,20 +230,20 @@
     // import NProgress from 'nprogress'
     import {
         dicomdetail,
-        getHost,
         getdicomdata,
         deldicomdata,
         updatedicomdata,
         adddicomdata,
-        stressTool,
+        getGroup,
         getbase,
         deldicomreport,
         dicomcsv,
-        addStressData,
+        DicomAdd,
         DisableDicom,
-        EnableDicom
+        EnableDicom,
+        getDictionary
     } from '@/router/api'
-    import {DisableSmoke, EnableSmoke, getDictionary} from "../../../router/api";
+
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -248,11 +253,18 @@
                 filters: {
                     diseases: '',
                     slicenumber: '',
-                    type:''
+                    type: ''
                 },
                 total: 0,
                 page: 1,
+                tags:{},
+                filetype:{},
+                datalist:[],
                 listLoading: false,
+                CollectionFormVisible: false,
+                collectionLoading: false,
+                dicomgrouplist:{},
+                groupId: "",
                 sels: [], // 列表选中列
                 editFormRules: {
                     diagnosis: [
@@ -273,7 +285,7 @@
                     slicenumber: '',
                     type: '',
                     diagnosis: '',
-                    remark:''
+                    remark: ''
                 },
                 editFormVisible: false, // 编辑界面是否显示
                 editLoading: false,
@@ -296,9 +308,33 @@
         },
         mounted() {
             this.getdata()
-            this.gethost()
         },
         methods: {
+            // 获取数据列表
+            getdicomgrouplist() {
+                this.listLoading = true
+                const self = this
+                const params = {
+                    page: 1,
+                    page_size: 9999,
+                    name: this.filters.name,
+                    remark: this.filters.remark
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getGroup(headers, params).then((res) => {
+                    self.listLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.total = data.total
+                        self.dicomgrouplist = data.data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
+            },
             getfile() {
                 this.listLoading = true;
                 let self = this;
@@ -323,37 +359,14 @@
                     }
                 })
             },
-            gethost() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    page_size:100
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getHost(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
             // 获取getBase列表
             getBase() {
                 this.listLoading = true
                 const self = this
                 const params = {
-                    selecttype:"dicom",
+                    selecttype: "dicom",
                     status: 1,
-                    type:self.filters.type
+                    type: self.filters.type
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getbase(headers, params).then((res) => {
@@ -382,6 +395,7 @@
                     server: self.filters.server,
                     slicenumber: self.filters.slicenumber,
                     type: self.filters.type,
+                    patientid: self.filters.patientid
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdicomdata(headers, params).then((res) => {
@@ -390,7 +404,7 @@
                     if (code === '0') {
                         self.total = data.total
                         self.page = data.page
-                        self.stresslist = data.data
+                        self.datalist = data.data
                     } else {
                         self.$message.error({
                             message: msg,
@@ -434,6 +448,10 @@
                 this.page = val
                 this.getdata()
             },
+            handleCollection: function (index, row) {
+                this.CollectionFormVisible = true,
+                this.getdicomgrouplist()
+            },
             // 显示编辑界面
             handleEdit: function (index, row) {
                 this.editFormVisible = true
@@ -461,7 +479,7 @@
                                 diseases: self.editForm.diseases,
                                 slicenumber: self.editForm.slicenumber,
                                 vote: self.editForm.vote,
-                                remark:self.editForm.remark,
+                                remark: self.editForm.remark,
                                 diagnosis: self.editForm.diagnosis,
                                 imagecount: self.editForm.imagecount,
                                 graphql: self.editForm.graphql
@@ -515,7 +533,7 @@
                     if (code === '0') {
                         self.total = data.total
                         self.page = data.page
-                        self.stresslist = data.data
+                        self.datalist = data.data
                     } else {
                         self.$message.error({
                             message: msg,
@@ -705,26 +723,30 @@
                     });
                 }
             },
-            // 批量生成压测数据
-            stressD: function () {
+            // 收藏组数据
+            Collection: function () {
                 const ids = this.sels.map(item => item.id)
                 const self = this
-                this.$confirm('确认生成选中记录为压测数据吗？', '提示', {
+                this.$confirm('确认保存？', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true
                     // NProgress.start();
                     const self = this
-                    const params = {ids: ids}
+                    const params = {
+                        ids: ids,
+                        groupId: this.groupId
+                    }
                     const header = {
                         'Content-Type': 'application/json',
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                    addStressData(header, params).then(_data => {
+                    DicomAdd(header, params).then(_data => {
                         const {msg, code, data} = _data
                         if (code === '0') {
+                            this.CollectionFormVisible = false,
                             self.$message({
-                                message: '生成成功',
+                                message: '成功',
                                 center: true,
                                 type: 'success'
                             })

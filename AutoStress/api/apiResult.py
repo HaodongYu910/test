@@ -74,7 +74,11 @@ class stressResultsave(APIView):
         if result:
             return result
         try:
-            ResultStatistics(stressid=data['stressid'])
+            Result = ResultStatistics(
+                stressid=data['stressid'],
+                stressType='HH'
+            )
+            Result.QueryResults()
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(msg="失败", code="999991", exception=e)

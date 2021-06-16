@@ -1,6 +1,4 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from AutoProject.models import pid
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -8,10 +6,9 @@ from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
 from ..common.PerformanceResult import *
-from AutoDicom.common.dicomBase import baseTransform
+
 from AutoDicom.common.deletepatients import *
 from ..common.stressReport import StressReport
-from ..common.stressfigure import stressdataFigure
 from AutoStress.models import stress
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置

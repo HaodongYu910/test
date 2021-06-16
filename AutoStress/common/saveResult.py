@@ -45,10 +45,10 @@ def saveData(**kwargs):
 
 
 class ResultStatistics:
-    def __init__(self, start_date=None, end_date=None, **kwargs):
-        self.stressId = kwargs["stressid"]
+    def __init__(self, stressid, stressType, start_date=None, end_date=None):
+        self.stressId = stressid
         self.obj = stress.objects.get(stressid=self.stressId)
-        self.stressType = kwargs["stressType"]
+        self.stressType = stressType
         self.start_date = self.obj.start_date if start_date is None else start_date
         self.end_date = self.obj.end_date if end_date is None else end_date
 
@@ -85,8 +85,7 @@ class ResultStatistics:
                         data = {
                             "error": str(i["error"]),
                             "aistatus": str(i["aistatus"]),
-                            "job_time": str(i["job_time"]),
-                            "job_start": str(i["job_start"])[:19],
+                            "job_time": str('%.2f' % (float(i["job_time"]))),
                             "job_end": str(i["job_end"])[:19]
 
                         }
@@ -103,8 +102,10 @@ class ResultStatistics:
             except Exception as e:
                 logger.error("查询数据失败{}".format(e))
                 continue
+        self.SaveResults()
+
     # 保存结果
-    def ResultStatistics(self):
+    def SaveResults(self):
         """
             根据模型 分组查询 stress_record 表
         """

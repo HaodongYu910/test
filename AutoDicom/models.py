@@ -1,7 +1,7 @@
 from django.db import models
 
 # Create your models here.
-from AutoProject.models import Server
+from AutoProject.models import Server, Project
 
 
 class dicom(models.Model):
@@ -71,6 +71,7 @@ class dicom_group(models.Model):
     predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
+    project = models.ForeignKey(to=Project, null=True, on_delete=models.CASCADE, verbose_name='所属项目')
     status = models.BooleanField(default=False, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
@@ -150,6 +151,7 @@ class duration(models.Model):
     type = models.CharField(max_length=20, blank=True, null=True, verbose_name='发送类型')
     dds = models.CharField(max_length=20, blank=True, null=True,  verbose_name='dds 服务')
     Host = models.ForeignKey(to=Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    project = models.ForeignKey(to=Project, null=True, on_delete=models.CASCADE, verbose_name='所属项目')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
