@@ -6,11 +6,8 @@ from tqdm import tqdm
 import logging
 
 from AutoProject.models import uploadfile
-from ..models import dicom_base, dicom, dicom_relation
+from ..models import dicom_group, dicom, dicom_relation
 from django.db.models import Max
-import shutil
-import time
-import uuid
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置。
 
@@ -119,7 +116,7 @@ def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predic
 # 更新文件
 def fileUpdate(id):
     try:
-        obj = dicom_base.objects.get(id=id)
+        obj = dicom_group.objects.get(id=id)
         uploadfileResult = uploadfile.objects.filter(fileid=id)
         if uploadfileResult.exists() is False:
             pass
@@ -128,7 +125,7 @@ def fileUpdate(id):
 
         study_infos = {}
         study_infos["No"] = 0
-        logger.info("12323")
+
         src_folder = obj.content
         while src_folder[-1] == '/':
             src_folder = src_folder[0:-1]

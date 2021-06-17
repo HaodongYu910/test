@@ -17,7 +17,7 @@ from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
-from ..common.durarion import DurationThread
+from ..common.duration import DurationThread
 
 from AutoProject.scheduletask import DurationSyTask
 from AutoProject.common.api_response import JsonResponse
@@ -96,6 +96,7 @@ class durationData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
         durationid = int(request.GET.get("id"))
+        patientname = request.GET.get("patientname")
 
         # 判断是否有查询时间
         if request.GET.get("startdate"):
@@ -109,9 +110,8 @@ class durationData(APIView):
             enddate = datetime.datetime.now()
 
         # 判断查询数据类型
-        if type == 'patientid':
-            patientid = request.GET.get("patientid")
-            obi = duration_record.objects.filter(duration_id=durationid, patientid__contains=patientid).order_by("-id")
+        if patientname:
+            obi = duration_record.objects.filter(duration_id=durationid, patientname__contains=patientname).order_by("-id")
         elif type == 'Not_sent':
             obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")

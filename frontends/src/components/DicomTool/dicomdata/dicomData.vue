@@ -4,28 +4,16 @@
             <!--工具条-->
             <el-col :span="22" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item label="筛选">
-                        <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
-                            <el-option key="" label="" value=""></el-option>
-                            <el-option v-for="(item,index) in filetype"
-                                       :key="item.value"
-                                       :label="item.remarks"
-                                       :value="item.value"
-                            />
-                        </el-select>
-                    </el-form-item>
+
                     <el-form-item>
-                        <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
-                            <el-option key="" label="" value=""></el-option>
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.remarks"
-                                       :label="item.remarks"
-                                       :value="item.remarks"
-                            />
-                        </el-select>
+                        <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type"
+                                     clearable
+                                     @click.native="getgroupbase()"></el-cascader>
                     </el-form-item>
+
                     <el-form-item>
-                        <el-input v-model="filters.patientid" placeholder="patientid" @keyup.enter.native="getdata"></el-input>
+                        <el-input v-model="filters.patientid" placeholder="patientid"
+                                  @keyup.enter.native="getdata"></el-input>
                     </el-form-item>
                     <el-form-item>
                         <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
@@ -40,7 +28,7 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-<!--                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>-->
+                    <!--                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>-->
                     <el-button type="primary" :disabled="this.sels.length===0" @click="handleCollection">收藏</el-button>
                 </el-form>
             </el-col>
@@ -167,20 +155,20 @@
                     :close-on-click-modal="false"
                     style="width: 30%; left: 62%"
             >
-                    <el-row :gutter="24">
-                        <el-col :span="15">
-                                <el-select v-model="groupId" placeholder="请选择组">
-                                    <el-option v-for="(item,index) in dicomgrouplist"
-                                               :key="item.id"
-                                               :label="item.name"
-                                               :value="item.id"
-                                    />
-                                </el-select>
-                        </el-col>
-                        <el-col :span="9">
-                            <el-button type="primary" :loading="collectionLoading" @click.native="Collection">保存</el-button>
-                        </el-col>
-                    </el-row>
+                <el-row :gutter="24">
+                    <el-col :span="15">
+                        <el-select v-model="groupId" placeholder="请选择组">
+                            <el-option v-for="(item,index) in dicomgrouplist"
+                                       :key="item.id"
+                                       :label="item.name"
+                                       :value="item.id"
+                            />
+                        </el-select>
+                    </el-col>
+                    <el-col :span="9">
+                        <el-button type="primary" :loading="collectionLoading" @click.native="Collection">保存</el-button>
+                    </el-col>
+                </el-row>
 
             </el-dialog>
 
@@ -243,6 +231,7 @@
         EnableDicom,
         getDictionary
     } from '@/router/api'
+    import {getGroupBase} from "../../../router/api";
 
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -257,14 +246,15 @@
                 },
                 total: 0,
                 page: 1,
-                tags:{},
-                filetype:{},
-                datalist:[],
+                tags: {},
+                filetype: {},
+                datalist: [],
                 listLoading: false,
                 CollectionFormVisible: false,
                 collectionLoading: false,
-                dicomgrouplist:{},
+                dicomgrouplist: {},
                 groupId: "",
+                groupOptions:{},
                 sels: [], // 列表选中列
                 editFormRules: {
                     diagnosis: [
@@ -317,8 +307,7 @@
                 const params = {
                     page: 1,
                     page_size: 9999,
-                    name: this.filters.name,
-                    remark: this.filters.remark
+                    type: "Virtual"
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getGroup(headers, params).then((res) => {
@@ -359,42 +348,15 @@
                     }
                 })
             },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom",
-                    status: 1,
-                    type: self.filters.type
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
             // 获取数据列表
             getdata() {
                 this.listLoading = true
                 const self = this
                 const params = {
                     page: self.page,
-                    diseases: self.filters.diseases,
-                    server: self.filters.server,
                     slicenumber: self.filters.slicenumber,
-                    type: self.filters.type,
+                    type: this.filters.type[0],
+                    diseases: this.filters.type[1],
                     patientid: self.filters.patientid
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -412,6 +374,27 @@
                         })
                     }
                 })
+            },
+            // 获取级联 查询 组信息列表
+            getgroupbase() {
+                this.listLoading = true
+                const self = this
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getGroupBase(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            this.groupOptions = data.groupOptions
+
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    }
+                )
             },
             // 删除
             handleDel: function (index, row) {
@@ -450,7 +433,7 @@
             },
             handleCollection: function (index, row) {
                 this.CollectionFormVisible = true,
-                this.getdicomgrouplist()
+                    this.getdicomgrouplist()
             },
             // 显示编辑界面
             handleEdit: function (index, row) {
@@ -745,11 +728,11 @@
                         const {msg, code, data} = _data
                         if (code === '0') {
                             this.CollectionFormVisible = false,
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            })
+                                self.$message({
+                                    message: '成功',
+                                    center: true,
+                                    type: 'success'
+                                })
                         } else {
                             self.$message.error({
                                 message: msg,

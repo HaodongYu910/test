@@ -637,10 +637,16 @@ export const EnableDicom = (headers, params) => {
     .post(`${test}/dicom/enabledicom`, params, headers)
     .then((res) => res.data);
 };
-// 新增dicom数据
+// 查看 dicomdetail 数据
 export const dicomdetail = (headers, params) => {
   return axios
     .post(`${test}/dicom/dicomdetail`, params, headers)
+    .then((res) => res.data);
+};
+// dicomdetail禁用dicom数据
+export const detailDisable = (headers, params) => {
+  return axios
+    .post(`${test}/dicom/dicomdetail/Disable`, params, headers)
     .then((res) => res.data);
 };
 //dicom数据
@@ -767,40 +773,11 @@ export const getbase = (headers, params) => {
     .get(`${test}/dicom/base/getdata`, { params: params }, { headers })
     .then((res) => res.data);
 };
-// 添加基础数据
-export const addbaseData = (headers, params) => {
-  return axios
-    .post(`${test}/dicom/base/addData`, params, headers)
-    .then((res) => res.data);
-};
+
 // 添加数据获取结果
 export const getDataResult = (headers, params) => {
   return axios
     .post(`${test}/dicom/base/getResult`, params, headers)
-    .then((res) => res.data);
-};
-// 修改基础数据
-export const UpdatebaseData = (headers, params) => {
-  return axios
-    .post(`${test}/dicom/base/upData`, params, headers)
-    .then((res) => res.data);
-};
-// 启用基础数据
-export const Enablebase = (headers, params) => {
-  return axios
-    .post(`${test}/dicom/base/enablebase`, params, headers)
-    .then((res) => res.data);
-};
-// 禁用基础数据
-export const Disablebase = (headers, params) => {
-  return axios
-    .post(`${test}/dicom/base/disablebase`, params, headers)
-    .then((res) => res.data);
-};
-// 删除基础数据
-export const Delbasedata = (headers, params) => {
-  return axios
-    .post(`${test}/dicom/base/delbasedata`, params, headers)
     .then((res) => res.data);
 };
 // 获取组数据

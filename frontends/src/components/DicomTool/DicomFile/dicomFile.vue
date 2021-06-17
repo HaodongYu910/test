@@ -4,16 +4,11 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-                    <el-select v-model="filters.type" placeholder="类型" @click.native="getfile()">
-                                    <el-option v-for="(item,index) in filetype"
-                                               :key="item.value"
-                                               :label="item.value"
-                                               :value="item.value"
-                                    />
-                                </el-select>
+                    <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type" clearable
+                                             @click.native="getgroupbase()"></el-cascader>
                 </el-form-item>
                 <el-form-item>
-                    <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getbaseList()">
+                    <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getGroupList()">
                         <el-option v-for="(item,index) in baseData"
                                    :key="item.remarks"
                                    :label="item.remarks"
@@ -22,7 +17,7 @@
                     </el-select>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="getbaseList">查询</el-button>
+                    <el-button type="primary" @click="getGroupList">查询</el-button>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="handleAdd">新增病种</el-button>
@@ -44,12 +39,12 @@
             </el-table-column>
             <el-table-column label="名称" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.remarks }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
                 </template>
             </el-table-column>
-            <el-table-column prop="content" label="路径" min-width="25%">
+            <el-table-column prop="route" label="路径" min-width="25%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.content }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.route }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="模型" min-width="16%" sortable>
@@ -64,7 +59,7 @@
             </el-table-column>
             <el-table-column label="数量" min-width="16%" sortable>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.other }}</span>
+                    <span style="margin-left: 10px">{{ scope.row.amount }}</span>
                 </template>
             </el-table-column>
             <el-table-column prop="status" label="状态" min-width="9%">
@@ -80,9 +75,9 @@
             </el-table-column>
             <el-table-column label="操作" min-width="50px">
                 <template slot-scope="scope">
-                    <el-button type ="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑病种</el-button>
-                    <el-button type="primary" size="small" @click="handleSupplement(scope.$index, scope.row)">补充病人数据</el-button>
-                    <el-button type="primary" size="small" @click="ViewResults(scope.$index, scope.row)">查看结果</el-button>
+                    <el-button type ="primary" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
+                    <el-button type="primary" size="small" :style="{ display: displaystatus(scope.row.group) }"  @click="handleSupplement(scope.$index, scope.row)">补充病人数据</el-button>
+                    <el-button type="primary" size="small" :style="{ display: displaystatus(scope.row.group) }" @click="ViewResults(scope.$index, scope.row)">查看结果</el-button>
                     <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">
                         {{scope.row.status===false?'启用':'禁用'}}
                     </el-button>
@@ -107,18 +102,14 @@
 <!--                </el-form-item>-->
                 <el-row :gutter="24">
                     <el-col :span="12">
-                        <el-form-item label="数据类型" prop='type'>
-                            <el-select v-model="editForm.type" placeholder="请选择" auto-complete="off" :disabled="true">
-                                <el-option v-for="item in options" :key="item.value" :label="item.label"
-                                           :value="item.value">
-                                </el-option>
-                            </el-select>
+                        <el-form-item label="名称">
+                            <el-input v-model="editForm.name"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
-<!--                        <el-form-item label="查询类型">-->
-<!--                            <el-input v-model="editForm.select_type" :disabled="true" auto-complete="off"></el-input>-->
-<!--                        </el-form-item>-->
+                         <el-form-item label="备注">
+                            <el-input v-model="editForm.remarks"></el-input>
+                        </el-form-item>
                     </el-col>
                     <el-col :span="12">
                         <el-form-item label="模型类型" prop='predictor'>
@@ -132,24 +123,48 @@
                         </el-form-item>
                     </el-col>
                 </el-row>
-                <el-form-item label="病种名称">
-                    <el-input v-model="editForm.remarks"></el-input>
-                </el-form-item>
+
+                <div v-if="Virtual">
+                    <el-divider>选择组数据</el-divider>
+                    <el-row>
+                        <div style="text-align: center">
+                            <el-transfer
+                                    class="el-transfer-panel__list.is-filterable"
+                                    style="text-align: left; display: inline-block"
+                                    v-model="groupData"
+                                    filterable
+                                    :left-default-checked="[2, 3]"
+                                    :right-default-checked="[1]"
+                                    :titles="['全部数据', '虚拟组数据']"
+                                    :button-texts="['到左边', '到右边']"
+                                    :format="{
+                                noChecked: '${total}',
+                                hasChecked: '${checked}/${total}'
+                              }"
+                                    @change="ChangeHandle"
+                                    :data="infoData">
+                                <span slot-scope="{ option }">{{ option.key }} - {{ option.label }}</span>
+<!--                                <el-button class="transfer-footer" slot="left-footer" size="small">操作</el-button>-->
+<!--                                <el-button class="transfer-footer" slot="right-footer" size="small">操作</el-button>-->
+                            </el-transfer>
+                        </div>
+                    </el-row>
+                </div>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
             </div>
         </el-dialog>
 
         <!--新增界面-->
-        <el-dialog title="新增病种" :visible.sync="addFormVisible" :close-on-click-modal="false"
+        <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
                 <el-row>
                     <el-col :span="12">
-                        <el-form-item label="病种名称" prop='remarks'>
-                            <el-input v-model.trim="addForm.remarks" auto-complete="off" style="width: 215px;height:32px;"></el-input>
+                        <el-form-item label="病种名称" prop='name'>
+                            <el-input v-model.trim="addForm.name" auto-complete="off" style="width: 215px;height:32px;"></el-input>
                         </el-form-item>
                     </el-col>
                     <el-col :span="12">
@@ -177,9 +192,41 @@
                         </el-form-item>
                     </el-col>
                         <el-col :span="12">
-
+                             <el-form-item label="虚拟组" prop='predictor'>
+                            <el-switch
+                              v-model="Virtual"
+                              active-color="#13ce66"
+                              inactive-color="#ff4949">
+                            </el-switch>
+                                 </el-form-item>
                         </el-col>
                 </el-row>
+                <div v-if="Virtual">
+                    <el-divider>选择组数据</el-divider>
+                    <el-row>
+                        <div style="text-align: center">
+                            <el-transfer
+                                    class="el-transfer-panel__list.is-filterable"
+                                    style="text-align: left; display: inline-block"
+                                    v-model="groupData"
+                                    filterable
+                                    :left-default-checked="[2, 3]"
+                                    :right-default-checked="[1]"
+                                    :titles="['全部数据', '虚拟组数据']"
+                                    :button-texts="['到左边', '到右边']"
+                                    :format="{
+                                noChecked: '${total}',
+                                hasChecked: '${checked}/${total}'
+                              }"
+                                    @change="ChangeHandle"
+                                    :data="infoData">
+                                <span slot-scope="{ option }">{{ option.key }} - {{ option.label }}</span>
+<!--                                <el-button class="transfer-footer" slot="left-footer" size="small">操作</el-button>-->
+<!--                                <el-button class="transfer-footer" slot="right-footer" size="small">操作</el-button>-->
+                            </el-transfer>
+                        </div>
+                    </el-row>
+                </div>
                 <el-alert title="使用帮助" type="success">
                     <template slot='title'>
                         <div class="iconSize">使用帮助:</div>
@@ -254,24 +301,25 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        getbase, Delbasedata, Disablebase, Enablebase,
-        UpdatebaseData, addbaseData, dicomcount, getHost, getdicomSend, getDictionary, addupload, addzipupload,
-        getFileUploadProgress, getDataResult
+        getGroup, AddGroup, Updategroup,
+        DelGroup, DisableGroup, EnableGroup,
+        getdicomSend, getDictionary, addzipupload,
+         getDataResult, getGroupBase, getGroupInfo
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
         // components: {ElRow},
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 dataupshow:false,
                 file_path :'',
                 file: '',
                 fileList: [],
                 filetype:[],
-                tags:[],
                 model:[],
                 filters: {
-                    type: '',
+                    type: [],
                     remarks: '',
                     selecttype: 'dicom',
                     status: true
@@ -279,14 +327,15 @@
                 showFileName: false,
                 baseData: [],
                 total: 0,
+                Virtual: false,
                 page: 1,
                 page_size: 20,
                 listLoading: false,
                 sels: [],//列表选中列
-
+                options:{},
+                groupOptions:{},
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
-                options: [{label: "dicom", value: "dicom"}],
                 editFormRules: {
                     type: [
                         {required: true, message: '请选择类型', trigger: 'blur'}
@@ -333,12 +382,12 @@
                 //新增界面数据
                 addForm: {
                     remarks:'',
-                    content: '',
+                    name: '',
                     type:''
-                    // select_type: 'dicom',
-                    // type: 'endurance',
-                    // description: ''
                 },
+                infoData:[],
+                groupData:[],
+                dicomgrouplist: {},
                 noneFileListFlag: true,
                 isUploadingByIdMap: {},
                 isUploadingStatusMap: {},
@@ -352,26 +401,41 @@
             }
         },
         mounted() {
-            this.gethost();
+            this.getgroupbase();
             this.getfile();
         },
         methods: {
-            //展示server名
-            gethost() {
+            //
+            displaystatus: function (i) {
+                // if (i === 'Virtual') {
+                //     this.GroupInfo()
+                //     this.Virtual = true
+                // }
+                //
+                if (i ==='Virtual') {
+                    return 'none'
+                } else {
+                    return ''
+                }
+            },
+            // 修改组内数据
+            ChangeHandle(groupData, direction, movedKeys) {
+                console.log(groupData, direction, movedKeys);
+            },
+            // 组内dicom 信息
+            GroupInfo(id) {
                 this.listLoading = true
-                const self = this
+                let self = this;
                 const params = {
-                    page_size:100
+                    groupId: id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getHost(headers, params).then((res) => {
-                    self.listLoading = false
+                getGroupInfo(headers, params).then((res) => {
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
+                        this.groupData = data.groupData
+                        this.infoData = data.info
                     } else {
                         self.$message.error({
                             message: msg,
@@ -379,6 +443,27 @@
                         })
                     }
                 })
+            },
+            // 获取级联 查询 组信息列表
+            getgroupbase() {
+                this.listLoading = true
+                const self = this
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getGroupBase(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            this.groupOptions = data.groupOptions
+
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    }
+                )
             },
             // 获取字典模型
             getDict() {
@@ -430,19 +515,18 @@
                 })
             },
             // 获取基本信息列表
-            getbaseList() {
+            getGroupList() {
                 this.listLoading = true;
                 let self = this;
                 let params = {
                     page: self.page,
                     page_size:self.page_size,
-                    remarks: self.filters.remarks,
-                    type: self.filters.type,
-                    selecttype:"dicom",
-                    status: 1,
+                    type: self.filters.type[0],
+                    id: self.filters.type[1],
+                    project_id:this.project_id
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
-                getbase(headers, params).then((res) => {
+                getGroup(headers, params).then((res) => {
                     self.listLoading = false;
                     let {msg, code, data} = res;
                     if (code === '0') {
@@ -456,33 +540,6 @@
                     }
                 })
             },
-            //同步
-            handlecount: function (index, row) {
-                this.listLoading = true;
-                //NProgress.start();
-                let self = this;
-                let params = {id: row.id};
-                let header = {
-                    "Content-Type": "application/json",
-                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                };
-                dicomcount(header, params).then(_data => {
-                    let {msg, code, data} = _data;
-                    if (code === '0') {
-                        self.$message({
-                            message: '同步成功',
-                            center: true,
-                            type: 'success'
-                        })
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true,
-                        })
-                    }
-                    self.getbaseList()
-                });
-            },
             // 改变项目状态
             handleChangeStatus: function (index, row) {
                 let self = this;
@@ -493,7 +550,7 @@
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    Disablebase(headers, params).then(_data => {
+                    DisableGroup(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -519,7 +576,7 @@
                         });
                         self.listLoading = false;
                     }else{
-                        Enablebase(headers, params).then(_data => {
+                        EnableGroup(headers, params).then(_data => {
                             let {msg, code, data} = _data;
                             self.listLoading = false;
                             if (code === '0') {
@@ -542,12 +599,17 @@
             },
             handleCurrentChange(val) {
                 this.page = val;
-                this.getbaseList()
+                this.getGroupList()
             },
             //显示编辑界面
             handleEdit: function (index, row) {
+                if (row.group === 'Virtual') {
+                    this.GroupInfo(row.id)
+                    this.Virtual = true
+                }
                 this.editFormVisible = true;
                 this.editForm = Object.assign({}, row);
+
             },
             //显示补充病人数据界面
             handleSupplement: function (index, row) {
@@ -585,8 +647,7 @@
             handleAdd: function () {
                 this.addFormVisible = true;
                 this.addForm = {
-                    select_type: 'dicom',
-                    content: null,
+                    name: null,
                     status: true,
                     remarks: null,
                     other: null,
@@ -603,18 +664,17 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                id: self.editForm.id,
-                                content: self.editForm.content,
-                                type: self.editForm.type,
-                                select_type: self.editForm.select_type,
-                                remarks: self.editForm.remarks,
+                                id: this.editForm.id,
+                                name: this.editForm.name,
+                                remask: this.editForm.remask,
+                                groupData: this.groupData,
                                 predictor: self.editForm.predictor
                             };
                             let header = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            UpdatebaseData(header, params).then(_data => {
+                            Updategroup(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.editLoading = false;
                                 if (code === '0') {
@@ -625,7 +685,7 @@
                                     });
                                     self.$refs['editForm'].resetFields();
                                     self.editFormVisible = false;
-                                    self.getbaseList()
+                                    self.getGroupList()
                                 } else if (code === '999997') {
                                     self.$message.error({
                                         message: msg,
@@ -651,11 +711,12 @@
                             self.addLoading = true;
                             //NProgress.start();
                             let params = JSON.stringify({
-                                content: this.addForm.content,
+                                name: this.addForm.name,
+                                remask: this.addForm.remask,
+                                groupData: this.groupData,
                                 type: self.addForm.type,
-                                select_type: self.addForm.select_type,
-                                remarks: this.addForm.remarks,
-                                other: self.addForm.other,
+                                group:self.addForm.type,
+                                project:this.project_id,
                                 predictor: self.addForm.predictor,
                                 status: true
                             });
@@ -663,7 +724,7 @@
                                 "Content-Type": "application/json",
                                 Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                             };
-                            addbaseData(header, params).then(_data => {
+                            AddGroup(header, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.addLoading = false;
                                 if (code === '0') {
@@ -674,7 +735,7 @@
                                     });
                                     self.$refs['addForm'].resetFields();
                                     self.addFormVisible = false;
-                                    self.getbaseList()
+                                    self.getGroupList()
                                 } else if (code === '999997') {
                                     self.$message.error({
                                         message: msg,
@@ -687,7 +748,7 @@
                                     });
                                     self.$refs['addForm'].resetFields();
                                     self.addFormVisible = false;
-                                    self.getbaseList()
+                                    self.getGroupList()
                                 }
                             })
                         });
@@ -728,7 +789,7 @@
                                 center: true
                             })
                         }
-                        self.getbaseList()
+                        self.getGroupList()
                     })
                 })
             },
@@ -747,7 +808,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    Delbasedata(header, params).then(_data => {
+                    DelGroup(header, params).then(_data => {
                         let {msg, code, data} = _data;
                         if (code === '0') {
                             self.$message({
@@ -761,7 +822,7 @@
                                 center: true,
                             })
                         }
-                        self.getbaseList()
+                        self.getGroupList()
                     });
                 })
             },
@@ -893,7 +954,7 @@
         },
 
         mounted() {
-            this.getbaseList();
+            this.getGroupList();
         }
     }
 

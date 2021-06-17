@@ -3,7 +3,6 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import logging
 from AutoProject.common.api_response import JsonResponse
-from ..common.PerformanceResult import *
 from ..common.stressfigure import stressdataFigure
 from AutoProject.models import dictionary
 from ..common.saveResult import ResultStatistics

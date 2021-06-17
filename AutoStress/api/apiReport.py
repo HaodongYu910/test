@@ -1,11 +1,10 @@
 from django.core.exceptions import ObjectDoesNotExist
-
+from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
 from ..serializers import stress_Deserializer
-from ..common.PerformanceResult import *
 
 from AutoDicom.common.deletepatients import *
 from ..common.stressReport import StressReport

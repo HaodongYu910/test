@@ -205,12 +205,9 @@ class DurationThread(threading.Thread):
         dcmcount = 0
         dicomID = []
         # 查询 所以 dicom ID  优先组数据
-        if self.obj.dicom is not None and len(self.obj.dicom.strip()) > 0:
-            for i in dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True):
-                dicomID.append(i.id)
-        if self.obj.group is not None and len(self.obj.group.strip()) > 0:
-            for i in dicom_group_detail.objects.filter(group__id__in=self.obj.group.split(",")):
-                dicomID.append(i.dicom_id)
+        for i in dicom_group_detail.objects.filter(group__id__in=self.obj.dicom.split(",")):
+            dicomID.append(i.dicom_id)
+
         # 查询发送数据
         dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
         dicomList = list(dicomObj)
@@ -265,7 +262,7 @@ class DurationThread(threading.Thread):
         threads = []
 
         try:
-            # logger.info("test start")
+            logger.info("duration test start")
             for i in range(self.thread_num):
                 # logger.info("test start1111111111111")
                 t = threading.Thread(target=self.durationAnony, args=(q,))

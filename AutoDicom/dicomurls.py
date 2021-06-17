@@ -19,6 +19,7 @@ router = routers.DefaultRouter()
 urlpatterns = [
     url(r'dicomData', dicomData.as_view()),
     url(r'dicomdetail', dicomDetail.as_view()),
+    url(r'dicomdetail/Disable', DetailDisable.as_view()),
     url(r'update', dicomUpdate.as_view()),
     url(r'delDDD', deldicomdata.as_view()),
     url(r'dicomcsv', dicomcsv.as_view()),
@@ -36,12 +37,7 @@ urlpatterns = [
     url(r'dicomurl', dicomUrl.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
     url(r'base/getdata', getBase.as_view()),
-    url(r'base/addData', AddbaseData.as_view()),
     url(r'base/getResult', getResult.as_view()),
-    url(r'base/upData', UpdatebaseData.as_view()),
-    url(r'base/disablebase', Disablebase.as_view()),
-    url(r'base/enablebase', Enablebase.as_view()),
-    url(r'base/delbasedata', Delbasedata.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'group/dicomadd', DicomAdd.as_view()),
     url(r'group/groupadd', AddGroup.as_view()),

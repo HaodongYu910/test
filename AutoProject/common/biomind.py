@@ -13,7 +13,7 @@ from AutoInterface.models import gold_test
 from AutoInterface.common.gold import GoldThread
 
 from AutoDicom.models import duration
-from AutoDicom.common.durarion import DurationThread
+from AutoDicom.common.duration import DurationThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
