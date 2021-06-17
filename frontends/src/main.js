@@ -63,14 +63,14 @@ axios.interceptors.response.use(res => {
                     });
                 }
                 else if (error.response.status === 500) {
-                    if (confirm("提示：接口请求失败 500 ！ 是否联系管理员？")) {
-                        alert("请喊他！~");
-                    }
-                    else {
-                        alert("这就对了");
-                    }
+                    // if (confirm("提示：接口请求失败 500 ！ 是否联系管理员？")) {
+                    //     alert("请喊他！~");
+                    // }
+                    // else {
+                    //     alert("这就对了");
+                    // }
 
-                    alert("");
+                    alert("提示：接口请求失败 500");
 
                 }
                 else if (error.response.status === 502) {

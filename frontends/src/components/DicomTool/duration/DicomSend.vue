@@ -109,7 +109,7 @@
                                        @click="handleChangeStatus(scope.$index, scope.row)">
                                 {{scope.row.sendstatus===false?'启用':'停用'}}
                             </el-button>
-                            <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
+                            <el-button type="warning" size="small" @click="handleEdit(scope.row.dicom, scope.row, scope.row.group)">修改
                             </el-button>
                         </el-row>
                         <el-row>
@@ -141,21 +141,26 @@
                     <el-row :gutter="24">
                         <el-col :span="12">
                             <el-form-item label="数据类型" prop="senddata">
-                                <el-cascader :options="groupOptions" v-model="editForm.dicomLabel" clearable :props="props"
-                                             @click.native="getgroupbase()"></el-cascader>
+
+                                <el-cascader :options="groupOptions" v-model="editForm.senddata" clearable :props="props" ></el-cascader>
+<!--                                <el-cascader  :options="groupOptions" v-model="editForm.dicomLabel" :props="props">-->
+<!--                                             @click.native="getgroupbase()"></el-cascader>-->
+<!--                                             </el-cascader>-->
+<!--                                [ [ "endurance", 60 ] ]-->
+<!--                                @click.native="getgroupbase()"-->
                             </el-form-item>
                         </el-col>
-                        <el-col>
-                            <el-form-item label="xinde shujuleixing:" prop='senddata123'>
-                                    <el-input label="fasongde leixing" id="123123" v-model="editForm.dicomLabel"/>
-                            </el-form-item>
-                        </el-col>
+<!--                        <el-col>-->
+<!--                            <el-form-item label="xinde shujuleixing:" prop='senddata123'>-->
+<!--                                    <el-input label="fasongde leixing" id="123123" v-model="editForm.dicomLabel"/>-->
+<!--                            </el-form-item>-->
+<!--                        </el-col>-->
                         <el-col :span="12">
                             <el-form-item label="发送类型" prop="type">
                                 <el-select v-model="editForm.type" placeholder="请选择类型">
                                     <el-option
                                             v-for="item in typeoptions"
-                                            :key="item.value"
+                                            :key="item.id"
                                             :label="item.label"
                                             :value="item.value">
                                     </el-option>
@@ -218,7 +223,7 @@
                                                @click.native="gethost()">
                                         <el-option
                                                 v-for="(item,index) in Host"
-                                                :key="item.host"
+                                                :key="item.id"
                                                 :label="item.name"
                                                 :value="item.host"
                                         />
@@ -451,7 +456,7 @@
                                                @click.native="gethost()">
                                         <el-option
                                                 v-for="(item,index) in Host"
-                                                :key="item.host"
+                                                :key="item.id"
                                                 :label="item.name"
                                                 :value="item.host"
                                         />
@@ -469,6 +474,7 @@
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="addFormVisible = false">取消</el-button>
+<!--                    <el-button @click.native="chakan">chakan</el-button>-->
                     <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
                 </div>
             </el-dialog>
@@ -531,7 +537,7 @@
                     diseases: '',
                     server: ''
                 },
-                durationlist: {},
+                durationlist: [],
                 total: 0,
                 page: 1,
                 page_size: 10,
@@ -552,8 +558,10 @@
                 // 编辑界面数据
                 editForm: {
                     loop_time: '',
-                    port: '4242'
+                    port: '4242',
+                    senddata:[]
                 },
+                aabcd:[ ['endurance' , '60']],
                 // 匿名化界面初始数据
                 anonForm: {
                     anon_name: '',
@@ -610,7 +618,8 @@
                 addForm: {
                     port: '4242',
                     type: '匿名',
-                    sendcount: 0
+                    sendcount: 0,
+                    senddata:[]
 
                 },
                 addFormVisible: false, // 新增界面是否显示
@@ -727,6 +736,69 @@
                         const {msg, code, data} = res
                         if (code === '0') {
                             this.groupOptions = data.groupOptions
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                    }
+                )
+            },
+            // 获取级联 查询 组信息列表
+            getgroupbase2(strs,groupstrs) {
+                this.listLoading = true
+                const self = this
+                const params = {}
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getGroupBase(headers, params).then((res) => {
+                        self.listLoading = false
+                        const {msg, code, data} = res
+                        if (code === '0') {
+                            this.groupOptions = data.groupOptions
+                            // alert(this.groupOptions.length)
+                            // for (var i=0;i<strs.length ;i++ ) {
+                            //     alert(strs[i])
+                            // }
+                            var arrs= new Array();
+
+                            for(let item of this.groupOptions.slice(0,-1)) {
+                                // alert(item.value)
+                                for(let i of item.children){
+                                    // alert(i.label)
+                                    for (var j=0;j<strs.length ;j++ ) {
+                                        // alert(strs[j])
+                                        if(strs[j]==i.value){
+                                            var arr= new Array();
+                                            arr[0] = item.value
+                                            arr[1] = i.value
+                                            arrs.push(arr)
+                                        }
+                                    }
+                                }
+                            }
+                            for(let item of this.groupOptions.slice(-1,)) {
+                                // alert("-2--1="+item.value)
+                                for(let i of item.children){
+                                    // alert(i.label)
+                                    for (var j=0;j<groupstrs.length ;j++ ) {
+                                        // alert(strs[j])
+                                        if(groupstrs[j]==i.value){
+                                            var arr= new Array();
+                                            arr[0] = item.value
+                                            arr[1] = i.value
+                                            arrs.push(arr)
+                                        }
+                                    }
+                                }
+                            }
+                            // this.$message({
+                            //     message: arrs,
+                            //     type: 'warning'
+                            // })
+                            // alert(arrs)
+                            this.editForm.senddata= arrs
+
 
                         } else {
                             self.$message.error({
@@ -819,7 +891,7 @@
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getduration(headers, params).then((res) => {
-                    self.listLoading = false
+                    this.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
                         self.total = data.total
@@ -872,11 +944,23 @@
             }
             ,
             // 显示编辑界面
-            handleEdit: function (index, row) {
+            handleEdit: function (dicomnum, row, group) {
                 console.log('row', row)
-                console.log('test', row.dicom)
+                console.log('dicomnum', dicomnum)
+                // alert("group="+group)
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
+                var dicomList = dicomnum.toString()
+                var strs= new Array(); //定义一数组
+                strs=dicomList.split(","); //字符分割
+
+                var groupList = group.toString()
+                var groupstrs= new Array(); //定义一数组
+                groupstrs=groupList.split(","); //字符分割
+                // for (var i=0;i<strs.length ;i++ ) {
+                //     alert("数字="+strs[i])
+                // }
+                this.getgroupbase2(strs,groupstrs)
             }
             ,
             // 改变状态
@@ -969,7 +1053,7 @@
                     destIP:''
                 }
             },
-            // 编辑
+            // 编辑tijiao
             editSubmit: function () {
                 const self = this
                 this.$refs.editForm.validate((valid) => {
@@ -1006,7 +1090,7 @@
                                     self.$refs['editForm'].resetFields()
                                     self.editFormVisible = false
                                     self.getDurationlist()
-                                } else if (code === '999997') {
+                                } else if (code === '999995') {
                                     self.$message.error({
                                         message: msg,
                                         center: true
@@ -1205,6 +1289,13 @@
                 })
             }
             ,
+            // chakan: function (){
+            //     alert(this.addForm.senddata)
+            //     this.$message({
+            //         message: this.addForm.senddata,
+            //         type: 'warning'
+            //     })
+            // },
             selsChange: function (sels) {
                 this.sels = sels
             }
