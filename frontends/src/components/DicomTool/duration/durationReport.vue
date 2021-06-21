@@ -10,7 +10,7 @@
                             <el-dropdown-item>删除</el-dropdown-item>
                         </el-dropdown-menu>
                     </el-dropdown>
-                    <span>BioMind 持续化 Test Report</span>
+                    <span>{{project_name}} {{basedata.version}} 版本持续化测试报告</span>
                 </el-header>
                 <el-main>
                     <div>
@@ -22,15 +22,15 @@
                         <el-col style="width: 40%">
                             <el-form ref="form" :model="basedata" label-width="60%">
                                 <el-row style="width: 100%" label-position="left">
-                                    <el-col style="width: 50%" label-position="left">
-                                        <el-form-item label="测试版本：" label-position="left">
-                                            <el-input v-model="basedata.version"></el-input>
-                                        </el-form-item>
-                                    </el-col>
                                     <el-col style="width: 50%">
                                         <el-form-item label="测试服务：" class="labelcss">
                                             <el-select  v-model="basedata.server" placeholder="请选择活动区域">
                                             </el-select>
+                                        </el-form-item>
+                                    </el-col>
+                                    <el-col style="width: 50%" label-position="left">
+                                        <el-form-item label="统计时间：" label-position="left">
+                                            <el-input v-model="basedata.statistics_date"></el-input>
                                         </el-form-item>
                                     </el-col>
                                 </el-row>
@@ -75,11 +75,7 @@
                                     </el-col>
                                 </el-row>
                                 <el-row>
-                                    <el-col style="width: 50%" label-position="left">
-                                        <el-form-item label="统计时间：" label-position="left">
-                                            <el-input v-model="basedata.statistics_date"></el-input>
-                                        </el-form-item>
-                                    </el-col>
+
                                     <el-col style="width: 40%">
 
                                     </el-col>
@@ -280,6 +276,7 @@
 
     export default {
         data() {
+            this.project_name = localStorage.getItem("projectname"),
             this.SummaryData ={}
             this.FailData ={}
             this.chartData = {}
@@ -392,7 +389,7 @@
                     path: '/durationData',
                     query: {
                         id: this.reportid,
-                        name: row.server_ip
+                        name: row.diseases
                     }
                 });
             },

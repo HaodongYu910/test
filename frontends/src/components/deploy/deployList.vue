@@ -410,6 +410,7 @@
         // components: {ElRow},
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 log: 0,
                 timerId: 1, // 模拟计时器id，唯一性
                 timerObj: {}, // 计时器存储器
@@ -669,7 +670,8 @@
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    page_size: 100
+                    page_size: 999,
+                    project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getInstallersion(headers, params).then((res) => {
@@ -690,7 +692,8 @@
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    page_size: 100
+                    page_size: 9999,
+                    project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {

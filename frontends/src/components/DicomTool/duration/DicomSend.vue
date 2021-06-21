@@ -33,20 +33,24 @@
                       @selection-change="selsChange"
                       width="100%">
                 <el-table-column type="selection" min-width="5%"></el-table-column>
-                <el-table-column prop="type" label="类型" min-width="8%" show-overflow-tooltip sortable>
+
+                <el-table-column prop="type" label="类型" min-width="8%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                        <router-link v-if="scope.row.type" :to="{ name: 'durationData', query: {id: scope.row.id}}"
+                                     style='text-decoration: none;color: #0000ff;'>
+                            <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                        </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="服务" min-width="20%" sortable>
+                <el-table-column prop="type" label="服务" min-width="20%">
                     <template slot-scope="scope">
-                        <router-link v-if="scope.row.server" :to="{ name: 'durationData', params: {durationid: scope.row.id} }"
+                        <router-link v-if="scope.row.server" :to="{ name: 'durationData', query: {id: scope.row.id}}"
                                      style='text-decoration: none;color: #0000ff;'>
                             <span style="margin-left: 10px">{{ scope.row.server }}：{{ scope.row.port }}</span>
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="20%">
+                <el-table-column prop="type" label="匿名名称" min-width="15%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
@@ -113,9 +117,6 @@
                             </el-button>
                         </el-row>
                         <el-row>
-                            <el-button type="info" size="small" @click="showDetail(scope.$index, scope.row)">数据
-                            </el-button>
-
                             <el-button type="primary" size="small" :style="{ display: displaystatus(scope.row.type) }" @click="showReport(scope.$index, scope.row)">报告
                             </el-button>
                         </el-row>
@@ -494,7 +495,6 @@
         updateduration,
         delete_patients,
         getHost,
-        getVersion,
         disable_duration,
         enable_duration,
         getbase
@@ -505,6 +505,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 Host:[],
                 typeoptions: [{
                     value: '匿名',
@@ -1250,7 +1251,8 @@
                                 type: this.addForm.type,
                                 sendstatus: false,
                                 status: false,
-                                Host: this.addForm.Host
+                                Host: this.addForm.Host,
+                                project:this.project_id
                             })
                             const header = {
                                 'Content-Type': 'application/json',

@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 import logging
-from ..common.DurarionReport import ReportThread
+from ..common.DurationReport import ReportThread
 from AutoProject.scheduletask import DurationTask
 
 

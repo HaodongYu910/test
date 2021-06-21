@@ -126,10 +126,6 @@
                                 title: 'Dicom数据'
                             },
                             {
-                                index: 'dicomGroup',
-                                title: 'Dicom组'
-                            },
-                            {
                                 index: 'deldicom',
                                 title: 'Dicom删除'
                             },

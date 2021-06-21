@@ -8,7 +8,9 @@ from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
 from AutoProject.scheduletask import *
 from AutoDicom.common.deletepatients import *
-from AutoStress.models import stress_result
+from AutoStress.models import stress_result, stress_record, stress
+from AutoDicom.common.dicomBase import checkuid
+
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
@@ -23,9 +25,13 @@ class test(APIView):
         :return:
         """
 
-        data = JSONParser().parse(request)
+        # data = JSONParser().parse(request)
         try:
-            DurationTask()
+            DurationReportTask()
+            stressData = dicom.objects.filter(stressstatus__in=['1', '2'])
+            for k in stressData:
+                checkuid(9, "192.168.1.208", str(k.id))
+            # DurationTask()
 
             return JsonResponse(code="0", msg="成功")
         except Exception as e:

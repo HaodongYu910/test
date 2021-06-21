@@ -83,7 +83,8 @@ export default new Router({
                 {
                     path: '/dicom',
                     component: resolve => require(['../components/DicomTool/dicomdata/dicomData.vue'], resolve),
-                    meta: {title: 'Dicom数据'}
+                    meta: {title: 'Dicom数据'},
+                    name: 'Dicom数据'
 
                 },
                 {
@@ -155,7 +156,8 @@ export default new Router({
                 {
                     path: '/goldDetail',
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
-                    meta: {title: '金标准详情'}
+                    meta: {title: '金标准详情'},
+                    name: '金标准详情'
                     
                 },
                 {
@@ -190,6 +192,11 @@ export default new Router({
                     path: '/stressHome',
                     component: resolve => require(['../components/stress/stressList.vue'], resolve),
                     meta: {title: '性能测试'}
+                },
+                {
+                    path: '/stressDetail',
+                    component: resolve => require(['../components/stress/stressDetail.vue'], resolve),
+                    meta: {title: '性能详情'}
                 },
                 {
                     path: '/data',

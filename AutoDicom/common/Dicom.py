@@ -1,21 +1,16 @@
 # coding=utf-8
-import logging
-import threading
-import os, shutil
-import pydicom
+
+import os
 import logging
 import subprocess as sp
 import datetime
-import random
-import math
 import socket
-import requests
+
 import threading
 import time
 import queue
 
 from AutoStress.models import stress, Server
-from AutoProject.common.PostgreSQL import connect_postgres
 from AutoProject.common.api_response import JsonResponse
 
 from .deletepatients import delete_patients_duration

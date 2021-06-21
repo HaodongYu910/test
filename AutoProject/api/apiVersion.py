@@ -15,6 +15,24 @@ from ..models import project_version, Project
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
+class getVersionInfo(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取Install 版本
+        :param request:
+        :return:
+        """
+        try:
+            project_id = request.GET.get("project_id", 1)
+            Obj = project_version.objects.filter(project_id=project_id, status=True).order_by("-id")
+
+            serialize = ProjectVersionSerializer(Obj, many=True)
+            return JsonResponse(data={"data": serialize.data}, code="0", msg="成功")
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="获取版本失败!")
 
 
 class getVersion(APIView):
@@ -28,6 +46,7 @@ class getVersion(APIView):
         :return:
         """
         try:
+            project_id = request.GET.get("project_id", 1)
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
         except (TypeError, ValueError):
@@ -35,11 +54,11 @@ class getVersion(APIView):
         version = request.GET.get("version")
         name = request.GET.get("name")
         if version:
-            obi = project_version.objects.filter(version__contains=version).order_by("-id")
+            obi = project_version.objects.filter(version__contains=version, project_id=project_id).order_by("-id")
         elif name:
-            obi = project_version.objects.filter(version__contains=name).order_by("-id")
+            obi = project_version.objects.filter(version__contains=name, project_id=project_id).order_by("-id")
         else:
-            obi = project_version.objects.all().order_by("-id")
+            obi = project_version.objects.filter(project_id=project_id).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:

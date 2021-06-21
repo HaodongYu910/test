@@ -64,3 +64,8 @@ import json
 #                     'tag_version': 1,
 #                     'model_version':2
 #                     })
+# str ="/files1/DICOM/endurance/CT/177555801----2021-06-18 15-21-45"
+# import re
+# r = re.search('(.*)----(.*)', str)
+# str =str[:str.index("-")]
+# print(r.group(0))

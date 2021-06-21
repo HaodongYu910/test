@@ -194,23 +194,6 @@ class Server(models.Model):
         verbose_name_plural = 'Server管理'
         db_table = 'Server'
 
-class pid(models.Model):
-    """
-          pid表
-        """
-    id = models.AutoField(primary_key=True)
-    pid = models.IntegerField(blank=True, null=True, verbose_name="进程号")
-    otherid = models.CharField(max_length=5, blank=True, null=True, verbose_name="id")
-    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="type")
-
-
-    def __unicode__(self):
-        return self.pid
-
-    class Meta:
-        verbose_name = "pid表"
-        verbose_name_plural = "pid表"
-        db_table = 'pid'
 
 class dictionary(models.Model):
     """
@@ -268,6 +251,7 @@ class uploadfile(models.Model):
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     size = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件大小")
     status = models.BooleanField(default=False, verbose_name='状态')
+    remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

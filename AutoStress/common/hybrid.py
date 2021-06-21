@@ -222,9 +222,11 @@ class HybridThread(threading.Thread):
             self.obj.teststatus = '测试结束'
             self.obj.save()
 
-            ResultStatistics(
-                stressid=self.obj.stressid
+            Result = ResultStatistics(
+                stressid=self.obj.stressid,
+                stressType='HH'
             )
+            Result.QueryResults()
 
         except Exception as e:
             logger.error("Thread Run Fail：{0}".format(e))

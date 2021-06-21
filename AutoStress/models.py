@@ -1,5 +1,5 @@
 from django.db import models
-from AutoProject.models import Server
+from AutoProject.models import Server, Project
 
 # Create your models here.
 
@@ -9,7 +9,7 @@ class stress(models.Model):
       性能测试记录表
     """
     stressid = models.AutoField(primary_key=True)
-    projectname = models.CharField(max_length=20, blank=True, null=True, verbose_name="项目名称")
+    name = models.CharField(max_length=20, blank=True, null=True, verbose_name="名称")
     version = models.CharField(max_length=20, blank=True, null=True, verbose_name="测试版本")
     loadserver = models.CharField(max_length=40, blank=True, null=True, verbose_name="测试环境")
     testdata = models.CharField(max_length=400, blank=True, null=True, verbose_name="测试数据")
@@ -29,6 +29,7 @@ class stress(models.Model):
     jmeterstatus = models.BooleanField(default=True, verbose_name='jmeter状态')
     status = models.BooleanField(default=True, verbose_name='状态')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    project = models.ForeignKey(to=Project, null=True, on_delete=models.CASCADE, verbose_name='所属项目')
     summary = models.TextField(max_length=2000, blank=True, null=True, verbose_name="结论")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
