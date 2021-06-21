@@ -27,7 +27,8 @@ Vue.use(ElementUI, {
 Vue.prototype.$ajax = axios;
 Vue.prototype.$qs = qs;
 
-
+ // 全局设置网络超时
+axios.defaults.timeout = 30000;
 
 Vue.use(VCharts)
 

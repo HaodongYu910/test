@@ -285,7 +285,7 @@ export const addupload = (headers, params) => {
 // 文件发送上传zip文件
 export const addzipupload = (headers, params) => {
   return axios
-    .post(`${test}/project/addzipupload`, params, headers)
+    .post(`${test}/project/addzipupload`, params, headers ,{timeout:300000})
     .then((res) => res.data);
 };
 // 上传文件

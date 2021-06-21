@@ -35,7 +35,8 @@ def get_time():
 
 def get_rand_uid():
     rand_val = random.randint(1, math.pow(10, 16) - 1)
-    return "%08d" % rand_val
+    return str(time.time())
+    # return "%08d" % rand_val
 
 
 def Myinster(dicta):
@@ -161,29 +162,34 @@ class DurationThread(threading.Thread):
         self.SeriesInstanceUID = ds.SeriesInstanceUID
         instance_uid = ''
         try:
+            ds.SOPInstanceUID = self.norm_string(
+                '{0}.{1}'.format(instance_uid, rand_uid), 64)
+            ds.PatientID = self.norm_string(
+                '{0}{1}'.format(ds.PatientID, self.patientid), 24)
+
+            ds.PatientName = self.norm_string(
+                '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)
+            ds.AccessionNumber = fake_acc_number
+
+            ds.StudyDate = cur_date
+            ds.StudyTime = cur_time
+            ds.SeriesDate = cur_date
+            ds.SeriesTime = cur_time
+            # ds.ContentDate = cur_date
+            # ds.ContentTime = cur_time
+            # ds.AcquisitionDate = cur_date
+            # ds.AcquisitionTime = cur_time
+
+            # send_time = ds.StudyDate + "-" + ds.StudyTime
+        except Exception as e:
+            logging.error(
+                'failed to anonymous :  error[{}]'.format(e))
+        try:
             instance_uid = ds.SOPInstanceUID
         except Exception as e:
             logging.error(
                 'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SOPInstanceUID = self.norm_string(
-            '{0}.{1}'.format(instance_uid, rand_uid), 64)
-        ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(ds.PatientID), self.patientid), 24)
 
-        ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)
-        ds.AccessionNumber = fake_acc_number
-
-        ds.StudyDate = cur_date
-        ds.StudyTime = cur_time
-        ds.SeriesDate = cur_date
-        ds.SeriesTime = cur_time
-        # ds.ContentDate = cur_date
-        # ds.ContentTime = cur_time
-        # ds.AcquisitionDate = cur_date
-        # ds.AcquisitionTime = cur_time
-
-        # send_time = ds.StudyDate + "-" + ds.StudyTime
         try:
             ds.save_as(full_fn_fake)
         except Exception as e:
@@ -210,55 +216,60 @@ class DurationThread(threading.Thread):
 
         # 查询发送数据
         dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
-        dicomList = list(dicomObj)
+        if len(dicomObj):
+            dicomList = list(dicomObj)
 
-        # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
-        dictsum = {}
-        for i in dicomList:
-            grouping(dictsum, i)
+            # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+            dictsum = {}
+            for i in dicomList:
+                grouping(dictsum, i)
 
-        # 变成排好序的数据
-        listsum = Myinster(dictsum)
-        # print(listsum)
+            # 变成排好序的数据
+            listsum = Myinster(dictsum)
+            # print(listsum)
 
-        # 补充数据
-        listsum = copylist(listsum, int(self.obj.sendcount))
-        logger.info("listsum:{}".format(listsum))
+            # 补充数据
+            listsum = copylist(listsum, int(self.obj.sendcount))
+            logger.info("listsum:{}".format(listsum))
 
-        # 优先查询组
-        for j in listsum:
-            self.CountData.append(dcmcount)
-            src_folder = str(j.route)
-            while src_folder[-1] == '/':
-                src_folder = src_folder[0:-1]
-            try:
-                info = {
-                    "diseases": j.diseases,
-                    "rand_uid": get_rand_uid()
-                }
-                file_names = os.listdir(src_folder)
-                file_names.sort()
-                for fn in file_names:
-                    dcmcount = dcmcount + 1
-                    full_fn = os.path.join(src_folder, fn)
-                    full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
-                    if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-                        continue
-                    try:
-                        q.put([full_fn, full_fn_fake, info, dcmcount])
-                        logger.info("队列==", q)
-                    except Exception as e:
-                        logging.error("[匿名错误]:{}".format(e))
-                        continue
-            except Exception as e:
-                logger.error("遍历文件：{}".format(e))
-        return q
+            # 优先查询组
+            for j in listsum:
+                self.CountData.append(dcmcount)
+                src_folder = str(j.route)
+                while src_folder[-1] == '/':
+                    src_folder = src_folder[0:-1]
+                try:
+                    info = {
+                        "diseases": j.diseases,
+                        "rand_uid": get_rand_uid()
+                    }
+                    file_names = os.listdir(src_folder)
+                    file_names.sort()
+                    for fn in file_names:
+                        dcmcount = dcmcount + 1
+                        full_fn = os.path.join(src_folder, fn)
+                        full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
+                        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+                            continue
+                        try:
+                            q.put([full_fn, full_fn_fake, info, dcmcount])
+                            logger.info("队列==", q)
+                        except Exception as e:
+                            logging.error("[匿名错误]:{}".format(e))
+                            continue
+                except Exception as e:
+                    logger.error("遍历文件：{}".format(e))
+            return q
 
     # 匿名数据队列
     def run(self):
-        self.obj.sendstatus = True
-        self.obj.save()
         q = self.QueData()
+        if q is None:
+            logger.info("没有有效数据发送")
+            return False
+        else:
+            self.obj.sendstatus = True
+            self.obj.save()
         threads = []
 
         try:
