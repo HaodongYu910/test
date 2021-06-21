@@ -13,7 +13,7 @@ from AutoInterface.models import gold_test
 from AutoInterface.common.gold import GoldThread
 
 from AutoDicom.models import duration
-from AutoDicom.common.durarion import DurationThread
+from AutoDicom.common.duration import DurationThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -60,7 +60,9 @@ def cache(**kwargs):
         ssh.upload("/files1/classifier/cache.zip",
                    "/home/biomind/cache.zip")
         ssh.cmd(
-            "unzip -o cache.zip;")
+            "unzip -o cache.zip -d /home/biomind/.biomind/var/biomind/;")
+        ssh.cmd(
+            "mv -f orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json")
         ssh.close()
     except Exception as e:
         logger.error("更新配置文件失败----失败原因：{0}".format(e))
@@ -97,10 +99,9 @@ def durationTest(**kwargs):
                 "aet": kwargs["aet"],
                 "patientid": 'DT',
                 "patientname": 'Dt',
-                "dicom": "1,2,3,4,5,6,7,8,9,10,11,13,14,35,45",
+                "dicom": "78",
                 "sendcount": 258,
                 "sleepcount": 100,
-
                 "sleeptime": 3,
                 "series": False,
                 "sendstatus": True,

@@ -41,7 +41,6 @@ class InstallDeploy(APIView):
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
 
-
 class getInstallVersion(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -55,8 +54,9 @@ class getInstallVersion(APIView):
         try:
             groupChildren = {}
             groupOptions = []
+            project_id = request.GET.get("project_id", 1)
             try:
-                Obj = project_version.objects.all().order_by("-id")
+                Obj = project_version.objects.filter(project_id=project_id, type="Prod").order_by("-id")
                 for i in Obj:
                     if groupChildren.__contains__(i.branch) is False:
                         children = {
@@ -82,7 +82,6 @@ class getInstallVersion(APIView):
             return JsonResponse(data={"groupOptions": groupOptions}, code="0", msg="成功")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取版本失败!")
-
 
 class getInstall(APIView):
     authentication_classes = (TokenAuthentication,)

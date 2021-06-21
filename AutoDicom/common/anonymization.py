@@ -111,7 +111,7 @@ def onlyDoAnonymization(src_folder, study_infos, diseases, wPN, wPID, anonkey, a
                         ds.save_as(full_fn_fake)
                         logging.info('6. save complete [{0}]'.format(full_fn_fake))
                     except Exception as e:
-                        logging.info(
+                        logging.error(
                             'failed to : file[{0}], error[{1}]'.format(full_fn, e))
                         continue
 

@@ -180,7 +180,7 @@ class stressList(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = stress_Deserializer(obm, many=True)
         for i in serialize.data:
-            i["testdata"] = baseTransform(i["testdata"],'dictionary')
+            i["testdata"] = baseTransform(i["testdata"], 'dictionary')
             i["type"] = False
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,

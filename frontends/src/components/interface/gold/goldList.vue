@@ -4,7 +4,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form-item label="服务器" prop="server">
                   <el-select v-model="filters.server"  placeholder="请选择服务" @click.native="gethost()">
-                    <el-option v-for="(item,index) in tags"
+                    <el-option v-for="(item,index) in hosts"
                                 :key="item.id"
                                 :label="item.name"
                                 :value="item.id"
@@ -209,13 +209,14 @@
                 filters: {
                     name: ''
                 },
+                model:'',
                 Smokelist: [],
                 total: 0,
                 page: 1,
                 page_size:10,
                 listLoading: false,
                 sels: [],//列表选中列
-
+                hosts:{},
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
@@ -231,7 +232,7 @@
                     version: '',
                     thread: 1
                 },
-
+                percentage:'',
                 addFormVisible: false,//新增界面是否显示
                 addLoading: false,
                 addFormRules: {

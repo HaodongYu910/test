@@ -25,8 +25,6 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-<!--                    <el-button type="primary" @click="getdetail">同步</el-button>-->
-                    <el-button type="danger" :disabled="this.sels.length===0" @click="handleSynchro">同步</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -57,22 +55,22 @@
                         <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="类型" min-width="10%" sortable>
+                <el-table-column label="模型" min-width="10%" sortable>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.diseases }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="slicenumber" min-width="10%" sortable>
+                <el-table-column label="层厚" min-width="10%" sortable>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="预测张数" min-width="10%">
+                <el-table-column label="预测张数" min-width="10%" >
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="graphql" min-width="10%">
+                <el-table-column label="graphql" min-width="10%" show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.graphql }}</span>
                     </template>
@@ -81,8 +79,7 @@
                     <template slot-scope="scope">
                       <el-button type="primary" size="small" @click="handleChange(scope.$index, scope.row)">{{scope.row.benchmarkstatus===false?'正常':'基准'}}</el-button>
                     <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">编辑</el-button>
-                    <el-button type="danger" size="small" @click="handleTB(scope.$index, scope.row)">同步</el-button>
-                    <el-button type="info" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
+                    <el-button type="danger" size="small" @click="handleChangeStatus(scope.$index, scope.row)">{{scope.row.status===false?'启用':'禁用'}}</el-button>
                     </template>
                 </el-table-column>
             </el-table>

@@ -14,7 +14,7 @@ class jenkinsbuild:
     def __init__(self):
         # jenkins_url = settings.SITE_JENKINURL
         jenkins_url = 'https://jenkins3.biomind.com.cn'
-        self.JenkinsServer = Jenkins(jenkins_url, username='admin', password='hana#ony')
+        self.JenkinsServer = Jenkins(jenkins_url, username='admin', password='hana#ony', ssl_verify=False,)
 
     def getBuild(self, jobName):
         job = self.JenkinsServer[jobName]
@@ -50,11 +50,13 @@ class jenkinsbuild:
     def disable_job(self, job_name, param_dict):
         # Refer Example #1 for definition of function 'get_server_instance'
         # print(server.get_build_info(job_name,48))
-        build = self.JenkinsServer.build_job(job_name, params=param_dict)
+        build = self.JenkinsServer.build_job(jobname=job_name, params=param_dict)
         return build
 
-if __name__ == '__main__':
-    pass
+# if __name__ == '__main__':
+#     a = jenkinsbuild()
+#     a.disable_job('Radiology_Prod', {'BRANCH': 'release/2.20'})
+#     pass
     #jenkinsbuild().disable_job(job_name="Radiology-Sonar", param_dict={"BRANCH": "master","projectName": "Biomind-Radiology"})
 #     # print(getBuild("Duration_test"))
 #     print(get_job_details("Duration_test",'Debug','iOS'))

@@ -4,15 +4,8 @@
             <!--工具条-->
             <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item label="组名：" prop="server">
-                        <el-select v-model="filters.server" placeholder="请输入组" @click.native="gethost()">
-                            <el-option key="" label="" value=""></el-option>
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.id"
-                                       :label="item.name"
-                                       :value="item.id"
-                            />
-                        </el-select>
+                    <el-form-item label="筛选：" prop="server">
+                        <el-input v-model="filters.name" placeholder="请输入组名" @keyup.enter.native="getdicomgrouplist"></el-input>
                     </el-form-item>
                     <el-form-item>
                         <el-button type="primary" @click="getdicomgrouplist">查询</el-button>
@@ -32,13 +25,33 @@
                         <span style="margin-left: 10px">{{ scope.row.name }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="备注" min-width="20%">
+                <el-table-column label="数量" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.amount }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="路径" min-width="20%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.route }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="模型" min-width="15%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.predictor }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="类型" min-width="10%">
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="备注" min-width="10%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.remark }}</span>
                     </template>
                 </el-table-column>
 
-                <el-table-column prop="status" label="状态" min-width="20%" sortable>
+                <el-table-column prop="status" label="状态" min-width="15%" sortable>
                     <template slot-scope="scope">
                         <img v-show="scope.row.status"
                              style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
@@ -190,6 +203,7 @@
                     name: '',
                     remark: ''
                 },
+                project_id:localStorage.getItem("project_id"),
                 groupId:'',
                 infoData:[],
                 groupData:[],
@@ -293,7 +307,9 @@
                     page: self.page,
                     page_size: self.page_size,
                     name: this.filters.name,
-                    remark: this.filters.remark
+                    remark: this.filters.remark,
+                    project_id:this.project_id,
+                    group:'Virtual'
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getGroup(headers, params).then((res) => {
@@ -412,7 +428,8 @@
                     name: '',
                     remask: '',
                     status: true,
-                    type: 'dicom',
+                    type: 'Virtual',
+                    project_id:this.project_id,
                     groupData:[]
                 }
                 this.GroupInfo({id:""})
@@ -476,7 +493,9 @@
                                 name: this.addForm.name,
                                 remask: this.addForm.remask,
                                 groupData: this.groupData,
-                                type: 'dicom',
+                                type: 'Virtual',
+                                group:'Virtual',
+                                project_id:this.project_id,
                                 status: true
                             })
                             const header = {

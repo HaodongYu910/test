@@ -6,8 +6,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
-from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_group, dicom, dicom_group_detail, dicom_base
+
+from ..models import dicom_group, dicom, dicom_group_detail
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import dictionary
 from ..serializers import dicomGroup_Serializer, dicomGroup_detail_Deserializer
@@ -15,8 +15,8 @@ from AutoProject.common.regexUtil import *
 from AutoDicom.common.dicomfile import fileUpdate
 import threading
 
-
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
+
 
 class getGroupBase(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -53,35 +53,27 @@ class getGroupBase(APIView):
         groupChildren = {}
         groupOptions = []
         try:
-            baseObj = dicom_base.objects.filter(status=True).order_by("-id")
+            baseObj = dicom_group.objects.filter(status=True).order_by("-id")
             for i in baseObj:
                 if groupChildren.__contains__(i.type) is False:
                     children = {
                         "value": i.id,
-                        "label": i.remarks
+                        "label": i.name
                     }
                     groupChildren[i.type] = [children]
                 else:
                     groupChildren[i.type].append({
                         "value": i.id,
-                        "label": i.remarks
+                        "label": i.name
                     })
         except Exception as e:
             logger.error("查询dicom文件报错：{}".format(e))
-        try:
-            groupChildren["虚拟组"] = []
-            for i in dicom_group.objects.filter(status=True).order_by("-id"):
-                groupChildren["虚拟组"].append({
-                    "value": i.id,
-                    "label": i.name
-                })
-        except Exception as e:
-            logger.error("查询虚拟组报错：{}".format(e))
 
         for k, v in groupChildren.items():
+            obj = dictionary.objects.get(key=k, type="file")
             groupOptions.append({
                 "value": k,
-                "label": k,
+                "label": obj.remarks,
                 "children": v
             })
 
@@ -101,16 +93,17 @@ class getGroup(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
+            project_id = int(request.GET.get("project_id", 1))
+            type = request.GET.get("type")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        name = request.GET.get("name")
-        remark = request.GET.get("remark")
-        if name:
-            obi = dicom_group.objects.filter(name=name).order_by("-id")
-        elif remark:
-            obi = dicom_group.objects.filter(remark=remark).order_by("-id")
+        id = request.GET.get("id")
+        if id:
+            obi = dicom_group.objects.filter(id=id, project_id=project_id).order_by("-id")
+        elif type is None:
+            obi = dicom_group.objects.all()
         else:
-            obi = dicom_group.objects.all().order_by("-id")
+            obi = dicom_group.objects.filter(project_id=project_id, type=type).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -120,10 +113,18 @@ class getGroup(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = dicomGroup_Serializer(obm, many=True)
+        for i in serialize.data:
+            try:
+                obd = dictionary.objects.get(id=i["predictor"])
+                i["predictor"] = obd.value
+            except Exception as e:
+                i["predictor"] = ""
+                continue
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
                                   }, code="0", msg="成功")
+
 
 class GroupInfo(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -158,6 +159,67 @@ class GroupInfo(APIView):
                                   }, code="0", msg="成功")
 
 
+class DicomAdd(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 ids
+            if not data["ids"] and not data["groupId"]:
+                return JsonResponse(code="999996", msg="必传参数 groupId ,ids 参数有误！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        新增组数据
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        # 查找是否相同名称的组
+        repeatList =[]
+        try:
+            obj = dicom_group.objects.get(id=data["groupId"])
+        except:
+            return JsonResponse(code="999997", msg="无此组名")
+        try:
+            for i in data["ids"]:
+                detailObj = dicom_group_detail.objects.filter(dicom_id=int(i), group_id=data["groupId"])
+                if len(detailObj):
+                    dicomObj = dicom.objects.get(id=int(i))
+                    repeatList.append(dicomObj.patientid)
+                else:
+                    detail = dicomGroup_detail_Deserializer(data={
+                            "group": data["groupId"],
+                            "dicom": int(i)
+                        })
+                    with transaction.atomic():
+                        detail.is_valid()
+                        detail.save()
+            amount = int(dicom_group_detail.objects.filter(group__id=data["groupId"]).count())
+            obj.amount = amount
+            obj.save()
+
+        except Exception as e:
+            logger.error("增加group detail 数据失败，报错：{}".format(e))
+            return JsonResponse(code="999995", msg="新增失败：{}".format(e))
+        if len(repeatList):
+            return JsonResponse(code="0", msg=f"Patientid: {repeatList} 已重复")
+        else:
+            return JsonResponse(code="0", msg="添加成功")
+
+
 class AddGroup(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -187,9 +249,14 @@ class AddGroup(APIView):
         if result:
             return result
             # 查找是否相同名称的组
-        name = dicom_group.objects.filter(name=data["name"])
+        name = dicom_group.objects.filter(name=data["name"], type=data["type"])
         if len(name):
             return JsonResponse(code="999997", msg="存在相同组名数据")
+
+        if data["type"] != "Virtual":
+            data["amount"] = "0"
+            data["status"] = False
+            data["route"] = "/files1/DICOM/" + str(data.get("type")) + "/" + str(data.get("name"))
         group = dicomGroup_Serializer(data=data)
 
         with transaction.atomic():
@@ -197,18 +264,19 @@ class AddGroup(APIView):
             group.save()
             groupID = group.data.get("id")
         try:
-           for i in data["groupData"]:
-               detail = dicomGroup_detail_Deserializer(data={
-                   "group": groupID,
-                   "dicom": int(i)
-               })
-               with transaction.atomic():
-                   detail.is_valid()
-                   detail.save()
+            for i in data["groupData"]:
+                detail = dicomGroup_detail_Deserializer(data={
+                    "group": groupID,
+                    "dicom": int(i)
+                })
+                with transaction.atomic():
+                    detail.is_valid()
+                    detail.save()
         except Exception as e:
             logger.error("增加group detail 数据失败，报错：{}".format(e))
             return JsonResponse(code="999995", msg="新增失败：{}".format(e))
         return JsonResponse(code="0", msg="成功")
+
 
 class UpdateGroup(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -241,14 +309,16 @@ class UpdateGroup(APIView):
         result = self.parameter_check(data)
         if result:
             return result
+
+
         groupId = data["id"]
         try:
             Groupobj = dicom_group.objects.get(id=groupId)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="组不存在！")
-        # 查找是否相同名称的组
-        name = dicom_group.objects.filter(name=data["name"]).exclude(id=groupId)
-        if len(name):
+        #查找是否相同名称的组
+        name = dicom_group.objects.get(name=data["name"], type=data["type"])
+        if name.id != data["id"]:
             return JsonResponse(code="999997", msg="存在相同组名数据")
         else:
             serializer = dicomGroup_Serializer(data=data)
@@ -305,6 +375,7 @@ class DelGroup(APIView):
             for j in data["ids"]:
                 try:
                     dicom_group_detail.objects.filter(group__id=data["id"]).delete()
+                    dicom.objects.filter(fileid=j).delete()
                 except Exception as e:
                     logger.error("删除数据失败：{}".format(e))
                 dicom_group.objects.get(id=j).delete()

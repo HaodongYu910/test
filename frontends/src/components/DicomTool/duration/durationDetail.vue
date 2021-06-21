@@ -5,7 +5,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
         <el-form-item>
-          <el-input v-model="filters.patientid" placeholder="patientname" @keyup.enter.native="getDurationlist" />
+          <el-input v-model="filters.patientname" placeholder="patientname" @keyup.enter.native="getDurationlist" />
         </el-form-item>
         <el-form-item label="开始时间">
           <el-date-picker v-model="filters.startdate" type="datetime"
@@ -39,9 +39,10 @@
           highlight-current-row
           style="width: 100%;"
           @selection-change="selsChange">
-          <el-table-column prop="patientid" label="PatientName" min-width="15%">
+          <el-table-column prop="patientname" label="PatientName" min-width="15%">
             <template slot-scope="scope">
-              <span style="margin-left: 10px">{{ scope.row.patientid }}</span>
+              <span style="margin-left: 10px">{{ scope.row.patientname }}</span>
+
             </template>
           </el-table-column>
           <el-table-column prop="studyolduid" label="studyolduid" min-width="20%">
@@ -84,9 +85,10 @@
               <span style="margin-left: 12px">{{ scope.row.create_time  | dateformat('YYYY-MM-DD HH:MM:SS') }}</span>
             </template>
           </el-table-column>
-            <el-table-column label="操作" min-width="15%">
+            <el-table-column label="操作" min-width="20%">
                     <template slot-scope="scope">
                        <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>
+                        <el-button type="primary" size="small" @click="handleDisable(scope.$index, scope.row)">禁用</el-button>
                     </template>
                 </el-table-column>
         </el-table>
@@ -113,7 +115,8 @@
     // import NProgress from 'nprogress'
 
     import {
-        getduration,getdurationData,getdurationverify,getdicomurl
+        getdurationData,getdurationverify,
+        getdicomurl,detailDisable
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -125,10 +128,13 @@
                     durationlist: [],
                     selectdate:'',
                 },
-                total: 0,
+                total:0,
                 page: 1,
+                count:0,
                 page_size:20,
-                patientid:'',
+                size:"",
+                durationdatalist:[],
+                patientname:'',
                 listLoading: false,
                 sels: [], // 列表选中列
 
@@ -136,11 +142,9 @@
         },
         created(){
           this.getParams();
-          this.getDurationlist();
           },
         activated() {
           this.getParams();
-          this.getDurationlist();
           },
         methods: {
             onCopy: function (e) {
@@ -153,7 +157,9 @@
 
             //获取由路由传递过来的参数
             getParams(){
-              this.routerParams=this.$route.query;
+                console.log(this.$route)
+              this.id=this.$route.query.id;
+              this.getDurationlist();
               },
           handleSizeChange: function(size) {
               this.page_size = size;
@@ -166,11 +172,11 @@
                 const params = {
                   page: self.page,
                   page_size: self.page_size,
-                  patientid: self.filters.patientid,
+                  patientname: self.filters.patientname,
                   type:self.filters.type,
                   startdate:self.filters.startdate,
                   enddate:self.filters.enddate,
-                  id:this.routerParams.id
+                  id:this.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdurationData(headers, params).then((res) => {
@@ -207,6 +213,37 @@
                             center: true
                         })
                     }
+                })
+            },
+            handleDisable: function (index, row) {
+                this.$confirm('确认禁用原数据?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        studyuid: row.studyolduid
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    detailDisable(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message.info({
+                                message: msg,
+                                center: true,
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getdata()
+                    });
                 })
             },
             handleU: function (index, row) {

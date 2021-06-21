@@ -7,9 +7,8 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
+import datetime
 
-from AutoProject.common.api_response import JsonResponse
-from AutoProject.models import pid
 from ..common.getdicom import *
 from ..models import duration, duration_record
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
@@ -18,9 +17,11 @@ from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
-from ..common.durarion import DurationThread
-import datetime, os
+from ..common.duration import DurationThread
+
 from AutoProject.scheduletask import DurationSyTask
+from AutoProject.common.api_response import JsonResponse
+from AutoProject.models import project_version
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -67,6 +68,8 @@ class getDuration(APIView):
             # 已发送的数据统计
             obj = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"])
             i['send'] = str(obj.count())
+            if i['version'] is not None:
+                i['version'] = project_version.objects.get(id=i['version']).version
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
 
         return JsonResponse(data={"data": dataSerializer.data,
@@ -93,6 +96,7 @@ class durationData(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
         durationid = int(request.GET.get("id"))
+        patientname = request.GET.get("patientname")
 
         # 判断是否有查询时间
         if request.GET.get("startdate"):
@@ -106,9 +110,8 @@ class durationData(APIView):
             enddate = datetime.datetime.now()
 
         # 判断查询数据类型
-        if type == 'patientid':
-            patientid = request.GET.get("patientid")
-            obi = duration_record.objects.filter(duration_id=durationid, patientid__contains=patientid).order_by("-id")
+        if patientname:
+            obi = duration_record.objects.filter(duration_id=durationid, patientname__contains=patientname).order_by("-id")
         elif type == 'Not_sent':
             obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
@@ -177,6 +180,7 @@ class addDuration(APIView):
             dicomdata = ''
             hostobj = Server.objects.get(id=data['Host'])
             data['server'] = hostobj.host
+
             # data['dicom'] = ','.join(data['dicom'])
             for i in data['dicom']:
                 if i[0] == "虚拟组":

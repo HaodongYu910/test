@@ -352,6 +352,8 @@ CORS_ALLOW_HEADERS = (
 # 定时配置
 CRONJOBS = [
     ('*/30 * * * *', 'AutoProject.scheduletask.DurationSyTask',
+     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 45 分同步一次
+    ('*/25 * * * *', 'AutoProject.scheduletask.JobSyTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 每30 分同步一次
     ('15 01 * * *', 'AutoProject.scheduletask.DurationTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化任务启动

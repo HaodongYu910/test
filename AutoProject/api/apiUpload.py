@@ -123,16 +123,19 @@ class AddZipUpload(APIView):
         try:
             filetype = request.POST.get("type", None)
             fileId = request.POST.get("id")
-            custom = request.POST.get("custom", None)
+            File = request.FILES.get("files", None)
+            custom = request.FILES.get("custom")
 
+            filename = File.name
+
+            if custom:
+                custom = filename[:filename.index("-")]
             # 建立文件夹用来存放病人数据，每上传一次就建立一个，名称是自定义名称加时间
             # file_path = 'c:\\DD'
             file_path = filetype
+
             file_path = makedir(file_path, custom)
 
-
-            File = request.FILES.get("files", None)
-            filename = File.name
             FilePath = "{0}/{1}".format(file_path, filename)
             with open(FilePath, 'wb+') as f:
                 # 分块写入文件
@@ -142,10 +145,17 @@ class AddZipUpload(APIView):
                     # actualSize = os.path.getsize(FilePath)
                     # print(actualSize)
 
-            # jie压缩包
-            z = zipfile.ZipFile(''.join([file_path, '/', filename]), 'r')
-            z.extractall(path=file_path)
-            z.close()
+            # 解压压缩包
+            if "zip" in str(filename):
+                z = zipfile.ZipFile(''.join([file_path, '/', filename]), 'r')
+                z.extractall(path=file_path)
+                z.close()
+            elif "rar" in str(filename):
+                os.system(f"unrar x {file_path}/{filename}")
+            elif "tar" in str(filename):
+                os.system(f"tar -xzvf {file_path}/{filename}")
+            else:
+                return JsonResponse(code="999995", msg="解压文件失败 类型不正确！")
 
             # 删除压缩包
             if os.path.exists(''.join([file_path, '/', filename])):
@@ -157,7 +167,8 @@ class AddZipUpload(APIView):
                 "type": "zip",
                 "size": File.size,
                 "status": True,
-                "fileid": int(fileId)
+                "fileid": int(fileId),
+                "remark": custom
             }
             filedata = uploadfile.objects.create(**data)
 
@@ -166,7 +177,6 @@ class AddZipUpload(APIView):
                                                   args=(fileId,))
             # 启动线程
             thread_fake_folder.start()
-
 
             return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id, "file_path":file_path}
                                 )

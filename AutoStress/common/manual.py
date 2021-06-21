@@ -10,15 +10,13 @@ from django.db import transaction
 from django.conf import settings
 from ..models import stress_record, stress_result, stress
 from ..serializers import stress_result_Deserializer
-from .loganalys import errorLogger
 from AutoProject.common.PostgreSQL import connect_postgres
-from AutoProject.common.regexUtil import csv
+
 from AutoProject.models import Server, dictionary, uploadfile
 from AutoProject.utils.graphql.graphql import *
 from AutoProject.utils.keycloak.login_kc import login_keycloak
-from AutoProject.common.transport import SSHConnection
 
-from AutoDicom.common.dicomBase import checkuid, voteData
+from AutoDicom.common.dicomBase import checkuid
 from AutoDicom.models import duration_record, dicom
 from django.conf import settings
 

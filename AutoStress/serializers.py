@@ -15,9 +15,9 @@ class stress_Serializer(serializers.ModelSerializer):
     class Meta:
         model = stress
         fields = (
-        'stressid', 'projectname', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
-        'dicom_send', 'single', 'benchmark', 'summary',
-        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date','jmeterstatus', 'status', 'teststatus', 'Host', 'update_time', 'create_time')
+        'stressid', 'name', 'version', 'thread', 'synchroniz', 'ramp', 'loop_count', 'duration', 'start_delay',
+        'dicom_send', 'single', 'benchmark', 'summary', 'project',
+        'loadserver', 'testdata', 'loop_time', 'start_date', 'end_date', 'jmeterstatus', 'status', 'teststatus', 'Host', 'update_time', 'create_time')
         read_only_fields = ('stressid',)  # 指定只读的 field
 
 class stress_Deserializer(serializers.ModelSerializer):
@@ -28,7 +28,7 @@ class stress_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress
         fields = (
-        'stressid', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
+        'stressid', 'name', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
         'duration', 'start_delay', 'dicom_send', 'single', 'benchmark', 'summary',
         'loop_time', 'start_date', 'end_date', 'jmeterstatus', 'status', 'teststatus', 'Host')
 

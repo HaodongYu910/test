@@ -7,7 +7,7 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, dictionary, project_version, Server
+from ..models import install, project_version, Server
 from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
@@ -66,15 +66,18 @@ class InstallThread(threading.Thread):
         path = "{0}/Installation{1}.log".format(settings.LOG_PATH, self.id)
         with open(path, 'w', encoding='utf-8') as f:
             f.write("-----------Welcome Link:{}-----------\n".format(self.obj.Host.host))
-        Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
-        size = Disk.split()[11]
-        AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + Disk)
-        if int(size[:-1]) > 90:
-            sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
-            sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
-
+        try:
+            Disk = bytes.decode(self.ssh.cmd("df -h /home;"))
+            size = Disk.split()[11]
+            AddJournal(name="Installation{}".format(self.id), content="【磁盘空间】\n" + Disk)
+            if int(size[:-1]) > 90:
+                sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
+                sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
+        except Exception as e:
+            logger.error(e)
 
     def clean(self):
+        logger.info("clean")
         self.installStatus(status=True, type=2)
         self.ssh.cmd("sshpass -p {} biomind stop;".format(self.pwd))
         # 查看磁盘空间 输出日志
@@ -103,7 +106,7 @@ class InstallThread(threading.Thread):
 
     def run(self):
         try:
-
+            logger.info("上传安装版本")
             self.obj.starttime = datetime.datetime.now()
             self.installStatus(status=True, type=1)
             self.clean()
@@ -130,12 +133,16 @@ class InstallThread(threading.Thread):
                         self.versionObj.path
                     ))
                     # 校验是否安装完成
+                    QI = 1
                     while True:
-                        time.sleep(60)
                         if "No such file or directory" in str(self.ssh.cmd("cd QInstall;")):
                             break
+                        elif QI > 9:
+                            break
                         else:
-                            time.sleep(5)
+                            time.sleep(30)
+                            QI = QI + 1
+
             except Exception as e:
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】：{0}版本安装失败原因：{1}".format( self.versionObj.version, e))
                 self.installStatus(status=False, type=3)
@@ -145,6 +152,7 @@ class InstallThread(threading.Thread):
         except Exception as e:
             self.obj.status = False
             self.obj.save()
+            logger.error(e)
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
 
     def restart(self):
@@ -207,7 +215,7 @@ class InstallThread(threading.Thread):
             self.obj.status = False
             self.obj.save()
             AddJournal(name="Installation{}".format(self.id),
-                       content="【安装部署】：安装{0}失败原因：{1}".format( self.versionObj.version, e))
+                       content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
             return False
     # 变更状态
     def installStatus(self, status, type):
@@ -220,32 +228,3 @@ class InstallThread(threading.Thread):
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm
-
-
-class smokeThread(threading.Thread):
-    def __init__(self, **kwargs):
-        threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
-        # 版本号
-        self.version = kwargs["version"]
-        self.server = Server.objects.get(id='13')
-
-    def run(self):
-        try:
-            logger.info("Nightly Build Version:{}：更新配置文件".format(self.version))
-            cache(id=self.server.id)
-
-            logger.info("Nightly Build Version:{}：重启服务".format(self.version))
-            Restart(id=self.server.id)
-            time.sleep(100)
-
-            logger.info("Nightly Build Version:{}：金标准测试".format(self.version))
-            goldsmoke(version=self.version)
-
-            logger.info("Nightly Build Version:{}：持续化测试".format(self.version))
-            durationTest(version=self.version, server=self.server.host, aet=self.server.remarks)
-        except Exception as e:
-            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format( self.versionObj.version, e))
-
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean

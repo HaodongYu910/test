@@ -5,7 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_base, duration_record, duration
+from ..models import dicom_group, duration_record, duration, dicom_group_detail
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
@@ -92,24 +92,20 @@ class dicomData(APIView):
         diseases = request.GET.get("diseases")
         slicenumber = request.GET.get("slicenumber")
         dicomtype = request.GET.get("type")
+        patientid = request.GET.get("patientid")
         if dicomtype:
-            if diseases == '' and slicenumber != '':
-                obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=dicomtype).order_by("-id")
-            elif diseases != '' and slicenumber == '':
-                obi = dicom.objects.filter(diseases__contains=diseases, type=dicomtype).order_by("-id")
-            elif diseases != '' and slicenumber != '':
-                obi = dicom.objects.filter(diseases__contains=diseases, slicenumber__contains=slicenumber,
-                                           type=dicomtype).order_by("-id")
+            if diseases is not None:
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' and gd.group_id ='{diseases}' ORDER BY  d.id "
+                obi = dicom.objects.raw(sql)
             else:
-                obi = dicom.objects.filter(type=dicomtype).order_by("-id")
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' ORDER BY  d.id "
+                obi = dicom.objects.raw(sql)
+
+        elif patientid:
+            obi = dicom.objects.filter(patientid__contains=patientid).order_by("-id")
         else:
-            if diseases == '' and slicenumber != '':
+            if slicenumber != '':
                 obi = dicom.objects.filter(slicenumber__contains=slicenumber).order_by("-id")
-            elif diseases != '' and slicenumber == '':
-                obi = dicom.objects.filter(diseases__contains=diseases).order_by("-id")
-            elif diseases != '' and slicenumber != '':
-                obi = dicom.objects.filter(diseases__contains=diseases, slicenumber__contains=slicenumber).order_by(
-                    "-id")
             else:
                 obi = dicom.objects.all().order_by("-id")
 
@@ -321,7 +317,7 @@ class dicomSend(APIView):
         try:
             host = Server.objects.get(id=data["server"])
             if data['ids']:
-                obj = dicom_base.objects.filter(id__in=data['ids'])
+                obj = dicom_group.objects.filter(id__in=data['ids'])
                 for i in obj:
                     dicomobj = dicom.objects.filter(fileid=i.id)
                     for j in dicomobj:

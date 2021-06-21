@@ -50,6 +50,9 @@ sshpass -p biomind bash setup_engine.sh
 
 sleep 2
 
+echo "rm -rf QInstall/"
+mv QInstall Qt
+rm -rf QInstall/
 #echo ""
 #echo "################################## install 3D modules ######################################"
 #### install biomind 3D
@@ -64,13 +67,12 @@ echo ""
 echo "################################### fixed permission ###########################################"
 echo " "
 ### fixed permssion
-#bash ~/.biomind/lib/current/installer/biomind.sh install
+bash ~/.biomind/lib/current/installer/biomind.sh install
 #sleep 3
-echo ""
-echo "################################### cache config ###########################################"
-echo ""
-echo "rm -rf QInstall/"
-mv QInstall Qt
+#echo ""
+#echo "################################### cache config ###########################################"
+#echo ""
+
 #echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
 #mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
 #echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"

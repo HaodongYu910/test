@@ -1,4 +1,5 @@
 # coding=utf-8
+import copy
 import logging
 import threading
 import os, shutil
@@ -15,7 +16,7 @@ import queue
 from django.db import transaction
 from django.conf import settings
 import threading
-from AutoDicom.models import duration_record, dicom, duration
+from AutoDicom.models import duration_record, dicom, duration, dicom_group_detail
 from ..common.deletepatients import delete_patients_duration
 from ..serializers import duration_record_Serializer
 
@@ -37,10 +38,46 @@ def get_rand_uid():
     return "%08d" % rand_val
 
 
+def Myinster(dicta):
+    dicta = dict(sorted(dicta.items(), key=lambda i: -len(i[1])))
+    listsum = []
+    l = 0
+    start = 0
+    step = 2
+    for key, value in dicta.items():
+        if start == 0:
+            listsum = list(value)
+            start = start + 1
+            continue
+        for i in value:
+            # print((start + step * l))
+            listsum.insert((start + step * l), i)
+            l = l + 1
+        # print(listsum)
+        start = start + 1
+        step = step + 1
+        l = 0
+    return listsum
+
+def copylist(listsum, count):
+    while len(listsum) < count:
+        listA = copy.deepcopy(listsum)
+        listsum = listA + listsum
+    return listsum[:count]
+
+def grouping(dictsum, dicom):
+    if dictsum.get(dicom.diseases) is None:
+        sum = set()
+        sum.add(dicom)
+    else:
+        sum = dictsum.get(dicom.diseases)
+        sum.add(dicom)
+    dictsum[dicom.diseases] = sum
+
+
 class DicomData(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
         self.count = 1  # 可用来被外部访问
         self.files = kwargs["files"]
         self.end = kwargs["end"]
@@ -49,14 +86,14 @@ class DicomData(threading.Thread):
     def run(self):
         q = queue.Queue()
         threads = []
-        dicomobj = dicom.objects.filter(fileid__in=self.files)
+        dicomObj = dicom.objects.filter(fileid__in=self.files)
         try:
             while True:
                 if self.count > self.end:
                     break
-                if self.end >= self.count > int(dicomobj.count()):
-                    dicomobj = dicom.objects.filter(fileid__in=self.files)
-                for j in dicomobj:
+                if self.end >= self.count > int(dicomObj.count()):
+                    dicomObj = dicom.objects.filter(fileid__in=self.files)
+                for j in dicomObj:
                     if self.count > self.end:
                         break
                     else:
@@ -73,7 +110,6 @@ class DicomData(threading.Thread):
 class DurationThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
         self.count = 0  # 可用来被外部访问
         self.obj = duration.objects.get(id=kwargs["id"])
         self.patientid = self.obj.patientid if self.obj.patientid is not None else '_'
@@ -107,8 +143,8 @@ class DurationThread(threading.Thread):
             acc_number = ds.AccessionNumber
             rand_uid = str(info.get("rand_uid"))
             fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
-            cur_date = info.get("cur_date")
-            cur_time = info.get("cur_time")
+            cur_date = get_date()
+            cur_time = get_time()
             diseases = info.get("diseases")
         except Exception as e:
             logging.error(
@@ -161,67 +197,74 @@ class DurationThread(threading.Thread):
             "sendserver": self.server,
             "diseases": diseases,
             "duration_id": self.obj.id
-        },Seriesinstanceuid
+        }, Seriesinstanceuid
 
     def QueData(self):
         q = queue.Queue()
         filecount = 1
         dcmcount = 0
-        dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","))
-        try:
-            file_end = int(self.obj.sendcount)
-            while True:
-                if filecount > file_end:
-                    self.CountData.append(dcmcount)
-                    break
-                if file_end >= filecount > int(dicomobj.count()):
-                    dicomobj = dicom.objects.filter(fileid__in=self.obj.dicom.split(","), status=True)
-                for j in dicomobj:
-                    self.CountData.append(dcmcount)
-                    if filecount > file_end:
-                        break
-                    else:
-                        src_folder = str(j.route)
-                        while src_folder[-1] == '/':
-                            src_folder = src_folder[0:-1]
-                        try:
-                            # "fake_name": get_fake_name(rand_uid, keyword),
-                            info = {
-                                "diseases": j.diseases,
-                                "rand_uid": get_rand_uid(),
-                                "cur_date": get_date(),
-                                "cur_time": get_time()
-                            }
-                            file_names = os.listdir(src_folder)
-                            file_names.sort()
-                            for fn in file_names:
-                                dcmcount = dcmcount + 1
-                                full_fn = os.path.join(src_folder, fn)
-                                full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(fn, filecount))
-                                if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-                                    continue
-                                try:
-                                    q.put([full_fn, full_fn_fake, info, dcmcount])
-                                except Exception as e:
-                                    logging.error("[匿名错误]:{}".format(e))
-                                    continue
-                        except Exception as e:
-                            logger.error("遍历文件：{}".format(e))
-                    filecount = filecount + 1
-            logger.info("self:{}".format(self.CountData))
-            return q
-        except Exception as e:
-            logger.error("队列错误：{}".format(e))
+        dicomID = []
+        # 查询 所以 dicom ID  优先组数据
+        for i in dicom_group_detail.objects.filter(group__id__in=self.obj.dicom.split(",")):
+            dicomID.append(i.dicom_id)
+
+        # 查询发送数据
+        dicomObj = dicom.objects.filter(id__in=dicomID, status=True)
+        dicomList = list(dicomObj)
+
+        # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+        dictsum = {}
+        for i in dicomList:
+            grouping(dictsum, i)
+
+        # 变成排好序的数据
+        listsum = Myinster(dictsum)
+        # print(listsum)
+
+        # 补充数据
+        listsum = copylist(listsum, int(self.obj.sendcount))
+        logger.info("listsum:{}".format(listsum))
+
+        # 优先查询组
+        for j in listsum:
+            self.CountData.append(dcmcount)
+            src_folder = str(j.route)
+            while src_folder[-1] == '/':
+                src_folder = src_folder[0:-1]
+            try:
+                info = {
+                    "diseases": j.diseases,
+                    "rand_uid": get_rand_uid()
+                }
+                file_names = os.listdir(src_folder)
+                file_names.sort()
+                for fn in file_names:
+                    dcmcount = dcmcount + 1
+                    full_fn = os.path.join(src_folder, fn)
+                    full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
+                    if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+                        continue
+                    try:
+                        q.put([full_fn, full_fn_fake, info, dcmcount])
+                        logger.info("队列==", q)
+                    except Exception as e:
+                        logging.error("[匿名错误]:{}".format(e))
+                        continue
+            except Exception as e:
+                logger.error("遍历文件：{}".format(e))
+        return q
 
     # 匿名数据队列
     def run(self):
-        self.obj.sendstatus = False
+        self.obj.sendstatus = True
         self.obj.save()
         q = self.QueData()
         threads = []
 
         try:
+            logger.info("duration test start")
             for i in range(self.thread_num):
+                # logger.info("test start1111111111111")
                 t = threading.Thread(target=self.durationAnony, args=(q,))
                 # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
                 t.start()
@@ -233,22 +276,24 @@ class DurationThread(threading.Thread):
             #     threads[i].start()
             # for i in range(self.thread_num):
             #     threads[i].join()
-
+            self.obj.sendstatus = False
+            self.obj.save()
         except Exception as e:
             logger.error("队列生成失败：{0}".format(e))
 
     def durationAnony(self, q):
         while not q.empty():
+            if not os.path.exists(self.full_fn_fake):
+                break
+            self.count = self.count + 1
             testdata = q.get()
+
+            logger.info(testdata)
             full_fn_fake = testdata[1]
             try:
-                data,Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
+                data, Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
-            try:
-                self.delayed(Seriesinstanceuid, testdata[3])
-            except Exception as e:
-                logger.error("等待:{}".format(e))
             try:
                 if testdata[3] in self.CountData:
                     create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
@@ -263,12 +308,10 @@ class DurationThread(threading.Thread):
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
 
-            # try:
-            #     study_fakeinfos["count"] = int(study_fakeinfos["count"]) + 1
-            #     self.delayed(study_fakeinfos)
-            # except Exception as e:
-            #     logging.error('errormsg: failed delayed{0} ---报错：{1}]'.format(full_fn_fake, e))
-            #     continue
+            try:
+                self.delayed(Seriesinstanceuid)
+            except Exception as e:
+                logger.error("delayed fail:{}".format(e))
 
     def connect_influx(self, data):
         try:
@@ -287,6 +330,7 @@ class DurationThread(threading.Thread):
         try:
             commands = [
                 "storescu",
+                "-xs",  # 压缩方式
                 self.obj.Host.host,
                 self.obj.port,
                 "-aec", self.obj.Host.remarks,
@@ -297,7 +341,6 @@ class DurationThread(threading.Thread):
             popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
             popen.communicate()
             endtime = time.time()
-
             self.connect_influx({'studyuid': studyuid,
                                  'time': str('%.2f' % (float(endtime - starttime))),
                                  'starttime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime)),
@@ -315,34 +358,24 @@ class DurationThread(threading.Thread):
         return str_dest
 
     # 判断是否 同一个 Series
-    def delayed(self, SeriesID, Num):
-        if self.obj.sleepcount is not None:
-            imod = divmod(int(Num), int(self.obj.sleepcount))
-            if imod[1] == 0:
-                time.sleep(int(self.sleeptime))
-        if self.obj.series is True:
-            if SeriesID != self.SeriesInstanceUID:
-                time.sleep(int(self.sleeptime))
-                self.SeriesInstanceUID = SeriesID
-
+    def delayed(self, SeriesID):
+        try:
+            if self.obj.sleepcount is not None and int(self.obj.sleepcount) != 0 and self.obj.sleeptime is not None:
+                imod = divmod(int(self.count), int(self.obj.sleepcount))
+                if imod[1] == 0:
+                    time.sleep(int(self.obj.sleeptime))
+            if self.obj.series is True and self.obj.sleeptime is not None:
+                if SeriesID != self.SeriesInstanceUID:
+                    time.sleep(int(self.obj.sleeptime))
+                    self.SeriesInstanceUID = SeriesID
+        except Exception as e:
+            logger.error("delayed:{}".format(e))
+    # 停止
     def durationStop(self):
-        # 改变状态
-        self.obj.sendstatus = False
+        # 删除 文件夹
+        shutil.rmtree(self.full_fn_fake)
+        self.obj.sendstatus =False
         self.obj.save()
-        # drobj = duration_record.objects.filter(Duration=self.id, imagecount=None)
-        # # 删除错误数据
-        # for j in drobj:
-        #     delete_patients_duration(j.studyinstanceuid, self.obj.Host.id, "studyinstanceuid", False)
-        # drobj.delete()
-        # # 删除 文件夹
-        # folder = "/home/biomind/Biomind_Test_Platform/logs/{0}{1}{2}".format(str(self.obj.patientname),
-        #                                                                      str(self.obj.patientid),
-        #                                                                      str(self.id))
-        # if os.path.exists(folder):
-        #     shutil.rmtree(folder)
-
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm

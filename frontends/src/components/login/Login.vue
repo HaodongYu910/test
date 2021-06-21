@@ -65,6 +65,8 @@
                                 this.$message.success("登录成功");
                                 localStorage.setItem('ms_username',this.ruleForm.username);
                                 localStorage.setItem('date_joined',JSON.stringify(data.date_joined));
+                                localStorage.setItem("project_id", "1" );
+                                localStorage.setItem("projectname","晨曦");
                                 this.$router.push('/');
                             //     if(this.$route.query.redirect){
                             //         this.$router.push({path: decodeURIComponent(this.$route.query.redirect)}) //跳转到原页面
