@@ -187,30 +187,37 @@ class DicomAdd(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-
         # 查找是否相同名称的组
+        repeatList =[]
         try:
             obj = dicom_group.objects.get(id=data["groupId"])
         except:
             return JsonResponse(code="999997", msg="无此组名")
         try:
             for i in data["ids"]:
-                if len(dicom_group_detail.objects.filter(dicom_id=int(i))):
-                    continue
-                detail = dicomGroup_detail_Deserializer(data={
-                    "group": data["groupId"],
-                    "dicom": int(i)
-                })
-                with transaction.atomic():
-                    detail.is_valid()
-                    detail.save()
+                detailObj = dicom_group_detail.objects.filter(dicom_id=int(i), group_id=data["groupId"])
+                if len(detailObj):
+                    dicomObj = dicom.objects.get(id=int(i))
+                    repeatList.append(dicomObj.patientid)
+                else:
+                    detail = dicomGroup_detail_Deserializer(data={
+                            "group": data["groupId"],
+                            "dicom": int(i)
+                        })
+                    with transaction.atomic():
+                        detail.is_valid()
+                        detail.save()
             amount = int(dicom_group_detail.objects.filter(group__id=data["groupId"]).count())
             obj.amount = amount
             obj.save()
+
         except Exception as e:
             logger.error("增加group detail 数据失败，报错：{}".format(e))
             return JsonResponse(code="999995", msg="新增失败：{}".format(e))
-        return JsonResponse(code="0", msg="成功")
+        if len(repeatList):
+            return JsonResponse(code="0", msg=f"Patientid: {repeatList} 已重复")
+        else:
+            return JsonResponse(code="0", msg="添加成功")
 
 
 class AddGroup(APIView):
@@ -309,9 +316,9 @@ class UpdateGroup(APIView):
             Groupobj = dicom_group.objects.get(id=groupId)
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="组不存在！")
-        # 查找是否相同名称的组
-        name = dicom_group.objects.filter(name=data["name"], type=data["type"])
-        if len(name):
+        #查找是否相同名称的组
+        name = dicom_group.objects.get(name=data["name"], type=data["type"])
+        if name.id != data["id"]:
             return JsonResponse(code="999997", msg="存在相同组名数据")
         else:
             serializer = dicomGroup_Serializer(data=data)

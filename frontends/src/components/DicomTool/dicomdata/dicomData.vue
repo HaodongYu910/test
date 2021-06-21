@@ -249,6 +249,7 @@
                 tags: {},
                 filetype: {},
                 datalist: [],
+                options:{},
                 listLoading: false,
                 CollectionFormVisible: false,
                 collectionLoading: false,
@@ -297,9 +298,27 @@
             }
         },
         mounted() {
-            this.getdata()
+            this.getParams();
         },
+		activated() {
+			  this.getParams();
+			  },
         methods: {
+            // 获取传参
+            getParams() {
+                console.log("--------------------------------------")
+                console.log(this.$route)
+                console.log("--------------------------------------")
+                if (this.$route.params.type === true){
+                    console.log("true")
+                    this.filters.type =  this.$route.params.type;
+                    this.getdata();
+                }
+                else {
+                    console.log("F")
+                    this.getdata();
+                }
+            },
             // 获取数据列表
             getdicomgrouplist() {
                 this.listLoading = true
@@ -525,55 +544,55 @@
                     }
                 })
             },
-            // 新增
-            addSubmit: function () {
-                this.$refs.addForm.validate((valid) => {
-                    if (valid) {
-                        const self = this
-                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
-                            self.addLoading = true
-                            // NProgress.start();
-                            const params = JSON.stringify({
-                                diseases: self.addForm.diseases,
-                                patientid: self.addForm.patientid,
-                                server: self.addForm.server,
-                                studyinstanceuid: self.addForm.studyinstanceuid
-                            })
-                            const header = {
-                                'Content-Type': 'application/json',
-                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                            }
-                            adddicomdata(header, params).then(_data => {
-                                const {msg, code, data} = _data
-                                self.addLoading = false
-                                if (code === '0') {
-                                    self.$message({
-                                        message: '添加成功',
-                                        center: true,
-                                        type: 'success'
-                                    })
-                                    self.$refs['addForm'].resetFields()
-                                    self.addFormVisible = false
-                                    self.getdata()
-                                } else if (code === '999997') {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                } else {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                    self.$refs['addForm'].resetFields()
-                                    self.addFormVisible = false
-                                    self.getdata()
-                                }
-                            })
-                        })
-                    }
-                })
-            },
+            // // 新增
+            // addSubmit: function () {
+            //     this.$refs.addForm.validate((valid) => {
+            //         if (valid) {
+            //             const self = this
+            //             this.$confirm('确认提交吗？', '提示', {}).then(() => {
+            //                 self.addLoading = true
+            //                 // NProgress.start();
+            //                 const params = JSON.stringify({
+            //                     diseases: self.addForm.diseases,
+            //                     patientid: self.addForm.patientid,
+            //                     server: self.addForm.server,
+            //                     studyinstanceuid: self.addForm.studyinstanceuid
+            //                 })
+            //                 const header = {
+            //                     'Content-Type': 'application/json',
+            //                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+            //                 }
+            //                 adddicomdata(header, params).then(_data => {
+            //                     const {msg, code, data} = _data
+            //                     self.addLoading = false
+            //                     if (code === '0') {
+            //                         self.$message({
+            //                             message: '添加成功',
+            //                             center: true,
+            //                             type: 'success'
+            //                         })
+            //                         self.$refs['addForm'].resetFields()
+            //                         self.addFormVisible = false
+            //                         self.getdata()
+            //                     } else if (code === '999997') {
+            //                         self.$message.error({
+            //                             message: msg,
+            //                             center: true
+            //                         })
+            //                     } else {
+            //                         self.$message.error({
+            //                             message: msg,
+            //                             center: true
+            //                         })
+            //                         self.$refs['addForm'].resetFields()
+            //                         self.addFormVisible = false
+            //                         self.getdata()
+            //                     }
+            //                 })
+            //             })
+            //         }
+            //     })
+            // },
             selsChange: function (sels) {
                 this.sels = sels
             },
@@ -729,7 +748,7 @@
                         if (code === '0') {
                             this.CollectionFormVisible = false,
                                 self.$message({
-                                    message: '成功',
+                                    message: msg,
                                     center: true,
                                     type: 'success'
                                 })

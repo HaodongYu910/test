@@ -142,11 +142,9 @@
         },
         created(){
           this.getParams();
-          this.getDurationlist();
           },
         activated() {
           this.getParams();
-          this.getDurationlist();
           },
         methods: {
             onCopy: function (e) {
@@ -159,7 +157,9 @@
 
             //获取由路由传递过来的参数
             getParams(){
-              this.routerParams=this.$route.query;
+                console.log(this.$route)
+              this.id=this.$route.query.id;
+              this.getDurationlist();
               },
           handleSizeChange: function(size) {
               this.page_size = size;
@@ -176,7 +176,7 @@
                   type:self.filters.type,
                   startdate:self.filters.startdate,
                   enddate:self.filters.enddate,
-                  id:this.routerParams.id
+                  id:this.id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdurationData(headers, params).then((res) => {

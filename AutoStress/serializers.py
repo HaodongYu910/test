@@ -28,7 +28,7 @@ class stress_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = stress
         fields = (
-        'stressid', 'projectname', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
+        'stressid', 'name', 'version', 'loadserver', 'testdata', 'thread', 'synchroniz', 'ramp', 'loop_count',
         'duration', 'start_delay', 'dicom_send', 'single', 'benchmark', 'summary',
         'loop_time', 'start_date', 'end_date', 'jmeterstatus', 'status', 'teststatus', 'Host')
 

@@ -7,7 +7,7 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from django.db.models import Count, When, Case
-from ..models import install, dictionary, project_version, Server
+from ..models import install, project_version, Server
 from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
 from ..common.loadVersion import backup
@@ -228,32 +228,3 @@ class InstallThread(threading.Thread):
 
     def setParm(self, parm):  # 外部修改内部信息函数
         self.Parm = parm
-
-
-class smokeThread(threading.Thread):
-    def __init__(self, **kwargs):
-        threading.Thread.__init__(self)
-        self.Flag = True  # 停止标志位
-        # 版本号
-        self.version = kwargs["version"]
-        self.server = Server.objects.get(id='13')
-
-    def run(self):
-        try:
-            logger.info("Nightly Build Version:{}：更新配置文件".format(self.version))
-            cache(id=self.server.id)
-
-            logger.info("Nightly Build Version:{}：重启服务".format(self.version))
-            Restart(id=self.server.id)
-            time.sleep(100)
-
-            logger.info("Nightly Build Version:{}：金标准测试".format(self.version))
-            goldsmoke(version=self.version)
-
-            logger.info("Nightly Build Version:{}：持续化测试".format(self.version))
-            durationTest(version=self.version, server=self.server.host, aet=self.server.remarks)
-        except Exception as e:
-            logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format( self.versionObj.version, e))
-
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean

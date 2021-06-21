@@ -3,6 +3,7 @@ import logging
 from django.db.models import Count, When, Case, Max, Min, Avg, Q
 import datetime
 from AutoProject.scheduletask import DurationTask
+from AutoProject.models import project_version
 import time
 import json
 import threading
@@ -30,6 +31,7 @@ class ReportThread(threading.Thread):
         self.statistics_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.diseases = kwargs["diseases"]
         self.dis = []
+        self.version = project_version.objects.get(id=self.obj.version).version
         self.durationData = []
 
     # 生成报告数据
@@ -44,7 +46,7 @@ class ReportThread(threading.Thread):
                 count=Count('id'))
 
             basedata = {
-                "version": self.obj.version,
+                "version": self.version,
                 "server": self.obj.server,
                 "sendcount": record[0]['count'],
                 "AICount": record[0]['send'],
@@ -113,8 +115,8 @@ class ReportThread(threading.Thread):
                     "ModelMax": i["ModelMax"],
                     "ModelMin": i["ModelMin"],
                     "JobAvg": '%.2f' % (float(i["JobAvg"])),
-                    "JobMax": i["JobMax"],
-                    "JobMin": i["JobMin"],
+                    "JobMax": '%.2f' % (float(i["JobMax"])),
+                    "JobMin": '%.2f' % (float(i["JobMin"])),
                     "success": i["success"],
                     "fail": i["fail"],
                     "count": i["count"],

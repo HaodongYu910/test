@@ -5,7 +5,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_group, duration_record, duration
+from ..models import dicom_group, duration_record, duration, dicom_group_detail
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
@@ -94,15 +94,13 @@ class dicomData(APIView):
         dicomtype = request.GET.get("type")
         patientid = request.GET.get("patientid")
         if dicomtype:
-            if diseases is None and slicenumber != '':
-                obi = dicom.objects.filter(slicenumber__contains=slicenumber, type=dicomtype).order_by("-id")
-            elif diseases is not None and slicenumber == '':
-                obi = dicom.objects.filter(fileid=diseases, type=dicomtype).order_by("-id")
-            elif diseases is not None and slicenumber != '':
-                obi = dicom.objects.filter(fileid=diseases, slicenumber__contains=slicenumber,
-                                           type=dicomtype).order_by("-id")
+            if diseases is not None:
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' and gd.group_id ='{diseases}' ORDER BY  d.id "
+                obi = dicom.objects.raw(sql)
             else:
-                obi = dicom.objects.filter(type=dicomtype).order_by("-id")
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' ORDER BY  d.id "
+                obi = dicom.objects.raw(sql)
+
         elif patientid:
             obi = dicom.objects.filter(patientid__contains=patientid).order_by("-id")
         else:

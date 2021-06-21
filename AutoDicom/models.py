@@ -106,7 +106,7 @@ class dicom_relation(models.Model):
       提交记录，关系数据表
     """
     id = models.AutoField(primary_key=True)
-    baseid = models.CharField(max_length=50, blank=True, null=True, verbose_name="dicom_base_id")
+    baseid = models.CharField(max_length=50, blank=True, null=True, verbose_name="dicom_group_id")
     custom = models.CharField(max_length=500, blank=True, null=True, verbose_name="哪次的补充数据")
     old_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="提交数据时路劲")
     new_path = models.CharField(max_length=500, blank=True, null=True, verbose_name="新路径")
@@ -179,8 +179,8 @@ class duration_record(models.Model):
     diagnosis = models.TextField(max_length=500, blank=True, null=True, verbose_name="诊断结果")
     sendserver = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送服务")
     sendtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送开始时间")
-    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测时间")
-    endtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送结束时间")
+    starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测开始时间")
+    endtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="job结束时间")
     jobtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="job时间")
     error = models.TextField(max_length=3000, blank=True, null=True, verbose_name="error信息")
     model = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型")

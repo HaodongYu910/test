@@ -246,7 +246,7 @@ class DurationThread(threading.Thread):
                         continue
                     try:
                         q.put([full_fn, full_fn_fake, info, dcmcount])
-                        logger.info("qq==",q)
+                        logger.info("队列==", q)
                     except Exception as e:
                         logging.error("[匿名错误]:{}".format(e))
                         continue

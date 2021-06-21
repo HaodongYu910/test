@@ -6,15 +6,6 @@
                 <el-form-item>
                     <el-input v-model.trim="filters.name" placeholder="版本" @keyup.enter.native="getProVersionlist"></el-input>
                 </el-form-item>
-                <el-form-item label="项目" prop="type" >
-                        <el-select v-model="filters.type"  placeholder="请选择" >
-                            <el-option key="model" label="model" value="model"></el-option>
-                            <el-option key="sql" label="sql" value="sql"></el-option>
-                            <el-option key="graphql" label="graphql" value="graphql"></el-option>
-                            <el-option key="file" label="文件类型" value="file"></el-option>
-                            <el-option key="diseases" label="diseases" value="diseases"></el-option>
-                        </el-select>
-                    </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getProVersionlist">查询</el-button>
                 </el-form-item>
@@ -26,8 +17,6 @@
         <!--列表-->
         <el-table :data="project" highlight-current-row v-loading="listLoading" @selection-change="selsChange" style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
-            </el-table-column>
-            <el-table-column prop="project_name" label="项目" min-width="15%" sortable show-overflow-tooltip>
             </el-table-column>
             <el-table-column prop="version" label="版本" min-width="15%" sortable show-overflow-tooltip>
             </el-table-column>
@@ -69,23 +58,23 @@
         <!--编辑界面-->
         <el-dialog title="编辑" :visible.sync="editFormVisible" :close-on-click-modal="false" style="width: 60%; left: 20%">
             <el-form :model="editForm"  :rules="editFormRules" ref="editForm" label-width="80px">
-                <el-form-item label="Key" prop="key">
-                    <el-input v-model.trim="editForm.key" auto-complete="off"></el-input>
+                <el-form-item label="版本" prop="version">
+                    <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="Value" prop='value'>
-                    <el-input v-model.trim="editForm.value" auto-complete="off"></el-input>
+                <el-form-item label="分支" prop='branch'>
+                    <el-input v-model.trim="editForm.branch" auto-complete="off"></el-input>
+                </el-form-item>
+                <el-form-item label="安装包" prop='package_name'>
+                    <el-input v-model.trim="editForm.package_name" auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="类型" prop="type" >
                         <el-select v-model="editForm.type"  placeholder="请选择" >
-                            <el-option key="model" label="model" value="model"></el-option>
-                            <el-option key="sql" label="sql" value="sql"></el-option>
-                            <el-option key="graphql" label="graphql" value="graphql"></el-option>
-                            <el-option key="file" label="文件类型" value="file"></el-option>
-                            <el-option key="diseases" label="diseases" value="diseases"></el-option>
+                            <el-option key="Prod" label="Prod" value="Prod"></el-option>
+                            <el-option key="Nightly" label="Nightly" value="Nightly"></el-option>
                         </el-select>
                     </el-form-item>
-                <el-form-item label="说明" prop='remarks'>
-                    <el-input type="textarea" :rows="3" v-model.trim="editForm.remarks"></el-input>
+                <el-form-item label="地址" prop='path'>
+                    <el-input type="textarea" :rows="3" v-model.trim="editForm.path"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">

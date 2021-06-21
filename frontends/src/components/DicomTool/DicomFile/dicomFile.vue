@@ -8,19 +8,14 @@
                                              @click.native="getgroupbase()"></el-cascader>
                 </el-form-item>
                 <el-form-item>
-                    <el-select v-model="filters.content" placeholder="请选择病种名称" @click.native="getGroupList()">
-                        <el-option v-for="(item,index) in baseData"
-                                   :key="item.remarks"
-                                   :label="item.remarks"
-                                   :value="item.remarks"
-                        />
-                    </el-select>
+                    <el-input v-model="filters.name" placeholder="名称"
+                                  @keyup.enter.native="getGroupList"></el-input>
                 </el-form-item>
                 <el-form-item>
                     <el-button type="primary" @click="getGroupList">查询</el-button>
                 </el-form-item>
                 <el-form-item>
-                    <el-button type="primary" @click="handleAdd">新增病种</el-button>
+                    <el-button type="primary" @click="handleAdd">新增</el-button>
                 </el-form-item>
 <!--                <el-button type="warning" :disabled="this.sels.length===0" @click="batchSend">发送数据</el-button>-->
             </el-form>
@@ -37,9 +32,13 @@
                     <span style="margin-left: 10px">{{ scope.row.id }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="名称" min-width="16%" sortable>
+            <el-table-column prop="name" label="名称" min-width="16%" show-overflow-tooltip>
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
+                    <el-icon name="name"></el-icon>
+                    <router-link v-if=true :to="{ name: 'Dicom数据', params: {type: [scope.row.type, scope.row.id]}}"
+                                 style='text-decoration: none;color: #0000ff;'>
+                        {{ scope.row.name }}
+                    </router-link>
                 </template>
             </el-table-column>
             <el-table-column prop="route" label="路径" min-width="25%">
@@ -97,9 +96,6 @@
         <el-dialog title="编辑病种" :visible.sync="editFormVisible" :close-on-click-modal="false"
                    style="width: 75%; left: 12.5%">
             <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-<!--                <el-form-item label="文件路径">-->
-<!--                    <el-input v-model="editForm.content" :disabled="true"></el-input>-->
-<!--                </el-form-item>-->
                 <el-row :gutter="24">
                     <el-col :span="12">
                         <el-form-item label="名称">
@@ -248,7 +244,7 @@
                    style="width: 75%; left: 12.5%">
             <el-form :model="supplemenForm" label-width="80px" ref="supplementForm" enctype="multipart/form-data">
                 <el-form-item label="文件路径">
-                    <el-input v-model="supplemenForm.content" :disabled="true"></el-input>
+                    <el-input v-model="supplemenForm.route" :disabled="true"></el-input>
                 </el-form-item>
                 <el-form-item label="文件id">
                     <el-input v-model="supplemenForm.id" :disabled="true"></el-input>
@@ -351,10 +347,9 @@
                 },
                 //编辑界面数据
                 editForm: {
-                    content: '',
-                    select_type: '',
-                    type: '',
-                    description: ''
+                    name: '',
+                    route: '',
+                    type: ''
                 },
 
                 addFormVisible: false,//新增界面是否显示
@@ -363,9 +358,7 @@
                     remarks: [
                         { required: true, message: '请填写病种名称', trigger: 'blur' }
                     ],
-                    // content: [
-                    //     { required: true, message: '请填写文件上传所在目录', trigger: 'blur' }
-                    // ],
+
                     type: [
                         { required: true, message: '请填写数据类型', trigger: 'change' }
                     ]
@@ -376,7 +369,7 @@
                 supplemenForm: {
                     id:'',
                     custom:'',
-                    content: '',
+                    route: '',
                     files: '',
                 },
                 //新增界面数据
@@ -523,6 +516,7 @@
                     page_size:self.page_size,
                     type: self.filters.type[0],
                     id: self.filters.type[1],
+                    name:self.filters.name,
                     project_id:this.project_id
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
@@ -667,6 +661,7 @@
                                 id: this.editForm.id,
                                 name: this.editForm.name,
                                 remask: this.editForm.remask,
+                                type: this.editForm.type,
                                 groupData: this.groupData,
                                 predictor: self.editForm.predictor
                             };
@@ -729,7 +724,7 @@
                                 self.addLoading = false;
                                 if (code === '0') {
                                     self.$message({
-                                        message: '添加成功',
+                                        message: msg,
                                         center: true,
                                         type: 'success'
                                     });
@@ -864,7 +859,7 @@
                   this.fileList.forEach(item => {
                     params.append("files", item.raw);
                 });
-                params.append('type', this.supplemenForm.content)
+                params.append('type', this.supplemenForm.route)
                 params.append('id', this.supplemenForm.id)
                 params.append('custom', this.supplemenForm.custom)
 
