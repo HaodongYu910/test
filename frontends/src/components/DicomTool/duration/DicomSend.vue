@@ -776,17 +776,21 @@
                                     }
                                 }
                             }
-                            for(let item of this.groupOptions.slice(-1,)) {
-                                // alert("-2--1="+item.value)
-                                for(let i of item.children){
-                                    // alert(i.label)
-                                    for (var j=0;j<groupstrs.length ;j++ ) {
-                                        // alert(strs[j])
-                                        if(groupstrs[j]==i.value){
-                                            var arr= new Array();
-                                            arr[0] = item.value
-                                            arr[1] = i.value
-                                            arrs.push(arr)
+                            if (!groupstrs && typeof(groupstrs)!="undefined" && groupstrs!=0){
+                                console.log('groupstrs', groupstrs)
+                            }else{
+                                for(let item of this.groupOptions.slice(-1,)) {
+                                    // alert("-2--1="+item.value)
+                                    for(let i of item.children){
+                                        // alert(i.label)
+                                        for (var j=0;j<groupstrs.length ;j++ ) {
+                                            // alert(strs[j])
+                                            if(groupstrs[j]==i.value){
+                                                var arr= new Array();
+                                                arr[0] = item.value
+                                                arr[1] = i.value
+                                                arrs.push(arr)
+                                            }
                                         }
                                     }
                                 }
@@ -945,7 +949,8 @@
             // 显示编辑界面
             handleEdit: function (dicomnum, row, group) {
                 console.log('row', row)
-                console.log('dicomnum', dicomnum)
+                console.log('group', group)
+                // console.log('dicomnum', dicomnum)
                 // alert("group="+group)
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
@@ -953,12 +958,17 @@
                 var strs= new Array(); //定义一数组
                 strs=dicomList.split(","); //字符分割
 
-                var groupList = group.toString()
-                var groupstrs= new Array(); //定义一数组
-                groupstrs=groupList.split(","); //字符分割
-                // for (var i=0;i<strs.length ;i++ ) {
-                //     alert("数字="+strs[i])
-                // }
+                if (!group && typeof(group)!="undefined" && group!=0){
+                    console.log('dicomnum', dicomnum)
+                    this.getgroupbase2(strs,group)
+                }else{
+                    var groupList = group.toString()
+                    var groupstrs= new Array(); //定义一数组
+                    groupstrs=groupList.split(","); //字符分割
+                    // for (var i=0;i<strs.length ;i++ ) {
+                    //     alert("数字="+strs[i])
+                    // }
+                }
                 this.getgroupbase2(strs,groupstrs)
             }
             ,
