@@ -168,7 +168,7 @@ class DurationThread(threading.Thread):
         ds.SOPInstanceUID = self.norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
         ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(diseases), self.patientid, rand_uid), 24)
+            '{0}{1}{2}'.format(str(ds.PatientID), self.patientid), 24)
 
         ds.PatientName = self.norm_string(
             '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)

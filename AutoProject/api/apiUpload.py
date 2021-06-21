@@ -124,11 +124,11 @@ class AddZipUpload(APIView):
             filetype = request.POST.get("type", None)
             fileId = request.POST.get("id")
             File = request.FILES.get("files", None)
-            custom = request.FILES.get("custom")
+            custom = request.POST.get("custom")
 
             filename = File.name
 
-            if custom:
+            if custom is None:
                 custom = filename[:filename.index("-")]
             # 建立文件夹用来存放病人数据，每上传一次就建立一个，名称是自定义名称加时间
             # file_path = 'c:\\DD'
@@ -181,7 +181,7 @@ class AddZipUpload(APIView):
             return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id, "file_path":file_path}
                                 )
         except Exception as e:
-            logger.info(e)
+            logger.error(e)
             return JsonResponse(code="999995", msg="上传文件失败！")
 
 
