@@ -103,12 +103,15 @@ class getResult(APIView):
         path = str(data["file_path"])[2:]
         relation = dicom_relation.objects.filter(old_path__contains=path)
         if relation.exists() is False:
-            return JsonResponse(code="999", msg="处理中，请稍后查询")
+            return JsonResponse(code="999", msg="请先上传数据，在查看结果")
         else:
             res = {}
             for i in list(relation):
                 if i.success_uid is None:
-                    res[i.fail_uid] = '已存在'
+                    if i.fail_uid == "【上传数据】：数据类型可能不正确，请检查":
+                        res[i.fail_uid] = '数据类型错误'
+                    else:
+                        res[i.fail_uid] = '已存在'
                 else:
                     res[i.success_uid] = '成功'
             return JsonResponse(code="0", msg=res)

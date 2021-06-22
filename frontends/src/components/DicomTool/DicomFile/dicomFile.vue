@@ -4,7 +4,8 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-                    <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type" clearable
+<!--                    <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type" clearable-->
+                    <el-cascader :props="{ checkStrictly: true }" v-model="filters.type" clearable
                                              @click.native="getgroupbase()"></el-cascader>
                 </el-form-item>
                 <el-form-item>
@@ -328,7 +329,7 @@
                 page_size: 20,
                 listLoading: false,
                 sels: [],//列表选中列
-                options:{},
+                // options:{},
                 groupOptions:{},
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
@@ -447,6 +448,7 @@
                         self.listLoading = false
                         const {msg, code, data} = res
                         if (code === '0') {
+                            alert(data.groupOptions)
                             this.groupOptions = data.groupOptions
 
                         } else {
@@ -889,6 +891,14 @@
                         this.dataupshow=false
                         this.supplementVisible = false;
                     } else {
+                        console.log('code !== 0')
+                        console.log('code !== 0 && upload fail ! Please try again')
+                        clearInterval(window[`interval-${tempVal}`])
+                        this.$message({
+                            showClose: true,
+                            message: ('upload fail ! Please try again'),
+                            type: 'error'
+                        });
                         this.isUploadingByIdMap = {
                             ...this.isUploadingByIdMap,
                             [tempVal]: 0
@@ -901,14 +911,21 @@
                         });
                     }
                 }).catch(err => {
+                    clearInterval(window[`interval-${tempVal}`])
+                    console.log('upload fail ! Please try again')
                     this.isUploadingStatusMap = {
                         ...this.isUploadingStatusMap,
-                        [tempVal]: false 
+                        [tempVal]: 0
                     }
                     this.isUploadingByIdMap = {
                         ...this.isUploadingByIdMap,
-                        [tempVal]: 1
+                        [tempVal]: 0
                     }
+                    this.$message({
+                        showClose: true,
+                        message: ('upload fail ! Please try again'),
+                        type: 'error'
+                    });
                 })
             },
             handlePreview(file) {

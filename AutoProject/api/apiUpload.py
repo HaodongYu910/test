@@ -121,7 +121,10 @@ class AddZipUpload(APIView):
         :return:
         """
         try:
+            # start = time.clock()
             filetype = request.POST.get("type", None)
+            # end = time.clock()
+            # print('Running time: %s Seconds'%(end-start))
             fileId = request.POST.get("id")
             File = request.FILES.get("files", None)
             custom = request.POST.get("custom")
@@ -131,9 +134,8 @@ class AddZipUpload(APIView):
             if custom is None:
                 custom = filename[:filename.index("-")]
             # 建立文件夹用来存放病人数据，每上传一次就建立一个，名称是自定义名称加时间
-            # file_path = 'c:\\DD'
+            # file_path = 'e:\\DD'
             file_path = filetype
-
             file_path = makedir(file_path, custom)
 
             FilePath = "{0}/{1}".format(file_path, filename)
