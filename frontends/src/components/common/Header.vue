@@ -96,6 +96,7 @@
                         localStorage.setItem("project_id", self.projectData[0]["id"]);
                         localStorage.removeItem("projectname");
                         localStorage.setItem("projectname",this.projectname);
+                         this.$router.push('/');
                     } else {
                         self.$message.error({
                             message: msg,

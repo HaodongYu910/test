@@ -888,7 +888,8 @@
                     page: self.page,
                     page_size: self.page_size,
                     server: this.filters.server,
-                    type: '匿名'
+                    type: '匿名',
+                    project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getduration(headers, params).then((res) => {

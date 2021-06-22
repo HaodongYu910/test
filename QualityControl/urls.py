@@ -16,7 +16,7 @@ Including another URLconf
 
 from django.conf.urls import url
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
@@ -40,6 +40,7 @@ urlpatterns = [
     url(r'^dicom/', include(dicomurls)),
     url(r'^project/', include(urls)),
     url(r'^api/', include(apiUrls)),
+    # re_path(r'^accounts/', include('allauth.urls')),
     path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]
 
