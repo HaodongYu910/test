@@ -17,7 +17,7 @@ from ..common.dds_detect import *
 from ..common.deletepatients import *
 from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
-from ..common.duration import DurationThread
+from ..common.durationSend import DurationThread
 
 from AutoProject.scheduletask import DurationSyTask
 from AutoProject.common.api_response import JsonResponse
@@ -47,13 +47,14 @@ class getDuration(APIView):
                 durationType = ["持续化", "Nightly"]
             page_size = int(request.GET.get("page_size", 10))
             page = int(request.GET.get("page", 1))
+            project_id = request.GET.get("project_id")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         if Host:
-            obi = duration.objects.filter(Host=Host, type__in=durationType).order_by("-sendstatus")
+            obi = duration.objects.filter(project_id=project_id, Host=Host, type__in=durationType).order_by("-sendstatus")
 
         else:
-            obi = duration.objects.filter(type__in=durationType).order_by("-id").order_by("-sendstatus")
+            obi = duration.objects.filter(project_id=project_id, type__in=durationType).order_by("-id").order_by("-sendstatus")
 
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数

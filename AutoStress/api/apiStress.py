@@ -160,15 +160,16 @@ class stressList(APIView):
         try:
             page_size = int(request.GET.get("page_size", 5))
             page = int(request.GET.get("page", 1))
+            project_id = int(request.GET.get("project_id", 1))
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         version = request.GET.get("version")
 
         # 判断查询数据类型
         if version:
-            obi = stress.objects.filter(version=version, status=True).order_by("-stressid")
+            obi = stress.objects.filter(version=version, status=True, project_id=project_id).order_by("-stressid")
         else:
-            obi = stress.objects.all().order_by("-stressid")
+            obi = stress.objects.filter(project_id=project_id).order_by("-stressid")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数

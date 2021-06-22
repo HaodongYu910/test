@@ -239,6 +239,7 @@
         // components: {ElRow},
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 filters: {
                     diseases: '',
                     slicenumber: '',
@@ -376,7 +377,8 @@
                     slicenumber: self.filters.slicenumber,
                     type: this.filters.type[0],
                     diseases: this.filters.type[1],
-                    patientid: self.filters.patientid
+                    patientid: self.filters.patientid,
+                    project_id: this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getdicomdata(headers, params).then((res) => {

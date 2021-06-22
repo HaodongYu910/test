@@ -87,6 +87,7 @@ class dicomData(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
+            project_id =request.GET.get("project_id", 1)
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
@@ -95,10 +96,10 @@ class dicomData(APIView):
         patientid = request.GET.get("patientid")
         if dicomtype:
             if diseases is not None:
-                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' and gd.group_id ='{diseases}' ORDER BY  d.id "
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' and gd.group_id ='{diseases}' and dg.project_id = {project_id} ORDER BY  d.id "
                 obi = dicom.objects.raw(sql)
             else:
-                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}' ORDER BY  d.id "
+                sql = f"SELECT d.* FROM dicom d JOIN dicom_group_detail gd ON gd.dicom_id = d.id JOIN dicom_group dg ON dg.id = gd.group_id WHERE dg.type ='{dicomtype}'  and dg.project_id = {project_id} ORDER BY  d.id "
                 obi = dicom.objects.raw(sql)
 
         elif patientid:
