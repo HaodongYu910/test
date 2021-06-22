@@ -56,7 +56,7 @@ class getInstallVersion(APIView):
             groupOptions = []
             project_id = request.GET.get("project_id", 1)
             try:
-                Obj = project_version.objects.filter(project_id=project_id, type="Prod").order_by("-id")
+                Obj = project_version.objects.filter(type="Prod").order_by("-id")
                 for i in Obj:
                     if groupChildren.__contains__(i.branch) is False:
                         children = {

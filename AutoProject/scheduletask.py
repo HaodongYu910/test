@@ -96,24 +96,41 @@ def JobSyTask():
                 infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
         logger.info("持续化数据 Job结果同步定时任务启动！~~")
         for k, v in infos.items():
-            host = Server.objects.get(host=k)
+            try:
+                host = Server.objects.get(host=k)
+            except:
+                continue
             sql = sqlobj.value.format(v)
             try:
                 result = connect_postgres(host=host.id, sql=sql, database="orthanc")
                 resultdict = result.to_dict(orient='records')
                 for j in resultdict:
-                    obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
-                    try:
-                        obj.imagecount_server = j["imagecount_server"]
-                        obj.aistatus = j["pai_status"]
-                        obj.error = j["error"]
-                        obj.diagnosis = j["pclassification"]
-                        obj.jobtime = j["jobtime"]
-                        obj.endtime = j["endtime"]
-                        obj.save()
-                    except Exception as e:
-                        logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
+                    obj = duration_record.objects.filter(studyinstanceuid=j["studyuid"])
+                    if int(len(obj)) == 1:
+                        try:
+                            obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
+                            obj.imagecount_server = j["imagecount_server"]
+                            obj.aistatus = j["pai_status"]
+                            obj.error = j["error"]
+                            obj.diagnosis = j["pclassification"]
+                            obj.jobtime = j["jobtime"]
+                            obj.endtime = j["endtime"]
+                            obj.save()
+                        except Exception as e:
+                            logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
+                            continue
+                    elif int(len(obj)) > 1:
+                        for k in obj:
+                            k.imagecount_server = j["imagecount_server"]
+                            k.aistatus = j["pai_status"]
+                            k.error = j["error"]
+                            k.diagnosis = j["pclassification"]
+                            k.jobtime = j["jobtime"]
+                            k.endtime = j["endtime"]
+                            k.save()
+                    else:
                         continue
+
             except Exception as e:
                 logger.error('[Schedule JobSyTask Error]: error '.format(e))
                 continue

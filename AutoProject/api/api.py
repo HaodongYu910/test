@@ -27,7 +27,7 @@ class test(APIView):
 
         # data = JSONParser().parse(request)
         try:
-            DurationReportTask()
+            JobSyTask()
             stressData = dicom.objects.filter(stressstatus__in=['1', '2'])
             for k in stressData:
                 checkuid(9, "192.168.1.208", str(k.id))

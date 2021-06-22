@@ -730,7 +730,9 @@
             getgroupbase() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    "project_id":this.project_id
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getGroupBase(headers, params).then((res) => {
                         self.listLoading = false
