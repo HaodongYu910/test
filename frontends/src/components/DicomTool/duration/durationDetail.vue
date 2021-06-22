@@ -88,7 +88,7 @@
             <el-table-column label="操作" min-width="20%">
                     <template slot-scope="scope">
                        <el-button type="primary" size="small" @click="handleU(scope.$index, scope.row)">跳转</el-button>
-                        <el-button type="primary" size="small" @click="handleDisable(scope.$index, scope.row)">禁用</el-button>
+                        <el-button type="primary" size="small" @click="handlesource(scope.row)">源</el-button>
                     </template>
                 </el-table-column>
         </el-table>
@@ -105,8 +105,60 @@
                 ></el-pagination>
       </el-footer>
       <!--工具条-->
-
-
+        <!--源数据界面-->
+        <el-dialog title="源数据" :visible.sync="sourceFormVisible" :close-on-click-modal="false"
+                       style="width: 100%; left: 10%">
+                <el-form :model="sourceForm" label-width="120"  ref="sourceForm">
+                    <el-divider>源数据信息</el-divider>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="patientname：" prop='patientname'>
+                            </el-form-item>
+                            <el-input id="patientname" v-model="sourceForm.patientname"
+                                      placeholder="patientname"></el-input>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="patientid：" prop='patientid'>
+                            </el-form-item>
+                            <el-input id="patientid" v-model="sourceForm.patientid"
+                                      placeholder="patientid"></el-input>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="studyinstanceuid：" prop='studyinstanceuid'>
+                            </el-form-item>
+                            <el-input id="studyinstanceuid" v-model="sourceForm.studyinstanceuid"
+                                      placeholder="studyinstanceuid"></el-input>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="diseases：" prop='diseases'>
+                            </el-form-item>
+                            <el-input id="diseases" v-model="sourceForm.diseases"
+                                      placeholder="diseases"></el-input>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="route：" prop='route'>
+                            </el-form-item>
+                            <el-input id="route" v-model="sourceForm.route"
+                                      placeholder="route"></el-input>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="status：" prop='status'>
+                            </el-form-item>
+                            <el-input id="status" v-model="sourceForm.status"
+                                      placeholder="status"></el-input>
+                        </el-col>
+                    </el-row>
+                    <el-divider>匿名数据</el-divider>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click.native="sourceFormVisible = false">取消</el-button>
+                    <el-button type="primary" @click.native="handleDisable" :loading="sourceLoading">禁用</el-button>
+                </div>
+            </el-dialog>
     </div>
   </div>
 </template>
@@ -116,7 +168,7 @@
 
     import {
         getdurationData,getdurationverify,
-        getdicomurl,detailDisable
+        getdicomurl,detailDisable,getdurationsource
     } from '@/router/api'
 
     // import ElRow from "element-ui/packages/row/src/row";
@@ -128,6 +180,9 @@
                     durationlist: [],
                     selectdate:'',
                 },
+                sourceForm:{
+
+                },
                 total:0,
                 page: 1,
                 count:0,
@@ -137,6 +192,8 @@
                 patientname:'',
                 listLoading: false,
                 sels: [], // 列表选中列
+                sourceFormVisible:false,
+                sourceLoading:false
 
             }
         },
@@ -147,13 +204,6 @@
           this.getParams();
           },
         methods: {
-            onCopy: function (e) {
-                alert('You just copied: ' + e.text)
-            },
-            onError: function (e) {
-                console.log(e)
-                alert('Failed to copy texts')
-            },
 
             //获取由路由传递过来的参数
             getParams(){
@@ -161,9 +211,33 @@
               this.id=this.$route.query.id;
               this.getDurationlist();
               },
-          handleSizeChange: function(size) {
+            handlesource: function(row) {
+                this.getsource(row)
+                this.sourceFormVisible = true
+            },
+            handleSizeChange: function(size) {
               this.page_size = size;
               this.getDurationlist()
+            },
+            getsource(row) {
+                this.sourceLoading = true
+                const self = this
+                const params = {
+                  id:row.id
+                }
+                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
+                getdurationsource(headers, params).then((res) => {
+                    self.sourceLoading = false
+                    const {msg, code, data} = res
+                    if (code === '0') {
+                        self.sourceForm = data
+                    } else {
+                        self.$message.error({
+                            message: msg,
+                            center: true
+                        })
+                    }
+                })
             },
             // 获取数据列表
             getDurationlist() {

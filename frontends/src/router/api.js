@@ -699,6 +699,12 @@ export const getduration = (headers, params) => {
     .get(`${test}/dicom/duration/getduration`, { params: params }, { headers })
     .then((res) => res.data);
 };
+// 获取duration数据源
+export const getdurationsource = (headers, params) => {
+  return axios
+    .get(`${test}/dicom/duration/source`, { params: params }, { headers })
+    .then((res) => res.data);
+};
 
 // 获取duration发送数据
 export const getdurationData = (headers, params) => {

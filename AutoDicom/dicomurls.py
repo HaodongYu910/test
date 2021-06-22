@@ -34,6 +34,7 @@ urlpatterns = [
     url(r'duration/disable_duration', DisableDuration.as_view()),
     url(r'duration/enable_duration', EnableDuration.as_view()),
     url(r'duration/getduration', getDuration.as_view()),
+    url(r'duration/source', getdurationsource.as_view()), # 获取持续 源数据
     url(r'dicomurl', dicomUrl.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
     url(r'base/getdata', getBase.as_view()),
