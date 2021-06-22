@@ -1,24 +1,19 @@
 # coding=utf-8
 import copy
-import logging
-import threading
-import os, shutil
+import os
 import pydicom
 import logging
 import subprocess as sp
-import time, datetime
+import shutil
 import random
 import math
 import socket
 import requests
 import time
 import queue
-from django.db import transaction
 from django.conf import settings
 import threading
 from AutoDicom.models import duration_record, dicom, duration, dicom_group_detail
-from ..common.deletepatients import delete_patients_duration
-from ..serializers import duration_record_Serializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -60,11 +55,13 @@ def Myinster(dicta):
         l = 0
     return listsum
 
+
 def copylist(listsum, count):
     while len(listsum) < count:
         listA = copy.deepcopy(listsum)
         listsum = listA + listsum
     return listsum[:count]
+
 
 def grouping(dictsum, dicom):
     if dictsum.get(dicom.diseases) is None:
@@ -74,38 +71,6 @@ def grouping(dictsum, dicom):
         sum = dictsum.get(dicom.diseases)
         sum.add(dicom)
     dictsum[dicom.diseases] = sum
-
-
-class DicomData(threading.Thread):
-    def __init__(self, **kwargs):
-        threading.Thread.__init__(self)
-        self.count = 1  # 可用来被外部访问
-        self.files = kwargs["files"]
-        self.end = kwargs["end"]
-
-    # 匿名数据队列
-    def run(self):
-        q = queue.Queue()
-        threads = []
-        dicomObj = dicom.objects.filter(fileid__in=self.files)
-        try:
-            while True:
-                if self.count > self.end:
-                    break
-                if self.end >= self.count > int(dicomObj.count()):
-                    dicomObj = dicom.objects.filter(fileid__in=self.files)
-                for j in dicomObj:
-                    if self.count > self.end:
-                        break
-                    else:
-                        src_folder = str(j.route)
-                        while src_folder[-1] == '/':
-                            src_folder = src_folder[0:-1]
-                        q.put([src_folder, j.diseases, self.count])
-                    self.count = self.count + 1
-
-        except Exception as e:
-            logger.error("队列数据生成失败：{0}".format(e))
 
 
 class DurationThread(threading.Thread):
@@ -130,15 +95,17 @@ class DurationThread(threading.Thread):
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
 
-    def anonymization(self, full_fn, full_fn_fake, info):
-        study_uid = ''
-        series_uid = ''
+    def anonymization(self, test_data):
+
+        full_fn = test_data[0]
+        full_fn_fake = test_data[1]
+        info = test_data[2]
+        saveID = test_data[3]
         try:
             ds = pydicom.dcmread(full_fn, force=True)
         except Exception as e:
             logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
         try:
-            study_uid = ds.StudyInstanceUID
             studyolduid = ds.StudyInstanceUID
             Seriesinstanceuid = ds.SeriesInstanceUID
             acc_number = ds.AccessionNumber
@@ -146,31 +113,21 @@ class DurationThread(threading.Thread):
             fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
             cur_date = get_date()
             cur_time = get_time()
-            diseases = info.get("diseases")
         except Exception as e:
             logging.error(
                 'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.StudyInstanceUID = self.norm_string(
-            '{0}.{1}'.format(study_uid, rand_uid), 64)
-        try:
-            series_uid = ds.SeriesInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SeriesInstanceUID = self.norm_string(
-            '{0}.{1}'.format(series_uid, rand_uid), 64)
+
         self.SeriesInstanceUID = ds.SeriesInstanceUID
-        instance_uid = ''
         try:
+            ds.SeriesInstanceUID = self.norm_string(
+                '{0}.{1}'.format(ds.SeriesInstanceUID, rand_uid), 64)
+
             ds.SOPInstanceUID = self.norm_string(
-                '{0}.{1}'.format(instance_uid, rand_uid), 64)
-            ds.PatientID = self.norm_string(
-                '{0}{1}'.format(ds.PatientID, self.patientid), 24)
-
-            ds.PatientName = self.norm_string(
-                '{0}{1}{2}'.format(str(diseases), self.patientname, rand_uid), 24)
+                '{0}.{1}'.format(ds.SOPInstanceUID, rand_uid), 64)
+            ds.StudyInstanceUID = info.get("study_uid")
+            ds.PatientID = info.get("PatientID")
+            ds.PatientName = info.get("PatientName")
             ds.AccessionNumber = fake_acc_number
-
             ds.StudyDate = cur_date
             ds.StudyTime = cur_time
             ds.SeriesDate = cur_date
@@ -184,26 +141,29 @@ class DurationThread(threading.Thread):
         except Exception as e:
             logging.error(
                 'failed to anonymous :  error[{}]'.format(e))
-        try:
-            instance_uid = ds.SOPInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
 
         try:
             ds.save_as(full_fn_fake)
         except Exception as e:
             logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
-        return {
-            "patientid": ds.PatientID,
-            "patientname": ds.PatientName,
-            "accessionnumber": ds.AccessionNumber,
-            "studyinstanceuid": ds.StudyInstanceUID,
-            "studyolduid": studyolduid,
-            "sendserver": self.server,
-            "diseases": diseases,
-            "duration_id": self.obj.id
-        }, Seriesinstanceuid
+
+        try:
+            if int(saveID) == 0:
+                create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+                data = {"patientid": info.get("PatientID"),
+                        "patientname": info.get("PatientName"),
+                        "accessionnumber": ds.AccessionNumber,
+                        "studyinstanceuid": ds.StudyInstanceUID,
+                        "studyolduid": studyolduid,
+                        "sendserver": self.server,
+                        "diseases": info.get("diseases"),
+                        "duration_id": self.obj.id,
+                        "update_time": create_time,
+                        "create_time": create_time}
+                duration_record.objects.create(**data)
+        except Exception as e:
+            logger.error('[获取数据失败]： [{0}]'.format(e))
+        return Seriesinstanceuid
 
     def QueData(self):
         q = queue.Queue()
@@ -234,25 +194,30 @@ class DurationThread(threading.Thread):
 
             # 优先查询组
             for j in listsum:
-                self.CountData.append(dcmcount)
+                dcmcount = 0
                 src_folder = str(j.route)
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
                 try:
+                    rand_uid = get_rand_uid()
                     info = {
                         "diseases": j.diseases,
-                        "rand_uid": get_rand_uid()
+                        "rand_uid": rand_uid,
+                        "study_uid": self.norm_string('{0}.{1}'.format(j.studyinstanceuid, rand_uid), 64),
+                        "PatientID": self.norm_string('{0}{1}'.format(j.patientid, self.patientid), 24),
+                        "PatientName": self.norm_string('{0}{1}{2}'.format(str(j.diseases), self.patientname, rand_uid),
+                                                        24)
                     }
                     file_names = os.listdir(src_folder)
                     file_names.sort()
                     for fn in file_names:
-                        dcmcount = dcmcount + 1
                         full_fn = os.path.join(src_folder, fn)
                         full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
                         if (os.path.splitext(fn)[1] in ['.dcm'] == False):
                             continue
                         try:
                             q.put([full_fn, full_fn_fake, info, dcmcount])
+                            dcmcount = dcmcount + 1
                             logger.info("队列==", q)
                         except Exception as e:
                             logging.error("[匿名错误]:{}".format(e))
@@ -273,9 +238,8 @@ class DurationThread(threading.Thread):
         threads = []
 
         try:
-            logger.info("duration test start")
+            logger.info("duration threading start")
             for i in range(self.thread_num):
-                # logger.info("test start1111111111111")
                 t = threading.Thread(target=self.durationAnony, args=(q,))
                 # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
                 t.start()
@@ -297,28 +261,19 @@ class DurationThread(threading.Thread):
             if not os.path.exists(self.full_fn_fake):
                 break
             self.count = self.count + 1
-            testdata = q.get()
-
-            logger.info(testdata)
-            full_fn_fake = testdata[1]
+            test_data = q.get()
+            # logger.info(testdata)
+            full_fn_fake = test_data[1]
             try:
-                data, Seriesinstanceuid = self.anonymization(testdata[0], full_fn_fake, testdata[2])
+                Seriesinstanceuid = self.anonymization(test_data)
             except Exception as e:
                 logger.error("匿名失败:{}".format(e))
+
             try:
-                if testdata[3] in self.CountData:
-                    create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-                    data["update_time"] = create_time
-                    data["create_time"] = create_time
-                    duration_record.objects.create(**data)
-            except Exception as e:
-                logger.error('[获取数据失败]： [{0}]'.format(e))
-            try:
-                self.sync_send_file(full_fn_fake, data["studyinstanceuid"])
+                self.sync_send_file(full_fn_fake, test_data[2]["study_uid"])
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
-
             try:
                 self.delayed(Seriesinstanceuid)
             except Exception as e:
@@ -326,8 +281,8 @@ class DurationThread(threading.Thread):
 
     def connect_influx(self, data):
         try:
-            influxdata = 'duration,durationid={0},studyuid="{1}",starttime="{2}",endtime="{3}",avgtime="{4}"'.format(
-                self.obj.id, data["studyuid"], data["starttime"], data["endtime"], data["time"])
+            tamp = int(round(time.time() * 1000000000))
+            influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},starttime={data["starttime"]},endtime={data["endtime"]} value={data["time"]} {tamp}'
             requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
@@ -354,8 +309,8 @@ class DurationThread(threading.Thread):
             endtime = time.time()
             self.connect_influx({'studyuid': studyuid,
                                  'time': str('%.2f' % (float(endtime - starttime))),
-                                 'starttime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(starttime)),
-                                 'endtime': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(endtime))
+                                 'starttime': starttime,
+                                 'endtime': endtime
 
                                  })
             os.remove(file_name)
@@ -381,11 +336,12 @@ class DurationThread(threading.Thread):
                     self.SeriesInstanceUID = SeriesID
         except Exception as e:
             logger.error("delayed:{}".format(e))
+
     # 停止
     def durationStop(self):
         # 删除 文件夹
         shutil.rmtree(self.full_fn_fake)
-        self.obj.sendstatus =False
+        self.obj.sendstatus = False
         self.obj.save()
 
     def setParm(self, parm):  # 外部修改内部信息函数

@@ -50,10 +50,11 @@ class getGroupBase(APIView):
         :param request:
         :return:
         """
+        project_id = request.GET.get("project_id")
         groupChildren = {}
         groupOptions = []
         try:
-            baseObj = dicom_group.objects.filter(status=True).order_by("-id")
+            baseObj = dicom_group.objects.filter(status=True, project_id=project_id).order_by("-id")
             for i in baseObj:
                 if groupChildren.__contains__(i.type) is False:
                     children = {
@@ -101,7 +102,7 @@ class getGroup(APIView):
         if id:
             obi = dicom_group.objects.filter(id=id, project_id=project_id).order_by("-id")
         elif type is None:
-            obi = dicom_group.objects.all()
+            obi = dicom_group.objects.filter(project_id=project_id)
         else:
             obi = dicom_group.objects.filter(project_id=project_id, type=type).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象

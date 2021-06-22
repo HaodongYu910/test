@@ -637,7 +637,8 @@
                 this.listLoading = true
                 let self = this;
                 const params = {
-                    page_size: 100
+                    page_size: 100,
+                    project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
@@ -791,7 +792,8 @@
                 let params = {
                     page: self.page,
                     name: self.filters.name,
-                    type: ""
+                    type: "",
+                    project_id:this.project_id
                 };
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 stresslist(headers, params).then((res) => {

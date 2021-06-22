@@ -123,12 +123,12 @@
                 filters: {
                     name: ''
                 },
+                project_id:localStorage.getItem("project_id"),
                 project: [],
                 total: 0,
                 page: 1,
                 listLoading: false,
                 sels: [],//列表选中列
-
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
@@ -185,7 +185,8 @@
                 let params = {
                     type: self.filters.type,
                     page: self.page,
-                    name: self.filters.name
+                    name: self.filters.name,
+                    project:this.project_id
                 };
                 let headers = {
                     Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
