@@ -25,10 +25,6 @@
                         </el-button>
                     </el-form-item>
                     <el-form-item>
-                        <el-button type="primary" @click="stressTest('jmeter')" :disabled="this.sels.length===0">jmeter
-                        </el-button>
-                    </el-form-item>
-                    <el-form-item>
                         <el-button type="primary" @click="stressTest('qb')" :disabled="this.sels.length===0">全部测试
                         </el-button>
                     </el-form-item>
@@ -46,21 +42,14 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="name" label="名称" min-width="8%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="version" label="版本" min-width="8%" show-overflow-tooltip>
-                <template slot-scope="scope">
-                    <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {stressid: scope.row.stressid}}"
-                                 style='text-decoration: none;color: #000000;'>
-                        {{ scope.row.version }}
-                    </router-link>
-                    {{ !scope.row.status?scope.row.version:""}}
-                </template>
-            </el-table-column>
+            <el-table-column prop="version" label="版本-名称" min-width="15%"  sortable>
+                    <template slot-scope="scope">
+                        <router-link v-if="scope.row.version" :to="{ name: 'stressDetail', query: {stressid: scope.row.stressid}}"
+                                     style='text-decoration: none;color: #0000ff;'>
+                            <span style="margin-left: 10px">{{ scope.row.version }}-{{ scope.row.name }}</span>
+                        </router-link>
+                    </template>
+                </el-table-column>
             <el-table-column prop="version" label="服务" min-width="12%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
@@ -98,8 +87,6 @@
             <el-table-column label="操作" min-width="25%">
                 <template slot-scope="scope">
                     <el-row>
-                        <el-button type="warning" size="small" @click="handleLook(scope.$index, scope.row)">查看
-                        </el-button>
                         <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
                         </el-button>
                         <el-button type="info" size="small"

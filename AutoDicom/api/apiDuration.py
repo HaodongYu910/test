@@ -8,6 +8,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 import threading
 import datetime
+import shutil
 
 from influxdb import InfluxDBClient
 from ..common.getdicom import *
@@ -334,10 +335,14 @@ class DisableDuration(APIView):
             if obj.type == "正常":
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.setFlag = False
-            else:
+            elif obj.type == "匿名":
                 logger.info("Stop Duration Thread {}".format(data["id"]))
                 durationThread = DurationThread(id=data["id"])
                 durationThread.durationStop()
+            else:
+                shutil.rmtree(f"/home/biomind/Biomind_Test_Platform/logs/Duration{obj.id}")
+                obj.sendstatus = False
+                obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -386,10 +391,11 @@ class EnableDuration(APIView):
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
             else:
-                durationThread = DurationThread(id=data["id"])
-                durationThread.setDaemon(True)
-                # 开始线程
-                durationThread.start()
+                cmd = f"""nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3
+                                        /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py 
+                                       --ip {obj.server} --aet {obj.aet} --port {obj.port} --groupids {obj.dicom} --durationid {obj.id} --end {obj.sendcount} &"""
+                logger.info(cmd)
+                os.system(cmd)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")

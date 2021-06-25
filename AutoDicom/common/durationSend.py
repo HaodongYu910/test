@@ -270,7 +270,7 @@ class DurationThread(threading.Thread):
                 logger.error("匿名失败:{}".format(e))
 
             try:
-                self.sync_send_file(full_fn_fake, test_data[2]["study_uid"])
+                self.sync_send_file(full_fn_fake, test_data[2]["study_uid"], Seriesinstanceuid)
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
@@ -279,10 +279,12 @@ class DurationThread(threading.Thread):
             except Exception as e:
                 logger.error("delayed fail:{}".format(e))
 
+    # 存储 每张发送信息
     def connect_influx(self, data):
         try:
             tamp = int(round(time.time() * 1000000000))
-            influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},starttime={data["starttime"]},endtime={data["endtime"]} value={data["time"]} {tamp}'
+            influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},Seriesinstanceuid={data["Seriesinstanceuid"]} value={data["time"]} {tamp}'
+            logger.info(f"influx data:{influxdata}")
             requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
@@ -291,7 +293,7 @@ class DurationThread(threading.Thread):
         ts = time.localtime(time.time())
         return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), self.norm_string(rand_uid, 6))
 
-    def sync_send_file(self, file_name, studyuid):
+    def sync_send_file(self, file_name, studyuid, Seriesinstanceuid):
         # 发送数据
         try:
             commands = [
@@ -310,8 +312,8 @@ class DurationThread(threading.Thread):
             self.connect_influx({'studyuid': studyuid,
                                  'time': str('%.2f' % (float(endtime - starttime))),
                                  'starttime': starttime,
-                                 'endtime': endtime
-
+                                 'endtime': endtime,
+                                 'Seriesinstanceuid':Seriesinstanceuid
                                  })
             os.remove(file_name)
         except Exception as e:

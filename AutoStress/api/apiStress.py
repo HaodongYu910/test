@@ -17,7 +17,7 @@ from ..common.manual import ManualThread
 from ..common.stressTest import StressThread
 from ..common.jmeter import JmeterThread
 
-from AutoProject.models import uploadfile
+from AutoProject.models import uploadfile, project_version
 from ..models import stress
 import os
 import shutil
@@ -53,6 +53,7 @@ class stressRun(APIView):
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
         stressid = data["ids"][0]
+        data['type'] = 'jmeter'
         if result:
             return result
         try:
@@ -73,7 +74,7 @@ class stressRun(APIView):
                 single.start()
             # 单一测试
             elif data['type'] == 'jmeter':
-                jmeter = JmeterThread(stressid=self.obj.stressid)
+                jmeter = JmeterThread(stressid=stressid)
                 jmeter.setDaemon(True)
                 jmeter.start()
             # 性能测试
@@ -181,6 +182,10 @@ class stressList(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = stress_Deserializer(obm, many=True)
         for i in serialize.data:
+            try:
+                i["version"] = project_version.objects.get(id=i["version"]).version
+            except:
+                continue
             i["testdata"] = baseTransform(i["testdata"], 'dictionary')
             i["type"] = False
         return JsonResponse(data={"data": serialize.data,

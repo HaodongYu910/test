@@ -68,14 +68,24 @@ def DurationSyTask():
                 _result = connect_postgres(host=host.id, sql=Psql, database="orthanc")
                 _dict = _result.to_dict(orient='records')
                 for ii in _dict:
-                    obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
-                    try:
-                        obj.time = ii["predictionsec"]
-                        obj.model = ii["modelname"]
-                        obj.starttime = ii["starttime"]
-                        obj.save()
-                    except Exception as e:
-                        logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
+                    obj = duration_record.objects.filter(studyinstanceuid=ii["studyuid"])
+                    if int(len(obj)) == 1:
+                        try:
+                            obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
+                            obj.time = ii["predictionsec"]
+                            obj.model = ii["modelname"]
+                            obj.starttime = ii["starttime"]
+                            obj.save()
+                        except Exception as e:
+                            logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
+                            continue
+                    elif int(len(obj)) > 1:
+                        for k in obj:
+                            k.time = ii["predictionsec"]
+                            k.model = ii["modelname"]
+                            k.starttime = ii["starttime"]
+                            k.save()
+                    else:
                         continue
             except Exception as e:
                 logger.error('[Schedule DurationSyTask Error]: error '.format(e))
@@ -144,12 +154,11 @@ def DurationTask():
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
-                logger.info("持续化定时任务{}！".format(i.id))
-                # requests.post(url="http://192.168.1.121:9000/dicom/duration/enable_duration", data={"id":i.id})
-                DT = DurationThread(id=i.id)
-                DT.setDaemon(True)
-                # 开始线程
-                DT.start()
+                cmd = f"""nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3
+                        /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py 
+                       --ip {i.server} --aet {i.aet} --port {i.port} --groupids {i.dicom} --durationid {i.id} --end {i.sendcount} &"""
+                logger.info(cmd)
+                os.system(cmd)
             else:
                 logger.info("持续化定时任务停止{}！".format(i.id))
                 i.status = False
