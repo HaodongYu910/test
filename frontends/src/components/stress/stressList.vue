@@ -65,23 +65,17 @@
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="15%">
+            <el-table-column label="状态" min-width="12%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.teststatus }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="结束时间" min-width="15%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="teststatus" label="状态" min-width="15%" show-overflow-tooltip>
+            <el-table-column prop="status" label="" min-width="8%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/qiyong.png"/>
                     <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/fou.png"/>
-                    <span style="margin-left: 10px">{{ scope.row.teststatus }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="操作" min-width="25%">
@@ -1019,7 +1013,7 @@
                                 jmeterstatus: false,
                                 filedict: this.filedict,
                                 Host: this.addForm.Host,
-                                project_id:this.project_id,
+                                project:this.project_id,
                                 status: false,
                             });
                             let header = {

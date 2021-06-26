@@ -72,8 +72,9 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            obj = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"])
-            i['send'] = str(obj.count())
+            i['send'] = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"]).count()
+            i['totalsend'] = duration_record.objects.filter(duration_id=i["id"]).count()
+            i['todaysend'] = duration_record.objects.filter(duration_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
             if i['version'] is not None:
                 i['version'] = project_version.objects.get(id=i['version']).version
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
@@ -391,9 +392,7 @@ class EnableDuration(APIView):
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
             else:
-                cmd = f"""nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3
-                                        /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py 
-                                       --ip {obj.server} --aet {obj.aet} --port {obj.port} --groupids {obj.dicom} --durationid {obj.id} --end {obj.sendcount} &"""
+                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {obj.id} &"
                 logger.info(cmd)
                 os.system(cmd)
             return JsonResponse(code="0", msg="成功")

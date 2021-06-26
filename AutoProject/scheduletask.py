@@ -10,8 +10,6 @@ import requests
 import datetime
 
 from AutoProject.common.PostgreSQL import connect_postgres
-from django.db import transaction
-from AutoDicom.common.duration import DurationThread
 from .common.message import MessageGroup
 from django.db.models import Count, When, Case, Max, Min, Avg
 
@@ -154,13 +152,12 @@ def DurationTask():
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
-                cmd = f"""nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3
-                        /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py 
-                       --ip {i.server} --aet {i.aet} --port {i.port} --groupids {i.dicom} --durationid {i.id} --end {i.sendcount} &"""
+                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {i.id} &"
                 logger.info(cmd)
                 os.system(cmd)
             else:
                 logger.info("持续化定时任务停止{}！".format(i.id))
+                i.sendstatus = False
                 i.status = False
                 i.save()
     except Exception as e:

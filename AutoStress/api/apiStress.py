@@ -18,7 +18,7 @@ from ..common.stressTest import StressThread
 from ..common.jmeter import JmeterThread
 
 from AutoProject.models import uploadfile, project_version
-from ..models import stress
+from ..models import stress, stress_record, stress_result
 import os
 import shutil
 
@@ -53,7 +53,6 @@ class stressRun(APIView):
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
         stressid = data["ids"][0]
-        data['type'] = 'jmeter'
         if result:
             return result
         try:
@@ -79,6 +78,7 @@ class stressRun(APIView):
                 jmeter.start()
             # 性能测试
             else:
+                logger.info("全部测试开始")
                 stresstest = StressThread(stressid=stressid)
                 stresstest.setDaemon(True)
                 stresstest.start()
@@ -209,6 +209,30 @@ class stressDetail(APIView):
             stressid = request.GET.get("stressid")
             obj = stress.objects.filter(stressid=stressid)
             stressserializer = stress_Deserializer(obj, many=True)
+
+            for i in stressserializer.data:
+                total = int(len(i["testdata"].split(",")))
+
+                try:
+                    manual = float(stress_result.objects.filter(Stress_id=stressid, type="JZ").count() / total)
+                    single = float(stress_result.objects.filter(Stress_id=stressid, type="DY").count() / total)
+                    i["version"] = project_version.objects.get(id=i["version"]).version
+                except:
+                    logger.error("version")
+
+                try:
+                    if i["start_date"] is None:
+                        hybrid = 0
+                    elif i["start_date"] is not None and i["end_date"] is None:
+                        hybrid = 0
+                    else:
+                        hybrid = 0
+                except:
+                    logger.error("version")
+
+                i["manual"] = '%.2f' % (manual)
+                i["single"] = '%.2f' % (single)
+                i["hybrid"] = '%.2f' % (float(80))
 
             return JsonResponse(data={"data": stressserializer.data
                                       }, code="0", msg="成功")

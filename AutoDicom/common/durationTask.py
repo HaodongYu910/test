@@ -17,7 +17,7 @@ import os
 import pydicom
 import logging
 import subprocess as sp
-import shutil
+import datetime
 import random
 import math
 import socket
@@ -119,29 +119,17 @@ def grouping(dictsum, dicom):
 
 class DurationThread:
     def __init__(self, **kwargs):
-        argv = kwargs["argv"]
+        self.id = kwargs["durationId"]
         try:
-            opts, args = getopt.getopt(argv, "h",
-                                       ["aet=", "ip=", "port=", "groupids=", "durationid=",
-                                        "end="])
-            for opt, arg in opts:
-                if opt == '-h':
-                    sys.exit()
-                elif opt in ("--aet"):
-                    self.aec = arg
-                elif opt in ("--ip"):
-                    self.server = arg
-                elif opt in ("--port"):
-                    self.port = arg
-                elif opt in ("--groupids"):
-                    self.groupids = arg
-                elif opt in ("--durationid"):
-                    self.id = arg
-                elif opt in ("--end"):
-                    self.end = arg
+            result = sqlDB(f"select * from duration where id ={self.id}", "", "select")[0]
         except Exception as e:
-            logging.error("error: failed to get args", e)
+            logging.error(f"error: failed to get select * from duration :{e}")
 
+        self.aec = result["aet"]
+        self.server = result["server"]
+        self.port = result["port"]
+        self.groupIds = result["dicom"]
+        self.end = result["sendcount"]
         self.count = 0  # 可用来被外部访问
         self.thread_num = 4
         self.CountData = []
@@ -215,7 +203,7 @@ class DurationThread:
         filecount = 1
         # 查询 所以 dicom ID  优先组数据
         dicomList = sqlDB(
-            f"select * from dicom d join dicom_group_detail dgd on d.id = dgd.dicom_id  where dgd.group_id in ({self.groupids}) and d.status=True",
+            f"select * from dicom d join dicom_group_detail dgd on d.id = dgd.dicom_id  where dgd.group_id in ({self.groupIds}) and d.status=True",
             "", "select")
         # 变成排好序的数据
         listsum = Myinster(dicomList)
@@ -291,10 +279,10 @@ class DurationThread:
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
-            # try:
-            #     self.delayed()
-            # except Exception as e:
-            #     logging.error("delayed fail:{}".format(e))
+            try:
+                self.delayed()
+            except Exception as e:
+                logging.error("delayed fail:{}".format(e))
 
     # 存储 每张发送信息
     def connect_influx(self, data):
@@ -344,20 +332,30 @@ class DurationThread:
 
     # 随机等待
     def delayed(self):
-        sleepcount =""
-        sleeptime = random.randint(1, 10)
-        try:
-            if sleepcount is not None and int(sleepcount) != 0 and sleeptime is not None:
-                imod = divmod(int(self.count), int(sleepcount))
-                if imod[1] == 0:
-                    time.sleep(int(sleeptime))
-        except Exception as e:
-            logging.error("delayed:{}".format(e))
-
+        if int(random.randint(1, 100)) > 80:
+            hour = int(datetime.datetime.now().strftime("%H"))
+            if 18 > hour > 13:
+                sleepTime = random.randint(1, 300)
+            elif 22 > hour > 18:
+                sleepTime = random.randint(1, 10)
+            elif hour > 22:
+                return True
+            else:
+                sleepTime = random.randint(100, 600)
+            time.sleep(int(sleepTime))
 
 if __name__ == '__main__':
     try:
-        DT = DurationThread(argv=sys.argv[1:])
+        opts, args = getopt.getopt(sys.argv[1:], "h",
+                                   ["durationid="])
+
+        for opt, arg in opts:
+            if opt == '-h':
+                sys.exit()
+            elif opt in ("--durationid"):
+                durationId = arg
+
+        DT = DurationThread(durationId=durationId)
         DT.run()
     except Exception as e:
         logging.error("failed to start:{}".format(e))

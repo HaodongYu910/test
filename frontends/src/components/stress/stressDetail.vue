@@ -39,13 +39,13 @@
                         <el-form :model="detailForm" label-width="25%" :rules="addFormRules" ref="addForm">
                             <el-row>
                                 <el-form-item label="Jmeter文件" prop="name">
-                                    <el-select v-model="detailForm.version" placeholder="请选择"
-                                               @click.native="getversion()">
+                                    <el-select v-model="detailForm.filename" placeholder="请选择"
+                                               @click.native="getuploadList()">
                                         <el-option
-                                                v-for="(item,index) in VersionInfo"
-                                                :key="item.id"
-                                                :label="item.version"
-                                                :value="item.id"
+                                                v-for="(item,index) in jmeterList"
+                                                :key="item.filename"
+                                                :label="item.filename"
+                                                :value="item.filename"
                                         />
                                     </el-select>
                                 </el-form-item>
@@ -54,11 +54,11 @@
                                 <el-col :span="16">
                                     <el-card>
                                         <el-table
-                                                :data="tableData"
+                                                :data="jmeterData"
                                                 style="width: 100%"
-                                                :row-class-name="tableRowClassName">
+                                                :row-class-name="jmeterData">
                                             <el-table-column
-                                                    prop="name"
+                                                    prop="filename"
                                                     label="场景名称"
                                                     width="180">
                                             </el-table-column>
@@ -79,15 +79,15 @@
                                         <el-divider>测试进度</el-divider>
                                         <el-form-item label="基准测试" prop='thread'>
                                             <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="10"></el-progress>
+                                                         :percentage="detailForm.manual"></el-progress>
                                         </el-form-item>
                                         <el-form-item label="单一测试" prop='thread'>
                                             <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="70"></el-progress>
+                                                         :percentage="detailForm.single"></el-progress>
                                         </el-form-item>
                                         <el-form-item label="混合测试" prop='thread'>
                                             <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="100" status="success"></el-progress>
+                                                         :percentage="detailForm.hybrid" status="success"></el-progress>
                                         </el-form-item>
                                     </el-card>
                                 </el-col>
@@ -157,7 +157,6 @@
                                         <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
                                     </el-upload>
                                     <el-progress :stroke-width="16" :percentage="100"></el-progress>
-
                                 </el-col>
                             </el-row>
                         </el-form>
@@ -597,7 +596,7 @@
 <script>
     // import NProgress from 'nprogress'
 
-    import {
+    import {getupload,
         getVersionInfo, StressDetail,
         updateStress, stresssave, getHost, getDictionary, stressTool, addupload, delupload
 
@@ -616,6 +615,9 @@
                     {color: '#6f7ad3', percentage: 80},
                     {color: '#03fa54', percentage: 100},
                 ],
+                Host:{},
+                jmeterList:{},
+                jmeterData:{},
                 typeoptions: [{
                     value: '匿名',
                     label: '匿名'
@@ -754,13 +756,6 @@
                     }
                 })
             },
-            displaystatus: function (i) {
-                if (i === '持续化') {
-                    return ''
-                } else {
-                    return 'none'
-                }
-            },
             typestatus: function (i) {
                 if (i === true) {
                     return 'danger'
@@ -783,43 +778,27 @@
                     }
                 });
             },
-            deldicom(formName) {
-                this.tableData = null
-                this.$refs[formName].validate((valid) => {
-                    if (valid) {
-                        const params = {
-                            server_ip: this.form.server_ip,
-                            deldata: this.form.deldata,
-                            testtype: this.form.testtype,
-                            fuzzy: this.form.fuzzy
+            getuploadList() {
+                const params = {
+                    page_size: "999999",
+                    type: "stress"
+                }
+                const headers = {
+                    'Content-Type': 'application/json'
+                }
+                getupload(headers, params).then(_data => {
+                    const {msg, code, data} = _data
+                    if (code != '0') {
+                        this.$message.error(msg)
+                        return
+                    }
+                    // 请求正确时执行的代码
+                    this.jmeterList = data.data
+                    for (var i in this.jmeterList){
+                        if (i["filename"]===this.detailForm.filename){
+                            this.jmeterData = i
+                            console.log(this.jmeterData)
                         }
-                        const headers = {
-                            'Content-Type': 'application/json'
-                        }
-                        delete_patients(headers, params).then(_data => {
-
-                            const {msg, code, data} = _data
-                            if (code != '0') {
-                                this.$message.error(msg)
-                                return
-                            }
-                            var result = data[0]
-                            if (data != null && result == false) {
-                                this.$message.error(data[1])
-                                return
-                            }
-                            // 请求正确时执行的代码
-                            var mydata = data[1]
-                            var tableData = []
-                            for (var i = 0; i < mydata.length; i++) {
-                                tableData.push({'name': mydata[i]})
-                            }
-                            var json = JSON.stringify(tableData)
-                            this.tableData = JSON.parse(json)
-                        })
-                    } else {
-                        console.log('error submit')
-                        return false
                     }
                 })
             },
