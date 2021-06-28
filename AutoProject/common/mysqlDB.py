@@ -65,8 +65,8 @@ class mysqlDB():
 
 
 class postgresDB():
-    def __init__(self):
-        self.conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=orthanc_ip, port="5432");  # 连接数据库
+    def __init__(self, **kwargs):
+        self.conn = pc.connect(database="orthanc", user="postgres", password="4a53e4f5c42fd5a31890860b204472c5", host=kwargs["ip"], port="5432");  # 连接数据库
         self.cur = self.conn.cursor()
 
     def select(self,parameter):
