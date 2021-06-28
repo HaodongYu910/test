@@ -361,10 +361,8 @@ CRONJOBS = [
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化报告任务
     ('30 16 * * *', 'AutoProject.scheduletask.NightlyReportTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # NightlyReport 任务
-
-    TODO:
-    ('30 09 * * *', 'AutoDicom.common.delete_pacs.py',
-     '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化报告任务
+    ('30 23 * * *', 'AutoDicom.common.delete_pacs.main_delete',
+     '>>/home/biomind/Biomind_Test_Platform/logs/delete_pacs.logs')  # delete db in pacs and dicom folder in Linux (192.168.2.84)
 
 
     # ('30 19 * * *', 'AutoProject.scheduletask.job1_task','>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),# 每天20：00 执行发送测试邮件 '> /usr/project_env/platform/AutoProject/logs/job.logs'
