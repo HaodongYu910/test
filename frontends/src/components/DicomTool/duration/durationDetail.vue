@@ -152,11 +152,21 @@
                                       placeholder="status"></el-input>
                         </el-col>
                     </el-row>
+                    <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="解压地址：" prop='route'>
+                            </el-form-item>
+                            <el-input id="oldPath" v-model="sourceForm.oldPath"
+                                      placeholder="解压地址"></el-input>
+                        </el-col>
+                        <el-col :span="12">
+                        </el-col>
+                    </el-row>
                     <el-divider>匿名数据</el-divider>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="sourceFormVisible = false">取消</el-button>
-                    <el-button type="primary" @click.native="handleDisable" :loading="sourceLoading">禁用</el-button>
+                    <el-button type="primary" @click.native="handleDisable(sourceForm.studyinstanceuid)" :loading="sourceLoading">禁用</el-button>
                 </div>
             </el-dialog>
     </div>
@@ -289,7 +299,8 @@
                     }
                 })
             },
-            handleDisable: function (index, row) {
+            handleDisable: function (uid) {
+                console.log(uid)
                 this.$confirm('确认禁用原数据?', '提示', {
                     type: 'warning'
                 }).then(() => {
@@ -297,7 +308,7 @@
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        studyuid: row.studyolduid
+                        studyuid: uid
                     };
                     let header = {
                         "Content-Type": "application/json",

@@ -1,4 +1,7 @@
 import copy
+import time
+import random
+import math
 
 def get_date():
     localtime = time.localtime(time.time())
@@ -11,9 +14,10 @@ def get_time():
 
 
 def get_rand_uid():
-    rand_val = random.randint(1, math.pow(10, 16) - 1)
-    return str(time.time())
+    # rand_val = random.randint(1, math.pow(10, 16) - 1)
     # return "%08d" % rand_val
+    return str(time.time())
+
 
 
 def Myinster(dicta):

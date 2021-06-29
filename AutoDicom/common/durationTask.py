@@ -27,7 +27,7 @@ import queue
 import threading
 
 # 链接mysql数据库
-def sqlDB(sql, data, type):
+def sqlDB(sql, type):
     conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='auto_test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
@@ -41,8 +41,8 @@ def sqlDB(sql, data, type):
             conn.rollback()
     else:
         try:
-            logging.info("sql:{0},data:{1}".format(sql, data))
-            cur.execute(sql, data)
+            logging.info("sql:{0}".format(sql))
+            cur.execute(sql)
             conn.commit()
         except Exception as e:
             conn.rollback()
@@ -121,7 +121,7 @@ class DurationThread:
     def __init__(self, **kwargs):
         self.id = kwargs["durationId"]
         try:
-            result = sqlDB(f"select * from duration where id ={self.id}", "", "select")[0]
+            result = sqlDB(f"select * from duration where id ={self.id}", "select")[0]
         except Exception as e:
             logging.error(f"error: failed to get select * from duration :{e}")
 
@@ -193,7 +193,7 @@ class DurationThread:
         try:
             if int(saveID) == 0:
                 create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-                sqlDB(f"INSERT INTO duration_record('id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount', 'imagecount_server', 'aistatus', 'diagnosis', 'sendserver', 'sendtime', 'starttime', 'endtime', 'jobtime', 'error', 'model', 'time', 'duration_id', 'diseases', 'update_time', 'create_time') VALUES (NULL, {ds.PatientID}, {ds.PatientName}, {ds.AccessionNumber}, {ds.StudyInstanceUID}, {studyolduid}, NULL, NULL, NULL, NULL, {self.server}, NULL, NULL, NULL, NULL, NULL, NULL, NULL, {self.id}, {info.get('diseases')}, {create_time}, {create_time});", "", "")
+                sqlDB(f"INSERT INTO duration_record VALUES (NULL, '{ds.PatientID}', '{ds.PatientName}', '{ds.AccessionNumber}', '{ds.StudyInstanceUID}', '{studyolduid}', NULL, NULL, NULL, NULL, '{self.server}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, {self.id}, '{info.get('diseases')}', '{create_time}', '{create_time}')", "sql")
         except Exception as e:
             logging.error('[获取数据失败]： [{0}]'.format(e))
         return Seriesinstanceuid
@@ -204,7 +204,7 @@ class DurationThread:
         # 查询 所以 dicom ID  优先组数据
         dicomList = sqlDB(
             f"select * from dicom d join dicom_group_detail dgd on d.id = dgd.dicom_id  where dgd.group_id in ({self.groupIds}) and d.status=True",
-            "", "select")
+            "select")
         # 变成排好序的数据
         listsum = Myinster(dicomList)
         # 补充数据
@@ -334,11 +334,11 @@ class DurationThread:
     def delayed(self):
         if int(random.randint(1, 100)) > 80:
             hour = int(datetime.datetime.now().strftime("%H"))
-            if 18 > hour > 13:
-                sleepTime = random.randint(1, 300)
-            elif 22 > hour > 18:
-                sleepTime = random.randint(1, 10)
-            elif hour > 22:
+            if 8 < hour < 12:
+                sleepTime = random.randint(1, 50)
+            elif 14 < hour < 18:
+                sleepTime = random.randint(1, 20)
+            elif hour > 21:
                 return True
             else:
                 sleepTime = random.randint(100, 600)

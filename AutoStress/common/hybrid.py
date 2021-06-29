@@ -32,7 +32,11 @@ class HybridThread(threading.Thread):
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
-        self.local_aet = settings.LocalAet
+        # 获取计算机名称
+        if socket.gethostname() == "biomindqa38":
+            self.local_aet = 'QA38'
+        else:
+            self.local_aet = 'QA120'
         self.full_fn_fake = '{0}/{1}'.format(settings.LOG_PATH, self.keyword)
 
     # 匿名化数据

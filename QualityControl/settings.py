@@ -15,11 +15,6 @@ import socket
 # import ldap
 # from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType
 
-# 获取计算机名称
-if socket.gethostname() == "biomindqa38":
-    LocalAet = 'QA38'
-else:
-    LocalAet = 'QA120'
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

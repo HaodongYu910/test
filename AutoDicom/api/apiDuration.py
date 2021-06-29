@@ -1,8 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import transaction
-from django.db.models import Avg
-from django.db import transaction
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -12,7 +10,7 @@ import shutil
 
 from influxdb import InfluxDBClient
 from ..common.getdicom import *
-from ..models import duration, duration_record, dicom
+from ..models import duration, dicom_relation, dicom
 from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer, \
     dicomdata_Deserializer
 from ..common.anonymization import onlyDoAnonymization
@@ -183,8 +181,15 @@ class getdurationsource(APIView):
         try:
             obj = duration_record.objects.get(id=durationid)
             dicomObj = dicom.objects.get(studyinstanceuid=obj.studyolduid)
+
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="无此数据!")
+
+        try:
+            oldPath = dicom_relation.objects.get(success_uid=dicomObj.studyinstanceuid).old_path
+        except Exception as e:
+            logger.error(e)
+            oldPath = ''
         data = {
             "patientid": dicomObj.patientid,
             "patientname": dicomObj.patientname,
@@ -192,7 +197,8 @@ class getdurationsource(APIView):
             "diseases": dicomObj.diseases,
             "imagecount": dicomObj.imagecount,
             "route": dicomObj.route,
-            "status": dicomObj.status
+            "status": dicomObj.status,
+            "oldPath": oldPath
         }
         return JsonResponse(data=data, code="0", msg="成功")
 

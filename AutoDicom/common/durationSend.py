@@ -28,7 +28,12 @@ class DurationThread(threading.Thread):
         self.thread_num = 4
         self.CountData = []
         self.SeriesInstanceUID = ''
-        self.local_aet = settings.LocalAet
+        # 获取计算机名称
+        if socket.gethostname() == "biomindqa38":
+            self.local_aet = 'QA38'
+        else:
+            self.local_aet = 'QA120'
+
         self.full_fn_fake = '{0}/{1}'.format(settings.LOG_PATH, self.keyword)
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
@@ -137,7 +142,7 @@ class DurationThread(threading.Thread):
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
                 try:
-                    rand_uid = get_rand_uid()
+                    rand_uid = str(time.time())
                     info = {
                         "diseases": j.diseases,
                         "rand_uid": rand_uid,

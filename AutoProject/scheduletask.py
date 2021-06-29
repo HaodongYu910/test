@@ -50,11 +50,13 @@ __version__ = ""
 # 同步持续化数据结果
 def DurationSyTask():
     infos = {}
-    obj = duration_record.objects.filter(time=None)
+    obj = duration_record.objects.filter(time=None,error__isnull=True)
     Psqlobj = dictionary.objects.get(key='durationP', status=True, type='sql')
     try:
         for i in obj:
-            if infos.__contains__(i.sendserver) is False:
+            if i.sendserver in ["192.168.1.200"]:
+                continue
+            elif infos.__contains__(i.sendserver) is False:
                 infos[i.sendserver] = '\'' + str(i.studyinstanceuid) + '\''
             else:
                 infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''

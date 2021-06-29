@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
-from ..serializers import stress_Deserializer
+from ..serializers import stress_Deserializer, stress_result_Deserializer
 
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
@@ -21,6 +21,7 @@ from AutoProject.models import uploadfile, project_version
 from ..models import stress, stress_record, stress_result
 import os
 import shutil
+import datetime
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -211,34 +212,89 @@ class stressDetail(APIView):
             stressserializer = stress_Deserializer(obj, many=True)
 
             for i in stressserializer.data:
-                total = int(len(i["testdata"].split(",")))
-
                 try:
-                    manual = float(stress_result.objects.filter(Stress_id=stressid, type="JZ").count() / total)
-                    single = float(stress_result.objects.filter(Stress_id=stressid, type="DY").count() / total)
                     i["version"] = project_version.objects.get(id=i["version"]).version
                 except:
                     logger.error("version")
-
-                try:
-                    if i["start_date"] is None:
-                        hybrid = 0
-                    elif i["start_date"] is not None and i["end_date"] is None:
-                        hybrid = 0
-                    else:
-                        hybrid = 0
-                except:
-                    logger.error("version")
-
-                i["manual"] = '%.2f' % (manual)
-                i["single"] = '%.2f' % (single)
-                i["hybrid"] = '%.2f' % (float(80))
 
             return JsonResponse(data={"data": stressserializer.data
                                       }, code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
+
+
+class strategyDetail(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+                获取压测详情
+                :param request:
+                :return:
+                """
+        try:
+            stressId = request.GET.get("stressid")
+            strategy = request.GET.get("strategy")
+            obj = stress.objects.get(stressid=stressId)
+            if strategy == "SceneConfiguration":
+                total = int(len(obj.testdata.split(",")))
+                try:
+                    manual = float(stress_result.objects.filter(Stress_id=stressId, type="JZ").count() / total)
+                    single = float(stress_result.objects.filter(Stress_id=stressId, type="DY").count() / total)
+                except Exception as e:
+                    logger.error(e)
+
+                try:
+                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    if obj.start_date is None:
+                        hybrid = 0
+                    elif obj.end_date >= now:
+                        hybrid = 1
+                    else:
+                        hybrid = float(stress_result.objects.filter(Stress_id=stressId, type="HH").count() / total)
+                except Exception as e:
+                    logger.error(e)
+                    # 进度
+                progress = {
+                        "manual": '%.2f' % (manual*100),
+                        "single": '%.2f' % (single*100),
+                        "hybrid": '%.2f' % (hybrid*100)
+                    }
+                return JsonResponse(data={
+                    "progress": progress,
+                    "modelDetail": []
+                }, code="0", msg="成功")
+            else:
+                resultObj = stress_result.objects.filter(Stress_id=stressId, type=strategy)
+                if len(resultObj):
+                    serializer = stress_result_Deserializer(resultObj, many=True)
+                    for i in serializer.data:
+                        i["modelname"] = dictionary.objects.get(id=i["modelname"]).key
+                    return JsonResponse(data={
+                        "modelDetail": serializer.data,
+                        "progress": {}
+                    }, code="0", msg="成功")
+                else:
+                    dataList = []
+                    for i in obj.testdata.split(","):
+                        data = {
+                            "modelname": dictionary.objects.get(id=i).key,
+                            "type": "HH",
+                            "start_date": "--",
+                            "end_date": "--"
+                        }
+                        dataList.append(data)
+
+                    return JsonResponse(data={
+                        "modelDetail": dataList,
+                        "progress": {}
+                    }, code="0", msg="成功")
+        except Exception as e:
+            logger.error(e)
+            return JsonResponse(msg="失败", code="999991", exception=e)
+
 
 class addStress(APIView):
     authentication_classes = (TokenAuthentication,)

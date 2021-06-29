@@ -19,7 +19,7 @@ router = routers.DefaultRouter()
 urlpatterns = [
     url(r'dicomData', dicomData.as_view()),
     url(r'dicomdetail', dicomDetail.as_view()),
-    url(r'dicomdetail/Disable', DetailDisable.as_view()),
+    url(r'detail/Disable', DetailDisable.as_view()),
     url(r'update', dicomUpdate.as_view()),
     url(r'delDDD', deldicomdata.as_view()),
     url(r'dicomcsv', dicomcsv.as_view()),
