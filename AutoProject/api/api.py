@@ -4,6 +4,8 @@ from rest_framework.parsers import JSONParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from django.db import transaction
+
+from AutoDicom.common.delete_pacs import *
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
 from AutoProject.scheduletask import *
@@ -27,11 +29,7 @@ class test(APIView):
 
         # data = JSONParser().parse(request)
         try:
-            JobSyTask()
-            stressData = dicom.objects.filter(stressstatus__in=['1', '2'])
-            for k in stressData:
-                checkuid(9, "192.168.1.208", str(k.id))
-            # DurationTask()
+            main_delete()
 
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
