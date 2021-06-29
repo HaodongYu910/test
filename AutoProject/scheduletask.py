@@ -10,8 +10,6 @@ import requests
 import datetime
 
 from AutoProject.common.PostgreSQL import connect_postgres
-from django.db import transaction
-from AutoDicom.common.duration import DurationThread
 from .common.message import MessageGroup
 from django.db.models import Count, When, Case, Max, Min, Avg
 
@@ -52,11 +50,13 @@ __version__ = ""
 # 同步持续化数据结果
 def DurationSyTask():
     infos = {}
-    obj = duration_record.objects.filter(time=None)
+    obj = duration_record.objects.filter(time=None,error__isnull=True)
     Psqlobj = dictionary.objects.get(key='durationP', status=True, type='sql')
     try:
         for i in obj:
-            if infos.__contains__(i.sendserver) is False:
+            if i.sendserver in ["192.168.1.200"]:
+                continue
+            elif infos.__contains__(i.sendserver) is False:
                 infos[i.sendserver] = '\'' + str(i.studyinstanceuid) + '\''
             else:
                 infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
@@ -68,14 +68,24 @@ def DurationSyTask():
                 _result = connect_postgres(host=host.id, sql=Psql, database="orthanc")
                 _dict = _result.to_dict(orient='records')
                 for ii in _dict:
-                    obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
-                    try:
-                        obj.time = ii["predictionsec"]
-                        obj.model = ii["modelname"]
-                        obj.starttime = ii["starttime"]
-                        obj.save()
-                    except Exception as e:
-                        logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
+                    obj = duration_record.objects.filter(studyinstanceuid=ii["studyuid"])
+                    if int(len(obj)) == 1:
+                        try:
+                            obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
+                            obj.time = ii["predictionsec"]
+                            obj.model = ii["modelname"]
+                            obj.starttime = ii["starttime"]
+                            obj.save()
+                        except Exception as e:
+                            logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
+                            continue
+                    elif int(len(obj)) > 1:
+                        for k in obj:
+                            k.time = ii["predictionsec"]
+                            k.model = ii["modelname"]
+                            k.starttime = ii["starttime"]
+                            k.save()
+                    else:
                         continue
             except Exception as e:
                 logger.error('[Schedule DurationSyTask Error]: error '.format(e))
@@ -96,24 +106,41 @@ def JobSyTask():
                 infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
         logger.info("持续化数据 Job结果同步定时任务启动！~~")
         for k, v in infos.items():
-            host = Server.objects.get(host=k)
+            try:
+                host = Server.objects.get(host=k)
+            except:
+                continue
             sql = sqlobj.value.format(v)
             try:
                 result = connect_postgres(host=host.id, sql=sql, database="orthanc")
                 resultdict = result.to_dict(orient='records')
                 for j in resultdict:
-                    obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
-                    try:
-                        obj.imagecount_server = j["imagecount_server"]
-                        obj.aistatus = j["pai_status"]
-                        obj.error = j["error"]
-                        obj.diagnosis = j["pclassification"]
-                        obj.jobtime = j["jobtime"]
-                        obj.endtime = j["endtime"]
-                        obj.save()
-                    except Exception as e:
-                        logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
+                    obj = duration_record.objects.filter(studyinstanceuid=j["studyuid"])
+                    if int(len(obj)) == 1:
+                        try:
+                            obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
+                            obj.imagecount_server = j["imagecount_server"]
+                            obj.aistatus = j["pai_status"]
+                            obj.error = j["error"]
+                            obj.diagnosis = j["pclassification"]
+                            obj.jobtime = j["jobtime"]
+                            obj.endtime = j["endtime"]
+                            obj.save()
+                        except Exception as e:
+                            logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
+                            continue
+                    elif int(len(obj)) > 1:
+                        for k in obj:
+                            k.imagecount_server = j["imagecount_server"]
+                            k.aistatus = j["pai_status"]
+                            k.error = j["error"]
+                            k.diagnosis = j["pclassification"]
+                            k.jobtime = j["jobtime"]
+                            k.endtime = j["endtime"]
+                            k.save()
+                    else:
                         continue
+
             except Exception as e:
                 logger.error('[Schedule JobSyTask Error]: error '.format(e))
                 continue
@@ -127,14 +154,12 @@ def DurationTask():
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
-                logger.info("持续化定时任务{}！".format(i.id))
-                # requests.post(url="http://192.168.1.121:9000/dicom/duration/enable_duration", data={"id":i.id})
-                DT = DurationThread(id=i.id)
-                DT.setDaemon(True)
-                # 开始线程
-                DT.start()
+                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {i.id} &"
+                logger.info(cmd)
+                os.system(cmd)
             else:
                 logger.info("持续化定时任务停止{}！".format(i.id))
+                i.sendstatus = False
                 i.status = False
                 i.save()
     except Exception as e:

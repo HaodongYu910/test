@@ -190,4 +190,4 @@ class DetailDisable(APIView):
             obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="数据不存在！")

@@ -196,7 +196,8 @@ export default new Router({
                 {
                     path: '/stressDetail',
                     component: resolve => require(['../components/stress/stressDetail.vue'], resolve),
-                    meta: {title: '性能详情'}
+                    meta: {title: '性能详情'},
+                    name: "stressDetail"
                 },
                 {
                     path: '/data',

@@ -719,8 +719,10 @@
                 let params = {
                     page: self.page,
                     page_size:self.page_size,
-                    version: self.filters.version
+                    version: self.filters.version,
+                    project_id:self.project_id
                 };
+                console.log(params)
                 let headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))};
                 getInstall(headers, params).then((res) => {
                     self.listLoading = false;
