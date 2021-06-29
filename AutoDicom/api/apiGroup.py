@@ -54,7 +54,7 @@ class getGroupBase(APIView):
         groupChildren = {}
         groupOptions = []
         try:
-            baseObj = dicom_group.objects.filter(status=True, project_id=project_id).order_by("-id")
+            baseObj = dicom_group.objects.filter(status=True).order_by("-id")
             for i in baseObj:
                 if groupChildren.__contains__(i.type) is False:
                     children = {
@@ -100,11 +100,11 @@ class getGroup(APIView):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         id = request.GET.get("id")
         if id:
-            obi = dicom_group.objects.filter(id=id, project_id=project_id).order_by("-id")
+            obi = dicom_group.objects.filter(id=id).order_by("-id")
         elif type is None:
-            obi = dicom_group.objects.filter(project_id=project_id)
+            obi = dicom_group.objects.filter()
         else:
-            obi = dicom_group.objects.filter(project_id=project_id, type=type).order_by("-id")
+            obi = dicom_group.objects.filter(type=type).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -290,7 +290,7 @@ class UpdateGroup(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
+            # 校验id类型为int
             if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
             # 必传参数 name
@@ -353,7 +353,7 @@ class DelGroup(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
+            # 校验id类型为int
             if not isinstance(data["ids"], list):
                 return JsonResponse(code="999996", msg="参数有误！")
             for i in data["ids"]:
@@ -396,7 +396,7 @@ class DisableGroup(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
+            # 校验id类型为int
             if not isinstance(data["id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:

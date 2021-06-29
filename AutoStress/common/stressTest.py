@@ -28,6 +28,24 @@ class StressThread(threading.Thread):
 
     def run(self):
         try:
+            # 开始时间
+            start = datetime.datetime.now()
+            # 结束时间
+            end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
+                "%Y-%m-%d %H:%M:%S")
+            if self.Flag is True:
+                logger.info("混合测试开始")
+                Hybrid = HybridThread(stressid=self.id)
+                Hybrid.setDaemon(True)
+                Hybrid.start()
+                while str(start) < str(end):
+                    start = datetime.datetime.now()
+                Restart(id=self.obj.Host.id)
+                time.sleep(500)
+        except Exception as e:
+            logger.error("混合测试失败：{}".format(e))
+            # 混合测试
+        try:
             logger.info("基准测试开始")
             Manual = ManualThread(stressid=self.id)
             Manual.setDaemon(True)
@@ -46,24 +64,7 @@ class StressThread(threading.Thread):
         except Exception as e:
             logger.error("单一测试失败：{}".format(e))
 
-        try:
-            # 开始时间
-            start = datetime.datetime.now()
-            # 结束时间
-            end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.duration))).strftime(
-                "%Y-%m-%d %H:%M:%S")
-            if self.Flag is True:
-                logger.info("混合测试开始")
-                Hybrid = HybridThread(stressid=self.id)
-                Hybrid.setDaemon(True)
-                Hybrid.start()
-                while str(start) < str(end):
-                    start = datetime.datetime.now()
-                Restart(id=self.obj.Host.id)
-                time.sleep(300)
-        except Exception as e:
-            logger.error("混合测试失败：{}".format(e))
-            # 混合测试
+
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean

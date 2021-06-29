@@ -515,6 +515,12 @@ export const StressDetail = (headers, params) => {
     .get(`${test}/stress/Detail `, { params: params }, headers)
     .then((res) => res.data);
 };
+//压测策略详情
+export const StrategyDetail = (headers, params) => {
+  return axios
+    .get(`${test}/stress/strategy `, { params: params }, headers)
+    .then((res) => res.data);
+};
 // 运行压力测试
 export const stressTool = (headers, params) => {
   return axios
@@ -646,7 +652,7 @@ export const dicomdetail = (headers, params) => {
 // dicomdetail禁用dicom数据
 export const detailDisable = (headers, params) => {
   return axios
-    .post(`${test}/dicom/dicomdetail/Disable`, params, headers)
+    .post(`${test}/dicom/detail/Disable`, params, headers)
     .then((res) => res.data);
 };
 //dicom数据
@@ -697,6 +703,12 @@ export const getdurationReport = (headers, params) => {
 export const getduration = (headers, params) => {
   return axios
     .get(`${test}/dicom/duration/getduration`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+// 获取duration数据源
+export const getdurationsource = (headers, params) => {
+  return axios
+    .get(`${test}/dicom/duration/source`, { params: params }, { headers })
     .then((res) => res.data);
 };
 

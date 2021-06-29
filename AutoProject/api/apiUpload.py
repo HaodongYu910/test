@@ -29,13 +29,13 @@ class getUpload(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
-            type =request.GET.get("type")
+            type = request.GET.get("type")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        version = request.GET.get("version")
+        filename = request.GET.get("filename")
 
-        if version:
-            obi = uploadfile.objects.filter(version=version,type=type).order_by("id")
+        if filename:
+            obi = uploadfile.objects.filter(filename=filename, type=type).order_by("id")
         else:
             obi = uploadfile.objects.filter(type=type).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象

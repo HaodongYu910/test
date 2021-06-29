@@ -20,6 +20,7 @@ urlpatterns = [
     url(r'run', stressRun.as_view()),
     url(r'stop', stressStop.as_view()),
     url(r'Detail', stressDetail.as_view()),
+    url(r'strategy', strategyDetail.as_view()),
     url(r'figure', reportfigure.as_view()),
     url(r'save', stressResultsave.as_view()),
     url(r'list/add', addStress.as_view()),

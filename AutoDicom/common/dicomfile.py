@@ -32,7 +32,7 @@ def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predic
         if (os.path.isdir(full_fn)):  # 如果它是个文件夹
             updateFolder(custom, full_fn, study_infos, diseases, foldType, id, predictor, temporary_uid)
             continue
-        elif (os.path.splitext(fn)[1] !=  '.dcm'):
+        elif (os.path.splitext(fn)[1] !='.dcm'):
             # 规范化数据时候，不论成功失败都要记录哪个成功，哪个失败
             dicom_relation_data["baseid"] = id
             dicom_relation_data["old_path"] = full_fn
