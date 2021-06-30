@@ -109,7 +109,7 @@
                 <el-table-column label="操作" min-width="20%">
                     <template slot-scope="scope">
                         <el-row>
-                            <el-button :type="typestatus(scope.row.sendstatus)" size="small"
+                            <el-button :type="typeStatus(scope.row.sendstatus)" size="small"
                                        @click="handleChangeStatus(scope.$index, scope.row)">
                                 {{scope.row.sendstatus===false?'启用':'停用'}}
                             </el-button>
@@ -665,7 +665,7 @@
                     return 'none'
                 }
             },
-            typestatus: function (i) {
+            typeStatus: function (i) {
                 if (i === true) {
                     return 'danger'
                 } else {

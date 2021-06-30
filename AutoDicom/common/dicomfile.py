@@ -29,7 +29,7 @@ def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predic
     temporary_uid = history_uid
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-        logger.info("os.path.splitext(fn)[1]=",os.path.splitext(fn)[1])
+        logger.info("os.path.splitext(fn)[1]=", os.path.splitext(fn)[1])
         if (os.path.isdir(full_fn)):  # 如果它是个文件夹
             updateFolder(custom, full_fn, study_infos, diseases, foldType, id, predictor, temporary_uid)
             continue

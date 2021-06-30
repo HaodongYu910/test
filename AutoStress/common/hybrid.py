@@ -7,6 +7,7 @@ import datetime
 import time
 import queue
 import threading
+import socket
 
 from AutoDicom.common.dataSort import *
 from AutoDicom.models import duration_record, dicom
