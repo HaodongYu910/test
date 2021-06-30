@@ -227,7 +227,7 @@ class DurationThread(threading.Thread):
         try:
             tamp = int(round(time.time() * 1000000000))
             influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},Seriesinstanceuid={data["Seriesinstanceuid"]} value={data["time"]} {tamp}'
-            logger.info(f"influx data:{influxdata}")
+            # logger.info(f"influx data:{influxdata}")
             requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))

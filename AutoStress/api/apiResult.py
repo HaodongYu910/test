@@ -113,9 +113,9 @@ class reportfigure(APIView):
         if result:
             return result
         try:
-            if data["type"] == 'jz':
+            if data["type"] == 'JZ':
                 type = ['predictionJZ', 'jobJZ']
-            elif data["type"] == 'dy':
+            elif data["type"] == 'DY':
                 type = ['predictiondy', 'jobdy']
             else:
                 type = ['prediction', 'job']

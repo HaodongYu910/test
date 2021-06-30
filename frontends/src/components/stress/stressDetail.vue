@@ -12,21 +12,24 @@
 
                         </el-form-item>
                         <el-form-item label="服务器" prop="server">
-                            <el-select v-model="detailForm.loadserver" placeholder="请选择服务" @click.native="gethost()">
+                            <el-select @click.native="gethost()" placeholder="请选择服务" v-model="detailForm.loadserver">
                                 <el-option key="" label="" value=""></el-option>
-                                <el-option v-for="(item,index) in Host"
-                                           :key="item.id"
+                                <el-option :key="item.id"
                                            :label="item.name"
                                            :value="item.id"
+                                           v-for="(item,index) in Host"
                                 />
                             </el-select>
                         </el-form-item>
 
                         <el-form-item>
-                            <el-button type="primary" @click="handleAdd">修改</el-button>
+                            <el-button @click="editSubmit" type="primary">修改</el-button>
                         </el-form-item>
                         <el-form-item>
-                            <el-button type="danger" @click="handleAdd">停止</el-button>
+                            <el-button @click="stressStop" type="danger">停止</el-button>
+                        </el-form-item>
+                        <el-form-item>
+                            <el-button @click="showReport" type="warning">报告</el-button>
                         </el-form-item>
                     </el-form>
                 </el-col>
@@ -34,18 +37,18 @@
             <!--列表-->
             <el-row>
                 <!--                <el-tabs v-model="activeName" @tab-click="handleClick">-->
-                <el-tabs v-model="activeName" tab-position="top" @tab-click="handleClick">
+                <el-tabs @tab-click="handleClick" tab-position="top" v-model="activeName">
                     <el-tab-pane label="场景配置" name="SceneConfiguration">
-                        <el-form :model="detailForm" label-width="25%" :rules="addFormRules" ref="addForm">
+                        <el-form :model="detailForm" :rules="addFormRules" label-width="25%" ref="addForm">
                             <el-row>
                                 <el-form-item label="Jmeter文件" prop="name">
-                                    <el-select v-model="detailForm.filename" placeholder="请选择"
-                                               @click.native="getuploadList()">
+                                    <el-select @click.native="getuploadList()" placeholder="请选择"
+                                               v-model="detailForm.filename">
                                         <el-option
-                                                v-for="(item,index) in jmeterList"
                                                 :key="item.filename"
                                                 :label="item.filename"
                                                 :value="item.filename"
+                                                v-for="(item,index) in jmeterList"
                                         />
                                     </el-select>
                                 </el-form-item>
@@ -53,28 +56,41 @@
                             <el-row :gutter="24">
                                 <el-col :span="16">
                                     <el-card>
-                                        <el-table
-                                                :data="jmeterData"
-                                                style="width: 100%"
-                                                :row-class-name="jmeterData">
-                                            <el-table-column
-                                                    prop="filename"
-                                                    label="场景名称"
-                                                    width="180">
+                                        <el-table :data="jmeterData" @selection-change="selsChange"
+                                                  style="width: 100%;"
+                                                  v-loading="listLoading">
+                                            <el-table-column label="名称" min-width="10%" prop="filename">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.filename }}</span>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="CSVData"
-                                                    label="CSVData"
-                                                    width="180">
+                                            <el-table-column label="类型" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="变量"
-                                                    label="变量"
-                                                    width="180">
+                                            <el-table-column label="csv" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.remark }}</span>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="address"
-                                                    label="操作">
+                                            <el-table-column label="关联变量" min-width="10%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.remark }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="上传时间" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.create_time | dateformat('YYYY-MM-DD HH:mm:SS') }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="操作" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <el-button @click="stressStop" circle icon="el-icon-delete"
+                                                               type="danger"></el-button>
+                                                    <el-button @click="stressStop" circle icon="el-icon-upload"
+                                                               type="primary"></el-button>
+                                                </template>
                                             </el-table-column>
                                         </el-table>
                                     </el-card>
@@ -83,16 +99,16 @@
                                     <el-card>
                                         <el-divider>测试进度</el-divider>
                                         <el-form-item label="基准测试" prop='thread'>
-                                            <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="progress.manual"></el-progress>
+                                            <el-progress :color="customColors" :percentage="progress.manual" :stroke-width="26"
+                                                         :text-inside="true"></el-progress>
                                         </el-form-item>
                                         <el-form-item label="单一测试" prop='thread'>
-                                            <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="progress.single"></el-progress>
+                                            <el-progress :color="customColors" :percentage="progress.single" :stroke-width="26"
+                                                         :text-inside="true"></el-progress>
                                         </el-form-item>
                                         <el-form-item label="混合测试" prop='thread'>
-                                            <el-progress :color="customColors" :text-inside="true" :stroke-width="26"
-                                                         :percentage="progress.hybrid" status="success"></el-progress>
+                                            <el-progress :color="customColors" :percentage="progress.hybrid" :stroke-width="26"
+                                                         :text-inside="true" status="success"></el-progress>
                                         </el-form-item>
                                     </el-card>
                                 </el-col>
@@ -104,39 +120,37 @@
                                         <el-row :gutter="24">
                                             <el-col :span="12">
                                                 <el-form-item label="线程数" prop='thread'>
-                                                    <el-input-number v-model="detailForm.thread" @change="handleChange"
+                                                    <el-input-number :max="100"
                                                                      :min="1"
-                                                                     :max="100"
-                                                                     label="线程数"></el-input-number>
+                                                                     label="线程数"
+                                                                     v-model="detailForm.thread"></el-input-number>
                                                 </el-form-item>
                                             </el-col>
                                             <el-col :span="12">
                                                 <el-form-item label="Ramp-Up" prop='ramp'>
-                                                    <el-input-number v-model="detailForm.ramp" @change="handleChange"
+                                                    <el-input-number :max="5000"
                                                                      :min="0"
-                                                                     :max="5000"
-                                                                     label="Ramp-Up"></el-input-number>
+                                                                     label="Ramp-Up"
+                                                                     v-model="detailForm.ramp"></el-input-number>
                                                 </el-form-item>
                                             </el-col>
                                         </el-row>
                                         <el-row>
                                             <el-col :span="12">
                                                 <el-form-item label="并发数" prop='synchroniz'>
-                                                    <el-input-number v-model="detailForm.synchroniz"
-                                                                     @change="handleChange"
+                                                    <el-input-number :max="100"
                                                                      :min="0"
-                                                                     :max="100"
-                                                                     label="并发数"></el-input-number>
+                                                                     label="并发数"
+                                                                     v-model="detailForm.synchroniz"></el-input-number>
                                                 </el-form-item>
                                             </el-col>
 
                                             <el-col :span="12">
                                                 <el-form-item label="持续时间" prop='single'>
-                                                    <el-input-number v-model="detailForm.loop_time"
-                                                                     @change="handleChange"
+                                                    <el-input-number :max="1000000"
                                                                      :min="0"
-                                                                     :max="1000000"
-                                                                     label="持续时间"></el-input-number>
+                                                                     label="持续时间"
+                                                                     v-model="detailForm.loop_time"></el-input-number>
                                                     秒
                                                 </el-form-item>
 
@@ -145,93 +159,111 @@
                                     </el-card>
                                 </el-col>
                                 <el-col :span="8">
-                                    <el-divider>Jmeter-文件上传</el-divider>
-                                    <el-upload
-                                            class="upload-demo"
-                                            action="#"
-                                            :file-list="fileList"
-                                            :on-change="changeData"
-                                            multiple
-                                            :http-request="handleRequest"
-                                            :before-upload="beforeUpload"
-                                            :on-remove="handleRemove"
-                                            :before-remove="beforeRemove">
+                                    <el-card>
+                                        <el-divider>Jmeter-文件上传</el-divider>
+                                        <el-upload
+                                                :before-remove="beforeRemove"
+                                                :before-upload="beforeUpload"
+                                                :file-list="fileList"
+                                                :http-request="handleRequest"
+                                                :on-change="changeData"
+                                                :on-remove="handleRemove"
+                                                action="#"
+                                                class="upload-demo"
+                                                multiple>
 
-                                        <el-button class="btn upload-btn">上传附件</el-button>
-                                        <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                                        <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
-                                    </el-upload>
-                                    <el-progress :stroke-width="16" :percentage="100"></el-progress>
+                                            <el-button class="btn upload-btn" type="primary">上传附件</el-button>
+                                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                                            <div class="el-upload__tip" slot="tip">只能上传jmx/.py文件</div>
+                                        </el-upload>
+                                        <el-progress :percentage="100" :stroke-width="16"></el-progress>
+                                    </el-card>
                                 </el-col>
                             </el-row>
+
                         </el-form>
 
                     </el-tab-pane>
                     <el-tab-pane label="基准测试" name="JZ">
-                        <el-form :model="detailForm" label-width="80px" :rules="addFormRules" ref="addForm">
+                        <el-form :model="detailForm" :rules="addFormRules" label-width="80px" ref="addForm">
                             <el-row :gutter="24">
-                                <el-col :span="4">
-                                    <el-card>
-                                        <el-divider>基准-配置</el-divider>
-                                        <el-row>
-                                            <el-col>
-                                                <el-form-item label="循环次数" prop='benchmark'>
-                                                    <el-input-number v-model="detailForm.benchmark"
-                                                                     @change="handleChange"
-                                                                     :min="1"
-                                                                     :max="5000"
-                                                                     label="基准循环次数"></el-input-number>
-                                                </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="开始时间" prop='benchmarkstart'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.benchmarkstart">
-                                                    </el-input>
-                                                </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="结束时间" prop='benchmarkend'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.benchmarkend">
-                                                    </el-input>
-                                                </el-form-item>
-                                            </el-col>
+                                <el-col :span="5">
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>基准-配置</el-divider>
+                                            <el-row>
+                                                <el-col>
+                                                    <el-form-item label="循环次数" prop='benchmark'>
+                                                        <el-input-number :max="5000"
+                                                                         :min="1"
+                                                                         label="基准循环次数"
+                                                                         v-model="detailForm.benchmark"></el-input-number>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col>
+                                                    <el-form-item label="开始时间" prop='benchmarkstart'>
+                                                        <el-input
+                                                                placeholder="请选择日期"
+                                                                suffix-icon="el-icon-date"
+                                                                v-model="detailForm.benchmarkstart">
+                                                        </el-input>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col>
+                                                    <el-form-item label="结束时间" prop='benchmarkend'>
+                                                        <el-input
+                                                                placeholder="请选择日期"
+                                                                suffix-icon="el-icon-date"
+                                                                v-model="detailForm.benchmarkend">
+                                                        </el-input>
+                                                    </el-form-item>
+                                                </el-col>
 
-                                        </el-row>
+                                            </el-row>
 
-                                    </el-card>
+                                        </el-card>
+                                    </el-row>
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>操作</el-divider>
+                                            <el-row :gutter="24">
+                                                <el-col :span="12">
+                                                    <el-button @click="stressRun" type="primary"
+                                                    >基准测试
+                                                    </el-button>
+                                                </el-col>
+                                                <el-col :span="12">
+                                                    <el-button @click="checkExpress(jzstart,jzend)" type="primary"
+                                                    >服务监控
+                                                    </el-button>
+                                                </el-col>
+                                            </el-row>
+                                            <el-divider></el-divider>
+                                        </el-card>
+                                    </el-row>
+
                                 </el-col>
                                 <el-col :span="16">
                                     <el-card>
-                                        <el-table :data="modelDetail" v-loading="listLoading"
-                                                  @selection-change="selsChange"
-                                                  style="width: 100%;">
-                                            <el-table-column prop="modelname" label="模型" min-width="10%">
+                                        <el-table :data="modelDetail" @selection-change="selsChange"
+                                                  style="width: 100%;"
+                                                  v-loading="listLoading">
+                                            <el-table-column label="模型" min-width="10%" prop="modelname">
                                                 <template slot-scope="scope">
-                                                    <span  style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.modelname }}</span>
+                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.modelname }}_{{ scope.row.slicenumber }}</span>
                                                 </template>
                                             </el-table-column>
-                                            <el-table-column prop="slicenumber" label="层厚" min-width="6%">
-                                                <template slot-scope="scope">
-                                                    <span style="margin-left: 10px">{{ scope.row.slicenumber }}</span>
-                                                </template>
-                                            </el-table-column>
-                                            <el-table-column prop="type" label="Avg Time /s" min-width="15%">
+                                            <el-table-column label="Avg Time /s" min-width="15%" prop="type">
                                                 <template slot-scope="scope">
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.jobavg)">{{ scope.row.jobavg }}</span>
+                                                        <span :class="valuestatus(scope.row.jobavg)"
+                                                              style="margin-left: 10px">{{ scope.row.jobavg }}</span>
                                                     </el-row>
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.avg)">{{ scope.row.avg }}</span>
+                                                        <span :class="valuestatus(scope.row.avg)"
+                                                              style="margin-left: 10px">{{ scope.row.avg }}</span>
                                                     </el-row>
                                                 </template>
                                             </el-table-column>
@@ -239,13 +271,13 @@
                                                 <template slot-scope="scope">
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.jobmedian)">{{ scope.row.jobmedian }}</span>
+                                                        <span :class="valuestatus(scope.row.jobmedian)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmedian }}</span>
                                                     </el-row>
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.median)">{{ scope.row.median }}</span>
+                                                        <span :class="valuestatus(scope.row.median)"
+                                                              style="margin-left: 10px">{{ scope.row.median }}</span>
                                                     </el-row>
                                                 </template>
                                             </el-table-column>
@@ -253,27 +285,27 @@
                                                 <template slot-scope="scope">
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.jobmin)">{{ scope.row.jobmin }}</span>
+                                                        <span :class="valuestatus(scope.row.jobmin)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmin }}</span>
                                                     </el-row>
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.min)">{{ scope.row.min }}</span>
+                                                        <span :class="valuestatus(scope.row.min)"
+                                                              style="margin-left: 10px">{{ scope.row.min }}</span>
                                                     </el-row>
                                                 </template>
                                             </el-table-column>
-                                            <el-table-column prop="type" label="Max Time /s" min-width="15%">
+                                            <el-table-column label="Max Time /s" min-width="15%" prop="type">
                                                 <template slot-scope="scope">
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.jobmax)">{{ scope.row.jobmax }}</span>
+                                                        <span :class="valuestatus(scope.row.jobmax)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmax }}</span>
                                                     </el-row>
                                                     <el-row>
                                                         <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
-                                                        <span style="margin-left: 10px"
-                                                              :class="valuestatus(scope.row.max)">{{ scope.row.max }}</span>
+                                                        <span :class="valuestatus(scope.row.max)"
+                                                              style="margin-left: 10px">{{ scope.row.max }}</span>
                                                     </el-row>
                                                 </template>
                                             </el-table-column>
@@ -282,240 +314,363 @@
                                                     <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
                                                 </template>
                                             </el-table-column>
+                                            <el-table-column label="操作" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <el-button @click="stressStop" type="primary">重测</el-button>
+                                                </template>
+                                            </el-table-column>
                                         </el-table>
-
-                                    </el-card>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-card>
-                                        <el-divider>操作</el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >执行测试
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="checkExpress(jzstart,jzend)"
-                                                >服务监控
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
-                                        <el-divider></el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >同步结果
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="showReport"
-                                                >测试报告
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
                                     </el-card>
                                 </el-col>
                             </el-row>
                         </el-form>
                     </el-tab-pane>
                     <el-tab-pane label="单一测试" name="DY">
-                        <el-form :model="detailForm" label-width="80px" :rules="addFormRules" ref="addForm">
+                        <el-form :model="detailForm" :rules="addFormRules" label-width="80px" ref="addForm">
                             <el-row :gutter="24">
-                                <el-col :span="6">
-                                    <el-card>
-                                        <el-divider>单一配置</el-divider>
-                                        <el-row>
-                                            <el-col>
+                                <el-col :span="4">
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>单一配置</el-divider>
+                                            <el-row>
                                                 <el-form-item label="测试时间" prop='benchmark'>
-                                                    <el-input-number v-model="detailForm.single"
-                                                                     @change="handleChange"
+                                                    <el-input-number :max="100"
                                                                      :min="1"
-                                                                     :max="100"
-                                                                     label="测试时间"></el-input-number>
+                                                                     label="测试时间"
+                                                                     v-model="detailForm.single"></el-input-number>
                                                 </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="开始时间" prop='benchmarkstart'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.start_date">
-                                                    </el-input>
+                                            </el-row>
+                                            <el-row>
+                                                <el-form-item label="共计预测" prop='benchmark'>
+                                                    <el-tag effect="dark" size="150%" type="warning">
+                                                        {{detailForm.total}} 笔
+                                                    </el-tag>
                                                 </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="结束时间" prop='benchmarkend'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.end_date">
-                                                    </el-input>
+                                            </el-row>
+                                            <el-row>
+                                                <el-form-item class="label-content" label="预测成功" label-position="left">
+                                                    <el-tag effect="dark" size="150%" type="success">
+                                                        {{detailForm.success}} 笔
+                                                    </el-tag>
                                                 </el-form-item>
-                                            </el-col>
+                                            </el-row>
+                                            <el-row>
+                                                <el-form-item label="预测失败">
+                                                    <el-tag effect="dark" size="150%" type="danger">{{detailForm.fail}}
+                                                        笔
+                                                    </el-tag>
+                                                </el-form-item>
+                                            </el-row>
+                                        </el-card>
+                                    </el-row>
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>操作</el-divider>
+                                            <el-row :gutter="24">
+                                                <el-col :span="12">
+                                                    <el-button @click="stressRun" type="primary"
+                                                    >单一测试
+                                                    </el-button>
+                                                </el-col>
+                                                <el-col :span="12">
+                                                    <el-button @click="checkExpress(dystart,dyend)" type="primary"
+                                                    >单一监控
+                                                    </el-button>
+                                                </el-col>
+                                            </el-row>
+                                            <el-divider></el-divider>
+                                            <el-row :gutter="24">
+                                                <el-col :span="12">
+                                                    <el-button @click="handleSave" type="primary"
+                                                    >同步结果
+                                                    </el-button>
+                                                </el-col>
+                                            </el-row>
+                                        </el-card>
 
-                                        </el-row>
-
-                                    </el-card>
+                                    </el-row>
                                 </el-col>
-                                <el-col :span="14">
+                                <el-col :span="20">
                                     <el-card>
-                                        <el-table
-                                                :data="modelDetail"
-                                                style="width: 100%"
-                                                :row-class-name="modelDetail">
-                                            <el-table-column
-                                                    prop="modelname"
-                                                    label="模型"
-                                                    width="180">
+                                        <el-table :data="modelDetail" @selection-change="selsChange"
+                                                  style="width: 100%;"
+                                                  v-loading="listLoading">
+                                            <el-table-column label="模型" min-width="10%" prop="modelname">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.modelname }}_{{ scope.row.slicenumber }}</span>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="start_date"
-                                                    label="开始时间"
-                                                    width="180">
+                                            <el-table-column label="Avg Time /s" min-width="15%" prop="type">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobavg)"
+                                                              style="margin-left: 10px">{{ scope.row.jobavg }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.avg)"
+                                                              style="margin-left: 10px">{{ scope.row.avg }}</span>
+                                                    </el-row>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="end_date"
-                                                    label="结束时间"
-                                                    width="180">
+                                            <el-table-column label="Median Time /s" min-width="15%">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmedian)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmedian }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.median)"
+                                                              style="margin-left: 10px">{{ scope.row.median }}</span>
+                                                    </el-row>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="operation"
-                                                    label="操作">
+                                            <el-table-column label="Min Time /s" min-width="15%">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmin)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmin }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.min)"
+                                                              style="margin-left: 10px">{{ scope.row.min }}</span>
+                                                    </el-row>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="Max Time /s" min-width="15%" prop="type">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmax)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmax }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.max)"
+                                                              style="margin-left: 10px">{{ scope.row.max }}</span>
+                                                    </el-row>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="min images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="max images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="avg images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="预测成功率" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.rate }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="开始时间" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.start_date }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="结束时间" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.end_date }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="操作" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <el-button @click="stressStop" type="primary">重测</el-button>
+                                                </template>
                                             </el-table-column>
                                         </el-table>
-                                    </el-card>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-card>
-                                        <el-divider>操作</el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >执行测试
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="checkExpress(dystart,dyend)"
-                                                >服务监控
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
-                                        <el-divider></el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >同步结果
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="showReport"
-                                                >测试报告
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
+
                                     </el-card>
                                 </el-col>
                             </el-row>
                         </el-form>
                     </el-tab-pane>
                     <el-tab-pane label="混合测试" name="HH">
-                        <el-form :model="detailForm" label-width="80px" :rules="addFormRules" ref="addForm">
+                        <el-form :model="detailForm" :rules="addFormRules" label-width="80px" ref="addForm">
                             <el-row :gutter="24">
-                                <el-col :span="6">
-                                    <el-card>
-                                        <el-divider>混合-配置</el-divider>
-                                        <el-row>
-                                            <el-col>
-                                                <el-form-item label="负载时间" prop='duration'>
-                                                    <el-input-number v-model="detailForm.duration"
-                                                                     @change="handleChange"
-                                                                     :min="1"
-                                                                     :max="100"
-                                                                     label="负载时间"></el-input-number>
-                                                    小时
+                                <el-col :span="5">
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>混合配置</el-divider>
+                                            <el-row>
+                                                <el-col>
+                                                    <el-form-item label="测试时间" prop='benchmark'>
+                                                        <el-input-number :max="100"
+                                                                         :min="1"
+                                                                         label="测试时间"
+                                                                         v-model="detailForm.single"></el-input-number>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-row>
+                                                <el-form-item label="共计预测" prop='benchmark'>
+                                                    <el-tag effect="dark" size="150%" type="warning">
+                                                        {{statistics.total}} 笔
+                                                    </el-tag>
                                                 </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="开始时间" prop='benchmarkstart'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.start_date">
-                                                    </el-input>
+                                            </el-row>
+                                            <el-row>
+                                                <el-form-item class="label-content" label="预测成功" label-position="left">
+                                                    <el-tag effect="dark" size="150%" type="success">
+                                                        {{statistics.success}} 笔
+                                                    </el-tag>
                                                 </el-form-item>
-                                            </el-col>
-                                            <el-col>
-                                                <el-form-item label="结束时间" prop='benchmarkend'>
-                                                    <el-input
-                                                            placeholder="请选择日期"
-                                                            suffix-icon="el-icon-date"
-                                                            v-model="detailForm.end_date">
-                                                    </el-input>
+                                            </el-row>
+                                            <el-row>
+                                                <el-form-item label="预测失败">
+                                                    <el-tag effect="dark" size="150%" type="danger">{{statistics.fail}}
+                                                        笔
+                                                    </el-tag>
                                                 </el-form-item>
-                                            </el-col>
+                                            </el-row>
+                                                <el-col>
+                                                    <el-form-item label="开始时间" prop='benchmarkstart'>
+                                                        <el-input
+                                                                placeholder="请选择日期"
+                                                                suffix-icon="el-icon-date"
+                                                                v-model="detailForm.start_date">
+                                                        </el-input>
+                                                    </el-form-item>
+                                                </el-col>
+                                                <el-col>
+                                                    <el-form-item label="结束时间" prop='benchmarkend'>
+                                                        <el-input
+                                                                placeholder="请选择日期"
+                                                                suffix-icon="el-icon-date"
+                                                                v-model="detailForm.end_date">
+                                                        </el-input>
+                                                    </el-form-item>
+                                                </el-col>
 
-                                        </el-row>
+                                            </el-row>
 
-                                    </el-card>
+                                        </el-card>
+                                    </el-row>
+                                    <el-row>
+                                        <el-card>
+                                            <el-divider>操作</el-divider>
+                                            <el-row :gutter="24">
+                                                <el-col :span="12">
+                                                    <el-button @click="stressRun" type="primary"
+                                                    >混合测试
+                                                    </el-button>
+                                                </el-col>
+                                                <el-col :span="12">
+                                                    <el-button @click="checkExpress(dystart,dyend)" type="primary"
+                                                    >混合监控
+                                                    </el-button>
+                                                </el-col>
+                                            </el-row>
+                                            <el-divider></el-divider>
+                                            <el-row :gutter="24">
+                                                <el-col :span="12">
+                                                    <el-button @click="handleSave" type="primary"
+                                                    >同步结果
+                                                    </el-button>
+                                                </el-col>
+                                            </el-row>
+                                        </el-card>
+                                    </el-row>
                                 </el-col>
-                                <el-col :span="14">
+                                <el-col :span="19">
                                     <el-card>
-                                        <el-table
-                                                :data="modelDetail"
-                                                style="width: 100%"
-                                                :row-class-name="modelDetail">
-                                            <el-table-column
-                                                    prop="modelname"
-                                                    label="模型"
-                                                    width="180">
+                                        <el-table :data="modelDetail" @selection-change="selsChange"
+                                                  style="width: 100%;"
+                                                  v-loading="listLoading">
+                                            <el-table-column label="模型" min-width="8%" prop="modelname">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.modelname }}_{{ scope.row.slicenumber }}</span>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="start_date"
-                                                    label="开始时间"
-                                                    width="180">
+                                            <el-table-column label="Avg Time /s" min-width="12%" prop="type">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobavg)"
+                                                              style="margin-left: 10px">{{ scope.row.jobavg }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.avg)"
+                                                              style="margin-left: 10px">{{ scope.row.avg }}</span>
+                                                    </el-row>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="end_date"
-                                                    label="结束时间"
-                                                    width="180">
+                                            <el-table-column label="Median Time /s" min-width="10%">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmedian)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmedian }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.median)"
+                                                              style="margin-left: 10px">{{ scope.row.median }}</span>
+                                                    </el-row>
+                                                </template>
                                             </el-table-column>
-                                            <el-table-column
-                                                    prop="operation"
-                                                    label="操作">
+                                            <el-table-column label="Min Time /s" min-width="12%">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmin)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmin }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.min)"
+                                                              style="margin-left: 10px">{{ scope.row.min }}</span>
+                                                    </el-row>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="Max Time /s" min-width="12%" prop="type">
+                                                <template slot-scope="scope">
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Job:</span>
+                                                        <span :class="valuestatus(scope.row.jobmax)"
+                                                              style="margin-left: 10px">{{ scope.row.jobmax }}</span>
+                                                    </el-row>
+                                                    <el-row>
+                                                        <span style="margin-left: 10px;color: #0e9aef; font-family:微软雅黑">Prediction:</span>
+                                                        <span :class="valuestatus(scope.row.max)"
+                                                              style="margin-left: 10px">{{ scope.row.max }}</span>
+                                                    </el-row>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="min images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.minimages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="max images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.maximages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="avg images" min-width="6%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.avgimages }}</span>
+                                                </template>
+                                            </el-table-column>
+                                            <el-table-column label="预测成功率" min-width="8%">
+                                                <template slot-scope="scope">
+                                                    <span style="margin-left: 10px">{{ scope.row.rate }}</span>
+                                                </template>
                                             </el-table-column>
                                         </el-table>
-                                    </el-card>
-                                </el-col>
-                                <el-col :span="4">
-                                    <el-card>
-                                        <el-divider>操作</el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >执行测试
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary"
-                                                           @click="checkExpress(detailForm.start_date,detailForm.end_date)"
-                                                >服务监控
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
-                                        <el-divider></el-divider>
-                                        <el-row :gutter="24">
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="stressTest('dy')"
-                                                >同步结果
-                                                </el-button>
-                                            </el-col>
-                                            <el-col :span="12">
-                                                <el-button type="primary" @click="showReport"
-                                                >测试报告
-                                                </el-button>
-                                            </el-col>
-                                        </el-row>
                                     </el-card>
                                 </el-col>
                             </el-row>
@@ -530,38 +685,38 @@
             </el-col>
 
             <!--新增界面-->
-            <el-dialog title="新增" :visible.sync="addFormVisible" :close-on-click-modal="false"
-                       style="width: 100%; left: 10%">
-                <el-form :model="addForm" label-width="120" :rules="addFormRules" ref="addForm">
+            <el-dialog :close-on-click-modal="false" :visible.sync="addFormVisible" style="width: 100%; left: 10%"
+                       title="新增">
+                <el-form :model="addForm" :rules="addFormRules" label-width="120" ref="addForm">
                     <el-divider>基本配置</el-divider>
                     <el-row>
                         <el-form :inline="true" :model="filters" @submit.native.prevent>
                             <el-row :gutter="24">
                                 <el-col :span="12">
                                     <el-form-item label="服务器:" prop="Host">
-                                        <el-select v-model="addForm.Host" placeholder="请选择"
-                                                   @click.native="gethost()">
+                                        <el-select @click.native="gethost()" placeholder="请选择"
+                                                   v-model="addForm.Host">
                                             <el-option
-                                                    v-for="(item,index) in Host"
                                                     :key="item.id"
                                                     :label="item.name"
                                                     :value="item.id"
+                                                    v-for="(item,index) in Host"
                                             />
                                         </el-select>
                                     </el-form-item>
                                 </el-col>
                                 <el-col :span="12">
                                     <el-form-item label="端口号:" prop="port">
-                                        <el-input id="port" v-model="addForm.port" placeholder=""/>
+                                        <el-input id="port" placeholder="" v-model="addForm.port"/>
                                     </el-form-item>
                                 </el-col>
                             </el-row>
                         </el-form>
                     </el-row>
                 </el-form>
-                <div slot="footer" class="dialog-footer">
+                <div class="dialog-footer" slot="footer">
                     <el-button @click.native="addFormVisible = false">取消</el-button>
-                    <el-button type="primary" @click.native="addSubmit" :loading="addLoading">保存</el-button>
+                    <el-button :loading="addLoading" @click.native="addSubmit" type="primary">保存</el-button>
                 </div>
             </el-dialog>
         </div>
@@ -584,7 +739,9 @@
             return {
                 fileList: [],
                 filedict: {},
+                statistics:{}, // 数量统计
                 progress: {}, // 策略进度
+                jmeterData: {}, //jmeter 脚本选择
                 modelDetail: [], //策略模型详情
                 activeName: 'SceneConfiguration',
                 jzstart: '',
@@ -638,13 +795,7 @@
                         {required: true, message: '请选择类型', trigger: 'blur'}
                     ]
                 },
-                // 编辑界面数据
-                editForm: {
-                    loop_time: '',
-                    port: '4242',
-                    end_time: null
-                },
-
+                editLoading:false,
                 addForm: {
                     port: '4242',
                     type: '匿名',
@@ -675,12 +826,10 @@
             // 样式 显示
             valuestatus: function (i) {
                 if (!/-/g.test(i)) {
-                    console.log("2")
                     i = 0
                 } else if (!/\+/g.test(i)) {
                     i = 1
                 } else {
-                    console.log("1")
                     i = 2
                 }
                 switch (i) {
@@ -695,7 +844,6 @@
             },
             //展示监控
             checkExpress: function (start_date, end_date) {
-                console.log(start_date, end_date)
                 if (start_date === null) {
                     var startstamp = new Date().getTime();
                 } else {
@@ -767,7 +915,6 @@
                 }
             },
             handleRemove(file, fileList) {
-                console.log(file)
                 var id = this.filedict[file.raw.name]
                 let params = {"id": id, "filename": file.raw.name}
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -789,9 +936,6 @@
             },
             handleClick(tab, event) {
                 this.StressStrategyDetail();
-            },
-            handleChange(value) {
-                console.log(value);
             },
             //获取由路由传递过来的参数
             getParams() {
@@ -972,6 +1116,72 @@
                     }
                 })
             },
+            // 运行压力测试
+            stressRun: function () {
+                this.$confirm('开始测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        stressid: this.stressid,
+                        type: this.activeName
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressTool(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                })
+            },
+            stressStop: function () {
+                let self = this;
+                this.$confirm('停止测试?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        id: this.stressid
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stressStop(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '已停止',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
+                })
+            },
             // 获取性能数据列表
             StressStrategyDetail() {
                 this.listLoading = true
@@ -987,12 +1197,48 @@
                     if (code === '0') {
                         self.progress = data.progress
                         self.modelDetail = data.modelDetail
+                        self.jmeterData = data.jmeterData
+                        self.statistics = data.statistics
                     } else {
                         self.$message.error({
                             message: msg,
                             center: true
                         })
                     }
+                })
+            },
+            //保存同步测试结果
+            handleSave: function () {
+                this.$confirm('同步测试结果?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        stressid: this.stressid,
+                        strategy: this.activeName
+                    };
+                    let header = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    stresssave(header, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.stresslistList()
+                    });
                 })
             },
             // 删除
@@ -1108,123 +1354,49 @@
                 }
             }
             ,
-            // 编辑
             editSubmit: function () {
-                const self = this
-                this.$refs.editForm.validate((valid) => {
-                    if (valid) {
-                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
-                            self.editLoading = true
-                            // NProgress.start();
-                            const params = {
-                                id: self.editForm.id,
-                                loop_time: self.editForm.loop_time,
-                                patientname: this.editForm.patientname,
-                                patientid: this.editForm.patientid,
-                                dicom: this.editForm.senddata,
-                                sendcount: this.editForm.sendcount,
-                                dds: this.editForm.dds,
-                                sleepcount: this.editForm.sleepcount,
-                                sleeptime: this.editForm.sleeptime,
-                                series: this.editForm.series,
-                                type: this.editForm.type,
-                                end_time: this.editForm.end_time
-                            }
-                            const header = {
-                                'Content-Type': 'application/json',
-                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                            }
-                            updateduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
-                                self.editLoading = false
-                                if (code === '0') {
-                                    self.$message({
-                                        message: '修改成功',
-                                        center: true,
-                                        type: 'success'
-                                    })
-                                    self.$refs['editForm'].resetFields()
-                                    self.editFormVisible = false
-                                    self.StressDetaillist()
-                                } else if (code === '999997') {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                } else {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                }
-                            })
-                        })
+                this.$confirm('确认修改该记录吗?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    // NProgress.start();
+                    const self = this
+                    const params = {
+                        stressid: this.stressid,
+                        name: this.detailForm.name,
+                        thread: this.detailForm.thread,
+                        synchroniz: this.detailForm.synchroniz,
+                        ramp: this.detailForm.ramp,
+                        loop_count: this.detailForm.loop_count,
+                        loop_time: this.detailForm.loop_time,
+                        benchmark: this.detailForm.benchmark,
+                        single: this.detailForm.single,
+                        duration: this.detailForm.duration,
+                        Host: this.detailForm.Host,
+                        }
+                    const header = {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     }
-                })
-            }
-            ,
-            // 新增
-            addSubmit: function () {
-                this.$refs.addForm.validate((valid) => {
-                    if (valid) {
-                        const self = this
-                        this.$confirm('确认提交吗？', '提示', {}).then(() => {
-                            self.addLoading = true
-                            // NProgress.start();
-                            const params = JSON.stringify({
-                                port: self.addForm.port,
-                                version: self.addForm.version,
-                                loop_time: self.addForm.loop_time,
-                                patientname: 'duration',
-                                patientid: '',
-                                dicom: this.addForm.senddata,
-                                sendcount: this.addForm.sendcount,
-                                dds: this.addForm.dds,
-                                sleepcount: this.addForm.sleepcount,
-                                sleeptime: this.addForm.sleeptime,
-                                series: this.addForm.series,
-                                end_time: this.addForm.end_time,
-                                type: '持续化',
-                                sendstatus: false,
-                                status: false,
-                                Host: this.addForm.Host
+
+                    updateStress(header, params).then(_data => {
+                        const {msg, code, data} = _data
+                        if (code === '0') {
+                            self.$message({
+                                message: '修改成功',
+                                center: true,
+                                type: 'success'
                             })
-                            const header = {
-                                'Content-Type': 'application/json',
-                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                            }
-                            addduration(header, params).then(_data => {
-                                const {msg, code, data} = _data
-                                self.addLoading = false
-                                if (code === '0') {
-                                    self.$message({
-                                        message: '添加成功',
-                                        center: true,
-                                        type: 'success'
-                                    })
-                                    self.$refs['addForm'].resetFields()
-                                    self.addFormVisible = false
-                                    self.StressDetaillist()
-                                } else if (code === '999997') {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                } else {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true
-                                    })
-                                    self.$refs['addForm'].resetFields()
-                                    self.addFormVisible = false
-                                    self.StressDetaillist()
-                                }
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
                             })
-                        })
-                    }
+                        }
+                        self.StressDetaillist()
+                    })
                 })
-            }
-            ,
+            },
             selsChange: function (sels) {
                 this.sels = sels
             }

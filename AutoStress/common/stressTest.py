@@ -28,6 +28,16 @@ class StressThread(threading.Thread):
 
     def run(self):
         try:
+            logger.info("基准测试开始")
+            Manual = ManualThread(stressid=self.id)
+            Manual.setDaemon(True)
+            Manual.run()
+            Restart(id=self.obj.Host.id)
+            time.sleep(300)
+        except Exception as e:
+            logger.error("基准测试失败：{}".format(e))
+
+        try:
             # 开始时间
             start = datetime.datetime.now()
             # 结束时间
@@ -45,16 +55,6 @@ class StressThread(threading.Thread):
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
-        try:
-            logger.info("基准测试开始")
-            Manual = ManualThread(stressid=self.id)
-            Manual.setDaemon(True)
-            Manual.run()
-            Restart(id=self.obj.Host.id)
-            time.sleep(300)
-        except Exception as e:
-            logger.error("基准测试失败：{}".format(e))
-
         try:
             if self.Flag is True:
                 Single = SingleThread(stressid=self.id)
