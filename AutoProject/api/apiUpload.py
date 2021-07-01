@@ -109,6 +109,33 @@ def makedir(file_path, filename):
         logger.info("文件夹已存在")
         raise Exception("文件夹已存在")
 
+def gengming(file_path):
+    filelist = os.listdir(file_path)
+    for old_name in filelist:
+        path = os.path.join(file_path, old_name)
+        # print(path)
+        a = os.path.isdir(path)
+        if a:  # 如果它是个文件夹
+            new_name = ""
+            try:
+
+                # try:
+                new_name = old_name.encode('cp437').decode('gbk')
+                # except Exception as e:
+                #     new_name = old_name.encode('utf-8').decode('utf-8')
+
+                old_name = os.path.join(file_path, old_name)
+                new_name = os.path.join(file_path, new_name)
+                os.rename(old_name, new_name)
+                gengming(new_name)
+                continue
+            except Exception as e:
+                print(e)
+            if new_name == "":
+                gengming(path)
+                continue
+            break
+
 
 class AddZipUpload(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -121,56 +148,20 @@ class AddZipUpload(APIView):
         :return:
         """
         try:
-            # start = time.clock()
             filetype = request.POST.get("type", None)
-            # end = time.clock()
-            # print('Running time: %s Seconds'%(end-start))
             fileId = request.POST.get("id")
-            File = request.FILES.get("files", None)
             custom = request.POST.get("custom")
-
-            filename = File.name
-
             if custom is None:
-                custom = filename[:filename.index("-")]
-            # 建立文件夹用来存放病人数据，每上传一次就建立一个，名称是自定义名称加时间
-            # file_path = 'e:\\DD'
-            file_path = filetype
-            file_path = makedir(file_path, custom)
-
-            FilePath = "{0}/{1}".format(file_path, filename)
-            with open(FilePath, 'wb+') as f:
-                # 分块写入文件
-                for chunk in File.chunks():
-                    f.write(chunk)
-                    # 试试获取文件大小
-                    # actualSize = os.path.getsize(FilePath)
-                    # print(actualSize)
-
-            # 解压压缩包
-            if "zip" in str(filename):
-                z = zipfile.ZipFile(''.join([file_path, '/', filename]), 'r')
-                z.extractall(path=file_path)
-                z.close()
-            elif "rar" in str(filename):
-                os.system(f"unrar x {file_path}/{filename}")
-            elif "tar" in str(filename):
-                os.system(f"tar -xzvf {file_path}/{filename}")
-            else:
-                return JsonResponse(code="999995", msg="解压文件失败 类型不正确！")
-
-            # 删除压缩包
-            if os.path.exists(''.join([file_path, '/', filename])):
-                os.remove(''.join([file_path, '/', filename]))
-
+                return JsonResponse(code="999995", msg="路径不能为空！")
+            remark = str(custom).split('/')[-1]
             data = {
-                "filename": filename,
-                "fileurl": file_path,
-                "type": "zip",
-                "size": File.size,
+                # "filename": filename,
+                "fileurl": custom,
+                # "type": "zip",
+                # "size": File.size,
                 "status": True,
                 "fileid": int(fileId),
-                "remark": custom
+                "remark": remark
             }
             filedata = uploadfile.objects.create(**data)
 
@@ -180,7 +171,7 @@ class AddZipUpload(APIView):
             # 启动线程
             thread_fake_folder.start()
 
-            return JsonResponse(code="0", msg="成功", data={"filename": File.name, "fileid": filedata.id, "file_path":file_path}
+            return JsonResponse(code="0", msg="成功", data={"fileid": filedata.id, "file_path": custom}
                                 )
         except Exception as e:
             logger.error(e)

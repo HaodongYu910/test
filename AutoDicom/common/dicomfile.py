@@ -29,33 +29,27 @@ def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predic
     temporary_uid = history_uid
     for fn in tqdm(file_names):
         full_fn = os.path.join(src_folder, fn)
-        logger.info("os.path.splitext(fn)[1]=",os.path.splitext(fn)[1])
+        logger.info(F"开始读取文件。。{fn}")
         if (os.path.isdir(full_fn)):  # 如果它是个文件夹
             updateFolder(custom, full_fn, study_infos, diseases, foldType, id, predictor, temporary_uid)
             continue
-
         elif (os.path.splitext(fn)[1] !='.dcm'):
             # 规范化数据时候，不论成功失败都要记录哪个成功，哪个失败
+            houzhui = os.path.splitext(fn)[1]
+            logger.info(F"发现错误文件后缀。。{houzhui}")
             dicom_relation_data["baseid"] = id
             dicom_relation_data["old_path"] = full_fn
             dicom_relation_data["custom"] = custom
             dicom_relation_data["type"] = foldType
             dicom_relation_data["predictor"] = predictor
-            dicom_relation_data["fail_uid"] = "【上传数据】：数据类型可能不正确，请检查"
+            dicom_relation_data["fail_uid"] = "【检查数据】："+str(full_fn)
             relation = dicom_relation.objects.create(**dicom_relation_data)
-            logger.info(f"【上传数据】：数据类型可能不正确，请检查{fn}")
-            break
+            logger.info(f"【检查数据】：数据类型可能不正确，请检查{fn}")
+            # break
 
-        # if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-        #     logger.info(f"【上传数据】：数据类型可能不正确，请检查{fn}")
-        #     continue
-        # elif (os.path.isdir(full_fn)):  # 如果它是个文件夹
-        #     updateFolder(custom, full_fn, study_infos, diseases, foldType, id, predictor, temporary_uid)
-        #     continue
         try:
             ds = pydicom.dcmread(full_fn, force=True)
             study_uid = ds.StudyInstanceUID
-            ds.file_meta.TransferSyntaxUID = pydicom.uid.ImplicitVRLittleEndian
             try:
                 study_infos["No"] = study_infos["No"] + 1
                 if study_infos.__contains__(study_uid) is False:
@@ -67,8 +61,6 @@ def updateFolder(custom, src_folder, study_infos, diseases, foldType, id, predic
                         dicom_relation_data["type"] = foldType
                         dicom_relation_data["predictor"] = predictor
                         dicom_relation_data["fail_uid"] = study_uid
-                        # dicom_relation["new_path"] = folder_fake
-                        # dicom_relation["success_uid"] = study_uid
 
                         objdicom = dicom.objects.get(studyinstanceuid=study_uid)
                         # 数据库中已经存在这个检查号
