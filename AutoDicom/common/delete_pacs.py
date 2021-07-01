@@ -3,8 +3,8 @@ import datetime
 import time
 
 import pandas
-# import paramiko
-# import paramiko as pa
+import paramiko
+import paramiko as pa
 import psycopg2 as pg
 from AutoProject.common.PostgreSQL import connect_postgres
 from AutoProject.common.mysqlDB import *
@@ -80,18 +80,17 @@ def delDB(date):
 
 
 def delFolder(result):
-    pass
-    # try:
-    #     ssh = paramiko.SSHClient()
-    #     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    #     ssh.connect(hostname='192.168.2.84', port=22, username='biomind', password='biomind')
-    #     print(result)
-    #     for i in result:
-    #         stdin, stdout, stderr = ssh.exec_command("sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/header/{0} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/original/{1} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/png/{2}".format(i["studyinstanceuid"], i["studyinstanceuid"], i["studyinstanceuid"]))
-    #     ssh.close()
-    #     logging.info("[{0}],Delete step [3], Daily delete folder in linux success".format(datetime.datetime.now()))
-    # except Exception as e:
-    #     print(e)
+    try:
+        ssh = paramiko.SSHClient()
+        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        ssh.connect(hostname='192.168.2.84', port=22, username='biomind', password='biomind')
+        print(result)
+        for i in result:
+            stdin, stdout, stderr = ssh.exec_command("sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/header/{0} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/original/{1} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/png/{2}".format(i["studyinstanceuid"], i["studyinstanceuid"], i["studyinstanceuid"]))
+        ssh.close()
+        logging.info("[{0}],Delete step [3], Daily delete folder in linux success".format(datetime.datetime.now()))
+    except Exception as e:
+        print(e)
 
 
 def getResultsFromDB(**kwargs):
