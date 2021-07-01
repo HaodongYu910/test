@@ -248,45 +248,21 @@
                 <el-form-item label="文件id">
                     <el-input v-model="supplemenForm.id" :disabled="true"></el-input>
                 </el-form-item>
-                <el-form-item label="定义名称">
+                <el-form-item label="文件路径">
                     <el-input v-model="supplemenForm.custom"></el-input>
                 </el-form-item>
 
-                <el-form-item label="名称" :disabled="true">
-                     <el-upload
-                      class="upload-demo"
-                      ref="upload"
-                      :limit="1"
-                      action="FakeAction"
-                      :on-preview="handlePreview"
-                      :on-exceed="handleExceed"
-                      :on-change="handleChange"
-                      :file-list="fileList"
-                      :show-file-list="showFileName"
-
-                      :auto-upload="false">
-                      <el-button slot="trigger" size="small" type="primary">选取文件</el-button>
-                      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload()" :disabled="isUploadingStatusMap[this.supplemenForm.id]">补充数据上传</el-button>
-<!--                      <div slot="tip" class="el-upload__tip">只能上传zip文件</div>-->
-                    </el-upload>
+                <el-form-item label="请提交" :disabled="true">
+                      <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload()">提交</el-button>
                 </el-form-item>
-                <div class="progress-box" v-if="isUploadingByIdMap[supplemenForm.id]">
-                    <div>上传进度：</div>
-                    <el-progress :text-inside="true" :stroke-width="24" :percentage="isUploadingByIdMap[supplemenForm.id]" status="success" class="progress-item"></el-progress>
-                </div>
 
                 <el-alert title="使用帮助" type="success">
                     <template slot='title'>
                         <div class="iconSize">使用帮助:</div>
-<!--                        <div class="iconSize">1.只能上传zip文件，且不超过500kb</div>-->
-                        <div class="iconSize">将病人数据打包zip格式，选择文件，点击补充数据上传</div>
+                        <div class="iconSize">上传文件后，填写文件路径，点击提交，查看结果</div>
                     </template>
                 </el-alert>
             </el-form>
-<!--            <div slot="footer" class="dialog-footer">-->
-<!--                <el-button @click.native="supplementVisible = false">取消</el-button>-->
-<!--                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>-->
-<!--            </div>-->
         </el-dialog>
 
 
@@ -328,7 +304,7 @@
                 listLoading: false,
                 sels: [],//列表选中列
                 // options:{},
-                groupOptions:{},
+                groupOptions: {},
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {
@@ -613,12 +589,6 @@
             },
             //查看结果
             ViewResults: function (index, row) {
-                // this.$refs.addForm.validate((valid) => {
-                //     this.$message({
-                //         message: row.content + "," + row.id + "," + this.file_path,
-                //         center: true,
-                //         type: 'success'
-                //     });
                 let params = JSON.stringify({
                     file_path: this.file_path,
                 });
@@ -839,21 +809,6 @@
             },
             //上传补充病人数据
             submitUpload() {
-                this.dataupshow=true
-                this.isUploadingByIdMap = {
-                    ...this.isUploadingByIdMap,
-                    [this.supplemenForm.id]: 1
-                }
-                this.isUploadingStatusMap = {
-                    ...this.isUploadingStatusMap,
-                    [this.supplemenForm.id]: true 
-                }
-                const fileSize = this.fileList.length ? this.fileList[0].size / 1024 / 1024 / 1024 : 1;
-                const fileSizeMapVal = this.getCurrFileSize(+fileSize)
-                const progress = this.fileSizeMap[fileSizeMapVal]
-
-                let tempVal = this.supplemenForm.id
-                window[`interval-${tempVal}`] = this.queryCurrUploadingProgress(this.supplemenForm.id, progress)
                 let params = new FormData();
                   this.fileList.forEach(item => {
                     params.append("files", item.raw);
@@ -866,57 +821,25 @@
                 addzipupload(headers, params).then((res) => {
                     this.listLoading = false
                     const {msg, code, data} = res
-                    console.log(code)
-                    this.isUploadingStatusMap = {
-                        ...this.isUploadingStatusMap,
-                        [tempVal]: false 
-                    }
-                    clearInterval(window[`interval-${tempVal}`])
+                    this.file_path = data.file_path
+                    this.supplementVisible = false;
                     if (code === '0') {
-                        // alert("ok")
-                        // this.$message(data.filename,'上传成功');
-                        this.file_path=data.file_path,
-                        this.isUploadingByIdMap = {
-                            ...this.isUploadingByIdMap,
-                            [tempVal]: 100
-                        }
                         this.$message({
                             showClose: true,
-                          message: (data.filename+'上传成功'),
+                          message: (msg),
                           type: 'success'
                         });
-                        this.dataupshow=false
-                        this.supplementVisible = false;
                     } else {
-                        console.log('code !== 0')
-                        console.log('code !== 0 && upload fail ! Please try again')
-                        clearInterval(window[`interval-${tempVal}`])
                         this.$message({
                             showClose: true,
-                            message: (msg),
+                            message: (code, msg),
                             type: 'error'
                         });
-                        this.isUploadingByIdMap = {
-                            ...this.isUploadingByIdMap,
-                            [tempVal]: 0
-                        }
-                        this.dataupshow=false
-
                     }
                 }).catch(err => {
-                    clearInterval(window[`interval-${tempVal}`])
-                    console.log('upload fail ! Please try again')
-                    this.isUploadingStatusMap = {
-                        ...this.isUploadingStatusMap,
-                        [tempVal]: 0
-                    }
-                    this.isUploadingByIdMap = {
-                        ...this.isUploadingByIdMap,
-                        [tempVal]: 0
-                    }
                     this.$message({
                         showClose: true,
-                        message: (err.msg),
+                        message: (err),
                         type: 'error'
                     });
                 })
@@ -924,37 +847,7 @@
             handlePreview(file) {
               console.log(file);
             },
-            handleExceed(files, fileList) {
-              this.$message.warning(`当前限制选择 1 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
-            },
-            queryCurrUploadingProgress(id, progress) {
-                const fileSize = this.fileList
-                return setInterval(() => {
-                    const currProgressVal = +this.isUploadingByIdMap[id]
-                    // console.log('id-currProgressVal', id, currProgressVal)
-                    if(currProgressVal < 99) {
-                        this.isUploadingByIdMap = {
-                            ...this.isUploadingByIdMap,
-                            [id]: currProgressVal + +progress > 99 ? 99 : +((currProgressVal + +progress / 2).toFixed(1))
-                        }
-                    }
-                }, 500)
-            },
-            getCurrFileSize(fileSize) {
-                let val = 'A'
-                if(fileSize >= 10) {
-                    val = 'E'
-                } else if(fileSize >= 5){
-                    val = 'D'
-                } else if(fileSize >= 2){
-                    val = 'C'
-                } else if(fileSize >= 1) {
-                    val = 'B'
-                } else {
-                    val = 'A'
-                }
-                return val
-            }
+
 
         },
 

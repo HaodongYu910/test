@@ -108,7 +108,7 @@ class getResult(APIView):
             res = {}
             for i in list(relation):
                 if i.success_uid is None:
-                    if i.fail_uid == "【上传数据】：数据类型可能不正确，请检查":
+                    if str(i.fail_uid).count("【检查数据】："):
                         res[i.fail_uid] = '数据类型错误'
                     else:
                         res[i.fail_uid] = '已存在'
