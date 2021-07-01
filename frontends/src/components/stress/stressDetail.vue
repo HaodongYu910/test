@@ -511,7 +511,7 @@
                                                         <el-input-number :max="100"
                                                                          :min="1"
                                                                          label="测试时间"
-                                                                         v-model="detailForm.single"></el-input-number>
+                                                                         v-model="detailForm.duration"></el-input-number>
                                                     </el-form-item>
                                                 </el-col>
                                                 <el-row>
