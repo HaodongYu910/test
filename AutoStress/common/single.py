@@ -52,7 +52,7 @@ class SingleThread(threading.Thread):
         self.Flag = True  # 停止标志位
         self.count = 0  # 可用来被外部访问
         self.obj = stress.objects.get(stressid=kwargs["stressid"])
-        self.keyword = 'SIN' + str(kwargs["stressid"])
+        self.keyword = 'ST' + str(kwargs["stressid"])
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
@@ -104,10 +104,10 @@ class SingleThread(threading.Thread):
         ds.SOPInstanceUID = self.norm_string(
             '{0}.{1}'.format(instance_uid, rand_uid), 64)
         ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'SIN', rand_uid), 24)
+            '{0}{1}{2}'.format(str(predictor), 'SN', rand_uid), 24)
 
         ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'sin', rand_uid), 24)
+            '{0}{1}{2}'.format(str(predictor), 'sn', rand_uid), 24)
         ds.AccessionNumber = fake_acc_number
 
         ds.StudyDate = cur_date

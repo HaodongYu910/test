@@ -18,6 +18,7 @@ from ..common.stressTest import StressThread
 from ..common.jmeter import JmeterThread
 
 from AutoProject.models import uploadfile, project_version
+from AutoProject.serializers import uploadfile_Deserializer
 from ..models import stress, stress_record, stress_result
 import os
 import shutil
@@ -238,6 +239,12 @@ class strategyDetail(APIView):
             stressId = request.GET.get("stressid")
             strategy = request.GET.get("strategy")
             obj = stress.objects.get(stressid=stressId)
+
+            modelDetail = []
+            progress = {}
+            statistics = {}
+            jmeterData = {}
+            # 判断加载tab 页面 根据加载返回数据
             if strategy == "SceneConfiguration":
                 total = int(len(obj.testdata.split(",")))
                 try:
@@ -256,28 +263,34 @@ class strategyDetail(APIView):
                         hybrid = float(stress_result.objects.filter(Stress_id=stressId, type="HH").count() / total)
                 except Exception as e:
                     logger.error(e)
-                    # 进度
+                # 返回 jmeter
+                try:
+                    if obj.jmeterstatus is True:
+                        JObj = uploadfile.objects.filter(fileid=stressId, status=True)
+                        serializer = uploadfile_Deserializer(JObj, many=True)
+                        jmeterData = serializer.data
+                except Exception as e:
+                    logger.error(f"Jmeter info error: {e}")
+
+                # 进度
                 progress = {
                         "manual": '%.2f' % (manual*100),
                         "single": '%.2f' % (single*100),
                         "hybrid": '%.2f' % (hybrid*100)
                     }
-                return JsonResponse(data={
-                    "progress": progress,
-                    "modelDetail": []
-                }, code="0", msg="成功")
             else:
+                statistics = {
+                    "total": stress_record.objects.filter(Stress_id=stressId, type=strategy).count(),
+                    "success": stress_record.objects.filter(Stress_id=stressId, type=strategy, sec__isnull=False).count(),
+                    "fail": stress_record.objects.filter(Stress_id=stressId, type=strategy, error__isnull=False).count(),
+                }
                 resultObj = stress_result.objects.filter(Stress_id=stressId, type=strategy)
                 if len(resultObj):
                     serializer = stress_result_Deserializer(resultObj, many=True)
                     for i in serializer.data:
                         i["modelname"] = dictionary.objects.get(id=i["modelname"]).key
-                    return JsonResponse(data={
-                        "modelDetail": serializer.data,
-                        "progress": {}
-                    }, code="0", msg="成功")
+                    modelDetail = serializer.data
                 else:
-                    dataList = []
                     for i in obj.testdata.split(","):
                         data = {
                             "modelname": dictionary.objects.get(id=i).key,
@@ -285,12 +298,14 @@ class strategyDetail(APIView):
                             "start_date": "--",
                             "end_date": "--"
                         }
-                        dataList.append(data)
+                        modelDetail.append(data)
 
-                    return JsonResponse(data={
-                        "modelDetail": dataList,
-                        "progress": {}
-                    }, code="0", msg="成功")
+            return JsonResponse(data={
+                "modelDetail": modelDetail,
+                "progress": progress,
+                "statistics": statistics,
+                "jmeterData": jmeterData,
+            }, code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -384,17 +399,17 @@ class updateStress(APIView):
         if result:
             return result
         try:
-            try:
-                # hostobj = Server.objects.get(id=data['hostid'])
-                # data["loadserver"] = hostobj.host
-                # data["testdata"] = str(data["testdata"])[1:-1]
-                dict = data['filedict']
-                for k, v in dict.items():
-                    obj = uploadfile.objects.get(id=v)
-                    obj.fileid = str(data["id"])
-                    obj.save()
-            except Exception as e:
-                return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
+            # try:
+            #     # hostobj = Server.objects.get(id=data['hostid'])
+            #     # data["loadserver"] = hostobj.host
+            #     # data["testdata"] = str(data["testdata"])[1:-1]
+            #     dict = data['filedict']
+            #     for k, v in dict.items():
+            #         obj = uploadfile.objects.get(id=v)
+            #         obj.fileid = str(data["id"])
+            #         obj.save()
+            # except Exception as e:
+            #     return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
 
             obj = stress.objects.get(stressid=data["stressid"])
             serializer = stress_Deserializer(data=data)
@@ -419,7 +434,7 @@ class DisableStress(APIView):
         """
         try:
             # 校验project_id类型为int
-            if not isinstance(data["id"], int):
+            if not data["stressid"]:
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -436,10 +451,24 @@ class DisableStress(APIView):
             return result
         # 查找是否存在
         try:
-            obj = stress.objects.get(stressid=data["stressid"])
+            stressid = data["stressid"]
+            obj = stress.objects.get(stressid=stressid)
             obj.status = False
+            obj.teststatus = '已停止'
             obj.save()
-            return JsonResponse(code="0", msg="成功")
+            if obj.teststatus == "基准测试":
+                stoptest = ManualThread(stressid=stressid)
+            else:
+                # 删除文件夹
+                try:
+                    folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))
+                    if os.path.exists(folder):
+                        shutil.rmtree(folder)
+                except Exception as e:
+                    logger.error("删除文件夹失败：{}".format(e))
+
+            return JsonResponse(code="0", msg="已停止")
+
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="不存在！")
 
@@ -455,8 +484,8 @@ class EnableStress(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
-            if not isinstance(data["id"], int):
+            # 校验stressid
+            if not data["stressid"]:
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -471,11 +500,11 @@ class EnableStress(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        # 查找项目是否存在
+        # 查找是否存在
         try:
-            obj = stress.objects.get(stressid=data["stressid"])
-            obj.status = True
-            obj.save()
+            stresstest = StressThread(stressid=data["stressid"])
+            stresstest.setDaemon(True)
+            stresstest.start()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -493,12 +522,9 @@ class delStress(APIView):
         :return:
         """
         try:
-            # 校验project_id类型为int
-            if not isinstance(data["ids"], list):
+            # 校验stressid
+            if not data["stressid"]:
                 return JsonResponse(code="999996", msg="参数有误！")
-            for i in data["ids"]:
-                if not isinstance(i, int):
-                    return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 

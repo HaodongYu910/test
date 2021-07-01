@@ -145,13 +145,37 @@ LOGGING = {
         },
     }
 }
-
-# #使用LDAP验证
+#
+# # 使用三方用户验证
 # AUTHENTICATION_BACKENDS = (
-#     'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
-#     'django.contrib.auth.backends.ModelBackend',
+#     'azure_ad_auth.backends.AzureActiveDirectoryBackend',
+#     # 'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
+#     # 'django.contrib.auth.backends.ModelBackend',
 # )
-# #ldap的连接基础配置
+# AAD_TENANT_ID = 'c5e052f6-b3d7-4905-bc83-6df7c2fb7edd'
+#
+# # The Azure Tenant ID. It can be found in the URL of the Azure Management Portal.
+# AAD_CLIENT_ID = '3ccc65ec-1885-4757-9ba0-7dbdf347c56f'
+#
+# #The Azure Application Client ID.
+#
+# AAD_AUTHORITY = 'https://login.microsoftonline.com/c5e052f6-b3d7-4905-bc83-6df7c2fb7edd/saml2'
+#
+# # **default:** `'https://login.microsoftonline.com'`
+# # The domain that is used for authorization, the federation metadata document, and loggin out.
+#
+# AAD_SCOPE = 'openid'
+# # **default:** `'openid'`
+# # OAuth scope parameter.
+# AAD_RESPONSE_TYPE = 'id_token'
+# # **default:** `'id_token'`
+# # Tells OAuth to return a JWT token in its response.
+# AAD_RESPONSE_MODE = 'form_post'
+# AAD_USER_CREATION = True
+# # **default:** `'form_post'`
+# # Defines how the response parameters are returned. Valid choices are `fragment` or `form_post`.
+
+# ldap的连接基础配置
 # AUTH_LDAP_SERVER_URI = 'ldap://ldap.bishijie.com'
 # AUTH_LDAP_BASE_DN = 'ou=Users,dc=bishijie,dc=com'
 # AUTH_LDAP_BIND_DN = 'cn=RO,dc=bishijie,dc=com'
