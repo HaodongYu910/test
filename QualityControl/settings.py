@@ -11,9 +11,10 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 """
 
 import os
-
+import socket
 # import ldap
 # from django_auth_ldap.config import LDAPSearch, LDAPSearchUnion, GroupOfNamesType
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -27,16 +28,22 @@ SECRET_KEY = 'u_902ri*_wg9^0_xc0@=fvdi4@o0ci)j34t59p3bw#v-rn1cq2'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-# 服务器
-SITE_DBURL = "192.168.1.121"  # 数据库 地址
-SITE_JIRAURL = "http://jira.test.com"  # JIRA 地址
-SITE_JENKINURL = "http://192.168.2.58:8080"  # JENKINS 地址
+# MySql 数据库配置
+MS_DB = "192.168.1.121"  # 数据库 地址
+MySqlName = "auto_test"
+MySqlUser = "root"
+MySql_Pwd = "P@ssw0rd2o8"
+
+# JIRA 地址
+SITE_JiraUrl = "http://jira.test.com"
+# JENKINS 地址
+SITE_JenkinsUrl = "http://192.168.2.58:8080"
 
 # influxdb 数据库
-Influxdb = '192.168.1.121'
+InfluxDb = '192.168.1.121'
 InfluxDataBase = 'AutoTest'
-InfluxdbUser = ''
-InfluxdbPassWd = ''
+InfluxUser = ''
+InfluxPassWd = ''
 
 # 邮箱配置
 MAIL_SERVER = "smtp.exmail.qq.com"  # 邮箱地址
@@ -44,11 +51,9 @@ MAIL_PORT = 465  # 端口号
 MAIL_USER = "qa@biomind.ai"  # 账号
 MAIL_PWD = "QualityControl@123"  # 密码
 
-# Dicom的路径
-Dicom_PATH = '/home/biomind/'
-
 # 创建日志的路径
 LOG_PATH = os.path.join(BASE_DIR, 'logs')
+
 # 本地
 # SITE_DBURL = "rm-2ze7j006i3129ay5vmo.mysql.rds.aliyuncs.com"
 # SITE_JIRAURL = "http://jira.bishijie.com"
@@ -92,8 +97,8 @@ LOGGING = {
             'level': 'INFO',
             'class': 'logging.handlers.RotatingFileHandler',  # 保存到文件，自动切
             'filename': os.path.join(LOG_PATH, "test_info.log"),  # 日志文件
-            'maxBytes': 1024 * 1024 * 500,  # 日志大小 100 M
-            'backupCount': 3,  # 最多备份几个
+            'maxBytes': 1024 * 1024 * 100,  # 日志大小 100 M
+            'backupCount': 10,  # 最多备份几个
             'formatter': 'standard',
             'encoding': 'utf-8',
         },  # 专门用来记错误日志
@@ -140,13 +145,37 @@ LOGGING = {
         },
     }
 }
-
-# #使用LDAP验证
+#
+# # 使用三方用户验证
 # AUTHENTICATION_BACKENDS = (
-#     'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
-#     'django.contrib.auth.backends.ModelBackend',
+#     'azure_ad_auth.backends.AzureActiveDirectoryBackend',
+#     # 'django_auth_ldap.backend.LDAPBackend',  #配置为先使用LDAP认证，如通过认证则不再使用后面的认证方式
+#     # 'django.contrib.auth.backends.ModelBackend',
 # )
-# #ldap的连接基础配置
+# AAD_TENANT_ID = 'c5e052f6-b3d7-4905-bc83-6df7c2fb7edd'
+#
+# # The Azure Tenant ID. It can be found in the URL of the Azure Management Portal.
+# AAD_CLIENT_ID = '3ccc65ec-1885-4757-9ba0-7dbdf347c56f'
+#
+# #The Azure Application Client ID.
+#
+# AAD_AUTHORITY = 'https://login.microsoftonline.com/c5e052f6-b3d7-4905-bc83-6df7c2fb7edd/saml2'
+#
+# # **default:** `'https://login.microsoftonline.com'`
+# # The domain that is used for authorization, the federation metadata document, and loggin out.
+#
+# AAD_SCOPE = 'openid'
+# # **default:** `'openid'`
+# # OAuth scope parameter.
+# AAD_RESPONSE_TYPE = 'id_token'
+# # **default:** `'id_token'`
+# # Tells OAuth to return a JWT token in its response.
+# AAD_RESPONSE_MODE = 'form_post'
+# AAD_USER_CREATION = True
+# # **default:** `'form_post'`
+# # Defines how the response parameters are returned. Valid choices are `fragment` or `form_post`.
+
+# ldap的连接基础配置
 # AUTH_LDAP_SERVER_URI = 'ldap://ldap.bishijie.com'
 # AUTH_LDAP_BASE_DN = 'ou=Users,dc=bishijie,dc=com'
 # AUTH_LDAP_BIND_DN = 'cn=RO,dc=bishijie,dc=com'
@@ -252,14 +281,13 @@ STATIC_URL = '/static/'
 WSGI_APPLICATION = 'QualityControl.wsgi.application'
 
 # Database 服务器环境
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'auto_test',
-        'USER': 'root',
-        'PASSWORD': 'P@ssw0rd2o8',
-        'HOST': SITE_DBURL,
+        'NAME': MySqlName,
+        'USER': MySqlUser,
+        'PASSWORD': MySql_Pwd,
+        'HOST': MS_DB,
         'PORT': '3306',
     }
 }
@@ -355,7 +383,7 @@ CRONJOBS = [
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 45 分同步一次
     ('*/25 * * * *', 'AutoProject.scheduletask.JobSyTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化结果同步 每30 分同步一次
-    ('15 01 * * *', 'AutoProject.scheduletask.DurationTask',
+    ('00 02 * * *', 'AutoProject.scheduletask.DurationTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化任务启动
     ('30 09 * * *', 'AutoProject.scheduletask.DurationReportTask',
      '>>/home/biomind/Biomind_Test_Platform/logs/last_scheduled_job.logs'),  # 持续化报告任务

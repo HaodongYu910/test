@@ -5,7 +5,7 @@ from django.db.models import Count, When, Case
 from ..models import install, dictionary, Server
 from AutoInterface.models import gold_test, gold_record
 from AutoDicom.models import duration
-from AutoDicom.common.duration import DurationThread
+from AutoDicom.common.durationSend import DurationThread
 from AutoInterface.common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
 import time

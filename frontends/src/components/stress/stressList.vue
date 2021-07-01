@@ -12,31 +12,6 @@
                 <el-form-item>
                     <el-button type="primary" @click="handleAdd">创建测试</el-button>
                 </el-form-item>
-                <el-row>
-                    <el-form-item>
-                        <el-button @click="stressTest('jz')" :disabled="this.sels.length===0">基准测试</el-button>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="stressTest('dy')" :disabled="this.sels.length===0">单一测试
-                        </el-button>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="warning" @click="stressTest('hh')" :disabled="this.sels.length===0">混合测试
-                        </el-button>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="stressTest('jmeter')" :disabled="this.sels.length===0">jmeter
-                        </el-button>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="primary" @click="stressTest('qb')" :disabled="this.sels.length===0">全部测试
-                        </el-button>
-                    </el-form-item>
-                    <el-form-item>
-                        <el-button type="danger" @click="stop" :disabled="this.sels.length===0">停止测试</el-button>
-                    </el-form-item>
-
-                </el-row>
             </el-form>
 
         </el-col>
@@ -46,21 +21,14 @@
                   style="width: 100%;">
             <el-table-column type="selection" min-width="5%">
             </el-table-column>
-            <el-table-column prop="name" label="名称" min-width="8%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.name }}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="version" label="版本" min-width="8%" show-overflow-tooltip>
-                <template slot-scope="scope">
-                    <el-icon name="name"></el-icon>
-                    <router-link v-if="scope.row.status" :to="{ version: '概况', params: {stressid: scope.row.stressid}}"
-                                 style='text-decoration: none;color: #000000;'>
-                        {{ scope.row.version }}
-                    </router-link>
-                    {{ !scope.row.status?scope.row.version:""}}
-                </template>
-            </el-table-column>
+            <el-table-column prop="version" label="版本-名称" min-width="15%"  sortable>
+                    <template slot-scope="scope">
+                        <router-link v-if="scope.row.version" :to="{ name: 'stressDetail', query: {stressid: scope.row.stressid}}"
+                                     style='text-decoration: none;color: #0000ff;'>
+                            <span style="margin-left: 10px">{{ scope.row.version }}-{{ scope.row.name }}</span>
+                        </router-link>
+                    </template>
+                </el-table-column>
             <el-table-column prop="version" label="服务" min-width="12%">
                 <template slot-scope="scope">
                     <span style="margin-left: 10px">{{ scope.row.loadserver }}</span>
@@ -76,40 +44,32 @@
                     <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="开始时间" min-width="15%">
+            <el-table-column label="状态" min-width="12%">
                 <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.start_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
+                    <span style="margin-left: 10px">{{ scope.row.teststatus }}</span>
                 </template>
             </el-table-column>
-            <el-table-column label="结束时间" min-width="15%">
-                <template slot-scope="scope">
-                    <span style="margin-left: 10px">{{ scope.row.end_date  | dateformat('YYYY-MM-DD HH:mm:SS')}}</span>
-                </template>
-            </el-table-column>
-            <el-table-column prop="teststatus" label="状态" min-width="15%" show-overflow-tooltip>
+            <el-table-column prop="status" label="" min-width="8%" show-overflow-tooltip>
                 <template slot-scope="scope">
                     <img v-show="scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/qiyong.png"/>
                     <img v-show="!scope.row.status" style="width:18px;height:18px;margin-right:5px;margin-bottom:5px"
                          src="../../assets/img/fou.png"/>
-                    <span style="margin-left: 10px">{{ scope.row.teststatus }}</span>
                 </template>
             </el-table-column>
             <el-table-column label="操作" min-width="25%">
                 <template slot-scope="scope">
                     <el-row>
-                        <el-button type="warning" size="small" @click="handleLook(scope.$index, scope.row)">查看
-                        </el-button>
-                        <el-button type="warning" size="small" @click="handleEdit(scope.$index, scope.row)">修改
-                        </el-button>
                         <el-button type="info" size="small"
                                    @click="checkExpress(scope.row.start_date,scope.row.end_date, scope.row.loadserver)">
                             监控
                         </el-button>
                         <el-button type="warning" size="small" @click="showReport(scope.$index, scope.row)">报告
                         </el-button>
-                        <el-button type="primary" size="small" @click="handleSave(scope.$index, scope.row)">同步结果
-                        </el-button>
+                        <el-button :type="typeStatus(scope.row.status)" size="small"
+                                       @click="handleChangeStatus(scope.$index, scope.row)">
+                                {{scope.row.status===false?'启用':'停用'}}
+                            </el-button>
                     </el-row>
                 </template>
             </el-table-column>
@@ -123,152 +83,6 @@
             </el-pagination>
         </el-col>
 
-        <!--详细界面-->
-        <el-dialog :visible.sync="editFormVisible" :close-on-click-modal="false"
-                   style="width: 120%;">
-            <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
-                <el-divider>基本配置</el-divider>
-                <el-row>
-                    <el-col :span="6">
-                        <el-form-item label="名称&版本" prop="name">
-                             <el-form-item label="请选择版本" prop='version'>
-
-                            </el-form-item>
-                            <el-select v-model="editForm.version" placeholder="请选择">
-                                <el-option key="晨曦" label="晨曦" value="晨曦"></el-option>
-                                <el-option key="肺炎" label="肺炎" value="肺炎"></el-option>
-                                <el-option key="神内" label="神内" value="神内"></el-option>
-                                <el-option key="神外" label="神外" value="神外"></el-option>
-                                <el-option key="超声" label="超声" value="超声"></el-option>
-                                <el-option key="放射" label="放射" value="放射"></el-option>
-                            </el-select>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="4">
-                        <el-input v-model.trim="editForm.name" auto-complete="off"></el-input>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="12">
-                        <el-form-item label="开始时间">
-                            <el-date-picker v-model="editForm.start_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                    <el-col :span="12">
-                        <el-form-item label="结束时间" prop='api_date'>
-                            <el-date-picker v-model="editForm.end_date" type="datetime"
-                                            value-format="yyyy-MM-dd HH:mm:ss" placeholder="选择日期"></el-date-picker>
-                        </el-form-item>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="8">
-                        <el-card>
-                            <el-divider>基准-配置</el-divider>
-
-                            <el-form-item label="循环次数" prop='benchmark'>
-                                <el-input-number v-model="editForm.benchmark" @change="handleChange" :min="1"
-                                                 :max="5000"
-                                                 label="基准循环次数"></el-input-number>
-                            </el-form-item>
-
-                        </el-card>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-card>
-                            <el-divider>单一-配置</el-divider>
-
-                            <el-form-item label="测试时间" prop='single'>
-                                <el-input-number v-model="editForm.single" @change="handleChange" :min="0" :max="12"
-                                                 label="单一循环"></el-input-number>
-                                时
-                            </el-form-item>
-                        </el-card>
-                    </el-col>
-                    <el-col :span="8">
-                        <el-card>
-                            <el-divider>混合-配置</el-divider>
-                            <!--                            <el-form-item label="发送数量" prop='loop_count'>-->
-                            <!--                                <el-input-number v-model="editForm.loop_count" @change="handleChange" :min="1"-->
-                            <!--                                                 :max="5000"-->
-                            <!--                                                 label="发送数量"></el-input-number>-->
-                            <!--                            </el-form-item>-->
-                            <el-form-item label="持续时间" prop='thread'>
-                                <el-input-number v-model="editForm.duration" @change="handleChange" :min="1" :max="5000"
-                                                 label="线程数"></el-input-number>
-                                时
-                            </el-form-item>
-                        </el-card>
-                    </el-col>
-                </el-row>
-                <el-row :gutter="24">
-                    <el-col :span="16">
-                        <el-card>
-                            <el-divider>Jmeter-配置</el-divider>
-                            <el-row :gutter="24">
-                                <el-col :span="12">
-                                    <el-form-item label="线程数" prop='thread'>
-                                        <el-input-number v-model="editForm.thread" @change="handleChange" :min="1"
-                                                         :max="5000"
-                                                         label="线程数"></el-input-number>
-                                    </el-form-item>
-                                </el-col>
-                                <el-col :span="12">
-                                    <el-form-item label="Ramp-Up" prop='ramp'>
-                                        <el-input-number v-model="editForm.ramp" @change="handleChange" :min="0"
-                                                         :max="5000"
-                                                         label="Ramp-Up"></el-input-number>
-                                    </el-form-item>
-                                </el-col>
-                            </el-row>
-                            <el-row>
-                                <el-col :span="12">
-                                    <el-form-item label="并发数" prop='synchroniz'>
-                                        <el-input-number v-model="editForm.synchroniz" @change="handleChange" :min="0"
-                                                         :max="5000"
-                                                         label="并发数"></el-input-number>
-                                    </el-form-item>
-                                </el-col>
-
-                                <el-col :span="12">
-                                    <el-form-item label="持续时间 " prop='single'>
-                                        <el-input-number v-model="editForm.loop_time" @change="handleChange" :min="0"
-                                                         :max="5000"
-                                                         label="持续时间"></el-input-number>
-                                        秒
-                                    </el-form-item>
-
-                                </el-col>
-                            </el-row>
-                        </el-card>
-                    </el-col>
-          <el-col :span="8">
-                        <el-divider>Jmeter-文件上传</el-divider>
-                        <el-upload
-                                class="upload-demo"
-                                action="#"
-                                :file-list="fileList"
-                                :on-change="changeData"
-                                multiple
-                                :http-request="handleRequest"
-                                :before-upload="beforeUpload"
-                                :on-remove="handleRemove"
-                                :before-remove="beforeRemove">
-
-                            <el-button class="btn upload-btn">上传附件</el-button>
-                            <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
-                            <div slot="tip" class="el-upload__tip">只能上传jmx/.py文件</div>
-                        </el-upload>
-                        <el-progress :stroke-width="16" :percentage="progressPercent"></el-progress>
-                    </el-col>
-                </el-row>
-            </el-form>
-            <div slot="footer" class="dialog-footer">
-                <el-button @click.native="editFormVisible = false">关闭</el-button>
-                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">修改</el-button>
-            </div>
-        </el-dialog>
 
         <!--新增界面-->
         <el-dialog title="新增测试" :visible.sync="addFormVisible" :close-on-click-modal="false"
@@ -430,8 +244,8 @@
 <script>
     //import NProgress from 'nprogress'
     import {
-        stresslist, delStress, disableStress, enableStress, stressStop,getVersionInfo,
-        updateStress, addStress, stresssave, getHost, getDictionary, stressTool, addupload, delupload
+        stresslist, delStress, disableStress, enableStress,getVersionInfo,
+         addStress, getHost, getDictionary, stressTool, addupload, delupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -499,6 +313,15 @@
             }
         },
         methods: {
+            // 按钮状态判断
+            typeStatus: function (i) {
+                if (i === true) {
+                    return 'danger'
+                } else {
+                    return 'primary'
+                }
+
+            },
             showReport(index, row) {
                 this.$router.push({
                     path: '/stressReport',
@@ -682,52 +505,17 @@
                     }
                 })
             },
-            stop: function () {
-                let ids = this.sels.map(item => item.stressid);
+            stressTest: function (index,row) {
                 let self = this;
-                this.$confirm('停止测试?', '提示', {
+                this.$confirm('执行全部测试?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
                     //NProgress.start();
                     let self = this;
                     let params = {
-                        ids: ids
-                    };
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    stressStop(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '已停止',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.stresslistList()
-                    });
-                })
-            },
-            stressTest: function (type) {
-                let ids = this.sels.map(item => item.stressid);
-                let self = this;
-                this.$confirm('请选择一条数据执行测试?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {
-                        ids: ids,
-                        type: type
+                        ids: row.id,
+                        type: "type"
                     };
                     let header = {
                         "Content-Type": "application/json",
@@ -810,37 +598,6 @@
                     }
                 })
             },
-            //保存
-            handleSave: function (index, row) {
-                this.$confirm('确认测试完成了吗?', '提示', {
-                    type: 'warning'
-                }).then(() => {
-                    this.listLoading = true;
-                    //NProgress.start();
-                    let self = this;
-                    let params = {stressid: row.stressid};
-                    let header = {
-                        "Content-Type": "application/json",
-                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                    };
-                    stresssave(header, params).then(_data => {
-                        let {msg, code, data} = _data;
-                        if (code === '0') {
-                            self.$message({
-                                message: '成功',
-                                center: true,
-                                type: 'success'
-                            })
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true,
-                            })
-                        }
-                        self.stresslistList()
-                    });
-                })
-            },
             //删除
             handleDel: function (index, row) {
                 this.$confirm('确认删除该记录吗?', '提示', {
@@ -879,7 +636,10 @@
             handleChangeStatus: function (index, row) {
                 let self = this;
                 this.listLoading = true;
-                let params = {project_id: row.stressid};
+                let params = {
+                    stressid: row.stressid,
+                    type: "test"
+                };
                 let headers = {
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
@@ -956,59 +716,6 @@
                     loop_time: 3600
                 };
             },
-            //编辑修改
-            editSubmit: function () {
-                let self = this;
-                this.$refs.editForm.validate((valid) => {
-                    if (valid) {
-                        this.$confirm('确认保存吗？', '提示', {}).then(() => {
-                            self.editLoading = true;
-                            //NProgress.start();
-                            let params = {
-                                stressid: self.editForm.stressid,
-                                name: self.editForm.name,
-                                version: self.editForm.version,
-                                thread: this.editForm.thread,
-                                synchroniz: this.editForm.synchroniz,
-                                ramp: this.editForm.ramp,
-                                loop_count: this.editForm.loop_count,
-                                loop_time: this.editForm.loop_time,
-                                start_date: this.editForm.start_date,
-                                end_date: this.editForm.end_date,
-                                filedict: this.filedict
-                            };
-                            let header = {
-                                "Content-Type": "application/json",
-                                Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-                            };
-                            updateStress(header, params).then(_data => {
-                                let {msg, code, data} = _data;
-                                self.editLoading = false;
-                                if (code === '0') {
-                                    self.$message({
-                                        message: '修改成功',
-                                        center: true,
-                                        type: 'success'
-                                    });
-                                    self.$refs['editForm'].resetFields();
-                                    self.editFormVisible = false;
-                                    self.stresslistList()
-                                } else if (code === '999997') {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true,
-                                    })
-                                } else {
-                                    self.$message.error({
-                                        message: msg,
-                                        center: true,
-                                    })
-                                }
-                            });
-                        });
-                    }
-                });
-            },
             //新增
             addSubmit: function () {
                 this.$refs.addForm.validate((valid) => {
@@ -1032,7 +739,7 @@
                                 jmeterstatus: false,
                                 filedict: this.filedict,
                                 Host: this.addForm.Host,
-                                project_id:this.project_id,
+                                project:this.project_id,
                                 status: false,
                             });
                             let header = {

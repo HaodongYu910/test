@@ -69,8 +69,10 @@ class JmeterThread(threading.Thread):
         image = connect_postgres(database="orthanc", host=self.obj.Host_id,
                                  sql='select publicid from image ORDER BY internalid desc LIMIT 100')
         imagedata = image.to_dict(orient='records')
+
         for j in imagedata:
             imagelist.append(j["publicid"])
+
         # 循环生成压测数据
         for i in self.obj.testdata.split(","):
             if int(i) in [4, 7, 8, 10]:
@@ -84,7 +86,7 @@ class JmeterThread(threading.Thread):
                     for k in stressdata:
                         savecsv('{0}/{1}/data.csv'.format(path, str(self.server)),
                                 [k["publicid"], k["studyinstanceuid"], k["publicid"], k['modality'], obd.value,
-                                 imagelist[ii]])
+                                 imagelist[ii], k["patientid"]])
                         ii = ii + 1
                 except Exception as e:
                     continue

@@ -4,9 +4,7 @@
         <el-col :span="24" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item>
-<!--                    <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type" clearable-->
-                    <el-cascader :props="{ checkStrictly: true }" v-model="filters.type" clearable
-                                             @click.native="getgroupbase()"></el-cascader>
+                    <el-cascader :options="groupOptions" :props="{ checkStrictly: true }" v-model="filters.type" clearable @click.native="getgroupbase()"></el-cascader>
                 </el-form-item>
                 <el-form-item>
                     <el-input v-model="filters.name" placeholder="名称"
@@ -448,7 +446,6 @@
                         self.listLoading = false
                         const {msg, code, data} = res
                         if (code === '0') {
-                            alert(data.groupOptions)
                             this.groupOptions = data.groupOptions
 
                         } else {
@@ -896,7 +893,7 @@
                         clearInterval(window[`interval-${tempVal}`])
                         this.$message({
                             showClose: true,
-                            message: ('upload fail ! Please try again'),
+                            message: (msg),
                             type: 'error'
                         });
                         this.isUploadingByIdMap = {
@@ -904,11 +901,7 @@
                             [tempVal]: 0
                         }
                         this.dataupshow=false
-                        this.$message({
-                            showClose: true,
-                            message: (msg),
-                            type: 'error'
-                        });
+
                     }
                 }).catch(err => {
                     clearInterval(window[`interval-${tempVal}`])
@@ -923,7 +916,7 @@
                     }
                     this.$message({
                         showClose: true,
-                        message: ('upload fail ! Please try again'),
+                        message: (err.msg),
                         type: 'error'
                     });
                 })

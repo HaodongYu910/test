@@ -84,7 +84,7 @@ class InstallThread(threading.Thread):
         self.checkDisk()
         # 删除旧的版本配置
         if self.obj.installstatus is True:
-            self.cacheTag ='cacheTag'
+            self.cacheTag = 'cacheTag'
             self.ssh.cmd(
                 "cp -r /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache")
             self.ssh.cmd(

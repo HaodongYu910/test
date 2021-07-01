@@ -256,7 +256,7 @@
                 collectionLoading: false,
                 dicomgrouplist: {},
                 groupId: "",
-                groupOptions:{},
+                groupOptions: null,
                 sels: [], // 列表选中列
                 editFormRules: {
                     diagnosis: [

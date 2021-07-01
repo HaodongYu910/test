@@ -53,29 +53,24 @@
                         <span style="margin-left: 10px">{{ scope.row.sendcount }} 个</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="实际数量" min-width="10%">
+                <el-table-column label="共计数量" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.send }}</span>
+                        <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.totalsend }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="结束时间" min-width="10%">
+                <el-table-column label="今日数量" min-width="10%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time }}</span>
+                        <span style="margin-left: 10px;color: #FF0000;">{{ scope.row.todaysend }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="延时时间" min-width="10%">
+                <el-table-column label="开始日期" min-width="15%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.sleeptime }} 秒 </span>
+                        <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.update_time | dateformat('YYYY-MM-DD')}}</span>
                     </template>
                 </el-table-column>
-                <el-table-column label="延时数量" min-width="10%">
+                <el-table-column label="结束日期" min-width="15%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.sleepcount }} 个 </span>
-                    </template>
-                </el-table-column>
-                <el-table-column label="series延时" min-width="10%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.series }}</span>
+                        <span style="margin-left: 10px;color: #00A600;;">{{ scope.row.end_time | dateformat('YYYY-MM-DD')}}</span>
                     </template>
                 </el-table-column>
                 <el-table-column label="发送类型" min-width="12%">
@@ -134,20 +129,7 @@
                                              @click.native="getgroupbase()"></el-cascader>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="发送类型" prop="type">
-                                <el-select v-model="editForm.type" placeholder="请选择类型">
-                                    <el-option
-                                            v-for="item in typeoptions"
-                                            :key="item.value"
-                                            :label="item.label"
-                                            :value="item.value">
-                                    </el-option>
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
                     </el-row>
-                    <el-divider>匿名配置</el-divider>
 
                     <el-row :gutter="24">
                         <el-col :span="12">
@@ -164,46 +146,7 @@
                         </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="editForm.sleepcount" :min="0"
-                                                 :max="99999"
-                                                 label="延时数量"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="editForm.sleeptime" :min="0"
-                                                 :max="5000"
-                                                 label="延时时间（秒）"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="15">
-                                <el-form-item label="durationType" prop="durationType">
-                                    <el-select v-model="editForm.durationType" placeholder="请选择durationType"
-                                               @click.native="gethost()">
-                                        <el-option
-                                                v-for="(item,index) in Hosts"
-                                                :key="item.host"
-                                                :label="item.name"
-                                                :value="item.host"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="series延时" prop="series">
-                                    <el-switch v-model="editForm.series" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
                     </el-form>
-                </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="editFormVisible = false">取消</el-button>
                     <el-button type="primary" @click.native="editSubmit" :loading="editLoading">保存</el-button>
@@ -260,7 +203,6 @@
                             </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-divider>匿名配置</el-divider>
 
                     <el-row :gutter="24">
                         <el-col :span="12">
@@ -277,44 +219,6 @@
                         </el-form-item>
                         </el-col>
                     </el-row>
-                    <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="延时数量" prop='sleepcount'>
-                                <el-input-number v-model="addForm.sleepcount" :min="0"
-                                                 :max="99999"
-                                                 label="延时数量"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="延时时间（秒）" prop='sleeptime'>
-                                <el-input-number v-model="addForm.sleeptime" :min="0" :max="5000"
-                                                 label="延时时间（秒）"></el-input-number>
-                            </el-form-item>
-                        </el-col>
-                    </el-row>
-                    <el-form :inline="true" :model="filters" @submit.native.prevent>
-                        <el-row>
-                            <el-col :span="15">
-                                <el-form-item label="durationType" prop="dds">
-                                    <el-select v-model="addForm.durationType" placeholder="请选择durationType"
-                                               @click.native="gethost()">
-                                        <el-option
-                                                v-for="(item,index) in Hosts"
-                                                :key="item.host"
-                                                :label="item.name"
-                                                :value="item.host"
-                                        />
-                                    </el-select>
-                                </el-form-item>
-                            </el-col>
-                            <el-col :span="6">
-                                <el-form-item label="series延时" prop="series">
-                                    <el-switch v-model="addForm.series" active-color="#13ce66"
-                                               inactive-color="#ff4949"></el-switch>
-                                </el-form-item>
-                            </el-col>
-                        </el-row>
-                    </el-form>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
                     <el-button @click.native="addFormVisible = false">取消</el-button>
@@ -499,7 +403,9 @@
             getgroupbase() {
                 this.listLoading = true
                 const self = this
-                const params = {}
+                const params = {
+                    "project_id":this.project_id
+                }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getGroupBase(headers, params).then((res) => {
                         self.listLoading = false
@@ -714,17 +620,12 @@
                 this.addForm = {
                     server: null,
                     port: 4242,
-                    loop_time: '',
-                    keyword: null,
                     dicom: null,
                     durationType: null,
                     sendstatus: false,
                     status: false,
-                    sleepcount: null,
-                    sleeptime: 0,
                     sendcount: 0,
-                    type: '匿名',
-                    series: false,
+                    type: '持续化',
                     end_time:null
                 }
             }
@@ -739,16 +640,8 @@
                             // NProgress.start();
                             const params = {
                                 id: self.editForm.id,
-                                loop_time: self.editForm.loop_time,
-                                patientname: this.editForm.patientname,
-                                patientid: this.editForm.patientid,
                                 dicom: this.editForm.senddata,
                                 sendcount: this.editForm.sendcount,
-                                dds: this.editForm.dds,
-                                sleepcount: this.editForm.sleepcount,
-                                sleeptime: this.editForm.sleeptime,
-                                series: this.editForm.series,
-                                type: this.editForm.type,
                                 end_time:this.editForm.end_time
                             }
                             const header = {
@@ -800,10 +693,6 @@
                                 patientid: '',
                                 dicom: this.addForm.senddata,
                                 sendcount: this.addForm.sendcount,
-                                dds: this.addForm.dds,
-                                sleepcount: this.addForm.sleepcount,
-                                sleeptime: this.addForm.sleeptime,
-                                series: this.addForm.series,
                                 end_time:this.addForm.end_time,
                                 type: '持续化',
                                 sendstatus: false,

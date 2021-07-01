@@ -5,8 +5,6 @@ import pydicom
 import logging
 import subprocess as sp
 import shutil
-import random
-import math
 import socket
 import requests
 import time
@@ -14,63 +12,8 @@ import queue
 from django.conf import settings
 import threading
 from AutoDicom.models import duration_record, dicom, duration, dicom_group_detail
-
+from ..common.dataSort import *
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
-
-
-def get_date():
-    localtime = time.localtime(time.time())
-    return (time.strftime("%Y%m%d", localtime))
-
-
-def get_time():
-    localtime = time.localtime(time.time())
-    return (time.strftime("%H%M%S", localtime))
-
-
-def get_rand_uid():
-    rand_val = random.randint(1, math.pow(10, 16) - 1)
-    return str(time.time())
-    # return "%08d" % rand_val
-
-
-def Myinster(dicta):
-    dicta = dict(sorted(dicta.items(), key=lambda i: -len(i[1])))
-    listsum = []
-    l = 0
-    start = 0
-    step = 2
-    for key, value in dicta.items():
-        if start == 0:
-            listsum = list(value)
-            start = start + 1
-            continue
-        for i in value:
-            # print((start + step * l))
-            listsum.insert((start + step * l), i)
-            l = l + 1
-        # print(listsum)
-        start = start + 1
-        step = step + 1
-        l = 0
-    return listsum
-
-
-def copylist(listsum, count):
-    while len(listsum) < count:
-        listA = copy.deepcopy(listsum)
-        listsum = listA + listsum
-    return listsum[:count]
-
-
-def grouping(dictsum, dicom):
-    if dictsum.get(dicom.diseases) is None:
-        sum = set()
-        sum.add(dicom)
-    else:
-        sum = dictsum.get(dicom.diseases)
-        sum.add(dicom)
-    dictsum[dicom.diseases] = sum
 
 
 class DurationThread(threading.Thread):
@@ -85,12 +28,12 @@ class DurationThread(threading.Thread):
         self.thread_num = 4
         self.CountData = []
         self.SeriesInstanceUID = ''
-
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
             self.local_aet = 'QA38'
         else:
             self.local_aet = 'QA120'
+
         self.full_fn_fake = '{0}/{1}'.format(settings.LOG_PATH, self.keyword)
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
@@ -199,7 +142,7 @@ class DurationThread(threading.Thread):
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
                 try:
-                    rand_uid = get_rand_uid()
+                    rand_uid = str(time.time())
                     info = {
                         "diseases": j.diseases,
                         "rand_uid": rand_uid,
@@ -213,7 +156,7 @@ class DurationThread(threading.Thread):
                     for fn in file_names:
                         full_fn = os.path.join(src_folder, fn)
                         full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(filecount, fn))
-                        if (os.path.splitext(fn)[1] in ['.dcm'] == False):
+                        if (os.path.splitext(fn)[1] in '.dcm' == False):
                             continue
                         try:
                             q.put([full_fn, full_fn_fake, info, dcmcount])
@@ -270,7 +213,7 @@ class DurationThread(threading.Thread):
                 logger.error("匿名失败:{}".format(e))
 
             try:
-                self.sync_send_file(full_fn_fake, test_data[2]["study_uid"])
+                self.sync_send_file(full_fn_fake, test_data[2]["study_uid"], Seriesinstanceuid)
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
@@ -279,10 +222,12 @@ class DurationThread(threading.Thread):
             except Exception as e:
                 logger.error("delayed fail:{}".format(e))
 
+    # 存储 每张发送信息
     def connect_influx(self, data):
         try:
             tamp = int(round(time.time() * 1000000000))
-            influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},starttime={data["starttime"]},endtime={data["endtime"]} value={data["time"]} {tamp}'
+            influxdata = f'test,id={self.obj.id},studyuid={data["studyuid"]},Seriesinstanceuid={data["Seriesinstanceuid"]} value={data["time"]} {tamp}'
+            # logger.info(f"influx data:{influxdata}")
             requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
@@ -291,7 +236,7 @@ class DurationThread(threading.Thread):
         ts = time.localtime(time.time())
         return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), self.norm_string(rand_uid, 6))
 
-    def sync_send_file(self, file_name, studyuid):
+    def sync_send_file(self, file_name, studyuid, Seriesinstanceuid):
         # 发送数据
         try:
             commands = [
@@ -310,8 +255,8 @@ class DurationThread(threading.Thread):
             self.connect_influx({'studyuid': studyuid,
                                  'time': str('%.2f' % (float(endtime - starttime))),
                                  'starttime': starttime,
-                                 'endtime': endtime
-
+                                 'endtime': endtime,
+                                 'Seriesinstanceuid':Seriesinstanceuid
                                  })
             os.remove(file_name)
         except Exception as e:

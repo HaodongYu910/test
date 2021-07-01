@@ -38,15 +38,6 @@ class StressThread(threading.Thread):
             logger.error("基准测试失败：{}".format(e))
 
         try:
-            if self.Flag is True:
-                Single = SingleThread(stressid=self.id)
-                Single.setDaemon(True)
-                Single.run()
-
-        except Exception as e:
-            logger.error("单一测试失败：{}".format(e))
-
-        try:
             # 开始时间
             start = datetime.datetime.now()
             # 结束时间
@@ -60,10 +51,20 @@ class StressThread(threading.Thread):
                 while str(start) < str(end):
                     start = datetime.datetime.now()
                 Restart(id=self.obj.Host.id)
-                time.sleep(300)
+                time.sleep(500)
         except Exception as e:
             logger.error("混合测试失败：{}".format(e))
             # 混合测试
+        try:
+            if self.Flag is True:
+                Single = SingleThread(stressid=self.id)
+                Single.setDaemon(True)
+                Single.run()
+
+        except Exception as e:
+            logger.error("单一测试失败：{}".format(e))
+
+
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
