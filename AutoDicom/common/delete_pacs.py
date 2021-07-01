@@ -35,12 +35,11 @@ def main_delete():
             logging.info("[{0}],Daily delete finished".format(datetime.datetime.now()))
             return
         else:
-            logging.info("[{0}],Daily delete success, [{1}] do not have data need to be delete").format(
-                datetime.datetime.now(), del_date)
+            logging.info("[{0}],Daily delete finished, [{1}] do not have data need to be delete".format(datetime.datetime.now(), del_date))
             return
     except Exception as e:
-        logging.error("[{0}],Daily delete failed, error message :[{1}] ").format(
-            datetime.datetime.now(), e)
+        logging.error("[{0}],Daily delete failed, error message :[{1}] ".format(
+            datetime.datetime.now(), e))
 
 def get_del_date():
     cur_date = datetime.datetime.now()
