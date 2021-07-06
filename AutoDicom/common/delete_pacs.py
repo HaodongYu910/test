@@ -25,8 +25,8 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "QualityControl.settings"
 def main_delete():
     try:
         logging.info("[{0}],Daily sweep starting........".format(datetime.datetime.now()))
-        # del_date = get_del_date()
-        del_date = "20210526"
+        del_date = get_del_date()
+        # del_date = "20210526"
         sql = "SELECT studyinstanceuid FROM \"study\" WHERE studydate = '{0}' ".format(del_date)
         results = getResultsFromDB(host="192.168.2.84", sql=sql, database="orthanc")
         logging.info("[{0}],Delete step [1], get data need to be delete success".format(datetime.datetime.now()))
