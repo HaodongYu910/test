@@ -398,9 +398,13 @@ class EnableDuration(APIView):
                 dicomsend = DicomThread(type='duration', id=data["id"])
                 dicomsend.normalSend()
             else:
-                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {obj.id} &"
-                logger.info(cmd)
-                os.system(cmd)
+                durationThread = DurationThread(id=data["id"])
+                durationThread.setDaemon(True)
+                # 开始线程
+                durationThread.start()
+                # cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {obj.id} &"
+                # logger.info(cmd)
+                # os.system(cmd)
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")

@@ -5,8 +5,8 @@
   "scripts": {
     "dev": "vue-cli-service serve --mode development",
     "dev-prod": "vue-cli-service serve --mode development_prod",
-    "build-dev": "vue-cli-service build  --mode prod_prod",
-    "build-prod": "vue-cli-service build --mode development_prod"
+    "build-120": "vue-cli-service build  --mode prod_prod",
+    "build-121": "vue-cli-service build --mode development_prod"
   },
   "dependencies": {
     "@oldeng/v-pie": "^0.1.4",
