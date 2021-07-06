@@ -39,60 +39,6 @@ class DicomThread(threading.Thread):
             self.stressid = kwargs["stressid"]
         self.server = self.obj.Host.host
 
-    # 匿名发送
-    def anonymousSend(self):
-        a = 0
-        nom = 0
-        try:
-            sleepcount = self.obj.sleepcount if self.obj.sleepcount is not None else 9999
-            sleeptime = self.obj.sleeptime if self.obj.sleeptime is not None else 0
-            patientid = self.obj.patientid if self.obj.patientid is not None else '_'
-            patientname = self.obj.patientname if self.obj.patientname is not None else '_'
-            if self.obj.series is True:
-                series = 1
-            else:
-                series = 0
-
-            if self.obj.sendcount is None and self.obj.end_time is None:
-                end = 1
-            elif self.obj.sendcount is None and self.obj.end_time is not None:
-                end = (datetime.datetime.now() + datetime.timedelta(hours=int(self.obj.end_time))).strftime(
-                    "%Y-%m-%d %H:%M:%S")
-            else:
-                for j in self.obj.dicom.split(","):
-                    nom = nom + 1
-                imod = divmod(int(self.obj.sendcount), nom)
-                if imod[0] < 1:
-                    return JsonResponse(code="999994", msg="少于病种数量，请增加发送数量！")
-            for i in self.obj.dicom.split(","):
-                if nom != 0:
-                    end = int(imod[0]) + int(imod[1]) if a == 0 else int(imod[0])
-                    a = a + 1
-                cmd = ('nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3'
-                       ' /home/biomind/Biomind_Test_Platform/AutoDicom/common/dicomSend.py '
-                       '--ip {0} --aet {1} '
-                       '--port {2} '
-                       '--patientid {3} '
-                       '--patientname {4} '
-                       '--folderid {5} '
-                       '--durationid {6} '
-                       '--end {7} '
-                       '--sleepcount {8} '
-                       '--sleeptime {9} '
-                       '--series {10} &').format(self.obj.server, self.obj.aet, self.obj.port, patientid, patientname,
-                                                 i, self.id,
-                                                 end, sleepcount, sleeptime, series)
-                logger.info(cmd)
-                os.system(cmd)
-                time.sleep(1)
-            self.obj.sendstatus = True
-            self.obj.save()
-            return True
-
-        except Exception as e:
-            return False
-            logger.error("发送失败：{0}".format(e))
-
     # 正常发送
     def normalSend(self):
         self.obj.sendstatus = True

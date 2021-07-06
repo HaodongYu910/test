@@ -29,7 +29,8 @@ class test(APIView):
 
         # data = JSONParser().parse(request)
         try:
-            main_delete()
+            JobSyTask()
+            DurationSyTask()
 
             return JsonResponse(code="0", msg="成功")
         except Exception as e:

@@ -40,7 +40,7 @@ class stressRun(APIView):
         """
         try:
             # 必传参数 stressid
-            if not data["ids"]:
+            if not data["stressid"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 ids！")
 
         except KeyError:
@@ -54,36 +54,37 @@ class stressRun(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
-        stressid = data["ids"][0]
+        stressId = data["stressid"]
         if result:
             return result
         try:
             # 基准测试
-            if data['type'] == 'jz':
-                Manual = ManualThread(stressid=stressid)
+            if data['type'] == 'JZ':
+                Manual = ManualThread(stressid=stressId, modelID=data['modelId'])
                 Manual.setDaemon(True)
                 Manual.start()
             # 混合测试
-            elif data['type'] == 'hh':
-                Hybrid = HybridThread(stressid=stressid)
+            elif data['type'] == 'HH':
+                Hybrid = HybridThread(stressid=stressId)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
             # 单一测试
-            elif data['type'] == 'dy':
-                single = SingleThread(stressid=stressid)
+            elif data['type'] == 'DY':
+                single = SingleThread(stressid=stressId, modelID=data['modelId'])
                 single.setDaemon(True)
                 single.start()
-            # 单一测试
+            # jmeter测试
             elif data['type'] == 'jmeter':
-                jmeter = JmeterThread(stressid=stressid)
+                jmeter = JmeterThread(stressid=stressId)
                 jmeter.setDaemon(True)
                 jmeter.start()
             # 性能测试
             else:
                 logger.info("全部测试开始")
-                stresstest = StressThread(stressid=stressid)
+                stresstest = StressThread(stressid=stressId)
                 stresstest.setDaemon(True)
                 stresstest.start()
+
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
@@ -236,14 +237,16 @@ class strategyDetail(APIView):
                 :return:
                 """
         try:
-            stressId = request.GET.get("stressid")
-            strategy = request.GET.get("strategy")
-            obj = stress.objects.get(stressid=stressId)
-
             modelDetail = []
             progress = {}
             statistics = {}
             jmeterData = {}
+            StartDate = ""
+            EndDate = ""
+            stressId = request.GET.get("stressid")
+            strategy = request.GET.get("strategy")
+            obj = stress.objects.get(stressid=stressId)
+
             # 判断加载tab 页面 根据加载返回数据
             if strategy == "SceneConfiguration":
                 total = int(len(obj.testdata.split(",")))
@@ -257,10 +260,12 @@ class strategyDetail(APIView):
                     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     if obj.start_date is None:
                         hybrid = 0
-                    elif obj.end_date >= now:
+                    elif obj.end_date <= now:
                         hybrid = 1
                     else:
-                        hybrid = float(stress_result.objects.filter(Stress_id=stressId, type="HH").count() / total)
+                        start = datetime.datetime.strptime(obj.start_date, '%Y-%m-%d %H:%M:%S')
+                        durationTime = float(obj.duration*3600)
+                        hybrid = float((datetime.datetime.now() - start).seconds/durationTime)
                 except Exception as e:
                     logger.error(e)
                 # 返回 jmeter
@@ -272,22 +277,30 @@ class strategyDetail(APIView):
                 except Exception as e:
                     logger.error(f"Jmeter info error: {e}")
 
-                # 进度
+                # 返回进度
                 progress = {
                         "manual": '%.2f' % (manual*100),
                         "single": '%.2f' % (single*100),
                         "hybrid": '%.2f' % (hybrid*100)
                     }
             else:
+                # 其他tab 页面数据返回
+                if strategy != 'HH':
+                    listObj = list(stress_result.objects.filter(Stress_id=stressId, type=strategy).order_by("-start_date"))
+                    StartDate = listObj[-1].start_date
+                    EndDate = listObj[0].end_date
+                # 全部成功失败个数
                 statistics = {
                     "total": stress_record.objects.filter(Stress_id=stressId, type=strategy).count(),
-                    "success": stress_record.objects.filter(Stress_id=stressId, type=strategy, sec__isnull=False).count(),
+                    "success": stress_record.objects.filter(Stress_id=stressId, type=strategy, sec__isnull=False).count() ,
                     "fail": stress_record.objects.filter(Stress_id=stressId, type=strategy, error__isnull=False).count(),
                 }
+
                 resultObj = stress_result.objects.filter(Stress_id=stressId, type=strategy)
                 if len(resultObj):
                     serializer = stress_result_Deserializer(resultObj, many=True)
                     for i in serializer.data:
+                        i["modelId"] = i["modelname"]
                         i["modelname"] = dictionary.objects.get(id=i["modelname"]).key
                     modelDetail = serializer.data
                 else:
@@ -305,6 +318,8 @@ class strategyDetail(APIView):
                 "progress": progress,
                 "statistics": statistics,
                 "jmeterData": jmeterData,
+                "StartDate": StartDate,
+                "EndDate": EndDate
             }, code="0", msg="成功")
         except Exception as e:
             logger.error(e)

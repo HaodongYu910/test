@@ -3,35 +3,46 @@
 version=$1
 package_name=$2
 path=$3
-
+passwd=$4
+reset=$5
 
 
 echo ""
 echo "================================================================================"
-echo "                          Download AI Engine"
-echo "                          Install: <engine_version>: "
+echo "                          Download AI Engine $version"
+echo "                          Install: <engine_version>: $version"
 echo "================================================================================"
 echo ""
 echo "Instructions:"
 
+
+echo "##################### stop old version  ########################"
+sshpass -p $passwd biomind stop
 ###  version
-echo "#####################$version ########################"
-echo $package_name
-echo $path
+
 ### removing ago folder
 echo "#################### old build has been removed ############################"
 sudo rm -rf $version
 sudo rm -rf $package_name
-sudo rm -rf Qt
 
-mkdir QInstall
+echo "#################### backups old version orthanc.json and  cache ############################"
+cp -rf /home/biomind/.biomind/var/biomind/orthanc/orthanc.json /home/biomind/orthanc.json
+cp -rf /home/biomind/.biomind/var/biomind/cache/ /home/biomind/cache
+
+if [ $? -eq 0 ]; then
+     echo "backups succeed"
+else
+     echo "backups failed"
+fi
+
 ### ans for downloading packages and docker_registry
-
+echo "##################### rclone download $version  ########################"
+echo $package_name
+echo $path
 my_var=`rclone ls $path`
 
 echo $my_var
 
-echo "#################### rclone download $version ############################"
 rclone copy -P $path /home/biomind/ --transfers=8
 
 
@@ -46,38 +57,23 @@ fi
 
 echo "################################### installing $version AI Engine ###################################"
 cd ~/$version
+
 sshpass -p biomind bash setup_engine.sh
 
-sleep 2
-
-echo "rm -rf QInstall/"
-mv QInstall Qt
-rm -rf QInstall/
 #echo ""
-#echo "################################## install 3D modules ######################################"
-#### install biomind 3D
-#cd ~/$version/engine/deps/Biomind-3D/
-#bash setup_install prod master
-#sleep 2
-#
-#### set the permission
-##sudo chown biomind:biomind -R ~/.biomind/var/biomind/*
-
-echo ""
-echo "################################### fixed permission ###########################################"
-echo " "
+#echo "################################### fixed permission ###########################################"
+#echo " "
 ### fixed permssion
-bash ~/.biomind/lib/current/installer/biomind.sh install
+# bash ~/.biomind/lib/current/installer/biomind.sh install
 #sleep 3
 #echo ""
-#echo "################################### cache config ###########################################"
-#echo ""
-
-#echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
-#mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
-#echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"
-#mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
-
+if [ $reset = y ]; then
+  echo "################################### cache config ###########################################"
+  echo "mv -b -f /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json"
+  cp -rf /home/biomind/orthanc.json /home/biomind/.biomind/var/biomind/orthanc/orthanc.json
+  echo "mv -b -f /home/biomind/cache/ /home/biomind/.biomind/var/biomind/"
+  cp -rf /home/biomind/cache/ /home/biomind/.biomind/var/biomind/
+fi
 ### report
 #biomind report prod master
 #echo ""

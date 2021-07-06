@@ -1,49 +1,27 @@
 # coding=utf-8
-import logging
-import threading
 import os
 import shutil
 import pydicom
-import logging
 import subprocess as sp
-import time, datetime
-import numpy as np
-import random
-import math
+import datetime
 import socket
 import time
 import queue
-from django.db import transaction
 from django.conf import settings
 import threading
-
+from AutoDicom.common.dataSort import *
 from ..models import stress, stress_record
 
 from AutoDicom.models import duration_record, dicom
-
+from AutoProject.models import dictionary
 from AutoProject.utils.graphql.graphql import *
 from AutoProject.common.transport import SSHConnection
-
+from AutoProject.common.PostgreSQL import connect_postgres
 from ..common.saveResult import ResultStatistics
 from ..common.jmeter import JmeterThread
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
-
-
-def get_date():
-    localtime = time.localtime(time.time())
-    return (time.strftime("%Y%m%d", localtime))
-
-
-def get_time():
-    localtime = time.localtime(time.time())
-    return (time.strftime("%H%M%S", localtime))
-
-
-def get_rand_uid():
-    rand_val = random.randint(1, math.pow(10, 16) - 1)
-    return "%08d" % rand_val
 
 
 class SingleThread(threading.Thread):
@@ -52,6 +30,7 @@ class SingleThread(threading.Thread):
         self.Flag = True  # 停止标志位
         self.count = 0  # 可用来被外部访问
         self.obj = stress.objects.get(stressid=kwargs["stressid"])
+        self.modelID = kwargs["modelID"]
         self.keyword = 'ST' + str(kwargs["stressid"])
         self.server = self.obj.Host.host
         self.thread_num = 4
@@ -66,140 +45,109 @@ class SingleThread(threading.Thread):
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
 
-    # 匿名化数据
-    def anonymization(self, full_fn, full_fn_fake, info):
-        study_uid = ''
-        series_uid = ''
-        try:
-            ds = pydicom.dcmread(full_fn, force=True)
-        except Exception as e:
-            logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
-        try:
-            study_uid = ds.StudyInstanceUID
-            acc_number = ds.AccessionNumber
-            rand_uid = str(info.get("rand_uid"))
-            fake_acc_number = self.norm_string("{0}_{1}".format(acc_number, rand_uid), 16)
-            cur_date = info.get("cur_date")
-            cur_time = info.get("cur_time")
-            predictor = info.get("predictor")
-        except Exception as e:
-            logging.error(
-                'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.StudyInstanceUID = self.norm_string(
-            '{0}.{1}'.format(study_uid, rand_uid), 64)
-        try:
-            series_uid = ds.SeriesInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SeriesInstanceUID = self.norm_string(
-            '{0}.{1}'.format(series_uid, rand_uid), 64)
-        self.SeriesInstanceUID = ds.SeriesInstanceUID
-        instance_uid = ''
-        try:
-            instance_uid = ds.SOPInstanceUID
-        except Exception as e:
-            logging.error(
-                'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
-        ds.SOPInstanceUID = self.norm_string(
-            '{0}.{1}'.format(instance_uid, rand_uid), 64)
-        ds.PatientID = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'SN', rand_uid), 24)
-
-        ds.PatientName = self.norm_string(
-            '{0}{1}{2}'.format(str(predictor), 'sn', rand_uid), 24)
-        ds.AccessionNumber = fake_acc_number
-
-        ds.StudyDate = cur_date
-        ds.StudyTime = cur_time
-        ds.SeriesDate = cur_date
-        ds.SeriesTime = cur_time
-
-        try:
-            ds.save_as(full_fn_fake)
-        except Exception as e:
-            logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
-        return {
-            "version": self.obj.version,
-            "studyuid": ds.StudyInstanceUID,
-            "type": 'DY',
-            "slicenumber":  info.get("slicenumber"),
-            "images":  info.get("images"),
-            "modelname": predictor,
-            "Stress_id": self.obj.stressid,
-            "Host_id": self.obj.Host_id
-        }
-
     # 混合测试列队
     def QueData(self, model):
         q = queue.Queue()
-        filecount = 1
-        dcmcount = 0
-        logger.info("测试模型：{}".format(model))
-        dicomobj = dicom.objects.filter(predictor=model,
+        dicomObj = dicom.objects.filter(predictor=model,
                                         stressstatus__in=['1', '2'],
                                         status=True)
+        # 补充数据
+        if len(dicomObj):
+            listSum = copylist(list(dicomObj), int(self.obj.single))
+            # 优先查询组
+            for j in listSum:
+                dcm = 0
+                src_folder = str(j.route)
+                while src_folder[-1] == '/':
+                    src_folder = src_folder[0:-1]
+                try:
+                    rand_uid = str(get_rand_uid())
+                    cur_date = get_date()
+                    cur_time = get_time()
 
-        end = int(self.obj.single) * 400
-        try:
-            while True:
-                if filecount > end:
-                    self.CountData.append(dcmcount)
-                    break
-                if end >= filecount > int(dicomobj.count()):
-                    logger.info("重新加载数据 file_end：{0}，{1}".format(filecount, int(dicomobj.count())))
-                    dicomobj = dicom.objects.filter(predictor=model,
-                                                    stressstatus__in=['1', '2'],
-                                                    status=True)
-                for j in dicomobj:
-                    self.CountData.append(dcmcount)
-                    if filecount > end:
-                        break
-                    else:
-                        src_folder = str(j.route)
-                        while src_folder[-1] == '/':
-                            src_folder = src_folder[0:-1]
+                    file_names = os.listdir(src_folder)
+                    file_names.sort()
+                    for fn in file_names:
+                        full_fn = os.path.join(src_folder, fn)
+                        full_fn_fake = os.path.join(self.full_fn_fake, f'{dcm}-{fn}')
+                        if (os.path.splitext(fn)[1] in '.dcm' == False):
+                            continue
                         try:
-                            # "fake_name": get_fake_name(rand_uid, keyword),
-                            info = {
-                                "slicenumber": j.slicenumber,
-                                "images": j.imagecount,
-                                "predictor": j.predictor,
-                                "rand_uid": get_rand_uid(),
-                                "cur_date": get_date(),
-                                "cur_time": get_time()
-                            }
-                            file_names = os.listdir(src_folder)
-                            file_names.sort()
-                            for fn in file_names:
-                                dcmcount = dcmcount + 1
-                                full_fn = os.path.join(src_folder, fn)
-                                full_fn_fake = os.path.join(self.full_fn_fake, '{0}{1}'.format(fn, filecount))
-                                if (os.path.splitext(fn)[1] in ['.dcm'] == False):
-                                    continue
-                                try:
-                                    # logger.info("队列数据:{}".format([full_fn, full_fn_fake, info, dcmcount]))
-                                    q.put([full_fn, full_fn_fake, info, dcmcount])
-                                except Exception as e:
-                                    logging.error("[匿名错误]:{}".format(e))
-                                    continue
-                        except Exception as e:
-                            logger.error("遍历文件：{}".format(e))
-                    filecount = filecount + 1
+                            try:
+                                ds = pydicom.dcmread(full_fn, force=True)
+                            except Exception as e:
+                                logging.error('errormsg: failed to read file [{0}]'.format(full_fn))
+                            try:
+                                ds.StudyInstanceUID = self.norm_string(
+                                    f'{str(j.studyinstanceuid)}.{rand_uid}', 64)
+                                logger.info(f"------------{ds.StudyInstanceUID}----------")
+                                ds.AccessionNumber = self.norm_string(f"{str(ds.AccessionNumber)}_{rand_uid}", 16)
 
+                            except Exception as e:
+                                logging.error(
+                                    'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
+
+                            try:
+                                ds.SeriesInstanceUID = self.norm_string(f'{str(ds.SeriesInstanceUID)}.{rand_uid}', 64)
+                            except Exception as e:
+                                logging.error(
+                                    'failed to fake seriesinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+                            try:
+                                ds.SOPInstanceUID = self.norm_string(
+                                    '{0}.{1}'.format(str(ds.SOPInstanceUID), rand_uid), 64)
+                            except Exception as e:
+                                logging.error(
+                                    'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+                            try:
+                                ds.PatientID = self.norm_string('{0}Sn'.format(str(j.patientid)), 24)
+                                ds.PatientName = self.norm_string('{0}ST'.format(str(j.diseases)), 24)
+
+                                ds.StudyDate = cur_date
+                                ds.StudyTime = cur_time
+                                ds.SeriesDate = cur_date
+                                ds.SeriesTime = cur_time
+                            except Exception as e:
+                                logging.error(
+                                    'failed to fake sopinstanceuid: file[{0}], error[{1}]'.format(full_fn, e))
+
+                            try:
+                                ds.save_as(full_fn_fake)
+                            except Exception as e:
+                                logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
+                            info = {}
+                            if dcm == 0:
+                                info = {
+                                    "version": self.obj.version,
+                                    "studyuid": ds.StudyInstanceUID,
+                                    "type": 'DY',
+                                    "slicenumber": j.slicenumber,
+                                    "images": j.imagecount,
+                                    "modelname": j.predictor,
+                                    "Stress_id": self.obj.stressid,
+                                    "Host_id": self.obj.Host_id
+                                }
+                                dcm = 1
+                            q.put([full_fn_fake, info])
+                        except Exception as e:
+                            logging.error("[匿名错误]:{}".format(e))
+                            continue
+                except Exception as e:
+                    logger.error("遍历文件：{}".format(e))
             return q
-        except Exception as e:
-            logger.error("队列错误：{}".format(e))
 
     # 匿名混合测试
     def run(self):
-        # 开始时间
-        self.obj.teststatus = "单一开始"
-        self.obj.status = True
-        self.obj.save()
-
+        if self.modelID:
+            self.modelID = self.modelID
+        else:
+            self.modelID = self.obj.testdata.split(",")
         # 按模型 循环预测
-        for i in self.obj.testdata.split(","):
+        for i in self.modelID:
+            # 开始时间
+            modelName = dictionary.objects.get(id=i).key
+            self.obj.teststatus = f"{modelName}-测试中"
+            self.obj.status = True
+            self.obj.save()
             try:
                 logger.info(f"biomind restart host:{self.obj.Host.host}, pwd :{self.obj.Host.pwd}")
                 reSsh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
@@ -209,7 +157,6 @@ class SingleThread(threading.Thread):
                 q = self.QueData(model=i)
                 threads = []
                 start_date = datetime.datetime.now()
-                self.end_date = start_date + datetime.timedelta(hours=int(self.obj.single))
                 try:
                     for i in range(self.thread_num):
                         t = threading.Thread(target=self.durationAnony, args=(q,))
@@ -219,57 +166,62 @@ class SingleThread(threading.Thread):
                     for t in threads:
                         t.join()
                         time.sleep(1)
-
-                    time.sleep(10)
-                    try:
-                        Result = ResultStatistics(
-                            stressid=self.obj.stressid,
-                            stressType='DY',
-                            start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
-                            end_date=self.end_date.strftime("%Y-%m-%d %H:%M:%S")
-                        )
-                        Result.QueryResults()
-
-                    except Exception as e:
-                        logger.error("ResultStatistics：{0}".format(e))
-                    time.sleep(10)
                 except Exception as e:
                     logger.error("Thread Run Fail：{0}".format(e))
+                    continue
+                try:
+                    self.verification(start_date)
+                except Exception as e:
+                    logger.error("verification：{0}".format(e))
+                    continue
             except Exception as e:
                 logger.error("Fail：{0}".format(e))
                 continue
 
+        jmeter = JmeterThread(stressid= self.obj.stressid)
+        jmeter.setDaemon(True)
+        jmeter.start()
         self.obj.status = False
         self.obj.teststatus = '测试结束'
         self.obj.save()
 
+    def verification(self,start_date):
+        # 判断 是否全部预测完成
+        recordObj = stress_record.objects.filter(Stress_id=self.obj.stressid, type="DY").order_by("-id")[0]
+        while True:
+            pai_status = connect_postgres(database="orthanc", host=self.obj.Host_id,
+                                              sql=f"select pai_status from aistatus where studyuid ='{recordObj.studyuid}'")
+            AiStatus = pai_status.to_dict(orient='records')
+            if AiStatus[0]["pai_status"] in ["1", "2", "3"]:
+                end_date = datetime.datetime.now()
+                Result = ResultStatistics(
+                    stressid=self.obj.stressid,
+                    stressType='DY',
+                    start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    end_date=end_date.strftime("%Y-%m-%d %H:%M:%S")
+                )
+                Result.QueryResults()
+                break
+            else:
+                time.sleep("300")
+
     # 混合测试发送数据
     def durationAnony(self, q):
         while not q.empty():
-            if not os.path.exists(self.full_fn_fake) or datetime.datetime.now() > self.end_date:
-                logger.info("break {}".format(testData[2]))
+            if not os.path.exists(self.full_fn_fake):
+                logger.info("break {}".format(testData))
                 break
             testData = q.get()
-            full_fn_fake = testData[1]
             try:
-                data = self.anonymization(testData[0], full_fn_fake, testData[2])
-            except Exception as e:
-                logger.error("匿名失败:{}".format(e))
-            try:
-                if testData[3] in self.CountData:
-                    stress_record.objects.create(**data)
+                if testData[1] != {}:
+                    stress_record.objects.create(**testData[1])
             except Exception as e:
                 logger.error('[获取数据失败]： [{0}]'.format(e))
             try:
-                self.sync_send_file(full_fn_fake)
+                self.sync_send_file(testData[0])
             except Exception as e:
                 logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
                 continue
-
-
-    def get_fake_name(self, rand_uid, fake_prefix):
-        ts = time.localtime(time.time())
-        return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), self.norm_string(rand_uid, 6))
 
     def sync_send_file(self, file_name):
         # 发送数据

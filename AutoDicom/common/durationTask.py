@@ -334,10 +334,12 @@ class DurationThread:
     def delayed(self):
         if int(random.randint(1, 100)) > 80:
             hour = int(datetime.datetime.now().strftime("%H"))
-            if 8 < hour < 12:
+            if 9 < hour < 11:
+               return True
+            elif 11 < hour < 13:
                 sleepTime = random.randint(1, 50)
             elif 14 < hour < 18:
-                sleepTime = random.randint(1, 20)
+                sleepTime = random.randint(1, 10)
             elif hour > 21:
                 return True
             else:

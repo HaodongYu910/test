@@ -150,7 +150,7 @@ sudo docker load -i ./monitor/cadvisor.tar
 sudo docker run --volume=/:/rootfs:ro  --volume=/var/run:/var/run:ro --volume=/sys:/sys:ro --volume=/var/lib/docker/:/var/lib/docker:ro --volume=/dev/disk/:/dev/disk:ro --volume=/cgroup:/cgroup:ro --privileged=true --publish=8080:8080 --detach=true --name=cadvisor google/cadvisor
 sudo docker load -i ./monitor/postgres.tar
 sudo docker run -itd --name postgres_exporter -p 9187:9187 -e DATA_SOURCE_NAME="postgresql://postgres:4a53e4f5c42fd5a31890860b204472c5@localhost:5432/orthanc?sslmode=disable" wrouesnel/postgres_exporter
-    #记录日志
+#记录日志
 echo "${now} 重启docker容器，容器名称：google/cadvisor"
 
 
@@ -165,25 +165,23 @@ fi
 #
 print "\nSetup Completed\n\n"
 
-
 #==============================================================================
 # Install and update  PM2 packages
 #==============================================================================
 print_check "Install and update PM2 packages"
-mkdir /lfs/QA/
 sudo tar -xvf ./monitor/node-v12.4.0-linux-x64.tar.gz
-sudo cp -r ./monitor/node-v12.4.0-linux-x64 /lfs/QA/node-v12.4.0-linux-x64
+sudo cp -r ./monitor/node-v12.4.0-linux-x64 /var/local/node-v12.4.0-linux-x64
 sudo rm -rf /usr/bin/node
 sudo rm -rf /usr/bin/npm
 sudo rm -rf /usr/bin/pm2
-sudo ln -s /lfs/QA/node-v12.4.0-linux-x64/bin/node /usr/bin/node
-sudo ln -s /lfs/QA/node-v12.4.0-linux-x64/bin/npm /usr/bin/npm
-sudo ln -s /lfs/QA/node-v12.4.0-linux-x64/bin/pm2 /usr/bin/pm2
+sudo ln -s /var/local/node-v12.4.0-linux-x64/bin/node /usr/bin/node
+sudo ln -s /var/local/node-v12.4.0-linux-x64/bin/npm /usr/bin/npm
+sudo ln -s /var/local/node-v12.4.0-linux-x64/bin/pm2 /usr/bin/pm2
 sudo npm install -g pm2
 sudo pm2 install pm2-metrics
 sudo npm install
-sudo cp -r ./monitor/pm2-prometheus-exporter /lfs/QA/pm2-prometheus-exporter
-sudo pm2 start /lfs/QA/pm2-prometheus-exporter/exporter.js --name pm2-metrics
+sudo cp -r ./monitor/pm2-prometheus-exporter /var/local/pm2-prometheus-exporter
+sudo pm2 start /var/local/pm2-prometheus-exporter/exporter.js --name pm2-metrics
 
 if [ $? -ne 0 ]; then
     throw_error "pm2 install error"

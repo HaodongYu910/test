@@ -1,13 +1,9 @@
-import datetime
-import os
-import shutil
+
 import threading
 import time
 
 import numpy as np
-from django.db import connection
 from django.db import transaction
-from django.conf import settings
 from ..models import stress_record, stress_result, stress
 from ..serializers import stress_result_Deserializer
 from AutoProject.common.PostgreSQL import connect_postgres
@@ -70,11 +66,11 @@ def saveData(**kwargs):
 
 # 性能测试
 class ManualThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, **kwargs):
         threading.Thread.__init__(self)
         self.Flag = True  # 停止标志位
         # self.count = kwargs["count"]  # 可用来被外部访问的
-        # 性能测试id
+        self.modelID = kwargs["modelID"]
         self.stressid = kwargs["stressid"]
         self.obj = stress.objects.get(stressid=self.stressid)
         self.server = self.obj.Host.host
@@ -93,7 +89,11 @@ class ManualThread(threading.Thread):
             logger.error("性能基准数据删除失败")
         count = int(self.obj.benchmark)
         try:
-            stressData = dicom.objects.filter(predictor__in=self.obj.testdata.split(","), stressstatus='2')
+            if self.modelID:
+                stressData = dicom.objects.filter(predictor=self.modelID, stressstatus='2')
+            else:
+                stressData = dicom.objects.filter(predictor__in=self.obj.testdata.split(","), stressstatus='2')
+
             for k in stressData:
                 avglist = []
                 logger.info("基准测试：{}".format(k))
