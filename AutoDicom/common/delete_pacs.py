@@ -24,8 +24,9 @@ os.environ['DJANGO_SETTINGS_MODULE'] = "QualityControl.settings"
 
 def main_delete():
     try:
+        logging.info("[{0}],Daily sweep starting........".format(datetime.datetime.now()))
         # del_date = get_del_date()
-        del_date = "20210609"
+        del_date = "20210526"
         sql = "SELECT studyinstanceuid FROM \"study\" WHERE studydate = '{0}' ".format(del_date)
         results = getResultsFromDB(host="192.168.2.84", sql=sql, database="orthanc")
         logging.info("[{0}],Delete step [1], get data need to be delete success".format(datetime.datetime.now()))
@@ -85,10 +86,13 @@ def delFolder(result):
         ssh.connect(hostname='192.168.2.84', port=22, username='biomind', password='biomind')
         print(result)
         for i in result:
-            stdin, stdout, stderr = ssh.exec_command("sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/header/{0} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/original/{1} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/png/{2}".format(i["studyinstanceuid"], i["studyinstanceuid"], i["studyinstanceuid"]))
+            stdin, stdout, stderr = ssh.exec_command("sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/header/{0} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/original/{1}".format(i["studyinstanceuid"], i["studyinstanceuid"]))
+            stdout.readlines()
+            print("delete {0} success".format(i))
         ssh.close()
         logging.info("[{0}],Delete step [3], Daily delete folder in linux success".format(datetime.datetime.now()))
     except Exception as e:
+        ssh.close()
         print(e)
 
 
