@@ -341,7 +341,7 @@ class project_version(models.Model):
           项目版本
         """
     id = models.AutoField(primary_key=True)
-    version = models.CharField(max_length=20, blank=True, null=True, verbose_name="版本")
+    version = models.CharField(max_length=50, blank=True, null=True, verbose_name="版本")
     branch = models.CharField(max_length=20, blank=True, null=True, verbose_name="分支")
     package_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="包名")
     path = models.TextField(max_length=1000, blank=True, null=True, verbose_name="路径")

@@ -7,7 +7,7 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
-from ..serializers import stress_Deserializer, stress_result_Deserializer
+from ..serializers import stress_Deserializer, stress_result_Deserializer, stress_jmeter_Serializer
 
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
@@ -16,6 +16,7 @@ from ..common.single import SingleThread
 from ..common.manual import ManualThread
 from ..common.stressTest import StressThread
 from ..common.jmeter import JmeterThread
+from ..common.StrategyDetail import strategyList
 
 from AutoProject.models import uploadfile, project_version
 from AutoProject.serializers import uploadfile_Deserializer
@@ -40,7 +41,7 @@ class stressRun(APIView):
         """
         try:
             # 必传参数 stressid
-            if not data["ids"]:
+            if not data["stressid"]:
                 return JsonResponse(code="999996", msg="缺失必要参数,参数 ids！")
 
         except KeyError:
@@ -54,36 +55,37 @@ class stressRun(APIView):
         """
         data = JSONParser().parse(request)
         result = self.parameter_check(data)
-        stressid = data["ids"][0]
+        stressId = data["stressid"]
         if result:
             return result
         try:
             # 基准测试
-            if data['type'] == 'jz':
-                Manual = ManualThread(stressid=stressid)
+            if data['type'] == 'JZ':
+                Manual = ManualThread(stressid=stressId, modelID=data['modelId'])
                 Manual.setDaemon(True)
                 Manual.start()
             # 混合测试
-            elif data['type'] == 'hh':
-                Hybrid = HybridThread(stressid=stressid)
+            elif data['type'] == 'HH':
+                Hybrid = HybridThread(stressid=stressId)
                 Hybrid.setDaemon(True)
                 Hybrid.start()
             # 单一测试
-            elif data['type'] == 'dy':
-                single = SingleThread(stressid=stressid)
+            elif data['type'] == 'DY':
+                single = SingleThread(stressid=stressId, modelID=data['modelId'])
                 single.setDaemon(True)
                 single.start()
-            # 单一测试
+            # jmeter测试
             elif data['type'] == 'jmeter':
-                jmeter = JmeterThread(stressid=stressid)
+                jmeter = JmeterThread(stressid=stressId)
                 jmeter.setDaemon(True)
                 jmeter.start()
             # 性能测试
             else:
                 logger.info("全部测试开始")
-                stresstest = StressThread(stressid=stressid)
+                stresstest = StressThread(stressid=stressId)
                 stresstest.setDaemon(True)
                 stresstest.start()
+
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
             logger.error(e)
@@ -238,74 +240,8 @@ class strategyDetail(APIView):
         try:
             stressId = request.GET.get("stressid")
             strategy = request.GET.get("strategy")
-            obj = stress.objects.get(stressid=stressId)
-
-            modelDetail = []
-            progress = {}
-            statistics = {}
-            jmeterData = {}
-            # 判断加载tab 页面 根据加载返回数据
-            if strategy == "SceneConfiguration":
-                total = int(len(obj.testdata.split(",")))
-                try:
-                    manual = float(stress_result.objects.filter(Stress_id=stressId, type="JZ").count() / total)
-                    single = float(stress_result.objects.filter(Stress_id=stressId, type="DY").count() / total)
-                except Exception as e:
-                    logger.error(e)
-
-                try:
-                    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    if obj.start_date is None:
-                        hybrid = 0
-                    elif obj.end_date >= now:
-                        hybrid = 1
-                    else:
-                        hybrid = float(stress_result.objects.filter(Stress_id=stressId, type="HH").count() / total)
-                except Exception as e:
-                    logger.error(e)
-                # 返回 jmeter
-                try:
-                    if obj.jmeterstatus is True:
-                        JObj = uploadfile.objects.filter(fileid=stressId, status=True)
-                        serializer = uploadfile_Deserializer(JObj, many=True)
-                        jmeterData = serializer.data
-                except Exception as e:
-                    logger.error(f"Jmeter info error: {e}")
-
-                # 进度
-                progress = {
-                        "manual": '%.2f' % (manual*100),
-                        "single": '%.2f' % (single*100),
-                        "hybrid": '%.2f' % (hybrid*100)
-                    }
-            else:
-                statistics = {
-                    "total": stress_record.objects.filter(Stress_id=stressId, type=strategy).count(),
-                    "success": stress_record.objects.filter(Stress_id=stressId, type=strategy, sec__isnull=False).count(),
-                    "fail": stress_record.objects.filter(Stress_id=stressId, type=strategy, error__isnull=False).count(),
-                }
-                resultObj = stress_result.objects.filter(Stress_id=stressId, type=strategy)
-                if len(resultObj):
-                    serializer = stress_result_Deserializer(resultObj, many=True)
-                    for i in serializer.data:
-                        i["modelname"] = dictionary.objects.get(id=i["modelname"]).key
-                    modelDetail = serializer.data
-                else:
-                    for i in obj.testdata.split(","):
-                        data = {
-                            "modelname": dictionary.objects.get(id=i).key,
-                            "type": "HH",
-                            "start_date": "--",
-                            "end_date": "--"
-                        }
-                        modelDetail.append(data)
-
-            return JsonResponse(data={
-                "modelDetail": modelDetail,
-                "progress": progress,
-                "statistics": statistics,
-                "jmeterData": jmeterData,
-            }, code="0", msg="成功")
+            data = strategyList(stressId=stressId, strategy=strategy)
+            return JsonResponse(data=data, code="0", msg="成功")
         except Exception as e:
             logger.error(e)
             return JsonResponse(msg="失败", code="999991", exception=e)
@@ -341,29 +277,33 @@ class addStress(APIView):
             return result
         try:
             testdata = ''
+            if data['uploadID']:
+                data['jmeterstatus'] = True
             hostobj = Server.objects.get(id=data['Host'])
             data["loadserver"] = hostobj.host
             # 循环保证 字符串中无空格
             for j in data["testdata"]:
                 testdata = testdata + str(j) + ","
             data["testdata"] = testdata[:-1]
-            Stressadd = stress_Deserializer(data=data)
+            StressAdd = stress_Deserializer(data=data)
+
             with transaction.atomic():
-                Stressadd.is_valid()
-                strdata = Stressadd.save()
-                dict = data['filedict']
-                if dict != {}:
-                    for k, v in dict.items():
-                        try:
-                            obj = uploadfile.objects.get(id=v)
-                            obj.fileid = str(strdata.stressid)
-                            obj.save()
-                        except Exception as e:
-                            logger.error("更新upload数据失败{0},错误：{1}".format(v, e))
-                            continue
-                    obj = stress.objects.get(stressid=strdata.stressid)
-                    obj.jmeterstatus = True
-                    obj.save()
+                StressAdd.is_valid()
+                stressID = StressAdd.save()
+                try:
+                    if data['uploadID']:
+                        uploadObj = uploadfile.objects.get(id=data['uploadID'])
+                        data["name"] = uploadObj.filename
+                        data["route"] = uploadObj.fileurl
+                        data["status"] = True
+                        data["Stress"] = stressID.stressid
+                        add = stress_jmeter_Serializer(data=data)
+                        with transaction.atomic():
+                            add.is_valid()
+                            add.save()
+                except Exception as e:
+                    logger.error("{0}".format(e))
+
             return JsonResponse(code="0", msg="成功")
         except Exception as e:
             return JsonResponse(code="999995", msg="{0}".format(e))
@@ -399,17 +339,6 @@ class updateStress(APIView):
         if result:
             return result
         try:
-            # try:
-            #     # hostobj = Server.objects.get(id=data['hostid'])
-            #     # data["loadserver"] = hostobj.host
-            #     # data["testdata"] = str(data["testdata"])[1:-1]
-            #     dict = data['filedict']
-            #     for k, v in dict.items():
-            #         obj = uploadfile.objects.get(id=v)
-            #         obj.fileid = str(data["id"])
-            #         obj.save()
-            # except Exception as e:
-            #     return JsonResponse(code="999991", msg="更新upload数据失败{0}".format(e))
 
             obj = stress.objects.get(stressid=data["stressid"])
             serializer = stress_Deserializer(data=data)

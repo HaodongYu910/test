@@ -89,8 +89,8 @@
 
                    style="width: 120%; right: 0.5%">
             <el-form :model="addForm" label-width="80px" :rules="addFormRules" ref="addForm">
-                <el-row :gutter="24">
-                    <el-col :span="5">
+                <el-row :gutter="18">
+                    <el-col :span="6">
                         <el-form-item label="版本&名称" prop="name">
                             <el-select v-model="addForm.version" placeholder="请选择"
                                                    @click.native="getversion()">
@@ -106,6 +106,21 @@
                     <el-col :span="3">
                         <el-input v-model.trim="addForm.name" auto-complete="off"></el-input>
                     </el-col>
+                    <el-col :span="6">
+                        <el-form-item label="Jmeter" prop='server'>
+                            <el-select @click.native="getuploadList()" placeholder="请选择"
+                                               v-model="addForm.uploadID">
+                                        <el-option
+                                                :key="item.id"
+                                                :label="item.filename"
+                                                :value="item.id"
+                                                v-for="(item,index) in jmeterList"
+                                        />
+                                    </el-select>
+                        </el-form-item>
+                    </el-col>
+                </el-row>
+                <el-row :gutter="24">
                     <el-col :span="8">
                         <el-form-item label="服务器" prop='server'>
                             <el-select v-model="addForm.Host" placeholder="请选择服务器" @click.native="gethost()">
@@ -146,10 +161,10 @@
                         <el-card>
                             <el-divider>单一-配置</el-divider>
 
-                            <el-form-item label="测试时间" prop='single'>
-                                <el-input-number v-model="addForm.single" @change="handleChange" :min="0" :max="12"
+                            <el-form-item label="任务数量" prop='single'>
+                                <el-input-number v-model="addForm.single" @change="handleChange" :min="1" :max="2000"
                                                  label="单一循环"></el-input-number>
-                                时
+                                笔
                             </el-form-item>
                         </el-card>
                     </el-col>
@@ -245,7 +260,7 @@
     //import NProgress from 'nprogress'
     import {
         stresslist, delStress, disableStress, enableStress,getVersionInfo,
-         addStress, getHost, getDictionary, stressTool, addupload, delupload
+         addStress, getHost, getDictionary, stressTool, addupload, delupload, getupload
     } from '../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -256,6 +271,7 @@
                 filters: {
                     name: ''
                 },
+                jmeterList:{},
                 fileList: {},
                 filedict: {},
                 VersionInfo: {},
@@ -308,7 +324,8 @@
                     name: '晨曦',
                     version: '',
                     type: '',
-                    jmeterstatus: false
+                    jmeterstatus: false,
+                    uploadID:""
                 }
             }
         },
@@ -421,6 +438,29 @@
                             message: msg,
                             center: true
                         })
+                    }
+                })
+            },
+            getuploadList() {
+                const params = {
+                    page_size: "999999",
+                    type: "stress"
+                }
+                const headers = {
+                    'Content-Type': 'application/json'
+                }
+                getupload(headers, params).then(_data => {
+                    const {msg, code, data} = _data
+                    if (code != '0') {
+                        this.$message.error(msg)
+                        return
+                    }
+                    // 请求正确时执行的代码
+                    this.jmeterList = data.data
+                    for (var i in this.jmeterList) {
+                        if (i["filename"] === this.detailForm.filename) {
+                            this.jmeterData = i
+                        }
                     }
                 })
             },
@@ -713,7 +753,8 @@
                     ramp: 0,
                     loop_count: 1,
                     duration: 1,
-                    loop_time: 3600
+                    loop_time: 3600,
+                    uploadID:""
                 };
             },
             //新增
@@ -740,6 +781,7 @@
                                 filedict: this.filedict,
                                 Host: this.addForm.Host,
                                 project:this.project_id,
+                                uploadID: this.addForm.uploadID,
                                 status: false,
                             });
                             let header = {
