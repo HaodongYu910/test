@@ -30,13 +30,16 @@ def main_delete():
         sql = "SELECT studyinstanceuid FROM \"study\" WHERE studydate = '{0}' ".format(del_date)
         results = getResultsFromDB(host="192.168.2.84", sql=sql, database="orthanc")
         logging.info("[{0}],Delete step [1], get data need to be delete success".format(datetime.datetime.now()))
+        print("[{0}],Delete step [1], get data need to be delete success".format(datetime.datetime.now()))
         if len(results):
             delDB(del_date)
             delFolder(results)
             logging.info("[{0}],Daily delete finished".format(datetime.datetime.now()))
+            print("[{0}],Daily delete finished. Delete date: [{1}]".format(datetime.datetime.now(),del_date))
             return
         else:
             logging.info("[{0}],Daily delete finished, [{1}] do not have data need to be delete".format(datetime.datetime.now(), del_date))
+            print("[{0}],Daily delete finished, [{1}] do not have data need to be delete".format(datetime.datetime.now(), del_date))
             return
     except Exception as e:
         logging.error("[{0}],Daily delete failed, error message :[{1}] ".format(
@@ -59,6 +62,7 @@ def delDB(date):
         cursor.execute("delete from study where studydate = '{0}'".format(date))
         conn.commit()
         logging.info("[{0}],Delete step [2], Delete DB success,Total number of rows deleted :{1}".format(datetime.datetime.now(),cursor.rowcount))
+        print("[{0}],Delete step [2], Delete DB success,Total number of rows deleted :{1}".format(datetime.datetime.now(),cursor.rowcount))
         conn.close()
     except Exception as e:
         print(e)
@@ -84,13 +88,14 @@ def delFolder(result):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         ssh.connect(hostname='192.168.2.84', port=22, username='biomind', password='biomind')
-        print(result)
+        # print(result)
         for i in result:
             stdin, stdout, stderr = ssh.exec_command("sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/header/{0} && sshpass -p biomind sudo rm -rf /lfs/docker/volumes/orthanc-storage/_data/original/{1}".format(i["studyinstanceuid"], i["studyinstanceuid"]))
             stdout.readlines()
-            print("delete {0} success".format(i))
+            # print("delete {0} success".format(i))
         ssh.close()
         logging.info("[{0}],Delete step [3], Daily delete folder in linux success".format(datetime.datetime.now()))
+        print("[{0}],Delete step [3], Daily delete folder in linux success".format(datetime.datetime.now()))
     except Exception as e:
         ssh.close()
         print(e)
