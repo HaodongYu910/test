@@ -35,7 +35,7 @@ class SingleThread(threading.Thread):
         self.server = self.obj.Host.host
         self.thread_num = 4
         self.CountData = []
-        self.end_date = ''
+        self.studyuid = ''
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
             self.local_aet = 'QA38'
@@ -50,7 +50,7 @@ class SingleThread(threading.Thread):
         q = queue.Queue()
         dicomObj = dicom.objects.filter(predictor=model,
                                         stressstatus__in=['1', '2'],
-                                        status=True)
+                                        status=True).order_by("slicenumber")
         # 补充数据
         if len(dicomObj):
             listSum = copylist(list(dicomObj), int(self.obj.single))
@@ -69,7 +69,7 @@ class SingleThread(threading.Thread):
                     file_names.sort()
                     for fn in file_names:
                         full_fn = os.path.join(src_folder, fn)
-                        full_fn_fake = os.path.join(self.full_fn_fake, f'{dcm}-{fn}')
+                        full_fn_fake = os.path.join(self.full_fn_fake, f'{dcm}.dcm')
                         if (os.path.splitext(fn)[1] in '.dcm' == False):
                             continue
                         try:
@@ -80,7 +80,6 @@ class SingleThread(threading.Thread):
                             try:
                                 ds.StudyInstanceUID = self.norm_string(
                                     f'{str(j.studyinstanceuid)}.{rand_uid}', 64)
-                                logger.info(f"------------{ds.StudyInstanceUID}----------")
                                 ds.AccessionNumber = self.norm_string(f"{str(ds.AccessionNumber)}_{rand_uid}", 16)
 
                             except Exception as e:
@@ -116,6 +115,7 @@ class SingleThread(threading.Thread):
                                 logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
                             info = {}
                             if dcm == 0:
+                                self.studyuid = ds.StudyInstanceUID
                                 info = {
                                     "version": self.obj.version,
                                     "studyuid": ds.StudyInstanceUID,
@@ -126,8 +126,9 @@ class SingleThread(threading.Thread):
                                     "Stress_id": self.obj.stressid,
                                     "Host_id": self.obj.Host_id
                                 }
-                                dcm = 1
                             q.put([full_fn_fake, info])
+                            dcm = dcm + 1
+
                         except Exception as e:
                             logging.error("[匿名错误]:{}".format(e))
                             continue
@@ -143,23 +144,18 @@ class SingleThread(threading.Thread):
             self.modelID = self.obj.testdata.split(",")
         # 按模型 循环预测
         for i in self.modelID:
-            # 开始时间
             modelName = dictionary.objects.get(id=i).key
-            self.obj.teststatus = f"{modelName}-测试中"
+            self.obj.teststatus = f"{modelName}Testing"
             self.obj.status = True
             self.obj.save()
+
             try:
-                logger.info(f"biomind restart host:{self.obj.Host.host}, pwd :{self.obj.Host.pwd}")
-                reSsh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
-                reSsh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
-                time.sleep(400)
-                logger.info("sleep complete")
                 q = self.QueData(model=i)
                 threads = []
                 start_date = datetime.datetime.now()
                 try:
                     for i in range(self.thread_num):
-                        t = threading.Thread(target=self.durationAnony, args=(q,))
+                        t = threading.Thread(target=self.sync_send_file, args=(q,))
                         # args需要输出的是一个元组，如果只有一个参数，后面加，表示元组，否则会报错
                         t.start()
                         threads.append(t)
@@ -170,7 +166,7 @@ class SingleThread(threading.Thread):
                     logger.error("Thread Run Fail：{0}".format(e))
                     continue
                 try:
-                    self.verification(start_date)
+                    self.verification(start_date, i)
                 except Exception as e:
                     logger.error("verification：{0}".format(e))
                     continue
@@ -185,74 +181,67 @@ class SingleThread(threading.Thread):
         self.obj.teststatus = '测试结束'
         self.obj.save()
 
-    def verification(self,start_date):
+    # 验证预测是否结束
+    def verification(self, start_date, modelID):
         # 判断 是否全部预测完成
-        recordObj = stress_record.objects.filter(Stress_id=self.obj.stressid, type="DY").order_by("-id")[0]
         while True:
             pai_status = connect_postgres(database="orthanc", host=self.obj.Host_id,
-                                              sql=f"select pai_status from aistatus where studyuid ='{recordObj.studyuid}'")
+                                              sql=f"select pai_status from aistatus where studyuid ='{self.studyuid}'")
             AiStatus = pai_status.to_dict(orient='records')
-            if AiStatus[0]["pai_status"] in ["1", "2", "3"]:
-                end_date = datetime.datetime.now()
-                Result = ResultStatistics(
-                    stressid=self.obj.stressid,
-                    stressType='DY',
-                    start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
-                    end_date=end_date.strftime("%Y-%m-%d %H:%M:%S")
-                )
-                Result.QueryResults()
-                break
-            else:
-                time.sleep("300")
+            if len(AiStatus):
+                if AiStatus[0]["pai_status"] in ["1", "2", "3"]:
+                    Result = ResultStatistics(
+                        stressid=self.obj.stressid,
+                        stressType='DY',
+                        start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                        end_date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        modelID=modelID
+                    )
+                    Result.QueryResults()
+                    logger.info(f"biomind restart host:{self.obj.Host.host}, pwd :{self.obj.Host.pwd}")
+                    reSsh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
+                    reSsh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
+                    time.sleep(400)
+                    logger.info("sleep complete")
+                    break
+            logger.info("Forecast not completed sleep 300")
+            time.sleep(300)
 
     # 混合测试发送数据
-    def durationAnony(self, q):
+    def sync_send_file(self, q):
         while not q.empty():
             if not os.path.exists(self.full_fn_fake):
                 logger.info("break {}".format(testData))
                 break
             testData = q.get()
+            # 发送数据
+            try:
+                commands = [
+                    "storescu",
+                    self.obj.Host.host,
+                    self.obj.Host.port,
+                    "-aec", self.obj.Host.remarks,
+                    "-aet", self.local_aet,
+                    testData[0]
+                ]
+                popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
+                popen.communicate()
+                logger.info(f"发送成功 {commands}")
+                os.remove(testData[0])
+            except Exception as e:
+                logging.error('send_file error: {0}'.format(e))
             try:
                 if testData[1] != {}:
                     stress_record.objects.create(**testData[1])
             except Exception as e:
                 logger.error('[获取数据失败]： [{0}]'.format(e))
-            try:
-                self.sync_send_file(testData[0])
-            except Exception as e:
-                logging.error('errormsg: failed to sync_send [{0}]---报错：{1}'.format(q.get()[1], e))
-                continue
 
-    def sync_send_file(self, file_name):
-        # 发送数据
-        try:
-            commands = [
-                "storescu",
-                self.obj.Host.host,
-                self.obj.Host.port,
-                "-aec", self.obj.Host.remarks,
-                "-aet", self.local_aet,
-                file_name
-            ]
-            popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
-            popen.communicate()
-            os.remove(file_name)
-        except Exception as e:
-            logging.error('send_file error: {0}'.format(e))
 
     def norm_string(self, str, len_norm):
         str_dest = str
         while len(str_dest) > len_norm or str_dest[0] == '.':
             str_dest = str_dest[1:]
         return str_dest
-
-    def durationStop(self):
-        # 改变状态
-        self.obj.status = False
-        self.obj.save()
-        self.Flag = False
-        # 删除 文件夹
-        shutil.rmtree(self.full_fn_fake)
 
 
     def setFlag(self, parm):  # 外部停止线程的操作函数
@@ -263,8 +252,3 @@ class SingleThread(threading.Thread):
         self.Flag = parm  # boolean
         shutil.rmtree(self.full_fn_fake)
 
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
-
-    def getParm(self):  # 外部获得内部信息函数
-        return self.parm

@@ -1,4 +1,4 @@
-from ..models import dicom_base, dicom
+from ..models import dicom_group, dicom
 from AutoUI.models import auto_uicase
 from .deletepatients import *
 from .deletepatients import delete_patients_duration
@@ -19,15 +19,18 @@ def baseTransform(basedata, basetype):
     result = ''
     try:
         for i in basedata.split(","):
-            if basetype == 'base':
-                obj = dicom_base.objects.get(id=i)
-                result = result + obj.remarks + ","
-            elif basetype == 'dictionary':
-                obj = dictionary.objects.get(id=i)
-                result = result + obj.value + ","
-            elif basetype == 'case':
-                obj = auto_uicase.objects.get(caseid=i)
-                result = result + obj.name + ","
+            try:
+                if basetype == 'base':
+                    obj = dicom_group.objects.get(id=i)
+                    result = result + obj.name + ","
+                elif basetype == 'dictionary':
+                    obj = dictionary.objects.get(id=i)
+                    result = result + obj.value + ","
+                elif basetype == 'case':
+                    obj = auto_uicase.objects.get(caseid=i)
+                    result = result + obj.name + ","
+            except:
+                continue
         return result
     except Exception as e:
         return 'None'

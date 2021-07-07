@@ -91,3 +91,22 @@ class errorlog_Serializer(serializers.ModelSerializer):
         fields = ('id', 'Stress', 'content', 'route', 'version')
         read_only_fields = ('id',)  # 指定只读的 field
 
+class stress_jmeter_Deserializer(serializers.ModelSerializer):
+    """
+    性能jmeter 信息 反序列化
+    """
+    class Meta:
+        model = stress_jmeter
+        fields = ('id', 'name', 'thread', 'synchroniz', 'ramp', 'lookcount', 'parm',
+                  'testdata', 'route', 'type', 'status', 'Stress')
+
+class stress_jmeter_Serializer(serializers.ModelSerializer):
+    """
+    性能jmeter 信息序列化
+     """
+
+    class Meta:
+        model = stress_jmeter
+        fields = ('id', 'name', 'thread', 'synchroniz', 'ramp', 'lookcount', 'parm',
+                  'testdata', 'route', 'type', 'status', 'Stress', 'update_time', 'create_time')
+        read_only_fields = ('id',)  # 指定只读的 field

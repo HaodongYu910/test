@@ -56,12 +56,11 @@
                             <el-row :gutter="24">
                                 <el-col :span="16">
                                     <el-card>
-                                        <el-table :data="jmeterData" @selection-change="selsChange"
-                                                  style="width: 100%;"
-                                                  v-loading="listLoading">
-                                            <el-table-column label="名称" min-width="10%" prop="filename">
+                                        <el-table :data="JmeterData" @selection-change="selsChange"
+                                                  style="width: 100%;">
+                                            <el-table-column label="名称" min-width="10%" prop="name">
                                                 <template slot-scope="scope">
-                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.filename }}</span>
+                                                    <span style="margin-left: 11px;color: #07c4a8; font-family:微软雅黑">{{ scope.row.name }}</span>
                                                 </template>
                                             </el-table-column>
                                             <el-table-column label="类型" min-width="6%">
@@ -71,12 +70,12 @@
                                             </el-table-column>
                                             <el-table-column label="csv" min-width="6%">
                                                 <template slot-scope="scope">
-                                                    <span style="margin-left: 10px">{{ scope.row.remark }}</span>
+                                                    <span style="margin-left: 10px">{{ scope.row.testdata }}</span>
                                                 </template>
                                             </el-table-column>
                                             <el-table-column label="关联变量" min-width="10%">
                                                 <template slot-scope="scope">
-                                                    <span style="margin-left: 10px">{{ scope.row.remark }}</span>
+                                                    <span style="margin-left: 10px">{{ scope.row.parm }}</span>
                                                 </template>
                                             </el-table-column>
                                             <el-table-column label="上传时间" min-width="8%">
@@ -208,7 +207,7 @@
                                                         <el-input
                                                                 placeholder="请选择日期"
                                                                 suffix-icon="el-icon-date"
-                                                                v-model="StartDate">
+                                                                v-model="statistics.StartDate">
                                                         </el-input>
                                                     </el-form-item>
                                                 </el-col>
@@ -217,7 +216,7 @@
                                                         <el-input
                                                                 placeholder="请选择日期"
                                                                 suffix-icon="el-icon-date"
-                                                                v-model="EndDate">
+                                                                v-model="statistics.EndDate">
                                                         </el-input>
                                                     </el-form-item>
                                                 </el-col>
@@ -236,7 +235,7 @@
                                                     </el-button>
                                                 </el-col>
                                                 <el-col :span="12">
-                                                    <el-button @click="checkExpress(StartDate,EndDate)" type="primary"
+                                                    <el-button @click="checkExpress(statistics.StartDate,statistics.EndDate)" type="primary"
                                                     >服务监控
                                                     </el-button>
                                                 </el-col>
@@ -336,30 +335,30 @@
                                         <el-card>
                                             <el-divider>单一配置</el-divider>
                                             <el-row>
-                                                <el-form-item label="测试时间" prop='benchmark'>
-                                                    <el-input-number :max="100"
+                                                <el-form-item label="任务数量" prop='benchmark'>
+                                                    <el-input-number :max="2000"
                                                                      :min="1"
-                                                                     label="测试时间"
+                                                                     label="任务数量"
                                                                      v-model="detailForm.single"></el-input-number>
                                                 </el-form-item>
                                             </el-row>
                                             <el-row>
                                                 <el-form-item label="共计预测" prop='benchmark'>
                                                     <el-tag effect="dark" size="150%" type="warning">
-                                                        {{detailForm.total}} 笔
+                                                        {{statistics.total}} 笔
                                                     </el-tag>
                                                 </el-form-item>
                                             </el-row>
                                             <el-row>
                                                 <el-form-item class="label-content" label="预测成功" label-position="left">
                                                     <el-tag effect="dark" size="150%" type="success">
-                                                        {{detailForm.success}} 笔
+                                                        {{statistics.success}} 笔
                                                     </el-tag>
                                                 </el-form-item>
                                             </el-row>
                                             <el-row>
                                                 <el-form-item label="预测失败">
-                                                    <el-tag effect="dark" size="150%" type="danger">{{detailForm.fail}}
+                                                    <el-tag effect="dark" size="150%" type="danger">{{statistics.fail}}
                                                         笔
                                                     </el-tag>
                                                 </el-form-item>
@@ -376,7 +375,7 @@
                                                     </el-button>
                                                 </el-col>
                                                 <el-col :span="12">
-                                                    <el-button @click="checkExpress(StartDate,EndDate)" type="primary"
+                                                    <el-button @click="checkExpress(statistics.StartDate,statistics.EndDate)" type="primary"
                                                     >单一监控
                                                     </el-button>
                                                 </el-col>
@@ -759,10 +758,8 @@
                 filedict: {},
                 statistics: {}, // 数量统计
                 progress: {}, // 策略进度
-                jmeterData: {}, //jmeter 脚本选择
+                JmeterData: [], //jmeter 脚本选择
                 modelDetail: [], //策略模型详情
-                StartDate: "",
-                EndDate: "",
                 modelID:"",
                 activeName: 'SceneConfiguration',
                 jzstart: '',
@@ -777,6 +774,7 @@
                     {color: '#03fa54', percentage: 100},
                 ],
                 Host: {},
+                StartDate:"",
                 jmeterList: {},
                 props: {multiple: true},
                 form: {
@@ -1017,11 +1015,6 @@
                     }
                     // 请求正确时执行的代码
                     this.jmeterList = data.data
-                    for (var i in this.jmeterList) {
-                        if (i["filename"] === this.detailForm.filename) {
-                            this.jmeterData = i
-                        }
-                    }
                 })
             },
             getversion() {
@@ -1216,12 +1209,11 @@
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {
-                        self.progress = data.progress
-                        self.modelDetail = data.modelDetail
-                        self.jmeterData = data.jmeterData
-                        self.statistics = data.statistics
-                        self.StartDate = data.StartDate
-                        self.EndDate = data.EndDate
+                        this.progress = data.progress
+                        this.modelDetail = data.modelDetail
+                        this.JmeterData = data.JmeterData
+                        console.log(this.JmeterData[0])
+                        self.statistics = data.statistics[0]
                     } else {
                         self.$message.error({
                             message: msg,
