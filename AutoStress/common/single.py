@@ -67,7 +67,6 @@ class SingleThread(threading.Thread):
                         sum.add(i)
                     dictsum[i.slicenumber] = sum
                 for k, v in dictsum.items():
-                    print(k)
                     copyList = copylist(list(v), int(self.obj.single))
                     listsum = listsum + copyList
                 # print(listsum)
@@ -79,6 +78,8 @@ class SingleThread(threading.Thread):
                 src_folder = str(j.route)
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
+                if not os.path.exists(src_folder):
+                    os.system(f"rclone copy oss://qa-test-data/{j.route} {j.route}")
                 try:
                     rand_uid = str(get_rand_uid())
                     cur_date = get_date()

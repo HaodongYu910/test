@@ -216,6 +216,8 @@ class DurationThread:
             src_folder = str(j["route"])
             while src_folder[-1] == '/':
                 src_folder = src_folder[0:-1]
+            if not os.path.exists(src_folder):
+                os.system(f"rclone copy oss://qa-test-data/{j['route']} {j['route']}")
             try:
                 rand_uid = get_rand_uid()
                 info = {
