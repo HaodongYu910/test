@@ -467,10 +467,41 @@ export const getsmokefigure = (headers, params) => {
     .then((res) => res.data);
 };
 
+// 性能监控
+export const getMonitor = (headers, params) => {
+  return axios
+    .get(`${test}/stress/operationMonitor`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+
 // 压测报告模型列表
 export const getstressmodel = (headers, params) => {
   return axios
     .get(`${test}/stress/stressmodel`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+// 压测列表
+export const JmeterList = (headers, params) => {
+  return axios
+    .get(`${test}/jmeter/list`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+// 新增加Jmeter
+export const addJmeter = (headers, params) => {
+  return axios
+    .post(`${test}/jmeter/add`, params, headers)
+    .then((res) => res.data);
+};
+// 修改Jmeter
+export const updateJmeter = (headers, params) => {
+  return axios
+    .post(`${test}/jmeter/update`, params, headers)
+    .then((res) => res.data);
+};
+// 删除压测
+export const delJmeter = (headers, params) => {
+  return axios
+    .post(`${test}/jmeter/del`, params, headers)
     .then((res) => res.data);
 };
 // 压测列表
@@ -491,7 +522,7 @@ export const updateStress = (headers, params) => {
     .post(`${test}/stress/list/update`, params, headers)
     .then((res) => res.data);
 };
-// 修改压测
+// 删除压测
 export const delStress = (headers, params) => {
   return axios
     .post(`${test}/stress/list/del`, params, headers)
@@ -777,12 +808,6 @@ export const durationverifydata = (headers, params) => {
       { params: params },
       { headers }
     )
-    .then((res) => res.data);
-};
-// 获取基础数据
-export const getbase = (headers, params) => {
-  return axios
-    .get(`${test}/dicom/base/getdata`, { params: params }, { headers })
     .then((res) => res.data);
 };
 

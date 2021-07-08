@@ -191,18 +191,6 @@
                                 <el-input v-model.trim="addForm.studyinstanceuid" auto-complete="off"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="类型" prop="diseases">
-                                <el-select v-model="addForm.diseases" placeholder="请选择" @click.native="getBase()">
-                                    <el-option
-                                            v-for="(item,index) in tags"
-                                            :key="item.remarks"
-                                            :label="item.remarks"
-                                            :value="item.remarks"
-                                    />
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
                     </el-row>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -223,7 +211,6 @@
         updatedicomdata,
         adddicomdata,
         getGroup,
-        getbase,
         deldicomreport,
         dicomcsv,
         DicomAdd,

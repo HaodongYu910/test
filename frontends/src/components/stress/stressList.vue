@@ -135,7 +135,7 @@
                     </el-col>
                     <el-col :span="8">
                         <el-form-item label="模型" prop='testdata'>
-                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="getBase()">
+                            <el-select v-model="addForm.testdata" multiple placeholder="请选择" @click.native="Dictionary()">
                                 <el-option v-for="(item,index) in model"
                                            :key="item.id"
                                            :label="item.value"
@@ -520,8 +520,8 @@
                     }
                 })
             },
-            // 获取getBase列表
-            getBase() {
+            // 获取getDictionary列表
+            Dictionary() {
                 this.listLoading = true
                 const self = this
                 const params = {

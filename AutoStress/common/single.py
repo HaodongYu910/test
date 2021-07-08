@@ -53,13 +53,33 @@ class SingleThread(threading.Thread):
                                         status=True).order_by("slicenumber")
         # 补充数据
         if len(dicomObj):
-            listSum = copylist(list(dicomObj), int(self.obj.single))
+            if int(model) in [9, 12]:
+                dicomList = list(dicomObj)
+                # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+                dictsum = {}
+                listsum =[]
+                for i in dicomList:
+                    if dictsum.get(i.slicenumber) is None:
+                        sum = set()
+                        sum.add(i)
+                    else:
+                        sum = dictsum.get(i.slicenumber)
+                        sum.add(i)
+                    dictsum[i.slicenumber] = sum
+                for k, v in dictsum.items():
+                    copyList = copylist(list(v), int(self.obj.single))
+                    listsum = listsum + copyList
+                # print(listsum)
+            else:
+                listSum = copylist(list(dicomObj), int(self.obj.single))
             # 优先查询组
             for j in listSum:
                 dcm = 0
                 src_folder = str(j.route)
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
+                if not os.path.exists(src_folder):
+                    os.system(f"rclone copy oss://qa-test-data/{j.route} {j.route}")
                 try:
                     rand_uid = str(get_rand_uid())
                     cur_date = get_date()

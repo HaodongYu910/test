@@ -5,6 +5,8 @@ from .api.apiStress import *
 from .api.apiResult import *
 from .api.apiData import *
 from .api.apiReport import *
+from .api.apiJmeter import addJmeter, updateJmeter, delJmeter, jmeterList
+from .api.apiMonitor import getMonitor
 
 # Routers provide an easy way of ally determining the URL conf.
 # 注册
@@ -28,6 +30,10 @@ urlpatterns = [
     url(r'list/del', delStress.as_view()),
     url(r'list/disable', DisableStress.as_view()),
     url(r'list/enable', EnableStress.as_view()),
+    url(r'jmeter/add', addJmeter.as_view()),
+    url(r'jmeter/update', updateJmeter.as_view()),
+    url(r'jmeter/del', delJmeter.as_view()),
+    url(r'jmeter/list', jmeterList.as_view()),
     url(r'list', stressList.as_view()),
     url(r'data/StressDataAdd', AddStressData.as_view()),
     url(r'data/StressDataDel', DelStressData.as_view()),
@@ -38,5 +44,6 @@ urlpatterns = [
     url(r'stressmodel', StressModel.as_view()),
     url(r'Report', stressReport.as_view()),
     url(r'Analysis', SaveAnalysis.as_view()),
+    url(r'Monitor', getMonitor.as_view()),
 
 ]

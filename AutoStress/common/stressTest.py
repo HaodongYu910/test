@@ -29,7 +29,7 @@ class StressThread(threading.Thread):
     def run(self):
         try:
             logger.info("基准测试开始")
-            Manual = ManualThread(stressid=self.id)
+            Manual = ManualThread(stressid=self.id, modelID="")
             Manual.setDaemon(True)
             Manual.run()
             Restart(id=self.obj.Host.id)
@@ -57,7 +57,7 @@ class StressThread(threading.Thread):
             # 混合测试
         try:
             if self.Flag is True:
-                Single = SingleThread(stressid=self.id)
+                Single = SingleThread(stressid=self.id,modelID="")
                 Single.setDaemon(True)
                 Single.run()
 

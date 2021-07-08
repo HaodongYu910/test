@@ -37,7 +37,6 @@ urlpatterns = [
     url(r'duration/source', getdurationsource.as_view()), # 获取持续 源数据
     url(r'dicomurl', dicomUrl.as_view()),
     url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
-    url(r'base/getdata', getBase.as_view()),
     url(r'base/getResult', getResult.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'group/dicomadd', DicomAdd.as_view()),

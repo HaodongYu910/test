@@ -92,7 +92,7 @@ class DurationThread:
                         print(
                             'failed to anonymous :  error[{}]'.format(e))
                     try:
-                        self.full_fn_fake = f'D:\\download\\lung\\BM_Lung_04\\{Seriesinstanceuid}'
+                        self.full_fn_fake = f'D:\\download\\lung\\831\\{Seriesinstanceuid}'
                         if not os.path.exists(self.full_fn_fake):
                             os.makedirs(self.full_fn_fake)
                         full_fn_fake = os.path.join(self.full_fn_fake, fn)
@@ -120,7 +120,7 @@ class DurationThread:
 
 if __name__ == '__main__':
     try:
-        DT = DurationThread(route="D:\\download\\lung\\BM_Lung_0499")
+        DT = DurationThread(route="D:\\download\\lung\\test\\1\\1.2.840.113564.345050071054.5204.637505272516134351.464")
         DT.run()
     except Exception as e:
         print("failed to start:{}".format(e))

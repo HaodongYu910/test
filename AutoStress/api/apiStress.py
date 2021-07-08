@@ -294,7 +294,7 @@ class addStress(APIView):
                     if data['uploadID']:
                         uploadObj = uploadfile.objects.get(id=data['uploadID'])
                         data["name"] = uploadObj.filename
-                        data["route"] = uploadObj.fileurl
+                        data["route"] = f"{uploadObj.fileurl}/{uploadObj.filename}"
                         data["status"] = True
                         data["Stress"] = stressID.stressid
                         add = stress_jmeter_Serializer(data=data)

@@ -134,6 +134,8 @@ class SendQueThread:
             src_folder = self.route
             while src_folder[-1] == '/':
                 src_folder = src_folder[0:-1]
+            if not os.path.exists(src_folder):
+                os.system(f"rclone copy oss://qa-test-data/{src_folder} {src_folder}")
             self.fake_folder(src_folder)
         except Exception as e:
             logging.error("error: failed to send", e)
