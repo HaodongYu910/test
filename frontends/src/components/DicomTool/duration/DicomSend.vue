@@ -496,8 +496,7 @@
         delete_patients,
         getHost,
         disable_duration,
-        enable_duration,
-        getbase
+        enable_duration
     } from '@/router/api'
 
     import {anonStart} from "../../../router/api";
@@ -652,7 +651,6 @@
         mounted() {
             this.getDurationlist()
             this.gethost()
-            this.getBase()
         },
         beforeDestroy() {    //页面关闭时清除定时器
             clearInterval(this.clearTimeSet);
@@ -807,52 +805,6 @@
                             this.editForm.senddata= arrs
 
 
-                        } else {
-                            self.$message.error({
-                                message: msg,
-                                center: true
-                            })
-                        }
-                    }
-                )
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom",
-                    page_size: 1000
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                        self.listLoading = false
-                        const {msg, code, data} = res
-                        if (code === '0') {
-                            self.total = data.total
-                            self.list = data.data
-                            self.type = data.type
-                            this.options = []
-                            var json = JSON.stringify(self.list)
-                            this.dis = JSON.parse(json)
-                            for (var k in self.type) {
-                                var testchildren = []
-                                for (var i in this.dis) {
-                                    var disjson = this.dis[i]
-                                    if (self.type[k] === disjson['type']) {
-                                        testchildren.push({
-                                                value: disjson['id'],
-                                                label: disjson['remarks']
-                                            }
-                                        )
-                                    }
-                                }
-                                this.options.push({
-                                    value: self.type[k],
-                                    label: self.type[k],
-                                    children: testchildren
-                                })
-                            }
                         } else {
                             self.$message.error({
                                 message: msg,

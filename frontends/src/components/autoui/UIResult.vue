@@ -4,15 +4,6 @@
             <!--工具条-->
             <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item>
-                        <el-select v-model="filters.diseases" placeholder="请选择病种类型" @click.native="getBase()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.remarks"
-                                       :label="item.remarks"
-                                       :value="item.remarks"
-                            />
-                        </el-select>
-                    </el-form-item>
                     <el-select v-model="filters.status" placeholder="预测状态">
                         <el-option key="true" label="成功" value="true"/>
                         <el-option key="false" label="失败" value="false"/>
@@ -122,7 +113,7 @@
 <script>
     // import NProgress from 'nprogress'
     import {
-        getHost, getsmokerecord, getsmokestart, getbase, deldicomresult, getdicomurl
+        getHost, getsmokerecord, getsmokestart, deldicomresult, getdicomurl
     } from '@/router/api'
     import {stresssave} from "../../../router/api";
 
@@ -195,31 +186,6 @@
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom", type: "Gold",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {

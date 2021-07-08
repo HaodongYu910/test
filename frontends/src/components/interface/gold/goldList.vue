@@ -199,7 +199,7 @@
     //import NProgress from 'nprogress'
     import {
         getsmoke, DelSmoke, DisableSmoke, EnableSmoke,
-        UpdateSmoke, addSmoke, stresssave, getHost, getbase, getsmokestart, getupload
+        UpdateSmoke, addSmoke, stresssave, getHost, getsmokestart, getupload
     } from '../../../router/api';
     // import ElRow from "element-ui/packages/row/src/row";
     export default {
@@ -263,7 +263,6 @@
         },
         mounted() {
             this.gethost()
-            this.getBase()
         },
         methods: {
             typestatus: function (i) {
@@ -304,31 +303,6 @@
                         this.list = data.data
                         var json = JSON.stringify(this.list)
                         this.hosts = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    status: 1,
-                    type: 'gold'
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.model = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,
@@ -445,7 +419,6 @@
             handleCurrentChange(val) {
                 this.page = val;
                 this.getsmokeList()
-                this.getBase()
             },
             //显示编辑界面
             handleEdit: function (index, row) {
@@ -643,7 +616,6 @@
         },
         mounted() {
             this.getsmokeList();
-            this.getBase();
         }
     }
 

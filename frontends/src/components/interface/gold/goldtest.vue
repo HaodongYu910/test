@@ -34,7 +34,6 @@
         components: {},
         mounted() {
             this.gethost();
-            this.getBase();
             this.smokefigure();
         },
         created() {

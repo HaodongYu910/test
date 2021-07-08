@@ -7,26 +7,26 @@ from rest_framework.authtoken.models import Token
 from .models import *
 
 
-class dicom_base_Serializer(serializers.ModelSerializer):
+class dicom_detail_Serializer(serializers.ModelSerializer):
     """
     基础信息序列化
      """
 
     class Meta:
-        model = dicom_base
+        model = dicom_detail
         fields = (
             'id', 'content', 'type', 'select_type', 'status', 'predictor', 'remarks', 'other', 'update_time',
             'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 
-class dicom_base_Deserializer(serializers.ModelSerializer):
+class dicom_detail_Deserializer(serializers.ModelSerializer):
     """
     基础信息反序列化
     """
 
     class Meta:
-        model = dicom_base
+        model = dicom_detail
         fields = ('content', 'type', 'select_type', 'status', 'remarks', 'other')
 
 

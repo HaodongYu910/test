@@ -5,70 +5,15 @@ from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 
 
-from ..models import dicom_base, dicom_relation, dicom
+from ..models import  dicom_relation, dicom
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import dictionary
-from ..serializers import dicom_base_Serializer
 from AutoProject.common.regexUtil import *
 from AutoDicom.common.dicomfile import fileUpdate
 import threading
 
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
-
-
-class getBase(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        获取基础数据
-        :param request:
-        :return:
-        """
-        try:
-            page_size = int(request.GET.get("page_size", 20))
-            page = int(request.GET.get("page", 1))
-        except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="page and page_size must be integer!")
-        selecttype = request.GET.get("select_type")
-        type = request.GET.get("type")
-        remarks = request.GET.get("remarks")
-        if type:
-            if remarks:
-                obi = dicom_base.objects.filter(type=type, remarks=remarks).order_by("remarks")
-            elif selecttype:
-                obi = dicom_base.objects.filter(type=type, select_type=selecttype).order_by("remarks")
-            else:
-                obi = dicom_base.objects.filter(type=type).order_by("remarks")
-        else:
-            obi = dicom_base.objects.all().order_by("-id")
-        paginator = Paginator(obi, page_size)  # paginator对象
-        total = paginator.num_pages  # 总页数
-        try:
-            obm = paginator.page(page)
-        except PageNotAnInteger:
-            obm = paginator.page(1)
-        except EmptyPage:
-            obm = paginator.page(paginator.num_pages)
-        serialize = dicom_base_Serializer(obm, many=True)
-        dictobj =dictionary.objects.filter(type="file")
-        type =[]
-        for j in dictobj:
-            type.append(j.key)
-        for i in serialize.data:
-            try:
-                obd = dictionary.objects.get(id=i["predictor"])
-                i["predictor"] = obd.value
-            except Exception as e:
-                i["predictor"] = "Null"
-                continue
-        return JsonResponse(data={"data": serialize.data,
-                                  "type": type,
-                                  "page": page,
-                                  "total": total
-                                  }, code="0", msg="成功")
 
 
 

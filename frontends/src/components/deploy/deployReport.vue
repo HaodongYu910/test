@@ -243,7 +243,7 @@
 <script>
     import {stresssave} from "../../router/api";
     import {
-        getHost, getInstallReport, getbase
+        getHost, getInstallReport
     } from '@/router/api'
 
     export default {
@@ -321,31 +321,6 @@
                         self.list = data.data
                         var json = JSON.stringify(self.list)
                         this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom", type: "gold",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.bases = JSON.parse(json)
                     } else {
                         self.$message.error({
                             message: msg,

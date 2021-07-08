@@ -105,6 +105,11 @@ class ResultStatistics:
                 continue
         self.SaveResults()
 
+    # def median(self):
+    #     data.sort()
+    #     half = len(data) // 2
+    #     return (data[half] + data[~half]) / 2
+
     # 保存结果
     def SaveResults(self):
         """
