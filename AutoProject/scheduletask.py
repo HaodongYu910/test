@@ -72,19 +72,21 @@ def DurationSyTask():
                     if int(len(obj)) == 1:
                         try:
                             obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
-                            obj.time = ii["predictionsec"]
+                            obj.sec = ii["predictionsec"]
                             obj.model = ii["modelname"]
-                            obj.starttime = ii["starttime"]
+                            obj.start = ii["starttime"]
+                            obj.end = ii["endtime"]
                             obj.save()
                         except Exception as e:
                             logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
                             continue
                     elif int(len(obj)) > 1:
-                        for k in obj:
-                            k.time = ii["predictionsec"]
-                            k.model = ii["modelname"]
-                            k.starttime = ii["starttime"]
-                            k.save()
+                        for kk in obj:
+                            kk.sec = ii["predictionsec"]
+                            kk.model = ii["modelname"]
+                            kk.start = ii["starttime"]
+                            kk.end = ii["endtime"]
+                            kk.save()
                     else:
                         continue
             except Exception as e:
@@ -119,25 +121,27 @@ def JobSyTask():
                     if int(len(obj)) == 1:
                         try:
                             obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
-                            obj.imagecount_server = j["imagecount_server"]
+                            obj.image_receive = j["imagecount_server"]
                             obj.aistatus = j["pai_status"]
                             obj.error = j["error"]
                             obj.diagnosis = j["pclassification"]
-                            obj.jobtime = j["jobtime"]
-                            obj.endtime = j["endtime"]
+                            obj.job_sec = j["jobtime"]
+                            obj.job_end = j["endtime"]
+                            obj.job_start = j["starttime"]
                             obj.save()
                         except Exception as e:
                             logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
                             continue
                     elif int(len(obj)) > 1:
-                        for k in obj:
-                            k.imagecount_server = j["imagecount_server"]
-                            k.aistatus = j["pai_status"]
-                            k.error = j["error"]
-                            k.diagnosis = j["pclassification"]
-                            k.jobtime = j["jobtime"]
-                            k.endtime = j["endtime"]
-                            k.save()
+                        for kk in obj:
+                            kk.image_receive = j["imagecount_server"]
+                            kk.aistatus = j["pai_status"]
+                            kk.error = j["error"]
+                            kk.diagnosis = j["pclassification"]
+                            kk.job_sec = j["jobtime"]
+                            kk.job_end = j["endtime"]
+                            kk.job_start = j["starttime"]
+                            kk.save()
                     else:
                         continue
 
@@ -172,9 +176,9 @@ def DurationReportTask():
     try:
         for i in obj:
             logger.info("持续化报告定时任务启动！~~")
-            record = duration_record.objects.filter(duration_id=i.id,
+            record = duration_record.objects.filter(relation_id=i.id,
                                                     create_time__lte=statistics_date).values(
-                "duration_id").annotate(
+                "relation_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
                 success=Count(Case(When(aistatus__in=[2, 3], then=0))),
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
@@ -209,8 +213,8 @@ def NightlyReportTask():
     obj = duration.objects.filter(status=True, type='Nightly')
     for i in obj:
         try:
-            record = duration_record.objects.filter(duration_id=i.id).values(
-                "duration_id").annotate(
+            record = duration_record.objects.filter(relation_id=i.id).values(
+                "relation_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
                 success=Count(Case(When(aistatus__in=[2, 3], then=0))),
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),

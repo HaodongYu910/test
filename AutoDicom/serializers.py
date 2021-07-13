@@ -51,14 +51,14 @@ class duration_record_Serializer(serializers.ModelSerializer):
     class Meta:
         model = duration_record
         fields = (
-            'id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount',
-            'imagecount_server',
-            'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'time', 'starttime', 'endtime',
-            'diseases', 'jobtime', 'error', 'model', 'update_time', 'create_time')
+            'id', 'patientid', 'patientname', 'studyinstanceuid', 'studyolduid', 'image',
+            'image_receive', 'sec', 'start', 'end', 'job_sec', 'job_start', 'job_end',
+            'aistatus', 'diagnosis', 'slicenumber', 'relation_id', 'type' , 'status'
+            'diseases', 'Host', 'error', 'model', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
-
 class duration_record_Deserializer(serializers.ModelSerializer):
+
     """
     持续化反序列化
     """
@@ -66,11 +66,10 @@ class duration_record_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = duration_record
         fields = (
-            'id', 'patientid', 'patientname', 'accessionnumber', 'studyinstanceuid', 'studyolduid', 'imagecount',
-            'imagecount_server',
-            'aistatus', 'diagnosis', 'sendserver', 'duration_id', 'sendtime', 'starttime', 'time', 'endtime',
-            'diseases', 'jobtime', 'error', 'model')
-
+            'id', 'patientid', 'patientname', 'studyinstanceuid', 'studyolduid', 'image',
+            'image_receive', 'sec', 'start', 'end', 'job_sec', 'job_start', 'job_end',
+            'aistatus', 'diagnosis', 'slicenumber', 'relation_id', 'type', 'status',
+            'diseases', 'Host', 'error', 'model')
 
 class duration_Serializer(serializers.ModelSerializer):
     """

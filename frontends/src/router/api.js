@@ -835,6 +835,14 @@ export const getGroupBase = (headers, params) => {
     .get(`${test}/dicom/group/groupbase`, { params: params }, { headers })
     .then((res) => res.data);
 };
+
+// DICOM 数据 解除组绑定
+export const DicomUnbind = (headers, params) => {
+  return axios
+    .post(`${test}/dicom/group/Unbind`, params, headers)
+    .then((res) => res.data);
+};
+
 // DICOM 数据到添加组
 export const DicomAdd = (headers, params) => {
   return axios

@@ -100,7 +100,7 @@ class DurationThread(threading.Thread):
                         "studyolduid": studyolduid,
                         "sendserver": self.server,
                         "diseases": info.get("diseases"),
-                        "duration_id": self.obj.id,
+                        "relation_id": self.obj.id,
                         "update_time": create_time,
                         "create_time": create_time}
                 duration_record.objects.create(**data)
@@ -169,6 +169,7 @@ class DurationThread(threading.Thread):
                             continue
                 except Exception as e:
                     logger.error("遍历文件：{}".format(e))
+                    continue
             return q
 
     # 匿名数据队列

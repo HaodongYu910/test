@@ -122,7 +122,7 @@ class ResultStatistics:
                 stress_result.objects.filter(Stress=self.stressId, type=self.stressType).delete()
             else:
                 self.modelID = [self.modelID]
-                stress_result.objects.filter(Stress=self.stressId, type=self.stressType,modelname=self.modelID).delete()
+                stress_result.objects.filter(Stress=self.stressId, type=self.stressType, modelname=self.modelID).delete()
         except:
             logger.error("删除旧的性能结果数据数据失败")
 

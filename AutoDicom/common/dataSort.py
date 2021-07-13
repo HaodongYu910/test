@@ -5,20 +5,11 @@ import math
 
 def get_date():
     localtime = time.localtime(time.time())
-    return (time.strftime("%Y%m%d", localtime))
-
+    return time.strftime("%Y%m%d", localtime)
 
 def get_time():
     localtime = time.localtime(time.time())
-    return (time.strftime("%H%M%S", localtime))
-
-
-def get_rand_uid():
-    # rand_val = random.randint(1, math.pow(10, 16) - 1)
-    # return "%08d" % rand_val
-    return str(time.time())
-
-
+    return time.strftime("%H%M%S", localtime)
 
 def Myinster(dicta):
     dicta = dict(sorted(dicta.items(), key=lambda i: -len(i[1])))
@@ -59,3 +50,13 @@ def grouping(dictsum, dicom):
     dictsum[dicom.diseases] = sum
 
 
+def get_fake_name(rand_uid, fake_prefix):
+    ts = time.localtime(time.time())
+    return "{0}{1}{2}".format(fake_prefix, time.strftime("%m%d", ts), norm_string(rand_uid, 6))
+
+
+def norm_string(str, len_norm):
+    str_dest = str
+    while len(str_dest) > len_norm or str_dest[0] == '.':
+        str_dest = str_dest[1:]
+    return str_dest

@@ -15,7 +15,9 @@ from .api import dynamic
 from .api import member
 from .api import apiMessage
 from .api.apiSonar import getsonar
-from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,DisableVersion ,EnableVersion
+from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion, DisableVersion, EnableVersion
+from .api.BuildPackage import BuildList, UpdateBuild, AddBuild, DelBuild, DisableBuild, EnableBuild
+from .api.apiGit import getGitBranch
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -59,6 +61,13 @@ urlpatterns = [
     url(r'dictionary/del', DelDictionary.as_view()),
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
+    url(r'build/list', BuildList.as_view()),
+    url(r'build/add', AddBuild.as_view()),
+    url(r'build/update', UpdateBuild.as_view()),
+    url(r'build/del', DelBuild.as_view()),
+    url(r'build/disable', DelBuild.as_view()),
+    url(r'build/enable', EnableBuild.as_view()),
+    url(r'git/Branch', getGitBranch.as_view()),
     url(r'install/add', AddInstall.as_view()),
     url(r'install/update', UpdateInstall.as_view()),
     url(r'install/del', DelInstall.as_view()),

@@ -30,6 +30,7 @@
                     </el-form-item>
                     <!--                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>-->
                     <el-button type="primary" :disabled="this.sels.length===0" @click="handleCollection">收藏</el-button>
+                    <el-button type="warning" :disabled="this.sels.length===0" @click.native="Unbind">解除绑定</el-button>
                 </el-form>
             </el-col>
             <!--列表-->
@@ -209,7 +210,7 @@
         getdicomdata,
         deldicomdata,
         updatedicomdata,
-        adddicomdata,
+        DicomUnbind,
         getGroup,
         deldicomreport,
         dicomcsv,
@@ -294,16 +295,11 @@
         methods: {
             // 获取传参
             getParams() {
-                console.log("--------------------------------------")
-                console.log(this.$route)
-                console.log("--------------------------------------")
                 if (this.$route.params.type === true){
-                    console.log("true")
                     this.filters.type =  this.$route.params.type;
                     this.getdata();
                 }
                 else {
-                    console.log("F")
                     this.getdata();
                 }
             },
@@ -713,6 +709,42 @@
                         }
                     });
                 }
+            },
+            // 数据解除绑定
+            Unbind: function () {
+                const ids = this.sels.map(item => item.id)
+                const self = this
+                this.$confirm('注意：是否确认解除该数据的绑定组信息？', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true
+                    // NProgress.start();
+                    const self = this
+                    const params = {
+                        ids: ids
+                    }
+                    const header = {
+                        'Content-Type': 'application/json',
+                        Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                    }
+                    DicomUnbind(header, params).then(_data => {
+                        const {msg, code, data} = _data
+                        if (code === '0') {
+                            this.CollectionFormVisible = false,
+                                self.$message({
+                                    message: msg,
+                                    center: true,
+                                    type: 'success'
+                                })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true
+                            })
+                        }
+                        self.getdata()
+                    })
+                })
             },
             // 收藏组数据
             Collection: function () {

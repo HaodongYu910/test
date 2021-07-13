@@ -1,6 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.db import transaction
+from django.conf import settings
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -16,13 +17,13 @@ from ..serializers import duration_Deserializer, duration_Serializer, duration_r
 from ..common.anonymization import onlyDoAnonymization
 from ..common.dds_detect import *
 from ..common.deletepatients import *
-from ..common.Dicom import DicomThread
 from AutoDicom.common.dicomBase import baseTransform
 from ..common.durationSend import DurationThread
 
 from AutoProject.scheduletask import DurationSyTask
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import project_version
+from ..common.duration import durationSend,NormalSend
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -40,12 +41,11 @@ class getDuration(APIView):
         """
         try:
             Host = request.GET.get("server")
-            if request.GET.get("type") != '持续化':
-                durationType = ["正常", "匿名"]
-            elif request.GET.get("type") == 'Nightly':
-                durationType = ['Nightly']
+            if int(request.GET.get("type")) in [0, 1]:
+                durationType = [0, 1]
             else:
-                durationType = ["持续化", "Nightly"]
+                durationType = [2, 3]
+
             page_size = int(request.GET.get("page_size", 10))
             page = int(request.GET.get("page", 1))
             project_id = request.GET.get("project_id")
@@ -70,9 +70,9 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            i['send'] = duration_record.objects.filter(duration_id=i["id"], create_time__gte=i["update_time"]).count()
-            i['totalsend'] = duration_record.objects.filter(duration_id=i["id"]).count()
-            i['todaysend'] = duration_record.objects.filter(duration_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
+            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["update_time"]).count()
+            i['totalsend'] = duration_record.objects.filter(relation_id=i["id"]).count()
+            i['todaysend'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
             if i['version'] is not None:
                 i['version'] = project_version.objects.get(id=i['version']).version
             i["dicomLabel"] = baseTransform(i["dicom"], 'base')
@@ -100,7 +100,7 @@ class durationData(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         type = request.GET.get("type")
-        durationid = int(request.GET.get("id"))
+        relation_id = int(request.GET.get("id"))
         patientname = request.GET.get("patientname")
 
         # 判断是否有查询时间
@@ -116,22 +116,22 @@ class durationData(APIView):
 
         # 判断查询数据类型
         if patientname:
-            obi = duration_record.objects.filter(duration_id=durationid, patientname__contains=patientname).order_by(
+            obi = duration_record.objects.filter(relation_id=relation_id, patientname__contains=patientname).order_by(
                 "-id")
         elif type == 'Not_sent':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=True,
+            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__isnull=True,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         elif type == 'sent':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__isnull=False,
+            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__isnull=False,
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         elif type == 'AiTrue':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[3, 2], create_time__lte=enddate,
+            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__in=[3, 2], create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
         elif type == 'AiFalse':
-            obi = duration_record.objects.filter(duration_id=durationid, aistatus__in=[-1, -2, 1],
+            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__in=[-1, -2, 1],
                                                  create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
         else:
-            obi = duration_record.objects.filter(duration_id=durationid, create_time__lte=enddate,
+            obi = duration_record.objects.filter(relation_id=relation_id, create_time__lte=enddate,
                                                  create_time__gte=startdate).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
@@ -148,7 +148,7 @@ class durationData(APIView):
         for i in serialize.data:
             try:
                 result = client.query(
-                    f'select count(value),MEAN(value) from test where id=\'{i["duration_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
+                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
                 i["time"] = list(result)[0][0]['mean']
                 i["imagecount"] = list(result)[0][0]['count']
             except:
@@ -174,12 +174,12 @@ class getdurationsource(APIView):
         :return:
         """
         try:
-            durationid = int(request.GET.get("id"))
+            relation_id = int(request.GET.get("id"))
         except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="durationid must be integer!")
+            return JsonResponse(code="999985", msg="relation_id must be integer!")
 
         try:
-            obj = duration_record.objects.get(id=durationid)
+            obj = duration_record.objects.get(id=relation_id)
             dicomObj = dicom.objects.get(studyinstanceuid=obj.studyolduid)
 
         except (TypeError, ValueError):
@@ -339,17 +339,10 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            if obj.type == "正常":
-                dicomsend = DicomThread(type='duration', id=data["id"])
-                dicomsend.setFlag = False
-            elif obj.type == "匿名":
-                logger.info("Stop Duration Thread {}".format(data["id"]))
-                durationThread = DurationThread(id=data["id"])
-                durationThread.durationStop()
-            else:
-                shutil.rmtree(f"/home/biomind/Biomind_Test_Platform/logs/Duration{obj.id}")
-                obj.sendstatus = False
-                obj.save()
+            full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
+            shutil.rmtree(full_fn_fake)
+            obj.sendstatus = False
+            obj.save()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -387,25 +380,29 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            obj.status = True
-            obj.save()
-            if obj.type == "匿名":
-                durationThread = DurationThread(id=data["id"])
-                durationThread.setDaemon(True)
-                # 开始线程
-                durationThread.start()
-            elif obj.type == "正常":
-                dicomsend = DicomThread(type='duration', id=data["id"])
-                dicomsend.normalSend()
+
+            if obj.type == 1:
+                SendStatus = durationSend(data["id"])
+                # durationThread = DurationThread(id=data["id"])
+                # durationThread.setDaemon(True)
+                # # 开始线程
+                # durationThread.start()
+            elif obj.type == 0:
+                SendStatus = NormalSend(data["id"])
             else:
                 durationThread = DurationThread(id=data["id"])
                 durationThread.setDaemon(True)
                 # 开始线程
                 durationThread.start()
-                # cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {obj.id} &"
+                # cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --relation_id {obj.id} &"
                 # logger.info(cmd)
                 # os.system(cmd)
-            return JsonResponse(code="0", msg="成功")
+            if SendStatus is True:
+                obj.status = True
+                obj.save()
+                return JsonResponse(code="0", msg="成功")
+            else:
+                return JsonResponse(code="999995", msg="运行失败！")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="运行失败！")
 
@@ -445,7 +442,7 @@ class delDuration(APIView):
                 try:
                     duration.objects.get(id=i).delete()
                     try:
-                        duration_record.objects.filter(duration_id=i).delete()
+                        duration_record.objects.filter(relation_id=i).delete()
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999994", msg="删除失败！")
                 except ObjectDoesNotExist:

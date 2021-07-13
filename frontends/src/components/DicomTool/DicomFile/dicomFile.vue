@@ -303,8 +303,8 @@
                 page_size: 20,
                 listLoading: false,
                 sels: [],//列表选中列
-                // options:{},
-                groupOptions: {},
+                options: [],
+                groupOptions: [],
                 editFormVisible: false,//编辑界面是否显示
                 editLoading: false,
                 editFormRules: {

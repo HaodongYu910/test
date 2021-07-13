@@ -82,16 +82,15 @@ class ManualThread(threading.Thread):
         self.obj.status = True
         self.obj.teststatus = "基准开始"
         self.obj.save()
-        try:
-            stress_result.objects.filter(Stress=self.stressid,
-                                         type__in=['JZ']).delete()
-        except:
-            logger.error("性能基准数据删除失败")
         count = int(self.obj.benchmark)
         try:
             if self.modelID:
+                stress_result.objects.filter(Stress=self.stressid, modelname=self.modelID,
+                                             type__in=['JZ']).delete()
                 stressData = dicom.objects.filter(predictor=self.modelID, stressstatus='2')
             else:
+                stress_result.objects.filter(Stress=self.stressid,
+                                             type__in=['JZ']).delete()
                 stressData = dicom.objects.filter(predictor__in=self.obj.testdata.split(","), stressstatus='2')
 
             for k in stressData:

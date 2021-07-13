@@ -221,6 +221,46 @@ class DicomAdd(APIView):
             return JsonResponse(code="0", msg="添加成功")
 
 
+class DicomUnbind(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        验证参数
+        :param data:
+        :return:
+        """
+        try:
+            # 必传参数 ids
+            if not data["ids"]:
+                return JsonResponse(code="999996", msg="必传参数 ids ,参数有误！")
+
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        解除数据  组绑定信息
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+
+        try:
+            obj = dicom_group_detail.objects.filter(dicom_id__in=data["ids"])
+            for i in obj:
+                i.status = False
+                i.save()
+            return JsonResponse(code="0", msg="解除成功")
+        except Exception as e:
+            logger.error("解除数据失败，报错：{}".format(e))
+            return JsonResponse(code="999995", msg="解除失败：{}".format(e))
+
+
 class AddGroup(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
