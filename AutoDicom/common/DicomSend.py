@@ -84,7 +84,7 @@ class SendThread(threading.Thread):
                     ]
                     info["starttime"] = time.time()
                     popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
-                    popen.communicate()
+                    assert (popen.communicate())
                     # 变更 发送状态
                     if file_data[2]:
                         try:
@@ -105,11 +105,11 @@ class SendThread(threading.Thread):
                 except Exception as e:
                     logging.error('error msg: failed to connect_influx  [{0}]---报错：{1}'.format(file_name, e))
                     continue
-                try:
-                    os.remove(file_name)
-                except Exception as e:
-                    logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_name, e))
-                    continue
+                # try:
+                #     os.remove(file_name)
+                # except Exception as e:
+                #     logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_name, e))
+                #     continue
         except Exception as e:
             logging.error('error msg: while failed to [{0}]}'.format(e))
 
@@ -124,9 +124,10 @@ class SendThread(threading.Thread):
     def connect_influx(self, info):
         try:
             tamp = int(round(time.time() * 1000000000))
-            influxdata = f'test,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},type={info["type"]} value={info["time"]} {tamp}'
-            # logger.info(f"influx data:{influxdata}")
-            requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
+            influxdata = f'duration,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},type={info["type"]} value={info["time"]} {tamp}'
+            logger.info(f"influx data:{influxdata}")
+
+            requests.post('http://192.168.1.120:8086/write?db=auto_test', data=influxdata)
             self.delayed("")
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))

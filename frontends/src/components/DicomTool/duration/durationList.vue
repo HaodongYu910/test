@@ -307,7 +307,7 @@
 
                 addForm: {
                     port: '4242',
-                    type: '匿名',
+                    type: 2,
                     sendcount: 0,
                     end_time:null
 
@@ -662,7 +662,7 @@
                                 dicom: this.addForm.senddata,
                                 sendcount: this.addForm.sendcount,
                                 end_time:this.addForm.end_time,
-                                type: 'duration',
+                                type: 2,
                                 sendstatus: false,
                                 status: false,
                                 Host: this.addForm.Host,

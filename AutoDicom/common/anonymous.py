@@ -38,7 +38,7 @@ def anonymization(**kwargs):
         ds.AccessionNumber = norm_string(f'{ds.AccessionNumber}_{rand_uid}', 16)
         ds.StudyInstanceUID = rand_uid
         ds.PatientID = PatientID
-        ds.PatientName =PatientName
+        ds.PatientName = PatientName
 
         ds.StudyDate = cur_date
         ds.StudyTime = cur_time

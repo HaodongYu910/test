@@ -150,7 +150,7 @@ class duration(models.Model):
     series = models.BooleanField(default=True, verbose_name='series')
     sendstatus = models.BooleanField(default=True, verbose_name='发送状态')
     status = models.BooleanField(default=False, verbose_name='状态')
-    type = models.IntegerField(blank=True, null=True, verbose_name='发送类型')
+    type = models.IntegerField(blank=True, null=True, verbose_name='发送类型 0： 是正常发送 1：匿名发送 2：持续化发送 3：nightly 发送')
     dds = models.CharField(max_length=20, blank=True, null=True,  verbose_name='dds 服务')
     Host = models.ForeignKey(to=Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
     project = models.ForeignKey(to=Project, null=True, on_delete=models.CASCADE, verbose_name='所属项目')

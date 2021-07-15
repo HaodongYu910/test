@@ -375,11 +375,12 @@ class build_package(models.Model):
     branch = models.CharField(max_length=30, blank=True, null=True, verbose_name="分支")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
-    packStatus = models.IntegerField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
+    packStatus = models.IntegerField(default=False, verbose_name='打包状态 0 checkout 1 build ')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
     rely = models.BooleanField(default=False, verbose_name='依赖状态')
     status = models.BooleanField(default=False, verbose_name='状态')
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -412,6 +413,7 @@ class build_package_detail(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
     rely = models.BooleanField(default=False, verbose_name='依赖状态')
     status = models.BooleanField(default=False, verbose_name='状态')
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 

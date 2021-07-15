@@ -29,10 +29,10 @@ SECRET_KEY = 'u_902ri*_wg9^0_xc0@=fvdi4@o0ci)j34t59p3bw#v-rn1cq2'
 DEBUG = False
 
 # MySql 数据库配置
-MS_DB = "192.168.1.121"  # 数据库 地址 auto_test
-MySqlName = "dev"
+MS_DB = "192.168.1.120"  # 数据库 地址 auto_test
+MySqlName = "auto_test"
 MySqlUser = "root"
-MySql_Pwd = "P@ssw0rd2o8"
+MySql_Pwd = "test123456"
 
 # JIRA 地址
 SITE_JiraUrl = "http://jira.test.com"
@@ -40,7 +40,7 @@ SITE_JiraUrl = "http://jira.test.com"
 SITE_JenkinsUrl = "http://192.168.2.58:8080"
 
 # influxdb 数据库
-InfluxDb = '192.168.1.121'
+InfluxDb = '192.168.1.120'
 InfluxDataBase = 'AutoTest'
 InfluxUser = ''
 InfluxPassWd = ''

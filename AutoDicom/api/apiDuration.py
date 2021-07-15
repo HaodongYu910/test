@@ -148,7 +148,7 @@ class durationData(APIView):
         for i in serialize.data:
             try:
                 result = client.query(
-                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
+                    f'select count(value),MEAN(value) from duration where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
                 i["time"] = list(result)[0][0]['mean']
                 i["imagecount"] = list(result)[0][0]['count']
             except:
@@ -380,7 +380,7 @@ class EnableDuration(APIView):
         try:
             obj = duration.objects.get(id=data["id"])
             obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-
+            SendStatus = True
             if obj.type == 1:
                 SendStatus = durationSend(data["id"])
                 # durationThread = DurationThread(id=data["id"])
@@ -390,13 +390,10 @@ class EnableDuration(APIView):
             elif obj.type == 0:
                 SendStatus = NormalSend(data["id"])
             else:
-                durationThread = DurationThread(id=data["id"])
-                durationThread.setDaemon(True)
-                # 开始线程
-                durationThread.start()
-                # cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --relation_id {obj.id} &"
-                # logger.info(cmd)
-                # os.system(cmd)
+                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --relation_id {obj.id} &"
+                logger.info(cmd)
+                os.system(cmd)
+
             if SendStatus is True:
                 obj.status = True
                 obj.save()

@@ -50,42 +50,41 @@ __version__ = ""
 # 同步持续化数据结果
 def DurationSyTask():
     infos = {}
-    obj = duration_record.objects.filter(time=None,error__isnull=True)
+    obj = duration_record.objects.filter(time=None, error__isnull=True)
     Psqlobj = dictionary.objects.get(key='durationP', status=True, type='sql')
     try:
         for i in obj:
-            if i.sendserver in ["192.168.1.200"]:
+            if i.Host_id in ["192.168.1.200"]:
                 continue
-            elif infos.__contains__(i.sendserver) is False:
-                infos[i.sendserver] = '\'' + str(i.studyinstanceuid) + '\''
+            elif infos.__contains__(i.Host_id) is False:
+                infos[i.Host_id] = '\'' + str(i.studyinstanceuid) + '\''
             else:
-                infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
+                infos[i.Host_id] = infos[i.Host_id] + ',\'' + str(i.studyinstanceuid) + '\''
         logger.info("持续化数据 模型结果同步定时任务启动！~~")
         for k, v in infos.items():
-            host = Server.objects.get(host=k)
             Psql = Psqlobj.value.format(v)
             try:
-                _result = connect_postgres(host=host.id, sql=Psql, database="orthanc")
+                _result = connect_postgres(host=k, sql=Psql, database="orthanc")
                 _dict = _result.to_dict(orient='records')
                 for ii in _dict:
                     obj = duration_record.objects.filter(studyinstanceuid=ii["studyuid"])
                     if int(len(obj)) == 1:
                         try:
                             obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
-                            obj.sec = ii["predictionsec"]
-                            obj.model = ii["modelname"]
-                            obj.start = ii["starttime"]
-                            obj.end = ii["endtime"]
+                            obj.sec = ii["sec"]
+                            obj.model = ii["model"]
+                            obj.start = ii["start"]
+                            obj.end = ii["end"]
                             obj.save()
                         except Exception as e:
                             logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
                             continue
                     elif int(len(obj)) > 1:
                         for kk in obj:
-                            kk.sec = ii["predictionsec"]
-                            kk.model = ii["modelname"]
-                            kk.start = ii["starttime"]
-                            kk.end = ii["endtime"]
+                            kk.sec = ii["sec"]
+                            kk.model = ii["model"]
+                            kk.start = ii["start"]
+                            kk.end = ii["end"]
                             kk.save()
                     else:
                         continue
@@ -102,45 +101,41 @@ def JobSyTask():
     sqlobj = dictionary.objects.get(key='duration', status=True, type='sql')
     try:
         for i in obj:
-            if infos.__contains__(i.sendserver) is False:
-                infos[i.sendserver] = '\'' + str(i.studyinstanceuid) + '\''
+            if infos.__contains__(i.Host_id) is False:
+                infos[i.Host_id] = '\'' + str(i.studyinstanceuid) + '\''
             else:
-                infos[i.sendserver] = infos[i.sendserver] + ',\'' + str(i.studyinstanceuid) + '\''
+                infos[i.Host_id] = infos[i.Host_id] + ',\'' + str(i.studyinstanceuid) + '\''
         logger.info("持续化数据 Job结果同步定时任务启动！~~")
         for k, v in infos.items():
-            try:
-                host = Server.objects.get(host=k)
-            except:
-                continue
             sql = sqlobj.value.format(v)
             try:
-                result = connect_postgres(host=host.id, sql=sql, database="orthanc")
+                result = connect_postgres(host=k, sql=sql, database="orthanc")
                 resultdict = result.to_dict(orient='records')
                 for j in resultdict:
                     obj = duration_record.objects.filter(studyinstanceuid=j["studyuid"])
                     if int(len(obj)) == 1:
                         try:
                             obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
-                            obj.image_receive = j["imagecount_server"]
-                            obj.aistatus = j["pai_status"]
+                            obj.image_receive = j["image_receive"]
+                            obj.aistatus = j["aistatus"]
                             obj.error = j["error"]
-                            obj.diagnosis = j["pclassification"]
-                            obj.job_sec = j["jobtime"]
-                            obj.job_end = j["endtime"]
-                            obj.job_start = j["starttime"]
+                            obj.diagnosis = j["diagnosis"]
+                            obj.job_sec = j["job_sec"]
+                            obj.job_end = j["job_end"]
+                            obj.job_start = j["job_start"]
                             obj.save()
                         except Exception as e:
                             logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
                             continue
                     elif int(len(obj)) > 1:
                         for kk in obj:
-                            kk.image_receive = j["imagecount_server"]
-                            kk.aistatus = j["pai_status"]
+                            kk.image_receive = j["image_receive"]
+                            kk.aistatus = j["aistatus"]
                             kk.error = j["error"]
-                            kk.diagnosis = j["pclassification"]
-                            kk.job_sec = j["jobtime"]
-                            kk.job_end = j["endtime"]
-                            kk.job_start = j["starttime"]
+                            kk.diagnosis = j["diagnosis"]
+                            kk.job_sec = j["job_sec"]
+                            kk.job_end = j["job_end"]
+                            kk.job_start = j["job_start"]
                             kk.save()
                     else:
                         continue
