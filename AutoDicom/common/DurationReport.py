@@ -70,15 +70,15 @@ class ReportThread(threading.Thread):
             logger.error("报告数据：{0}".format(e))
 
     def DetailData(self):
-        recordDetail = duration_record.objects.filter(jobtime__isnull=False, relation_id=self.obj.id,
+        recordDetail = duration_record.objects.filter(job_sec__isnull=False, relation_id=self.obj.id,
                                                       create_time__lte=self.statistics_date).values(
             "diseases").annotate(
-            ModelAvg=Avg('time'),
-            ModelMax=Max('time'),
-            ModelMin=Min('time'),
-            JobAvg=Avg('jobtime'),
-            JobMax=Max('jobtime'),
-            JobMin=Min('jobtime'),
+            ModelAvg=Avg('sec'),
+            ModelMax=Max('sec'),
+            ModelMin=Min('sec'),
+            JobAvg=Avg('job_sec'),
+            JobMax=Max('job_sec'),
+            JobMin=Min('job_sec'),
             success=Count(Case(When(aistatus__in=[2, 3], then=0))),
             fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
             count=Count('id'))
@@ -156,12 +156,12 @@ class ReportThread(threading.Thread):
         try:
             durationLineData = []
             recordDetail = duration_record.objects.filter(relation_id=self.obj.id, diseases=self.diseases,
-                                                          aistatus__in=[2, 3]).order_by("starttime")
+                                                          aistatus__in=[2, 3]).order_by("start")
             for i in recordDetail:
                 durationLineData.append({
-                    "date": i.starttime[5:],
-                    "{}-Prediction".format(i.diseases): i.time,
-                    "{}-Job".format(i.diseases): i.jobtime
+                    "date": i.start[5:],
+                    "{}-Prediction".format(i.diseases): i.sec,
+                    "{}-Job".format(i.diseases): i.job_sec
                 })
             return durationLineData
         except Exception as e:

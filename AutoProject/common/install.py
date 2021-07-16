@@ -15,22 +15,6 @@ from ..common.Journal import log, AddJournal
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-# def Reset(server, InstallID, passwd):
-#     try:
-#         sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 开始删除旧版本'.format(server))
-#         AddJournal(name="Installation{}".format(InstallID), content="【安装部署】：停止旧服务，删除旧版本")
-#         ssh = SSHConnection(host=server, pwd=passwd)
-#         ssh.cmd(f"sshpass -p {passwd} biomind stop;")
-#         ssh.shcmd("sshpass -p y docker system prune")
-#         ssh.cmd("docker rmi -f $(docker images -qa);docker volume rm $(docker volume ls -q)")
-#         ssh.cmd(
-#             f"sshpass -p {passwd} sudo rm -rf /lfs/biomind;sshpass -p {passwd} sudo rm -rf /lfs/Biomind-3Dserver;sshpass -p {passwd} sudo rm -rf /home/biomind/.biomind;sshpass -p {passwd} sudo rm -rf /home/biomind/.3D-biomind;sshpass -p {passwd} sudo rpm -e supervisorsshpass -p {passwd} sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
-#         AddJournal(name="Installation{}".format(InstallID), content="【安装部署】: 删除完成")
-#         sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除完成'.format(server))
-#     except Exception as e:
-#         sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除报错:{1}'.format(server, e))
-#         logger.error("【安装部署】：删除旧的版本失败：{}".format(e))
-#
 
 class InstallThread(threading.Thread):
     def __init__(self, **kwargs):
@@ -58,8 +42,11 @@ class InstallThread(threading.Thread):
                 self.ssh.cmd(f"sshpass -p {self.pwd} biomind stop;")
                 self.ssh.shcmd("sshpass -p y docker system prune")
                 self.ssh.cmd("docker rmi -f $(docker images -qa);docker volume rm $(docker volume ls -q)")
-                self.ssh.cmd(
-                    f"sshpass -p {self.pwd} sudo rm -rf /lfs/biomind;sshpass -p {self.pwd} sudo rm -rf /lfs/Biomind-3Dserver;sshpass -p {self.pwd} sudo rm -rf /home/biomind/.biomind;sshpass -p {self.pwd} sudo rm -rf /home/biomind/.3D-biomind;sshpass -p {self.pwd} sudo rpm -e supervisorsshpass -p {self.pwd} sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
+                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/biomind;")
+                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/Biomind-3Dserver;")
+                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.biomind;")
+                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.3D-biomind;")
+                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rpm -e supervisor;sshpass -p {self.pwd} sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
                 AddJournal(name="Installation{}".format(self.id), content="【安装部署】: 删除完成")
                 sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除完成')
             except Exception as e:

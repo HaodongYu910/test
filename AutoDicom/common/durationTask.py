@@ -140,10 +140,10 @@ class DurationThread:
             self.local_aet = 'QA38'
         else:
             self.local_aet = 'QA120'
-        self.full_fn_fake = f'/home/biomind/Biomind_Test_Platform/logs/Duration{self.id}'
+        self.full_fn_fake = f'/lfs/QA/durationlogs/Duration{self.id}'
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
-        logging.basicConfig(filename=f"/home/biomind/Biomind_Test_Platform/logs/Duration{self.id}/send.log",
+        logging.basicConfig(filename=f"/lfs/QA/durationlogs/Duration{self.id}/send.log",
                             filemode='a+',
                             format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)

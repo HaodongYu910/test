@@ -50,7 +50,7 @@ __version__ = ""
 # 同步持续化数据结果
 def DurationSyTask():
     infos = {}
-    obj = duration_record.objects.filter(time=None, error__isnull=True)
+    obj = duration_record.objects.filter(sec=None, error__isnull=True)
     Psqlobj = dictionary.objects.get(key='durationP', status=True, type='sql')
     try:
         for i in obj:
@@ -97,7 +97,7 @@ def DurationSyTask():
 # 同步 job 时间
 def JobSyTask():
     infos = {}
-    obj = duration_record.objects.filter(jobtime=None)
+    obj = duration_record.objects.filter(job_sec=None)
     sqlobj = dictionary.objects.get(key='duration', status=True, type='sql')
     try:
         for i in obj:
@@ -149,11 +149,11 @@ def JobSyTask():
 # 持续化定时任务启动
 def DurationTask():
     logger.info("持续化定时任务启动！~~")
-    obj = duration.objects.filter(status=True, type='持续化')
+    obj = duration.objects.filter(status=True, type='2')
     try:
         for i in obj:
             if str(i.end_time) > str(datetime.datetime.today()):
-                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --durationid {i.id} &"
+                cmd = f"nohup /home/biomind/.local/share/virtualenvs/biomind-dvb8lGiB/bin/python3 /home/biomind/Biomind_Test_Platform/AutoDicom/common/durationTask.py --relation_id {i.id} &"
                 logger.info(cmd)
                 os.system(cmd)
             else:

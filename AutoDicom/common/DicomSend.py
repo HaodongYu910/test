@@ -105,11 +105,11 @@ class SendThread(threading.Thread):
                 except Exception as e:
                     logging.error('error msg: failed to connect_influx  [{0}]---报错：{1}'.format(file_name, e))
                     continue
-                # try:
-                #     os.remove(file_name)
-                # except Exception as e:
-                #     logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_name, e))
-                #     continue
+                try:
+                    os.remove(file_name)
+                except Exception as e:
+                    logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_name, e))
+                    continue
         except Exception as e:
             logging.error('error msg: while failed to [{0}]}'.format(e))
 
