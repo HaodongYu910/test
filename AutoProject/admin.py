@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from AutoProject.models import Project, Server, ProjectDynamic, ProjectMember ,UserProfile
+from AutoProject.models import Project, Server, ProjectDynamic, ProjectMember,UserProfile
 from AutoInterface.models import ApiGroupLevelFirst, ApiInfo, \
     APIRequestHistory, ApiOperationHistory, \
     AutomationGroupLevelFirst, AutomationTestCase, AutomationParameter, AutomationCaseApi, \
@@ -43,8 +43,8 @@ registry.update(admin.site._registry)
 admin.site._registry = registry
 admin.site.index = index_decorator(admin.site.index)
 admin.site.app_index = index_decorator(admin.site.app_index)
-admin.site.site_header = '质控平台后台管理'
-admin.site.siteTitle = '质控平台后台管理'
+admin.site.site_header = '质控平台管理'
+admin.site.siteTitle = '质控平台管理'
 
 display = ()
 

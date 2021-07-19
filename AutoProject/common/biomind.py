@@ -14,13 +14,13 @@ from AutoInterface.common.gold import GoldThread
 
 from AutoDicom.models import duration
 from AutoDicom.common.durationSend import DurationThread
+from AutoProject.common.message import sendMessage
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
+
 # biomind命令
-
 # 服务器重启
-
 def Restart(**kwargs):
     try:
         server = Server.objects.get(id=kwargs["id"])
@@ -33,6 +33,7 @@ def Restart(**kwargs):
         ssh.close()
     except Exception as e:
         logger.error("Server::{0}：重启服务失败----失败原因：{1}".format(server.host, e))
+
 
 # keyclack 创建用户
 def createUser(user="biomind3d", pwd="engine3D.", protocol="https", server="192.168.1.208"):
@@ -48,6 +49,7 @@ def createUser(user="biomind3d", pwd="engine3D.", protocol="https", server="192.
         kc_adm.create_update_user_add_all_group(user_info)
     except Exception as e:
         logging.error('Failed to create User: %s!', e)
+
 
 # 更新 cache文件
 def cache(**kwargs):
@@ -66,6 +68,7 @@ def cache(**kwargs):
         ssh.close()
     except Exception as e:
         logger.error("更新配置文件失败----失败原因：{0}".format(e))
+
 
 # 创建冒烟测试 且执行
 def goldsmoke(version):
@@ -90,26 +93,27 @@ def goldsmoke(version):
     except Exception as e:
         logger.error("Version:{0}：执行金标准测试报错{1}".format(version, e))
 
+
 # 创建 持续化测试且执行
 def durationTest(**kwargs):
     try:
         data = {
-                "server": kwargs["server"],
-                "port": 4242,
-                "aet": kwargs["aet"],
-                "patientid": 'DT',
-                "patientname": 'Dt',
-                "dicom": "78",
-                "sendcount": 258,
-                "sleepcount": 100,
-                "sleeptime": 3,
-                "series": False,
-                "sendstatus": True,
-                "status": True,
-                "Host_id": 13,
-                "type": "Nightly",
-                "version": kwargs["version"]
-                }
+            "server": kwargs["server"],
+            "port": 4242,
+            "aet": kwargs["aet"],
+            "patientid": 'DT',
+            "patientname": 'Dt',
+            "dicom": "78",
+            "sendcount": 258,
+            "sleepcount": 100,
+            "sleeptime": 3,
+            "series": False,
+            "sendstatus": True,
+            "status": True,
+            "Host_id": 13,
+            "type": "Nightly",
+            "version": kwargs["version"]
+        }
         logger.info("创建持续化测试:{}".format(data))
         obj = duration.objects.create(**data)
 

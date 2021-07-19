@@ -15,7 +15,6 @@ from ..common.Journal import log, AddJournal
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-
 class InstallThread(threading.Thread):
     def __init__(self, **kwargs):
         threading.Thread.__init__(self)
@@ -31,27 +30,27 @@ class InstallThread(threading.Thread):
         self.cacheTag = ''
         self.reset = "n"
 
-    def clean(self):
-        if self.obj.installstatus is True:
-            threading.Thread(target=self.Reset)
-            self.reset = "y"
+    def Reset(self):
+        self.reset = "y"
+        try:
+            sendMessage(touser='', toparty='132', message='【安装部署】： - 开始删除旧版本')
+            AddJournal(name="Installation{}".format(self.id), content="【安装部署】：停止旧服务，删除旧版本")
+            self.ssh.cmd(f"sshpass -p {self.pwd} biomind stop;")
+            self.ssh.shcmd("sshpass -p y docker system prune")
+            self.ssh.cmd("docker rmi -f $(docker images -qa);docker volume rm $(docker volume ls -q)")
+            self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/biomind;")
+            self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/Biomind-3Dserver;")
+            self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.biomind;")
+            self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.3D-biomind;")
+            self.ssh.cmd(
+                f"sshpass -p {self.pwd} sudo rpm -e supervisor;sshpass -p {self.pwd} sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
+            AddJournal(name="Installation{}".format(self.id), content="【安装部署】: 删除完成")
+            sendMessage(touser='', toparty='132', message='【安装部署】：删除完成')
 
-            try:
-                sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 开始删除旧版本')
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】：停止旧服务，删除旧版本")
-                self.ssh.cmd(f"sshpass -p {self.pwd} biomind stop;")
-                self.ssh.shcmd("sshpass -p y docker system prune")
-                self.ssh.cmd("docker rmi -f $(docker images -qa);docker volume rm $(docker volume ls -q)")
-                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/biomind;")
-                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /lfs/Biomind-3Dserver;")
-                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.biomind;")
-                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rm -rf /home/biomind/.3D-biomind;")
-                self.ssh.cmd(f"sshpass -p {self.pwd} sudo rpm -e supervisor;sshpass -p {self.pwd} sudo rm -rf /etc/yum.repos.d/3dlocal.repo")
-                AddJournal(name="Installation{}".format(self.id), content="【安装部署】: 删除完成")
-                sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除完成')
-            except Exception as e:
-                sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除报错:{1}'.format(self.id, e))
-                logger.error("【安装部署】：删除旧的版本失败：{}".format(e))
+        except Exception as e:
+            sendMessage(touser='', toparty='132', message='【安装部署】：{0} - 删除报错:{1}'.format(self.id, e))
+            logger.error("【安装部署】：删除旧的版本失败：{}".format(e))
+
 
     def checkDisk(self):
         self.installStatus(status=True, type=2)
@@ -80,12 +79,10 @@ class InstallThread(threading.Thread):
     def run(self):
         try:
             self.obj.starttime = datetime.datetime.now()
-            clean = threading.Thread(target=self.clean)
-            clean.start()
+            if self.obj.installstatus is True:
+                self.Reset()
             self.installStatus(status=True, type=1)
             self.checkDisk()
-            threading.Thread(target=self.clean)
-
             # 上传安装版本
             try:
                 if self.Flag is True:
@@ -118,10 +115,12 @@ class InstallThread(threading.Thread):
             AddJournal(name="Installation{}".format(self.id),
                        content="【安装部署】：安装{0}失败原因：{1}".format(self.versionObj.version, e))
 
+
     def restart(self):
         try:
             self.installStatus(status=True, type=4)
-            self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
+            if self.reset == "y":
+                self.ssh.configure(self.obj.Host.host, str(self.obj.Host.protocol))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：重启服务\n")
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装完成，重启服务中'.format(self.obj.Host.host))
             self.ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.pwd))
@@ -133,6 +132,7 @@ class InstallThread(threading.Thread):
             return
         # 检查服务状态
         self.Judging_state()
+
 
     # 检查服务状态
     def Judging_state(self):
@@ -183,9 +183,3 @@ class InstallThread(threading.Thread):
         self.obj.status = status
         self.obj.type = type
         self.obj.save()
-
-    def setFlag(self, parm):  # 外部停止线程的操作函数
-        self.Flag = parm  # boolean
-
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm

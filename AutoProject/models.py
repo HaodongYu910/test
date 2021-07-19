@@ -75,12 +75,16 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='用户', related_name='user')
     phone = models.CharField(max_length=11, default='', blank=True, verbose_name='手机号')
+    mail = models.CharField(max_length=50, default='', blank=True, verbose_name='邮件')
+    roles = models.CharField(max_length=10, default='', blank=True, verbose_name='角色')
+    userphoto = models.CharField(max_length=100, default='', blank=True, verbose_name='邮件')
 
     def __unicode__(self):
         return self.user.username
 
     def __str__(self):
         return self.phone
+
 
 class Project(models.Model):
     """
@@ -233,7 +237,6 @@ class dictionary(models.Model):
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
 
-
     def __unicode__(self):
         return self.id
 
@@ -253,10 +256,13 @@ class dds_data(models.Model):
     accesionNumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="accessionNumber")
     studyInstanceUID = models.CharField(max_length=30, blank=True, null=True, verbose_name="studyInstanceUID")
     pacsImageCount = models.IntegerField(blank=True, null=True, verbose_name="pacsImageCount")
-    pacsImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="pacsImageInsertionTime")
+    pacsImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=True,
+                                                  verbose_name="pacsImageInsertionTime")
     orthancImageCount = models.IntegerField(blank=True, null=True, verbose_name="orthancImageCount")
-    orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageInsertionTime")
-    orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
+    orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False,
+                                                     verbose_name="orthancImageInsertionTime")
+    orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False,
+                                                     verbose_name="orthancImageLastBuildTime")
 
     def __unicode__(self):
         return self.id
@@ -304,7 +310,7 @@ class install(models.Model):
     smokeid = models.IntegerField(blank=True, null=True, verbose_name='smoke_id')
     uid = models.IntegerField(blank=True, null=True, verbose_name="UIuid")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
-    crontab =models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
     installstatus = models.BooleanField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
 

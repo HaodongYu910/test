@@ -409,8 +409,7 @@ class dicomUrl(APIView):
                     kc, url = listUrl(obj.gold.Host.id, obj.studyinstanceuid)
                 elif type == 'duration':
                     obj = duration_record.objects.get(id=data['id'])
-                    durObj = duration.objects.get(id=obj.relation_id)
-                    kc, url = listUrl(durObj.Host_id, obj.studyinstanceuid)
+                    kc, url = listUrl(obj.Host_id, obj.studyinstanceuid)
                 else:
                     dicomdata = dicom.objects.filter(vote=None)
                 if url == False:

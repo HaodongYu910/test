@@ -99,7 +99,7 @@
                         @current-change="handleCurrentChange"
                         :current-page="page"
                         :page-sizes="[20,50,100]"
-                        :page-size="page-size"
+                        :page-size="page_size"
                         layout="total, sizes, prev, pager, next, jumper"
                         :total="count"
                         style="float:right;"

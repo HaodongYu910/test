@@ -153,19 +153,24 @@ class ReportThread(threading.Thread):
             logger.error("错误分析数据生成失败：{0}".format(e))
 
     def durationLine(self):
+        durationLineData = []
         try:
-            durationLineData = []
             recordDetail = duration_record.objects.filter(relation_id=self.obj.id, diseases=self.diseases,
                                                           aistatus__in=[2, 3]).order_by("start")
-            for i in recordDetail:
+        except Exception as e:
+            logger.error("recordDetail 数据生成失败：{0}".format(e))
+        for i in recordDetail:
+            try:
                 durationLineData.append({
                     "date": i.start[5:],
                     "{}-Prediction".format(i.diseases): i.sec,
                     "{}-Job".format(i.diseases): i.job_sec
                 })
-            return durationLineData
-        except Exception as e:
-            logger.error("预测趋势数据生成失败：{0}".format(e))
+            except Exception as e:
+                logger.error("durationLineData 数据生成失败：{0}".format(e))
+                continue
+        return durationLineData
+
 
     #     datalist['all'] = obi.count()
     #     datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])

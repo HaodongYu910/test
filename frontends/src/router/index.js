@@ -256,9 +256,9 @@ export default new Router({
                 },
                 {
                     // vue-schart组件
-                    path: '/charts',
-                    component: resolve => require(['../components/page/BaseCharts.vue'], resolve),
-                    meta: {title: 'schart图表'}
+                    path: '/person',
+                    component: resolve => require(['../components/settings/personal/PersonSetting.vue'], resolve),
+                    meta: {title: '个人中心'}
                 },
                 {
                     // 拖拽Dialog组件

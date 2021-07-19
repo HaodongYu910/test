@@ -4,7 +4,7 @@ import os
 import logging
 import queue
 
-from AutoDicom.models import duration_record, dicom,  dicom_group_detail
+from AutoDicom.models import duration_record, dicom, dicom_group_detail
 from ..common.anonymous import anonymization
 from ..common.dataSort import *
 
@@ -70,25 +70,42 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
 
         try:
             timeStamp = str(time.time())
-            info = {
-                "studyinstanceuid": f"{timeStamp}.{dcm}",
-                "studyolduid": i.studyinstanceuid,
-                "patientid": patientid,
-                "patientname": patientname,
-                "slicenumber": i.slicenumber,
-                "image": i.imagecount,
-                "diseases": i.diseases,
-                "relation_id": relation_id,
-                "type": Type,
-                "Host_id": Host_id
-            }
+            studyinstanceuid = f"{timeStamp}.{dcm}"
+
+            # duration_record 插入发送的数据
             try:
-                fileID = duration_record.objects.create(**info).id
+                fileID = duration_record.objects.create(**{
+                    "studyinstanceuid": studyinstanceuid,
+                    "studyolduid": i.studyinstanceuid,
+                    "patientid": patientid,
+                    "patientname": patientname,
+                    "slicenumber": i.slicenumber,
+                    "image": i.imagecount,
+                    "diseases": i.diseases,
+                    "relation_id": relation_id,
+                    "type": Type,
+                    "Host_id": Host_id,
+                }).id
             except Exception as e:
                 logger.error(f"duration create fail {e}")
+                continue
+            # 组成发送的信息
+            try:
+                info = {
+                    "studyinstanceuid": studyinstanceuid,
+                    "patientid": patientid,
+                    "patientname": patientname,
+                    "cur_date": get_date(),
+                    "cur_time": get_time(),
+                    "fileID": fileID
+                 }
+            except Exception as e:
+                logger.error(f"Info fail {e}")
+                continue
 
             file_names = os.listdir(src_folder)
             file_names.sort()
+
             for fn in file_names:
                 full_fn = os.path.join(src_folder, fn)
                 full_fake = os.path.join(full_fn_fake, f'{fileCount}.dcm')
@@ -102,9 +119,9 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                         info=info
                     )
                 try:
-                    data = [full_fn, full_fake, fileID, info]
+                    data = [full_fn, full_fake, info]
                     q.put(data)
-                    fileID = ""
+                    info["fileID"] = ""
                 except Exception as e:
                     logging.error("[匿名错误]:{}".format(e))
                     continue

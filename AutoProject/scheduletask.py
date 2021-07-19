@@ -166,7 +166,7 @@ def DurationTask():
 
 
 def DurationReportTask():
-    obj = duration.objects.filter(sendstatus=True, type='持续化')
+    obj = duration.objects.filter(sendstatus=True, type=2)
     statistics_date = '{} 00:00:00'.format(datetime.datetime.now().strftime("%Y-%m-%d"))
     try:
         for i in obj:

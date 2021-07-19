@@ -166,7 +166,7 @@
                         title: '系统设置',
                         subs: [
                             {
-                                index: 'qrcode',
+                                index: 'person',
                                 title: '用户配置'
                             },
                             {

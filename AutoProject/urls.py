@@ -47,7 +47,7 @@ urlpatterns = [
     url(r'global/disable_protocol', DisableProtocol.as_view()),
     url(r'global/enable_protocol', EnableProtocol.as_view()),
     url(r'user/login', user.obtain_auth_token),
-    url(r'user/info', userinfo.as_view()),
+    url(r'user/info', userInfo.as_view()),
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
     url(r'addupload', AddUpload.as_view()),  # 文件上传

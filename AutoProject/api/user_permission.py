@@ -4,23 +4,23 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 # from AutoProject.common.common import record_dynamic
-# from AutoProject.models import stressrecord
+from AutoProject.models import UserProfile
 # from AutoProject.serializers import stress_Serializer, stress_Deserializer
 # from AutoProject.common.regexUtil import *
 # from AutoProject.common.Loadtest import *
 
 logger = logging.getLogger(__name__)
 
-class userinfo(APIView):
+class userInfo(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
     def get(self, request):
         """
-        获取用户权限
+        获取用户信息
         :param request:
         :return:
         """
-
+        request
         info = {
             'roles': ['admin'],
             'introduction': 'administrator',

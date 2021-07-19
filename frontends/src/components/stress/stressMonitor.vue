@@ -1,5 +1,5 @@
 <template>
-    <div style="height:auto;">
+    <div style="width: auto">
         <el-col :span="30" class="toolbar" style="padding-bottom: 0px;">
             <el-form :inline="true" :model="filters" @submit.native.prevent>
                 <el-form-item label="服务器" prop="server">
@@ -20,7 +20,7 @@
                 </el-form-item>
             </el-form>
         </el-col>
-        <iframe style="width:100%;height:100%;" frameborder="0" scrolling="no" id="bdIframe"
+        <iframe style="width:auto;height:800%;" frameborder="0" scrolling="no" id="bdIframe"
                 :src="bdTokenUrl"></iframe>
         <!--工具条-->
     </div>
@@ -42,7 +42,7 @@
                 },
                 hosts: "",
                 operation: "",
-                bdTokenUrl : "http://192.168.1.121:9090/targets"
+                bdTokenUrl : "http://10.10.10.2:8083/targets"
             }
         },
         created() {
@@ -59,8 +59,7 @@
             const deviceWidth = document.documentElement.clientWidth;
             const deviceHeight = document.documentElement.clientHeight;
             oIframe.style.width = (Number(deviceWidth) - 220) + 'px'; //数字是页面布局宽度差值
-            oIframe.style.height = (Number(deviceHeight) - 120) + 'px'; //数字是页面布局高度差
-
+            oIframe.style.height = (Number(deviceHeight) +4200) + 'px'; //数字是页面布局高度差
             this.getHosts()
         },
         methods: {
@@ -111,8 +110,6 @@
                             type: 'warning'
                         })
                     } else {
-
-
                         this.listLoading = true
                         // NProgress.start();
                         const self = this

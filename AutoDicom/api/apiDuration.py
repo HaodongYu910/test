@@ -339,7 +339,10 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
+            if obj.type ==2:
+                full_fn_fake = f'/lfs/QA/durationlogs/Duration{obj.id}'
+            else:
+                full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
             shutil.rmtree(full_fn_fake)
             obj.sendstatus = False
             obj.save()

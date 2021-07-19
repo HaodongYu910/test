@@ -64,13 +64,14 @@ class SendThread(threading.Thread):
                     break
                 file_data = self.q.get()
                 file_name = file_data[1]
-                info = file_data[3]
+                info = file_data[2]
+
                 # 判断是否 去匿名
                 if self.anonymous is True:
                     anonymization(
                         full_fn=file_data[0],
                         full_fn_fake=file_name,
-                        info=info,
+                        info=info
                     )
                 try:
                     commands = [
@@ -84,14 +85,14 @@ class SendThread(threading.Thread):
                     ]
                     info["starttime"] = time.time()
                     popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
-                    assert (popen.communicate())
+                    popen.communicate()
                     # 变更 发送状态
-                    if file_data[2]:
+                    if info["fileID"]:
                         try:
                             self.UpdateStatus([self.studyID, '1'])
-                            self.UpdateStatus([file_data[2], '0'])
-                            #map(self.UpdateStatus, [[self.studyID, '1'], [file_data[2], '0']])
-                            self.studyID = file_data[2]
+                            self.UpdateStatus([info["fileID"], '0'])
+                            #map(self.UpdateStatus, [[self.studyID, '1'], info["fileID"], '0']])
+                            self.studyID = info["fileID"]
                         except Exception as e:
                             logger.error(f"duration_record 更新状态失败{e}")
 
@@ -125,8 +126,6 @@ class SendThread(threading.Thread):
         try:
             tamp = int(round(time.time() * 1000000000))
             influxdata = f'duration,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},type={info["type"]} value={info["time"]} {tamp}'
-            logger.info(f"influx data:{influxdata}")
-
             requests.post('http://192.168.1.120:8086/write?db=auto_test', data=influxdata)
             self.delayed("")
         except Exception as e:

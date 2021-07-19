@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 
 def anonymization(**kwargs):
+
     """
     full_fn = dicom 数据路径
     rand_uid = 唯一值
@@ -25,25 +26,19 @@ def anonymization(**kwargs):
         ds = pydicom.dcmread(full_fn, force=True)
     except Exception as e:
         logging.error('msg: failed to read file [{0}] error:{1}'.format(full_fn, e))
+    # 匿名成新的数据
     try:
-        cur_date = get_date()
-        cur_time = get_time()
-    except Exception as e:
-        logging.error(
-            'failed to fake: file[{0}], error[{1}]'.format(full_fn, e))
-
-    try:
-        ds.SeriesInstanceUID = norm_string(f'{ds.SeriesInstanceUID}_{rand_uid}', 64)
-        ds.SOPInstanceUID = norm_string(f'{ds.SOPInstanceUID}_{rand_uid}', 16)
-        ds.AccessionNumber = norm_string(f'{ds.AccessionNumber}_{rand_uid}', 16)
+        ds.SeriesInstanceUID = norm_string(f'{ds.SeriesInstanceUID}.{rand_uid}', 64)
+        ds.SOPInstanceUID = norm_string(f'{ds.SOPInstanceUID}.{rand_uid}', 64)
+        ds.AccessionNumber = norm_string(f'{ds.AccessionNumber}.{rand_uid}', 16)
         ds.StudyInstanceUID = rand_uid
         ds.PatientID = PatientID
         ds.PatientName = PatientName
 
-        ds.StudyDate = cur_date
-        ds.StudyTime = cur_time
-        ds.SeriesDate = cur_date
-        ds.SeriesTime = cur_time
+        ds.StudyDate = kwargs["info"]["cur_date"]
+        ds.StudyTime = kwargs["info"]["cur_time"]
+        ds.SeriesDate = kwargs["info"]["cur_date"]
+        ds.SeriesTime = kwargs["info"]["cur_time"]
         # ds.ContentDate = cur_date
         # ds.ContentTime = cur_time
         # ds.AcquisitionDate = cur_date
@@ -55,5 +50,3 @@ def anonymization(**kwargs):
         ds.save_as(full_fn_fake)
     except Exception as e:
         logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
-
-
