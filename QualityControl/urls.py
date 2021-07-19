@@ -21,6 +21,7 @@ from django.views.generic import TemplateView
 from rest_framework.schemas import get_schema_view
 from rest_framework_swagger.renderers import SwaggerUIRenderer, OpenAPIRenderer
 from AutoProject import urls
+from AutoSmoke import smokeurls
 from AutoUI import autourls
 from AutoStress import stressurls
 from AutoDicom import dicomurls
@@ -38,6 +39,7 @@ urlpatterns = [
     url(r'^ui/', include(autourls)),
     url(r'^stress/', include(stressurls)),
     url(r'^dicom/', include(dicomurls)),
+    url(r'^smoke/', include(smokeurls)),
     url(r'^project/', include(urls)),
     url(r'^api/', include(apiUrls)),
     # re_path(r'^accounts/', include('allauth.urls')),
