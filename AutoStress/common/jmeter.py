@@ -4,11 +4,11 @@ import shutil
 import threading
 import time
 
-from ..models import  stress
+from ..models import stress, stress_jmeter
 
 from AutoProject.common.PostgreSQL import connect_postgres
 from AutoProject.common.regexUtil import csv
-from AutoProject.models import  dictionary, uploadfile
+from AutoProject.models import dictionary
 from AutoProject.utils.graphql.graphql import *
 from AutoProject.utils.keycloak.login_kc import login_keycloak
 
@@ -38,7 +38,7 @@ class JmeterThread(threading.Thread):
 
     # 执行 jmeter 脚本
     def run(self):
-        jmeterobj = uploadfile.objects.filter(fileid=self.stressid)
+        jmeterObj = stress_jmeter.objects.filter(Stress_id=self.stressid, status=True)
         path = settings.LOG_PATH
         if not os.path.exists('{0}/{1}'.format(path, self.server)):
             os.mkdir('{0}/{1}'.format(path, self.server))
@@ -48,10 +48,9 @@ class JmeterThread(threading.Thread):
         self.saveStressddt(path)
         # 执行jmeter
         try:
-            for j in jmeterobj:
+            for j in jmeterObj:
                 start_time = datetime.datetime.now().strftime("%Y-%m-%d%H%M%S")
-                cmd = 'nohup jmeter -n -t {0}/{1} -l /home/biomind/logs/{2}.jtl -j /home/biomind/logs/jmeter{3}.log &'.format(
-                    j.fileurl, j.filename, start_time, start_time)
+                cmd = f'nohup jmeter -n -t {j.route} -l /home/biomind/logs/{start_time}.jtl -j /home/biomind/logs/jmeter{start_time}.log &'
                 logger.info(cmd)
                 os.system(cmd)
         except Exception as e:

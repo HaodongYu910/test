@@ -4,16 +4,6 @@
             <!--工具条-->
             <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
-                    <el-form-item>
-                        <el-select v-model="filters.diseases" placeholder="请选择病种类型" @click.native="getBase()">
-                            <el-option key="" label="" value=""/>
-                            <el-option v-for="(item,index) in bases"
-                                       :key="item.remarks"
-                                       :label="item.remarks"
-                                       :value="item.remarks"
-                            />
-                        </el-select>
-                    </el-form-item>
                     <el-select v-model="filters.status" placeholder="状态">
                         <el-option key="" label="" value=""/>
                         <el-option key="1" label="预测成功" value="1" />

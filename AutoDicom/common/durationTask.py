@@ -216,6 +216,8 @@ class DurationThread:
             src_folder = str(j["route"])
             while src_folder[-1] == '/':
                 src_folder = src_folder[0:-1]
+            if not os.path.exists(src_folder):
+                os.system(f"rclone copy oss://qa-test-data/{j['route']} {j['route']}")
             try:
                 rand_uid = get_rand_uid()
                 info = {
@@ -334,10 +336,12 @@ class DurationThread:
     def delayed(self):
         if int(random.randint(1, 100)) > 80:
             hour = int(datetime.datetime.now().strftime("%H"))
-            if 8 < hour < 12:
+            if 9 < hour < 11:
+               return True
+            elif 11 < hour < 13:
                 sleepTime = random.randint(1, 50)
             elif 14 < hour < 18:
-                sleepTime = random.randint(1, 20)
+                sleepTime = random.randint(1, 10)
             elif hour > 21:
                 return True
             else:

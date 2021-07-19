@@ -51,10 +51,10 @@ class stress_record(models.Model):
     version = models.CharField(max_length=30, blank=True, null=True, verbose_name="版本")
     studyuid = models.CharField(max_length=200, blank=True, null=True, verbose_name="uid")
     type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
-    sec = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测时间")
+    sec = models.DecimalField(max_digits=20, decimal_places=8, blank=True, null=True, verbose_name="预测时间")
     start = models.CharField(max_length=50, blank=True, null=True, verbose_name="开始时间")
     end = models.CharField(max_length=50, blank=True, null=True, verbose_name="结束时间")
-    job_time = models.CharField(max_length=20, blank=True, null=True, verbose_name="job预测时间")
+    job_time = models.DecimalField(max_digits=20, decimal_places=8, blank=True, null=True, verbose_name="job预测时间")
     job_start = models.CharField(max_length=50, blank=True, null=True, verbose_name="job开始时间")
     job_end = models.CharField(max_length=50, blank=True, null=True, verbose_name="job结束时间")
     modelname = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型名称")
@@ -113,6 +113,33 @@ class stress_result(models.Model):
         verbose_name_plural = "压测结果记录表"
         db_table = 'stress_result'
 
+
+class stress_jmeter(models.Model):
+    """
+          压测jmeter 配置表
+        """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="名称")
+    thread = models.IntegerField(blank=True, null=True, verbose_name="线程数")
+    synchroniz = models.CharField(max_length=4, blank=True, null=True, verbose_name="并发vu")
+    ramp = models.IntegerField(blank=True, null=True, verbose_name="ramp up time")
+    lookcount = models.IntegerField(blank=True, null=True, verbose_name="lookcount")
+    parm = models.CharField(max_length=200, blank=True, null=True, verbose_name="参数变量")
+    testdata = models.TextField(max_length=200, blank=True, null=True, verbose_name="关联数据")
+    route = models.TextField(max_length=500, blank=True, null=True, verbose_name="路径")
+    Stress = models.ForeignKey(stress, null=True, on_delete=models.CASCADE, verbose_name='Stress')
+    status = models.BooleanField(default=True, verbose_name='状态')
+    type = models.TextField(max_length=20, blank=True, null=True, verbose_name="类型")
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.version
+
+    class Meta:
+        verbose_name = "压测jmeter 配置表"
+        verbose_name_plural = "压测jmeter 配置表"
+        db_table = 'stress_jmeter'
 
 class errorlog(models.Model):
     """

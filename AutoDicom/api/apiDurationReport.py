@@ -28,7 +28,7 @@ class DurationReport(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="duration_id 必传字段!")
         try:
-            testThread = ReportThread(id=duration_id,diseases=diseases)
+            testThread = ReportThread(id=duration_id, diseases=diseases)
             data = testThread.report()
             return JsonResponse(data={"data": data,
                                       }, code="0", msg="成功")

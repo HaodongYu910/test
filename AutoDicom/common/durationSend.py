@@ -137,10 +137,12 @@ class DurationThread(threading.Thread):
 
             # 优先查询组
             for j in listsum:
-                dcmcount = 0
+                dcm = 0
                 src_folder = str(j.route)
                 while src_folder[-1] == '/':
                     src_folder = src_folder[0:-1]
+                if not os.path.exists(src_folder):
+                    os.system(f"rclone copy oss://qa-test-data/{j.route} {j.route}")
                 try:
                     rand_uid = str(time.time())
                     info = {
@@ -159,8 +161,8 @@ class DurationThread(threading.Thread):
                         if (os.path.splitext(fn)[1] in '.dcm' == False):
                             continue
                         try:
-                            q.put([full_fn, full_fn_fake, info, dcmcount])
-                            dcmcount = dcmcount + 1
+                            q.put([full_fn, full_fn_fake, info, dcm])
+                            dcm = dcm + 1
                             logger.info("队列==", q)
                         except Exception as e:
                             logging.error("[匿名错误]:{}".format(e))
@@ -288,9 +290,3 @@ class DurationThread(threading.Thread):
         shutil.rmtree(self.full_fn_fake)
         self.obj.sendstatus = False
         self.obj.save()
-
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
-
-    def getParm(self):  # 外部获得内部信息函数
-        return self.parm

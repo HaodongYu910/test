@@ -18,7 +18,7 @@ pwd：密码
 
 class SSHConnection:
     # 初始化连接创建Transport通道
-    def __init__(self, host='192.168.1.169', port=22, user='biomind', pwd='biomind'):
+    def __init__(self, host='192.168.1.187', port=22, user='biomind', pwd='biomind'):
         self.host = host
         self.port = port
         self.user = user
@@ -74,14 +74,6 @@ class SSHConnection:
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         ssh._transport = self.__transport
         stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-        while not stdout.channel.exit_status_ready():
-            result = stdout.readline()
-            print(result)
-            # 由于在退出时，stdout还是会有一次输出，因此需要单独处理，处理完之后，就可以跳出了
-            if stdout.channel.exit_status_ready():
-                a = stdout.readlines()
-                print(a)
-                break
         logger.debug(stdout)
         result = stdout.read()
         return result
@@ -136,19 +128,8 @@ class SSHConnection:
                     print(line)
 #
 # if __name__ == '__main__':
-#     import collections
 #     ssh = SSHConnection()
-
-#     a = ssh.command("nohup unzip -o QaInstall.zip > zz.log 2>&1 &")
+#     a = ssh.cmd("rm -rf testqa;rm -rf QInstall;mkdir qa;")
 #     print(bytes.decode(a))
 #
 #     ssh.close()
-
-
-# # ssh.upload("{}/test.sh".format(path), '/home/biomind/test.sh')
-# print(ssh.bashcmd("cd 2.18.1-radiology;sshpass -p biomind biomind restart;"))
-# ssh.cmd("sshpass -p {} bash 2.17.5/setup_engine.sh".format('biomind'))
-# ssh.cmd("sshpass -p {} biomind restart".format('biomind'))
-# ssh.cmd("unzip {}".format('zipname'))
-# ssh.cmd("sshpass -p {} bash /home/biomind/{}/".format('zipname'))
-# ssh.cmd("sshpass -p {} biomind restart".format('biomind'))

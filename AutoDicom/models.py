@@ -36,28 +36,29 @@ class dicom(models.Model):
         verbose_name_plural = "dicom数据表"
         db_table = 'dicom'
 
-class dicom_base(models.Model):
+class dicom_detail(models.Model):
     """
-      基础数据表
+      dicom数据 详情表
     """
     id = models.AutoField(primary_key=True)
-    content = models.CharField(max_length=500, blank=True, null=True, verbose_name="内容")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    select_type = models.CharField(max_length=20, blank=True, null=True, verbose_name="查询类型")
-    remarks = models.CharField(max_length=100, blank=True, null=True, verbose_name="备注")
-    other = models.CharField(max_length=10, blank=True, null=True, verbose_name="数量")
-    predictor = models.CharField(max_length=25, blank=True, null=True, verbose_name="模型类型")
+    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
+    patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientname")
+    studyinstanceuid = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    SeriesInstanceUID = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    SOPInstanceUID = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    AccessionNumber = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    slice_thickness = models.CharField(max_length=10, blank=True, null=True, verbose_name="层厚")
+    Modality = models.CharField(max_length=30, blank=True, null=True, verbose_name="层厚")
+    route = models.CharField(max_length=120, blank=True, null=True, verbose_name="路径")
     status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
     def __unicode__(self):
-        return self.select_type
+        return self.patientname
 
     class Meta:
-        verbose_name = "基础数据表"
-        verbose_name_plural = "基础数据表"
-        db_table = 'dicom_base'
+        verbose_name = "dicom数据详情表"
+        verbose_name_plural = "dicom数据详情表"
+        db_table = 'dicom_detail'
 
 class dicom_group(models.Model):
     """
@@ -181,10 +182,10 @@ class duration_record(models.Model):
     sendtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送开始时间")
     starttime = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测开始时间")
     endtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="job结束时间")
-    jobtime = models.CharField(max_length=20, blank=True, null=True, verbose_name="job时间")
+    jobtime = models.DecimalField(max_digits=20, decimal_places=8,blank=True, null=True, verbose_name="job时间")
     error = models.TextField(max_length=3000, blank=True, null=True, verbose_name="error信息")
     model = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型")
-    time = models.CharField(max_length=20, blank=True, null=True, verbose_name="发送时间")
+    time = models.DecimalField(max_digits=20, decimal_places=8, blank=True, null=True, verbose_name="发送时间")
     duration_id = models.CharField(max_length=20, blank=True, null=True, verbose_name='duration_id')
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="预测类型")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")

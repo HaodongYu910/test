@@ -193,7 +193,7 @@
 <script>
     // import NProgress from 'nprogress'
     import draggable from 'vuedraggable'
-    import {getbase,getGroup,AddGroup,Updategroup,EnableGroup,DelGroup,DisableGroup,getGroupInfo } from "../../../router/api";
+    import {getGroup,AddGroup,Updategroup,EnableGroup,DelGroup,DisableGroup,getGroupInfo } from "../../../router/api";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {

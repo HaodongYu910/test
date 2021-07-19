@@ -45,8 +45,9 @@ def saveData(**kwargs):
 
 
 class ResultStatistics:
-    def __init__(self, stressid, stressType, start_date=None, end_date=None):
+    def __init__(self, stressid, stressType, start_date=None, end_date=None, modelID=None):
         self.stressId = stressid
+        self.modelID = modelID
         self.obj = stress.objects.get(stressid=self.stressId)
         self.stressType = stressType
         self.start_date = self.obj.start_date if start_date is None else start_date
@@ -73,8 +74,8 @@ class ResultStatistics:
                                           sql=sql)
                 # 循环更新查询结果
                 for i in result.to_dict(orient='records'):
+                    data = {}
                     if j == "predictionrecord":
-                        data = {}
                         data = {
                             "sec": str(i["sec"]),
                             "start": str(i["start"])[:19],
@@ -104,20 +105,30 @@ class ResultStatistics:
                 continue
         self.SaveResults()
 
+    # def median(self):
+    #     data.sort()
+    #     half = len(data) // 2
+    #     return (data[half] + data[~half]) / 2
+
     # 保存结果
     def SaveResults(self):
         """
             根据模型 分组查询 stress_record 表
         """
         try:
-            # 删除 之前数据
-            stress_result.objects.filter(Stress=self.stressId, type=self.stressType).delete()
+            if self.modelID is None:
+                self.modelID = self.obj.testdata.split(",")
+                # 删除 之前数据
+                stress_result.objects.filter(Stress=self.stressId, type=self.stressType).delete()
+            else:
+                self.modelID = [self.modelID]
+                stress_result.objects.filter(Stress=self.stressId, type=self.stressType,modelname=self.modelID).delete()
         except:
             logger.error("删除旧的性能结果数据数据失败")
 
         # 按模型 查询成功失败 数量
         recordObj = stress_record.objects.filter(
-            Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=True).values("modelname").annotate(
+            Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=True, modelname__in=self.modelID).values("modelname").annotate(
             count=Count(1),
             ModelAvg=Avg('sec'),
             ModelMax=Max('sec'),
@@ -132,10 +143,48 @@ class ResultStatistics:
             warn=Count(Case(When(aistatus=2, then=0))),
             fail=Count(Case(When(aistatus=1, then=0))),
         )
-        self.SaveResult(recordObj, modelname=1)
+        for i in recordObj:
+            try:
+                total = i["success"] + i["warn"] + i["fail"]
+                ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))
+                ModelMin = 0 if i["ModelMin"] is None else '%.2f' % (float(i["ModelMin"]))
+                ModelMax = 0 if i["ModelMax"] is None else '%.2f' % (float(str(i["ModelMax"])))
+                JobAvg = 0 if i["JobAvg"] is None else '%.2f' % (float(i["JobAvg"]))
+                JobMin = 0 if i["JobMin"] is None else '%.2f' % (float(i["JobMin"]))
+                JobMax = 0 if i["JobMax"] is None else '%.2f' % (float(i["JobMax"]))
+                rate = 0 if i["success"] is None else '%.2f' % (float((i["success"] + i["warn"]) / total * 100))
+                imagesMin = 0 if i["imagesMin"] is None else '%.2f' % (float(i["imagesMin"]))
+                imagesMax = 0 if i["imagesMax"] is None else '%.2f' % (float(i["imagesMax"]))
+                imagesAvg = 0 if i["imagesAvg"] is None else '%.2f' % (float(i["imagesAvg"]))
 
+                stress_result.objects.create(**{
+                    "version": self.obj.version,
+                    "modelname": i["modelname"],
+                    "type": self.stressType,
+                    "avg": ModelAvg,
+                    "min": ModelMin,
+                    "max": ModelMax,
+                    "jobavg": JobAvg,
+                    "jobmin": JobMin,
+                    "jobmax": JobMax,
+                    "rate": rate,
+                    "minimages": imagesMin,
+                    "maximages": imagesMax,
+                    "avgimages": imagesAvg,
+                    "Stress_id": self.stressId,
+                    "slicenumber": None,
+                    "count": i["count"],
+                    "start_date": self.start_date,
+                    "end_date": self.end_date
+                })
+            except Exception as e:
+                logger.error(e)
+                continue
+        self.sliceResults()
+
+    def sliceResults(self):
         ObjRecord = stress_record.objects.filter(
-            Stress_id=self.stressId, type=self.stressType, slicenumber__isnull=False).values(
+            Stress_id=self.stressId, type=self.stressType, slicenumber__isnull=False,modelname__in=self.modelID).values(
             "slicenumber").annotate(
             count=Count(1),
             ModelAvg=Avg('sec'),
@@ -151,23 +200,14 @@ class ResultStatistics:
             warn=Count(Case(When(aistatus=2, then=0))),
             fail=Count(Case(When(aistatus=1, then=0))),
         )
-        self.SaveResult(ObjRecord, slicenumber=1)
 
-    def SaveResult(self, obj, modelname=None, slicenumber=None):
         """
-            根据模型 保存到stress_result 表 压测详细数据
+            根据层厚保存到stress_result 表 压测详细数据
         """
         # 循环数据保存
-        for i in obj:
-            if slicenumber is not None:
-                slicenumber = i["slicenumber"]
-
-            elif modelname is not None:
-                modelname = i["modelname"]
-                "".split(",")
+        for i in ObjRecord:
             try:
                 total = i["success"] + i["warn"] + i["fail"]
-
                 ModelAvg = 0 if i["ModelAvg"] is None else '%.2f' % (float(i["ModelAvg"]))
                 ModelMin = 0 if i["ModelMin"] is None else '%.2f' % (float(i["ModelMin"]))
                 ModelMax = 0 if i["ModelMax"] is None else '%.2f' % (float(str(i["ModelMax"])))
@@ -178,6 +218,10 @@ class ResultStatistics:
                 imagesMin = 0 if i["imagesMin"] is None else '%.2f' % (float(i["imagesMin"]))
                 imagesMax = 0 if i["imagesMax"] is None else '%.2f' % (float(i["imagesMax"]))
                 imagesAvg = 0 if i["imagesAvg"] is None else '%.2f' % (float(i["imagesAvg"]))
+                try:
+                    modelname = stress_record.objects.filter(Stress_id=self.stressId, type=self.stressType, slicenumber=i["slicenumber"])[0]["modelname"]
+                except:
+                    modelname = 9
 
                 stress_result.objects.create(**{
                     "version": self.obj.version,
@@ -194,7 +238,7 @@ class ResultStatistics:
                     "maximages": imagesMax,
                     "avgimages": imagesAvg,
                     "Stress_id": self.stressId,
-                    "slicenumber": slicenumber,
+                    "slicenumber": i["slicenumber"],
                     "count": i["count"],
                     "start_date": self.start_date,
                     "end_date": self.end_date

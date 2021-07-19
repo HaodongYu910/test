@@ -5,15 +5,6 @@
             <el-col :span="20" class="toolbar" style="padding-bottom: 0px;">
                 <el-form :inline="true" :model="filters" @submit.native.prevent>
                     <el-form-item>
-                        <el-select v-model="filters.diseases" placeholder="请选择病种" @click.native="getBase()">
-                            <el-option v-for="(item,index) in tags"
-                                       :key="item.remarks"
-                                       :label="item.remarks"
-                                       :value="item.remarks"
-                            />
-                        </el-select>
-                    </el-form-item>
-                    <el-form-item>
                         <el-select v-model="filters.slicenumber" placeholder="肺炎层厚">
                             <el-option key="1.0" label="1.0" value="1.0"/>
                             <el-option key="1.25" label="1.25" value="1.25"/>
@@ -165,18 +156,6 @@
                                 <el-input v-model.trim="addForm.studyinstanceuid" auto-complete="off"/>
                             </el-form-item>
                         </el-col>
-                        <el-col :span="12">
-                            <el-form-item label="类型" prop="diseases">
-                                <el-select v-model="addForm.diseases" placeholder="请选择" @click.native="getBase()">
-                                    <el-option
-                                            v-for="(item,index) in tags"
-                                            :key="item.remarks"
-                                            :label="item.remarks"
-                                            :value="item.remarks"
-                                    />
-                                </el-select>
-                            </el-form-item>
-                        </el-col>
                     </el-row>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
@@ -196,7 +175,6 @@
         getdicomdata,
         updatedicomdata,
         StressData,
-        getbase,
         addStressData,
         DelStressData,
       DisableDicom,
@@ -271,31 +249,6 @@
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
                 getHost(headers, params).then((res) => {
-                    self.listLoading = false
-                    const {msg, code, data} = res
-                    if (code === '0') {
-                        self.total = data.total
-                        self.list = data.data
-                        var json = JSON.stringify(self.list)
-                        this.tags = JSON.parse(json)
-                    } else {
-                        self.$message.error({
-                            message: msg,
-                            center: true
-                        })
-                    }
-                })
-            },
-            // 获取getBase列表
-            getBase() {
-                this.listLoading = true
-                const self = this
-                const params = {
-                    selecttype: "dicom",
-                    status: 1
-                }
-                const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
-                getbase(headers, params).then((res) => {
                     self.listLoading = false
                     const {msg, code, data} = res
                     if (code === '0') {

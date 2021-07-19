@@ -75,10 +75,15 @@ class JenkinsApi:
 
 
 if __name__ == '__main__':
-    pass
     # 构建参数化job
     # a = JenkinsApi()
-    # print(a.build_job("Radiology_Prod", {"BRANCH" : "2.20-fda-preview"}))
+    # print(a.build_job("install", {"reset": 0,
+    #                               "passwd": "biomind",
+    #                               "path": "oss://biomind/Radiology/Prod/2.20.10-radiology2.tgz",
+    #                               "version": "2.20.10-radiology",
+    #                               "package_name": "2.20.10-radiology2.tgz",
+    #                               "environment": "187"}))
+    pass
 
 
 

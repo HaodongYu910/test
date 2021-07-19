@@ -56,7 +56,7 @@ class stressResultsave(APIView):
         try:
             # 必传参数 stressid
             if not data["stressid"]:
-                return JsonResponse(code="999996", msg="缺失必要参数,参数 stressid！")
+                return JsonResponse(code="999996", msg="缺失必要参数,参数 stressid/ strategy！")
 
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -75,7 +75,7 @@ class stressResultsave(APIView):
         try:
             Result = ResultStatistics(
                 stressid=data['stressid'],
-                stressType='HH'
+                stressType=data['strategy']
             )
             Result.QueryResults()
             return JsonResponse(code="0", msg="成功")

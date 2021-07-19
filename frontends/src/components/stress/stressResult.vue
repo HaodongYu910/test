@@ -352,7 +352,6 @@
         components: {},
         mounted() {
             this.gethost();
-            this.getBase();
         },
         created() {
             this.getreportData();
