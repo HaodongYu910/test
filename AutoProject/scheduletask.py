@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 __author__ = ""
 __version__ = ""
 
+
 #
 # def mail_task():
 #     data = []
@@ -44,7 +45,6 @@ __version__ = ""
 #             logger.info('[ 休息时间] ' + datetime.datetime.now())
 #     except Exception as e:
 #         logger.error('[Error] ' + e)
-
 
 
 # 同步持续化数据结果
@@ -77,7 +77,8 @@ def DurationSyTask():
                             obj.end = ii["end"]
                             obj.save()
                         except Exception as e:
-                            logger.error('[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
+                            logger.error(
+                                '[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
                             continue
                     elif int(len(obj)) > 1:
                         for kk in obj:
@@ -93,6 +94,7 @@ def DurationSyTask():
                 continue
     except Exception as e:
         logger.error('[Schedule Synchronization Task Error]:{}'.format(e))
+
 
 # 同步 job 时间
 def JobSyTask():
@@ -146,6 +148,7 @@ def JobSyTask():
     except Exception as e:
         logger.error('[Schedule Synchronization JobSyTask Error]:{}'.format(e))
 
+
 # 持续化定时任务启动
 def DurationTask():
     logger.info("持续化定时任务启动！~~")
@@ -185,14 +188,14 @@ def DurationReportTask():
                 "msgtype": "markdown",
                 "markdown": {
                     "content": messObj.content.format(
-                            version,
-                            i.server,
-                            statistics_date,
-                            record[0]['count'],
-                            record[0]['success'],
-                            record[0]['fail'],
-                            i.id,
-                            i.id)
+                        version,
+                        i.server,
+                        statistics_date,
+                        record[0]['count'],
+                        record[0]['success'],
+                        record[0]['fail'],
+                        i.id,
+                        i.id)
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
                 }
             }
@@ -221,13 +224,13 @@ def NightlyReportTask():
                 "msgtype": "markdown",
                 "markdown": {
                     "content": messObj.content.format(
-                            version,
-                            i.server,
-                            record[0]['count'],
-                            record[0]['success'],
-                            record[0]['fail'],
-                            i.id,
-                            i.id)
+                        version,
+                        i.server,
+                        record[0]['count'],
+                        record[0]['success'],
+                        record[0]['fail'],
+                        i.id,
+                        i.id)
                     # "mentioned_mobile_list": MessObj.mentioned_mobile_list.split(",")
                 }
             }
@@ -239,4 +242,3 @@ def NightlyReportTask():
         except Exception as e:
             logger.error('[Schedule Sustainability Task Error]:{}'.format(e))
             continue
-

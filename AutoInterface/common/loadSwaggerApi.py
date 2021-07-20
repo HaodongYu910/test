@@ -118,7 +118,7 @@ def add_swagger_api(data, user):
                                    _type="新增", operationObject="接口", user=user.pk,
                                    data="新增接口“%s”" % data["name"])
                     api_record = ApiOperationHistory(api=ApiInfo.objects.get(id=api_id),
-                                                     user=User.objects.get(id=user.pk),
+                                                     user=get(id=user.pk),
                                                      description="新增接口“%s”" % data["name"])
                     api_record.save()
         except Exception as e:

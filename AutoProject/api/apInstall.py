@@ -2,7 +2,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
 from django.db import transaction
-
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -56,16 +55,17 @@ class getInstallVersion(APIView):
             groupOptions = []
             project_id = request.GET.get("project_id", 1)
             try:
-                Obj = project_version.objects.filter(type="Prod").order_by("-id")
+                Obj = project_version.objects.filter(type='1', status=True).order_by("-id")
                 for i in Obj:
-                    if groupChildren.__contains__(i.branch) is False:
+                    version = i.version.split("-")
+                    if groupChildren.__contains__(version[1]) is False:
                         children = {
                             "value": i.id,
                             "label": i.package_name[:-4]
                         }
-                        groupChildren[i.branch] = [children]
+                        groupChildren[version[1]] = [children]
                     else:
-                        groupChildren[i.branch].append({
+                        groupChildren[version[1]].append({
                             "value": i.id,
                             "label": i.package_name[:-4]
                         })

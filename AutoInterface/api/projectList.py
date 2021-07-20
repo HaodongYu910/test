@@ -86,7 +86,7 @@ class AddProject(APIView):
             "user": user
         })
         project = Project.objects.get(id=project)
-        user = User.objects.get(id=user)
+        user = get(id=user)
         if member_serializer.is_valid():
             member_serializer.save(project=project, user=user)
 

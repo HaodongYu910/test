@@ -60,9 +60,9 @@
                             let{msg,code,data}=_data;
                             console.log("code:"+code);
                             if(code ==='0'){
-                                sessionStorage.setItem('username', JSON.stringify(data.first_name));
-                                sessionStorage.setItem('token', JSON.stringify(data.key));
-                                this.$message.success("登录成功");
+                                sessionStorage.setItem('username', JSON.stringify(data.username));
+                                sessionStorage.setItem('token', data.key);
+                                this.$message.success(data.username+":欢迎登录！~");
                                 localStorage.setItem('ms_username',this.ruleForm.username);
                                 localStorage.setItem('date_joined',JSON.stringify(data.date_joined));
                                 localStorage.setItem("project_id", "1" );

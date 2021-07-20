@@ -34,13 +34,13 @@ urlpatterns = [
     url(r'duration/disable_duration', DisableDuration.as_view()),
     url(r'duration/enable_duration', EnableDuration.as_view()),
     url(r'duration/getduration', getDuration.as_view()),
-    url(r'duration/source', getdurationsource.as_view()), # 获取持续 源数据
+    url(r'duration/source', getdurationsource.as_view()),  # 获取持续 源数据
     url(r'dicomurl', dicomUrl.as_view()),
-    url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),      # 匿名化数据
+    url(r'tool/anonymization', anonymizationAPI_2nd.as_view()),  # 匿名化数据
     url(r'base/getResult', getResult.as_view()),
     url(r'base/dicom', getDicomfile.as_view()),
     url(r'group/dicomadd', DicomAdd.as_view()),
-    url(r'group/Unbind', DicomUnbind.as_view()),
+    url(r'group/Unbind', DicomUnbind.as_view()),  # 解绑数据
     url(r'group/groupadd', AddGroup.as_view()),
     url(r'group/groupup', UpdateGroup.as_view()),
     url(r'group/disablegroup', DisableGroup.as_view()),

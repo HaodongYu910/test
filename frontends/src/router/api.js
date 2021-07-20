@@ -7,6 +7,25 @@ export const requestLogin = (headers, params) => {
     .post(`${test}/project/user/login`, params, headers)
     .then((res) => res.data);
 };
+// 获取用户信息
+export const getUserInfo = (headers, params) => {
+  return axios
+    .get(`${test}/project/user/userInfo`, { params: params, headers: headers })
+    .then((res) => res.data);
+};
+// 修改 用户信息
+export const UpdateUserInfo  = (headers, params) => {
+  return axios
+    .post(`${test}/project/user/Update`, params, headers)
+    .then((res) => res.data);
+};
+// 删除 用户信息
+export const DelUserInfo  = (headers, params) => {
+  return axios
+    .post(`${test}/project/user/Del`, params, headers)
+    .then((res) => res.data);
+};
+
 // 获取项目
 export const getProject = (headers, params) => {
   return axios
@@ -59,6 +78,42 @@ export const getProVersion = (headers, params) => {
       params: params,
       headers: headers,
     })
+    .then((res) => res.data);
+};
+// 添加版本
+export const AddVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/add`, params, { headers })
+    .then((res) => res.data);
+};
+// 修改版本信息
+export const UpdateVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/Update`, params, { headers })
+    .then((res) => res.data);
+};
+// 删除项目版本
+export const DelVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/Del`, params, { headers })
+    .then((res) => res.data);
+};
+// 保存备份版本
+export const SaveVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/Save`, params, { headers })
+    .then((res) => res.data);
+};
+// 禁用测试地址列表
+export const DisableVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/Disable`, params, { headers })
+    .then((res) => res.data);
+};
+// 启用测试地址列表
+export const EnableVersion = (headers, params) => {
+  return axios
+    .post(`${test}/project/version/Enable`, params, { headers })
     .then((res) => res.data);
 };
 // 获取有效项目版本

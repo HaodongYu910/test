@@ -77,7 +77,7 @@ class UserProfile(models.Model):
     phone = models.CharField(max_length=11, default='', blank=True, verbose_name='手机号')
     mail = models.CharField(max_length=50, default='', blank=True, verbose_name='邮件')
     roles = models.CharField(max_length=10, default='', blank=True, verbose_name='角色')
-    userphoto = models.CharField(max_length=100, default='', blank=True, verbose_name='邮件')
+    userphoto = models.CharField(max_length=100, default='', blank=True, verbose_name='头像')
 
     def __unicode__(self):
         return self.user.username
@@ -130,7 +130,7 @@ class project_version(models.Model):
     branch = models.CharField(max_length=20, blank=True, null=True, verbose_name="分支")
     package_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="包名")
     path = models.TextField(max_length=1000, blank=True, null=True, verbose_name="路径")
-    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型 -1、 删除  2、保存")
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='所属项目')
     status = models.BooleanField(default=False, verbose_name='状态')
     update_time = models.DateTimeField(auto_now=True, verbose_name='修改时间')

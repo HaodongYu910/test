@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
@@ -12,6 +13,7 @@ from AutoProject.serializers import ProjectVersionSerializer, ProjectVersionDese
 from ..common.install import InstallThread
 from AutoDicom.common.deletepatients import *
 from ..models import project_version, Project
+import os
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
@@ -27,7 +29,7 @@ class getVersionInfo(APIView):
         """
         try:
             project_id = request.GET.get("project_id", 1)
-            Obj = project_version.objects.filter(project_id=project_id, status=True).order_by("-id")
+            Obj = project_version.objects.filter(~Q(type='-1'), project_id=project_id, status=True).order_by("-id")
 
             serialize = ProjectVersionSerializer(Obj, many=True)
             return JsonResponse(data={"data": serialize.data}, code="0", msg="成功")
@@ -54,11 +56,11 @@ class getVersion(APIView):
         version = request.GET.get("version")
         name = request.GET.get("name")
         if version:
-            obi = project_version.objects.filter(version__contains=version, project_id=project_id).order_by("-id")
+            obi = project_version.objects.filter(~Q(type='-1'), version__contains=version, project_id=project_id).order_by("-id")
         elif name:
-            obi = project_version.objects.filter(version__contains=name, project_id=project_id).order_by("-id")
+            obi = project_version.objects.filter(~Q(type='-1'), version__contains=name, project_id=project_id).order_by("-id")
         else:
-            obi = project_version.objects.filter(project_id=project_id).order_by("-id")
+            obi = project_version.objects.filter(~Q(type='-1'), project_id=project_id).order_by("-id")
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:
@@ -105,7 +107,7 @@ class AddVersion(APIView):
             return result
         try:
             package = 1
-            obj = project_version.objects.filter(version=data["version"], type=data["type"])
+            obj = project_version.objects.filter(~Q(type='-1'), version=data["version"], type=data["type"])
             try:
                 # 版本打包个数
                 vesionCount = int(obj.count())
@@ -129,6 +131,8 @@ class AddVersion(APIView):
                 data["project"] = int(Project.objects.get(version=data["project"]).id)
             except ObjectDoesNotExist:
                 return JsonResponse(code="999994", msg="项目不存在，请创建项目或联系管理员")
+            if "rod" in data["type"]:
+                data["type"] = 1
 
             projectVersion = ProjectVersionDeserializer(data=data)
             with transaction.atomic():
@@ -171,15 +175,15 @@ class UpdateVersion(APIView):
         if result:
             return result
         try:
-            Installobj = Project.objects.get(id=data["id"])
+            obj = project_version.objects.get(id=data["id"])
         except Exception as e:
-            return JsonResponse(code="999995", msg="数据不存在！")
+            return JsonResponse(code="999995", msg="版本数据不存在！")
 
-        serializer = Project(data=data)
+        serializer = project_version(data=data)
         with transaction.atomic():
             if serializer.is_valid():
                 # 修改数据
-                serializer.update(instance=Installobj, validated_data=data)
+                serializer.update(instance=obj, validated_data=data)
                 return JsonResponse(code="0", msg="成功")
             else:
                 return JsonResponse(code="999998", msg="失败")
@@ -218,9 +222,13 @@ class DelVersion(APIView):
         try:
             for j in data["ids"]:
                 try:
-                    Project.objects.filter(id=j).delete()
+                    obj = project_version.objects.get(id=j)
+                    obj.type = "-1"
+                    obj.save()
+                    os.system(f"rclone delete {obj.path}")
                 except Exception as e:
-                    logger.error("删除Install数据失败")
+                    logger.error(f"删除{obj.version}数据失败:{e}")
+                    continue
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="项目不存在！")
@@ -255,12 +263,9 @@ class DisableVersion(APIView):
             return result
         # 查找是否存在
         try:
-            obj = Project.objects.get(id=data["id"])
+            obj = project_version.objects.get(id=data["id"])
             obj.status = False
             obj.save()
-            testThread = InstallThread(id=data["id"])
-            # 设为保护线程，主进程结束会关闭线程
-            testThread.setFlag = False
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
@@ -286,7 +291,7 @@ class EnableVersion(APIView):
 
     def post(self, request):
         """
-        启用项目
+        启用项目版本
         :param request:
         :return:
         """
@@ -296,13 +301,58 @@ class EnableVersion(APIView):
             return result
         # 查找项目是否存在
         try:
-            testThread = InstallThread(id=data["id"])
-            testThread.setDaemon(True)
-            # 开始线程
-            testThread.start()
-
+            obj = project_version.objects.get(id=data["id"])
+            obj.status = True
+            obj.save()
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="项目版本不存在！")
 
 
+class SaveVersion(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["ids"], list):
+                return JsonResponse(code="999996", msg="参数有误！")
+            for i in data["ids"]:
+                if not isinstance(i, int):
+                    return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        保存项目版本
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            for j in data["ids"]:
+                try:
+                    obj = project_version.objects.get(id=j)
+                    path = f"/files/History_version/{obj.version}"
+                    if os.path.exists(path):
+                        os.makedirs(path)
+                    os.system(f"rclone copy {obj.path} {path}")
+                    obj.type = '2'
+                    obj.save()
+                    
+                except Exception as e:
+                    logger.error(f"删除{obj.version}数据失败:{e}")
+                    continue
+            return JsonResponse(code="0", msg="保存成功")
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="项目版本保存失败！")

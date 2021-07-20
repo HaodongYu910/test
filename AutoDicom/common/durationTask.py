@@ -363,16 +363,16 @@ class DurationThread:
 
 if __name__ == '__main__':
     try:
-        # opts, args = getopt.getopt(sys.argv[1:], "h",
-        #                            ["relation_id="])
-        #
-        # for opt, arg in opts:
-        #     if opt == '-h':
-        #         sys.exit()
-        #     elif opt in ("--relation_id"):
-        #         relation_id = arg
+        opts, args = getopt.getopt(sys.argv[1:], "h",
+                                   ["relation_id="])
 
-        DT = DurationThread(relation_id=3)
+        for opt, arg in opts:
+            if opt == '-h':
+                sys.exit()
+            elif opt in ("--relation_id"):
+                relation_id = arg
+
+        DT = DurationThread(relation_id=relation_id)
         DT.run()
     except Exception as e:
         logging.error("failed to start:{}".format(e))

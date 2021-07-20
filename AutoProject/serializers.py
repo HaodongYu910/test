@@ -11,15 +11,19 @@ class TokenSerializer(serializers.ModelSerializer):
     """
     用户信息序列化
     """
+    userID = serializers.CharField(source="user.id")
+    username = serializers.CharField(source="user.username")
     first_name = serializers.CharField(source="user.first_name")
     last_name = serializers.CharField(source="user.last_name")
     phone = serializers.CharField(source="user.user.phone")
     email = serializers.CharField(source="user.email")
+    roles = serializers.CharField(source="user.user.roles")
+    userphoto = serializers.CharField(source="user.user.userphoto")
     date_joined = serializers.CharField(source="user.date_joined")
 
     class Meta:
         model = Token
-        fields = ('first_name', 'last_name', 'phone', 'email', 'key', 'date_joined')
+        fields = ('userID', 'username', 'first_name', 'last_name', 'phone', 'email', 'key', 'roles', 'userphoto', 'date_joined')
 
 
 class UserSerializer(serializers.ModelSerializer):

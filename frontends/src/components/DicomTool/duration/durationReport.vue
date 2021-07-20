@@ -343,7 +343,7 @@
                     var endstamp = new Date(enddate).getTime();
                 }
 
-                const url = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                const url = "http://10.10.10.2:8084/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
                     startstamp + "&to=" + endstamp + "&var-host_name=" +
                     loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
                 const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left

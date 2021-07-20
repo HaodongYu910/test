@@ -339,7 +339,7 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
-            if obj.type ==2:
+            if obj.type == 2:
                 full_fn_fake = f'/lfs/QA/durationlogs/Duration{obj.id}'
             else:
                 full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
@@ -398,7 +398,7 @@ class EnableDuration(APIView):
                 os.system(cmd)
 
             if SendStatus is True:
-                obj.status = True
+                obj.sendstatus = True
                 obj.save()
                 return JsonResponse(code="0", msg="成功")
             else:

@@ -25,7 +25,7 @@ class SSHConnection:
         self.pwd = pwd
         self.__transport = paramiko.Transport((self.host, self.port))
         self.__transport.connect(username=self.user, password=self.pwd)
-        self.sftp = paramiko.SFTPClient.from_transport(self.__transport)
+        self.sftp = paramiko.SFTPClient
 
     # 关闭通道
     def close(self):

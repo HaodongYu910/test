@@ -97,7 +97,8 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                     "patientname": patientname,
                     "cur_date": get_date(),
                     "cur_time": get_time(),
-                    "fileID": fileID
+                    "fileID": fileID,
+                    "relation_id": relation_id,
                  }
             except Exception as e:
                 logger.error(f"Info fail {e}")

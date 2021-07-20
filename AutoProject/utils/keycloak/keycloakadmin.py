@@ -49,7 +49,7 @@ class KeycloakAdm:
         user_id = self.kc_adm.get_user_id(username)
         if not user_id:
             logger.warning('please create user, no such account')
-        group = self.kc_adm.get_group_by_path(f'/{group_name}')
+        group = self.kc_adm
         if not group:
             logger.warning("Can't find the corresponding group, please add")
         self.kc_adm.group_user_add(user_id, group.get('id'))
@@ -77,7 +77,7 @@ class KeycloakAdm:
             self.kc_adm.update_user(user_id, query)
         else:
             user_id = self.kc_adm.create_user(query)
-        group = self.kc_adm.get_group_by_path(f'/{group_name}')
+        group = self.kc_adm
         if not group:
             logger.warning("Can't find the corresponding group, please add")
         self.kc_adm.group_user_add(user_id, group.get('id'))

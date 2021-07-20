@@ -285,7 +285,7 @@ class AddGroup(APIView):
         :param request:
         :return:
         """
-        data = JSONParser().parse(request)
+        data = JSONParser()
         result = self.parameter_check(data)
         if result:
             return result
@@ -297,7 +297,7 @@ class AddGroup(APIView):
         if data["type"] != "Virtual":
             data["amount"] = "0"
             data["status"] = False
-            data["route"] = "/files1/DICOM/" + str(data.get("type")) + "/" + str(data.get("name"))
+            data["route"] = "/files1/DICOM/" + str(data.get("type")) + "/" + str(get("name"))
         group = dicomGroup_Serializer(data=data)
 
         with transaction.atomic():

@@ -313,7 +313,7 @@ class AddApi(APIView):
         :param request:
         :return:
         """
-        data = JSONParser().parse(request)
+        data = JSONParser()
         result = self.parameter_check(data)
         if result:
             return result
@@ -344,7 +344,7 @@ class AddApi(APIView):
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999991", msg="分组不存在!")
                     api_id = serialize.data.get("id")
-                    if len(data.get("headDict")):
+                    if len(get("headDict")):
                         for i in data["headDict"]:
                             if i.get("name"):
                                 i["api"] = api_id
@@ -352,7 +352,7 @@ class AddApi(APIView):
                                 if head_serialize.is_valid():
                                     head_serialize.save(api=ApiInfo.objects.get(id=api_id))
                     if data["requestParameterType"] == "form-data":
-                        if len(data.get("requestList")):
+                        if len(get("requestList")):
                             for i in data["requestList"]:
                                 if i.get("name"):
                                     i["api"] = api_id
@@ -360,9 +360,9 @@ class AddApi(APIView):
                                     if param_serialize.is_valid():
                                         param_serialize.save(api=ApiInfo.objects.get(id=api_id))
                     else:
-                        if len(data.get("requestList")):
+                        if len(get("requestList")):
                             ApiParameterRaw(api=ApiInfo.objects.get(id=api_id), data=data["requestList"]).save()
-                    if len(data.get("responseList")):
+                    if len(get("responseList")):
                         for i in data["responseList"]:
                             if i.get("name"):
                                 i["api"] = api_id
@@ -373,7 +373,7 @@ class AddApi(APIView):
                                    _type="新增", operationObject="接口", user=request.user.pk,
                                    data="新增接口“%s”" % data["name"])
                     api_record = ApiOperationHistory(api=ApiInfo.objects.get(id=api_id),
-                                                     user=User.objects.get(id=request.user.pk),
+                                                     user=get(id=request.user.pk),
                                                      description="新增接口“%s”" % data["name"])
                     api_record.save()
                     return JsonResponse(code="0", msg="成功!", data={"api_id": api_id})
@@ -597,7 +597,7 @@ class UpdateApi(APIView):
         :param request:
         :return:
         """
-        data = JSONParser().parse(request)
+        data = JSONParser()
         result = self.parameter_check(data)
         if result:
             return result
@@ -626,15 +626,15 @@ class UpdateApi(APIView):
                     if not isinstance(data.get("apiGroupLevelFirst_id"), int):
                         return JsonResponse(code="999996", msg="参数有误!")
                     ApiGroupLevelFirst.objects.get(id=data["apiGroupLevelFirst_id"], project=data["project_id"])
-                    User.objects.get(id=request.user.pk)
+                    get(id=request.user.pk)
                     serialize.update(instance=obi, validated_data=data)
                 except KeyError:
-                    User.objects.get(id=request.user.pk)
+                    get(id=request.user.pk)
                     serialize.update(instance=obi, validated_data=data)
                 except ObjectDoesNotExist:
                     return JsonResponse(code="999991", msg="分组不存在!")
                 header = Q()
-                if len(data.get("headDict")):
+                if len(get("headDict")):
                     for i in data["headDict"]:
                         if i.get("api") and i.get("id"):
                             header = header | Q(id=i["id"])
@@ -653,7 +653,7 @@ class UpdateApi(APIView):
                 ApiHead.objects.exclude(header).delete()
                 api_param = Q()
                 api_param_raw = Q()
-                if len(data.get("requestList")):
+                if len(get("requestList")):
                     if data["requestParameterType"] == "form-data":
                         ApiParameterRaw.objects.filter(api=data["id"]).delete()
                         for i in data["requestList"]:
@@ -684,7 +684,7 @@ class UpdateApi(APIView):
                 ApiParameter.objects.exclude(api_param).delete()
                 ApiParameterRaw.objects.exclude(api_param_raw).delete()
                 api_response = Q()
-                if len(data.get("responseList")):
+                if len(get("responseList")):
                     for i in data["responseList"]:
                         if i.get("api") and i.get("id"):
                             api_response = api_response | Q(id=i["id"])
@@ -706,7 +706,7 @@ class UpdateApi(APIView):
                                _type="新增", operationObject="接口", user=request.user.pk,
                                data="新增接口“%s”" % data["name"])
                 api_record = ApiOperationHistory(api=ApiInfo.objects.get(id=data['id']),
-                                                 user=User.objects.get(id=request.user.pk),
+                                                 user=get(id=request.user.pk),
                                                  description="新增接口\"%s\"" % data["name"])
                 api_record.save()
                 return JsonResponse(code="0", msg="成功!")
@@ -981,7 +981,7 @@ class DelHistory(APIView):
         if obm:
             obm.delete()
             api_record = ApiOperationHistory(api=obj,
-                                             user=User.objects.get(id=request.user.pk),
+                                             user=get(id=request.user.pk),
                                              description="删除请求历史记录")
             api_record.save()
             return JsonResponse(code="0", msg="成功!")

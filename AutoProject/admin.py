@@ -6,7 +6,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
-from AutoProject.models import Project, Server, ProjectDynamic, ProjectMember,UserProfile
+from AutoProject.models import Project, Server, ProjectDynamic, ProjectMember, UserProfile
 from AutoInterface.models import ApiGroupLevelFirst, ApiInfo, \
     APIRequestHistory, ApiOperationHistory, \
     AutomationGroupLevelFirst, AutomationTestCase, AutomationParameter, AutomationCaseApi, \
