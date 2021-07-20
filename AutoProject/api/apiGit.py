@@ -2,6 +2,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.conf import settings
 from django.db import transaction
+
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
@@ -11,74 +12,48 @@ from AutoProject.serializers import install_Deserializer
 from ..common.install import InstallThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
-from ..models import install, Server ,project_version
+from ..models import install, Server, project_git
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
 from AutoInterface.models import gold_record
-from ..common.frontend import frontend
+from ..common.GitApi import GitMethod
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-class InstallDeploy(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def post(self, request):
-        """
-        自动部署
-        :param request:
-        :return:
-        user
-        """
-
-        data = JSONParser().parse(request)
-        try:
-            logger.info("InstallDeploy：{}".format(data))
-            frontend(version=data["version"],
-                     host=data["server"])
-            return JsonResponse(code="0", msg="成功")
-        except Exception as e:
-            return JsonResponse(code="999995", msg="{0}".format(e))
-
-class getInstallVersion(APIView):
+class getGitBranch(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
 
     def get(self, request):
         """
-        获取Install 版本
+        获取 项目 分支信息 版本
         :param request:
         :return:
         """
         try:
-            groupChildren = {}
+            children = []
             groupOptions = []
             project_id = request.GET.get("project_id", 1)
             try:
-                Obj = project_version.objects.filter(type='1', status=True).order_by("-id")
+                Obj = project_git.objects.filter(status=True, Project_id=project_id).order_by("-id")
                 for i in Obj:
-                    version = i.version.split("-")
-                    if groupChildren.__contains__(version[1]) is False:
-                        children = {
-                            "value": i.id,
-                            "label": i.package_name[:-4]
-                        }
-                        groupChildren[version[1]] = [children]
-                    else:
-                        groupChildren[version[1]].append({
-                            "value": i.id,
-                            "label": i.package_name[:-4]
-                        })
+                    g = GitMethod()
+                    Branch = g.gitBranch(i.gitname)
+                    for j in Branch.sort():
+                        children.append(
+                            {
+                                "value": j,
+                                "label": j
+                            }
+                        )
+
+                    groupOptions.append({
+                        "value": i.name,
+                        "label": i.name,
+                        "children": children
+                    })
             except Exception as e:
-                logger.error("查询dicom文件报错：{}".format(e))
-
-            for k, v in groupChildren.items():
-                groupOptions.append({
-                    "value": k,
-                    "label": k,
-                    "children": v
-                })
-
+                logger.error("查询报错：{}".format(e))
             return JsonResponse(data={"groupOptions": groupOptions}, code="0", msg="成功")
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="获取版本失败!")

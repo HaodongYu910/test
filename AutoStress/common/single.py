@@ -81,7 +81,7 @@ class SingleThread(threading.Thread):
                 if not os.path.exists(src_folder):
                     os.system(f"rclone copy oss://qa-test-data/{j.route} {j.route}")
                 try:
-                    rand_uid = str(get_rand_uid())
+                    rand_uid = str(time.time())
                     cur_date = get_date()
                     cur_time = get_time()
 
@@ -204,6 +204,7 @@ class SingleThread(threading.Thread):
     # 验证预测是否结束
     def verification(self, start_date, modelID):
         # 判断 是否全部预测完成
+        a = 0
         while True:
             pai_status = connect_postgres(database="orthanc", host=self.obj.Host_id,
                                               sql=f"select pai_status from aistatus where studyuid ='{self.studyuid}'")
@@ -224,10 +225,26 @@ class SingleThread(threading.Thread):
                     time.sleep(400)
                     logger.info("sleep complete")
                     break
+            elif a > 24:
+                Result = ResultStatistics(
+                    stressid=self.obj.stressid,
+                    stressType='DY',
+                    start_date=start_date.strftime("%Y-%m-%d %H:%M:%S"),
+                    end_date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    modelID=modelID
+                )
+                Result.QueryResults()
+                logger.info(f"biomind restart host:{self.obj.Host.host}, pwd :{self.obj.Host.pwd}")
+                reSsh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
+                reSsh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(self.obj.Host.pwd))
+                time.sleep(400)
+                logger.info
+
             logger.info("Forecast not completed sleep 300")
             time.sleep(300)
+            a = a + 1
 
-    # 混合测试发送数据
+    # 混合测试发送数
     def sync_send_file(self, q):
         while not q.empty():
             if not os.path.exists(self.full_fn_fake):

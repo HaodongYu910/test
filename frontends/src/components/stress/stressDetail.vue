@@ -36,7 +36,6 @@
             </el-row>
             <!--列表-->
             <el-row>
-                <!--                <el-tabs v-model="activeName" @tab-click="handleClick">-->
                 <el-tabs @tab-click="handleClick" tab-position="top" v-model="activeName">
                     <el-tab-pane label="场景配置" name="SceneConfiguration">
                         <el-form :model="detailForm" :rules="addFormRules" label-width="25%" ref="addForm">
@@ -973,7 +972,7 @@
                     var enddate = end_date.replace(/-/g, '/');
                     var endstamp = new Date(enddate).getTime();
                 }
-                const url = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                const url = "http://10.10.10.2:8084/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
                     startstamp + "&to=" + endstamp + "&var-host_name=" +
                     this.detailForm.loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
                 const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
@@ -1277,9 +1276,9 @@
                     if (code === '0') {
                         this.progress = data.progress
                         this.modelDetail = data.modelDetail
-                        this.JmeterData = data.JmeterData
+                        self.JmeterData = data.JmeterData
                         console.log(this.JmeterData[0])
-                        self.statistics = data.statistics[0]
+                        self.statistics = data.statistics.length ? data.statistics[0] : {}
                     } else {
                         self.$message.error({
                             message: msg,
@@ -1356,10 +1355,6 @@
                 })
             }
             ,
-            handleCurrentChange(val) {
-                this.page = val
-                this.StressDetaillist()
-            },
             // 改变状态
             handleChangeStatus: function (index, row) {
                 let self = this;
@@ -1417,7 +1412,6 @@
             ,
             // 显示新增界面
             handleAdd: function () {
-                console.log("121321321309321321")
                 this.addFormVisible = true
                 this.addForm = {
                     server: null,

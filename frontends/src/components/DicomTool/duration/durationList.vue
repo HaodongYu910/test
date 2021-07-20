@@ -75,7 +75,7 @@
                 </el-table-column>
                 <el-table-column label="发送类型" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px;color: #02C874;">{{ scope.row.type }}</span>
+                        <span style="margin-left: 10px;color: #02C874;">{{ sendtype(scope.row.type) }}</span>
                     </template>
                 </el-table-column>
 
@@ -251,13 +251,13 @@
                 Hosts:[],
                 versionlist:[],
                 typeoptions: [{
-                    value: '匿名',
+                    value: 1,
                     label: '匿名'
                 }, {
-                    value: '正常',
+                    value: 0,
                     label: '正常'
                 }, {
-                    value: '持续化',
+                    value: 2,
                     label: '持续化'
                 }],
                 props: {multiple: true},
@@ -307,7 +307,7 @@
 
                 addForm: {
                     port: '4242',
-                    type: '匿名',
+                    type: 2,
                     sendcount: 0,
                     end_time:null
 
@@ -346,6 +346,21 @@
             clearInterval(this.clearTimeSet);
         },
         methods: {
+            //发送类型翻译
+            sendtype: function (i) {
+                if (i === 0) {
+                    return '正常'
+                }
+                else if (i === 1) {
+                    return '匿名'
+                }
+                else if (i === 2) {
+                    return '持续化'
+                }else {
+                    return 'Nightly'
+                }
+
+            },
             // 获取版本列表
             getversion() {
                 this.listLoading = true
@@ -369,7 +384,7 @@
                 })
             },
             displaystatus: function (i) {
-                if (i ==='持续化') {
+                if (i ===2) {
                     return ''
                 } else {
                     return 'none'
@@ -453,7 +468,7 @@
                     page: self.page,
                     page_size: self.page_size,
                     server: this.filters.server,
-                    type: "持续化",
+                    type: 2,
                     project_id:this.project_id
 
                 }
@@ -578,7 +593,7 @@
                     sendstatus: false,
                     status: false,
                     sendcount: 0,
-                    type: '持续化',
+                    type: 2,
                     end_time:null
                 }
             }
@@ -642,12 +657,12 @@
                                 port: self.addForm.port,
                                 version: self.addForm.version,
                                 loop_time: self.addForm.loop_time,
-                                patientname: 'duration',
-                                patientid: '',
+                                patientname: 'DR',
+                                patientid: 'dr',
                                 dicom: this.addForm.senddata,
                                 sendcount: this.addForm.sendcount,
                                 end_time:this.addForm.end_time,
-                                type: '持续化',
+                                type: 2,
                                 sendstatus: false,
                                 status: false,
                                 Host: this.addForm.Host,

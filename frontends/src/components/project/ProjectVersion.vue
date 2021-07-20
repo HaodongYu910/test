@@ -9,6 +9,9 @@
                 <el-form-item>
                     <el-button type="primary" @click="getProVersionlist">查询</el-button>
                 </el-form-item>
+                <el-form-item>
+                    <el-button type="warning" @click="SaveVersion" :disabled="this.sels.length===0">保存备份</el-button>
+                </el-form-item>
 <!--                <el-form-item>-->
 <!--                    <el-button type="primary" @click="handleAdd">新增</el-button>-->
 <!--                </el-form-item>-->
@@ -20,7 +23,7 @@
             </el-table-column>
             <el-table-column prop="version" label="版本" min-width="15%" sortable show-overflow-tooltip>
             </el-table-column>
-            <el-table-column prop="branch" label="分支" min-width="10%" sortable show-overflow-tooltip>
+            <el-table-column prop="branch" label="模型分支" min-width="10%" sortable show-overflow-tooltip>
             </el-table-column>
             <el-table-column prop="package_name" label="安装包" min-width="15%"  show-overflow-tooltip>
             </el-table-column>
@@ -61,25 +64,25 @@
                 <el-form-item label="版本" prop="version">
                     <el-input v-model.trim="editForm.version" auto-complete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="分支" prop='branch'>
+                <el-form-item label="模型分支" prop='branch'>
                     <el-input v-model.trim="editForm.branch" auto-complete="off"></el-input>
                 </el-form-item>
                 <el-form-item label="安装包" prop='package_name'>
                     <el-input v-model.trim="editForm.package_name" auto-complete="off"></el-input>
                 </el-form-item>
-                <el-form-item label="类型" prop="type" >
-                        <el-select v-model="editForm.type"  placeholder="请选择" >
-                            <el-option key="Prod" label="Prod" value="Prod"></el-option>
-                            <el-option key="Nightly" label="Nightly" value="Nightly"></el-option>
-                        </el-select>
-                    </el-form-item>
+<!--                <el-form-item label="类型" prop="type" >-->
+<!--                        <el-select v-model="editForm.type"  placeholder="请选择" >-->
+<!--                            <el-option key="Prod" label="Prod" value="Prod"></el-option>-->
+<!--                            <el-option key="Nightly" label="Nightly" value="Nightly"></el-option>-->
+<!--                        </el-select>-->
+<!--                    </el-form-item>-->
                 <el-form-item label="地址" prop='path'>
                     <el-input type="textarea" :rows="3" v-model.trim="editForm.path"></el-input>
                 </el-form-item>
             </el-form>
             <div slot="footer" class="dialog-footer">
                 <el-button @click.native="editFormVisible = false">取消</el-button>
-                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">提交</el-button>
+                <el-button type="primary" @click.native="editSubmit" :loading="editLoading">修改</el-button>
             </div>
         </el-dialog>
 
@@ -115,8 +118,8 @@
 
 <script>
     //import NProgress from 'nprogress'
-    import { getProVersion, DelDictionary, DisableDictionary, EnableDictionary,
-    UpdateDictionary, addDictionary} from '../../router/api'
+    import { getProVersion, DelVersion, DisableVersion, EnableVersion,
+    UpdateVersion, AddVersion ,SaveVersion} from '../../router/api'
     export default {
         data() {
             return {
@@ -146,7 +149,7 @@
                 },
                 //编辑界面数据
                 editForm: {
-                    key: '',
+                    version: '',
                     value: '',
                     remarks: ''
                 },
@@ -208,7 +211,7 @@
             },
             //删除
             handleDel: function (index, row) {
-                this.$confirm('确认删除该记录吗?', '提示', {
+                this.$confirm('确认删除该版本记录吗?', '提示', {
                     type: 'warning'
                 }).then(() => {
                     this.listLoading = true;
@@ -221,7 +224,40 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                     };
-                    delDictionary(headers, params).then(_data => {
+                    DelVersion(headers, params).then(_data => {
+                        let { msg, code, data } = _data;
+                        if (code === '0') {
+                            self.$message({
+                                message: '删除成功',
+                                center: true,
+                                type: 'success'
+                            })
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                        self.getProVersionlist()
+                    });
+                });
+            },
+            //删除
+            handleSave: function (index, row) {
+                this.$confirm('确认保存备份该版本记录吗?', '提示', {
+                    type: 'warning'
+                }).then(() => {
+                    this.listLoading = true;
+                    //NProgress.start();
+                    let self = this;
+                    let params = {
+                        ids: [row.id, ]
+                    };
+                    let headers = {
+                        "Content-Type": "application/json",
+                        Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
+                    };
+                    SaveVersion(headers, params).then(_data => {
                         let { msg, code, data } = _data;
                         if (code === '0') {
                             self.$message({
@@ -250,7 +286,7 @@
                     Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                 };
                 if (row.status) {
-                    DisableDictionary(headers, params).then(_data => {
+                    DisableVersion(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -269,7 +305,7 @@
                         }
                     });
                 } else {
-                    EnableDictionary(headers, params).then(_data => {
+                    EnableVersion(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {
@@ -312,16 +348,16 @@
                             //NProgress.start();
                             let params = {
                                 id: Number(self.editForm.id),
-                                key: self.editForm.key,
-                                value: self.editForm.value,
-                                type: self.editForm.type,
-                                remarks: self.editForm.remarks
+                                version: self.editForm.version,
+                                branch: self.editForm.branch,
+                                package_name: self.editForm.package_name,
+                                path: self.editForm.path
                             };
                             let headers = {
                                 "Content-Type": "application/json",
                                 Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                             };
-                            UpdateDictionary(headers, params).then(_data => {
+                            UpdateVersion(headers, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.editLoading = false;
                                 if (code === '0') {
@@ -368,7 +404,7 @@
                                 "Content-Type": "application/json",
                                 Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                             };
-                            addDictionary(headers, params).then(_data => {
+                            AddVersion(headers, params).then(_data => {
                                 let {msg, code, data} = _data;
                                 self.addLoading = false;
                                 if (code === '0') {
@@ -418,7 +454,7 @@
                         "Content-Type": "application/json",
                         Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                     };
-                    DelDictionary(headers, params).then(_data => {
+                    DelVersion(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
                         if (code === '0') {

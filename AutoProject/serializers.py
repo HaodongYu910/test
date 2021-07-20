@@ -11,15 +11,19 @@ class TokenSerializer(serializers.ModelSerializer):
     """
     用户信息序列化
     """
+    userID = serializers.CharField(source="user.id")
+    username = serializers.CharField(source="user.username")
     first_name = serializers.CharField(source="user.first_name")
     last_name = serializers.CharField(source="user.last_name")
     phone = serializers.CharField(source="user.user.phone")
     email = serializers.CharField(source="user.email")
+    roles = serializers.CharField(source="user.user.roles")
+    userphoto = serializers.CharField(source="user.user.userphoto")
     date_joined = serializers.CharField(source="user.date_joined")
 
     class Meta:
         model = Token
-        fields = ('first_name', 'last_name', 'phone', 'email', 'key', 'date_joined')
+        fields = ('userID', 'username', 'first_name', 'last_name', 'phone', 'email', 'key', 'roles', 'userphoto', 'date_joined')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -68,6 +72,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     def get_memberCount(self, obj):
         return obj.member_project.all().count()
 
+
 class ProjectVersionDeserializer(serializers.ModelSerializer):
     """
     项目版本信息反序列化
@@ -75,7 +80,8 @@ class ProjectVersionDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = project_version
-        fields = ('id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+        fields = (
+        'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
 
 
 class ProjectVersionSerializer(serializers.ModelSerializer):
@@ -88,7 +94,9 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = project_version
-        fields = ('id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+        fields = (
+        'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+
 
 class ProjectDynamicDeserializer(serializers.ModelSerializer):
     """
@@ -142,13 +150,15 @@ class ServerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Server
-        fields = ('id', 'project_id', 'name', 'host', 'port', 'user', 'pwd', 'remarks', 'description', 'protocol', 'status')
+        fields = (
+        'id', 'project_id', 'name', 'host', 'port', 'user', 'pwd', 'remarks', 'description', 'protocol', 'status')
 
 
 class dictionary_Serializer(serializers.ModelSerializer):
     """
     字典序列化
      """
+
     class Meta:
         model = dictionary
         fields = ('id', 'key', 'value', 'remarks', 'type', 'status')
@@ -174,6 +184,7 @@ class uploadfile_Deserializer(serializers.ModelSerializer):
         model = uploadfile
         fields = ('id', 'filename', 'fileurl', 'fileid', 'type', 'status', 'remark', 'update_time', 'create_time')
 
+
 class install_Deserializer(serializers.ModelSerializer):
     """
     安装反序列化
@@ -181,4 +192,35 @@ class install_Deserializer(serializers.ModelSerializer):
 
     class Meta:
         model = install
-        fields = ('id', 'server', 'testcase', 'version', 'starttime', 'Host',  'smokeid', 'uid', 'type', 'status', 'installstatus' , 'crontab')
+        fields = (
+        'id', 'server', 'testcase', 'version', 'starttime', 'Host', 'smokeid', 'uid', 'type', 'status', 'installstatus',
+        'crontab')
+
+
+class build_packageDeserializer(serializers.ModelSerializer):
+    """
+    打包部署信息反序列化
+    """
+
+    class Meta:
+        model = build_package
+        fields = (
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab',
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user')
+
+
+class build_packageSerializer(serializers.ModelSerializer):
+    """
+    打包部署 信息序列化
+    """
+    update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    # Host = serializers.CharField(source='Server.host')
+    user = serializers.CharField(source='user.first_name')
+
+    class Meta:
+        model = build_package
+        fields = (
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab',
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user'
+        )

@@ -38,11 +38,11 @@
                     <template slot-scope="scope">
                         <router-link v-if="scope.row.type" :to="{ name: 'durationData', query: {id: scope.row.id}}"
                                      style='text-decoration: none;color: #0000ff;'>
-                            <span style="margin-left: 10px">{{ scope.row.type }}</span>
+                            <span style="margin-left: 10px">{{ sendtype(scope.row.type) }}</span>
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="服务" min-width="20%">
+                <el-table-column prop="server" label="服务" min-width="20%">
                     <template slot-scope="scope">
                         <router-link v-if="scope.row.server" :to="{ name: 'durationData', query: {id: scope.row.id}}"
                                      style='text-decoration: none;color: #0000ff;'>
@@ -50,12 +50,12 @@
                         </router-link>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="匿名名称" min-width="15%">
+                <el-table-column prop="patientid" label="匿名名称" min-width="15%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">ID:{{ scope.row.patientid }}<br>Name:{{ scope.row.patientname }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="type" label="数据类型" min-width="20%" show-overflow-tooltip>
+                <el-table-column prop="dicomLabel" label="数据类型" min-width="20%" show-overflow-tooltip>
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.dicomLabel }}</span>
                     </template>
@@ -507,14 +507,11 @@
                 project_id:localStorage.getItem("project_id"),
                 Host:[],
                 typeoptions: [{
-                    value: '匿名',
+                    value: 1,
                     label: '匿名'
                 }, {
-                    value: '正常',
+                    value: 0,
                     label: '正常'
-                }, {
-                    value: '持续化',
-                    label: '持续化'
                 }],
                 props: {multiple: true},
                 groupOptions: [],
@@ -617,7 +614,7 @@
 
                 addForm: {
                     port: '4242',
-                    type: '匿名',
+                    type: 1,
                     sendcount: 0,
                     senddata:[]
 
@@ -662,6 +659,20 @@
                 } else {
                     return 'none'
                 }
+            },
+            sendtype: function (i) {
+                if (i === 0) {
+                    return '正常'
+                }
+                else if (i === 1) {
+                    return '匿名'
+                }
+                else if (i === 2) {
+                    return '持续化'
+                }else {
+                    return 'Nightly'
+                }
+
             },
             typeStatus: function (i) {
                 if (i === true) {
@@ -846,7 +857,7 @@
                     page: self.page,
                     page_size: self.page_size,
                     server: this.filters.server,
-                    type: '匿名',
+                    type: 1,
                     project_id:this.project_id
                 }
                 const headers = {Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))}
@@ -990,9 +1001,9 @@
                     sendstatus: false,
                     status: false,
                     sleepcount: null,
-                    sleeptime: 0,
+                    sleeptime: null,
                     sendcount: 0,
-                    type: '匿名',
+                    type: 1,
                     series: false
                 }
             }

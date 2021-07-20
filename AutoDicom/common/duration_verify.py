@@ -30,7 +30,7 @@ def ai_result(kc, patientid):
 
 #  duration 数据结果更新
 def verifyDuration(durationid):
-    duration_data = duration_record.objects.filter(duration_id=durationid, aistatus=None)
+    duration_data = duration_record.objects.filter(relation_id=durationid, aistatus=None)
     obj = duration.objects.get(id=durationid)
     if obj.dds is not None:
         serID = Server.objects.get(host=obj.dds).id

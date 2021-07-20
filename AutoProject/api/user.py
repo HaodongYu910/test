@@ -29,9 +29,9 @@ class ObtainAuthToken(APIView):
         # token, created = Token.objects.get_or_create(user=user)
         try:
             data = TokenSerializer(Token.objects.get(user=user)).data
-            data["roles"]=['admin']
-            data["introduction"]= 'administrator'
-            data["avatar"]= 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
+            data["roles"] = ['admin']
+            data["introduction"] = 'administrator'
+            data["avatar"] = 'https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif',
             # data["name"]= 'Super Admin'
             data["userphoto"] = '/file/img.jpg'
             return JsonResponse(data=data, code="0", msg="成功")

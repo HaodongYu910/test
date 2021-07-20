@@ -383,9 +383,9 @@ class AddCase(APIView):
                             if not isinstance(data["automationGroupLevelFirst_id"], int):
                                 return JsonResponse(code="999996", msg="参数有误！")
                             obi = AutomationGroupLevelFirst.objects.get(id=data["automationGroupLevelFirst_id"], project=data["project_id"])
-                            serialize.save(project=obj, automationGroupLevelFirst=obi, user=User.objects.get(id=data["user"]))
+                            serialize.save(project=obj, automationGroupLevelFirst=obi, user=get(id=data["user"]))
                         except KeyError:
-                            serialize.save(project=obj, user=User.objects.get(id=data["user"]))
+                            serialize.save(project=obj, user=get(id=data["user"]))
                         record_dynamic(project=data["project_id"],
                                        _type="新增", operationObject="用例", user=request.user.pk,
                                        data="新增用例\"%s\"" % data["caseName"])
@@ -714,7 +714,7 @@ class AddNewApi(APIView):
         :param request:
         :return:
         """
-        data = JSONParser().parse(request)
+        data = JSONParser()
         result = self.parameter_check(data)
         if result:
             return result
@@ -747,19 +747,19 @@ class AddNewApi(APIView):
                             if head_serialize.is_valid():
                                 head_serialize.save(automationCaseApi=AutomationCaseApi.objects.get(id=api_id))
                 if data["requestParameterType"] == "form-data":
-                    if len(data.get("requestList")):
-                        for i in data.get["requestList"]:
+                    if len(get("requestList")):
+                        for i in get["requestList"]:
                             if i.get("name"):
                                 i["automationCaseApi_id"] = api_id
                                 param_serialize = AutomationParameterDeserializer(data=i)
                                 if param_serialize.is_valid():
                                     param_serialize.save(automationCaseApi=AutomationCaseApi.objects.get(id=api_id))
                 else:
-                    if len(data.get("requestList")):
+                    if len(get("requestList")):
                         AutomationParameterRaw(automationCaseApi=AutomationCaseApi.objects.get(id=api_id),
                                                data=data["requestList"]).save()
                 api_ids = AutomationCaseApi.objects.get(id=api_id)
-                if data.get("examineType") == "json":
+                if get("examineType") == "json":
                     try:
                         response = eval(data["responseData"].replace("true", "True").replace("false", "False").replace("null", "None"))
                         api = "<response[JSON][%s]>" % api_id
@@ -768,8 +768,8 @@ class AddNewApi(APIView):
                         return JsonResponse(code="999998", msg="失败！")
                     except AttributeError:
                         return JsonResponse(code="999998", msg="校验内容不能为空！")
-                elif data.get("examineType") == 'Regular_check':
-                    if data.get("RegularParam"):
+                elif get("examineType") == 'Regular_check':
+                    if get("RegularParam"):
                         AutomationResponseJson(automationCaseApi=api_ids,
                                                name=data["RegularParam"],
                                                tier='<response[Regular][%s]["%s"]' % (api_id, data["responseData"]),
@@ -853,7 +853,7 @@ class UpdateApi(APIView):
         :param request:
         :return:
         """
-        data = JSONParser().parse(request)
+        data = JSONParser()
         result = self.parameter_check(data)
         if result:
             return result
@@ -901,7 +901,7 @@ class UpdateApi(APIView):
                 AutomationHead.objects.exclude(header).delete()
                 api_param = Q()
                 api_param_raw = Q()
-                if len(data.get("requestList")):
+                if len(get("requestList")):
                     if data["requestParameterType"] == "form-data":
                         AutomationParameterRaw.objects.filter(automationCaseApi=data["id"]).delete()
                         for i in data["requestList"]:
@@ -933,7 +933,7 @@ class UpdateApi(APIView):
                 AutomationParameterRaw.objects.exclude(api_param_raw).delete()
                 api_id = AutomationCaseApi.objects.get(id=data["id"])
                 AutomationResponseJson.objects.filter(automationCaseApi=api_id).delete()
-                if data.get("examineType") == "json":
+                if get("examineType") == "json":
                     try:
                         response = eval(data["responseData"].replace("true", "True").replace("false", "False").replace("null", "None"))
                         api = "<response[JSON][%s]>" % api_id
@@ -942,8 +942,8 @@ class UpdateApi(APIView):
                         return JsonResponse(code="999998", msg="失败！")
                     except AttributeError:
                         return JsonResponse(code="999998", msg="校验内容不能为空！")
-                elif data.get("examineType") == 'Regular_check':
-                    if data.get("RegularParam"):
+                elif get("examineType") == 'Regular_check':
+                    if get("RegularParam"):
                         AutomationResponseJson(automationCaseApi=api_id,
                                                name=data["RegularParam"],
                                                tier='<response[Regular][%s]["%s"]' % (api_id, data["responseData"]),

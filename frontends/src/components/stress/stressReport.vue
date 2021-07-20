@@ -546,7 +546,7 @@
                     var enddate = this.basedata.end_date.replace(/-/g, '/');
                     var endstamp = new Date(enddate).getTime();
                 }
-                const url = "http://192.168.1.121:3000/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
+                const url = "http://10.10.10.2:8084/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
                     startstamp + "&to=" + endstamp + "&var-host_name=" +
                     this.basedata.server + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
 

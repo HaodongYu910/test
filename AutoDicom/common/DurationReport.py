@@ -37,9 +37,9 @@ class ReportThread(threading.Thread):
     # 生成报告数据
     def report(self):
         try:
-            record = duration_record.objects.filter(duration_id=self.obj.id,
+            record = duration_record.objects.filter(relation_id=self.obj.id,
                                                     create_time__lte=self.statistics_date).values(
-                "duration_id").annotate(
+                "relation_id").annotate(
                 send=Count(Case(When(aistatus__in=[1, 2, 3], then=0))),
                 success=Count(Case(When(aistatus__in=[2, 3], then=0))),
                 fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
@@ -70,15 +70,15 @@ class ReportThread(threading.Thread):
             logger.error("报告数据：{0}".format(e))
 
     def DetailData(self):
-        recordDetail = duration_record.objects.filter(jobtime__isnull=False, duration_id=self.obj.id,
+        recordDetail = duration_record.objects.filter(job_sec__isnull=False, relation_id=self.obj.id,
                                                       create_time__lte=self.statistics_date).values(
             "diseases").annotate(
-            ModelAvg=Avg('time'),
-            ModelMax=Max('time'),
-            ModelMin=Min('time'),
-            JobAvg=Avg('jobtime'),
-            JobMax=Max('jobtime'),
-            JobMin=Min('jobtime'),
+            ModelAvg=Avg('sec'),
+            ModelMax=Max('sec'),
+            ModelMin=Min('sec'),
+            JobAvg=Avg('job_sec'),
+            JobMax=Max('job_sec'),
+            JobMin=Min('job_sec'),
             success=Count(Case(When(aistatus__in=[2, 3], then=0))),
             fail=Count(Case(When(aistatus__in=[0, 1], then=0))),
             count=Count('id'))
@@ -87,7 +87,7 @@ class ReportThread(threading.Thread):
         for i in recordDetail:
             try:
                 info = {}
-                obl = duration_record.objects.filter(duration_id=self.obj.id, diseases=i["diseases"], aistatus__in=[1])
+                obl = duration_record.objects.filter(relation_id=self.obj.id, diseases=i["diseases"], aistatus__in=[1])
                 # 按病种 统计 错误 信息
                 for jj in obl:
                     error = json.loads(jj.error[1:-1])["code"]
@@ -131,7 +131,7 @@ class ReportThread(threading.Thread):
         try:
             recorddata = {}
             errorData = []
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id,
+            recordDetail = duration_record.objects.filter(relation_id=self.obj.id,
                                                           create_time__lte=self.statistics_date)
 
             for i in recordDetail:
@@ -153,23 +153,28 @@ class ReportThread(threading.Thread):
             logger.error("错误分析数据生成失败：{0}".format(e))
 
     def durationLine(self):
+        durationLineData = []
         try:
-            durationLineData = []
-            recordDetail = duration_record.objects.filter(duration_id=self.obj.id, diseases=self.diseases,
-                                                          aistatus__in=[2, 3]).order_by("starttime")
-            for i in recordDetail:
-                durationLineData.append({
-                    "date": i.starttime[5:],
-                    "{}-Prediction".format(i.diseases): i.time,
-                    "{}-Job".format(i.diseases): i.jobtime
-                })
-            return durationLineData
+            recordDetail = duration_record.objects.filter(relation_id=self.obj.id, diseases=self.diseases,
+                                                          aistatus__in=[2, 3]).order_by("start")
         except Exception as e:
-            logger.error("预测趋势数据生成失败：{0}".format(e))
+            logger.error("recordDetail 数据生成失败：{0}".format(e))
+        for i in recordDetail:
+            try:
+                durationLineData.append({
+                    "date": i.start[5:],
+                    "{}-Prediction".format(i.diseases): i.sec,
+                    "{}-Job".format(i.diseases): i.job_sec
+                })
+            except Exception as e:
+                logger.error("durationLineData 数据生成失败：{0}".format(e))
+                continue
+        return durationLineData
+
 
     #     datalist['all'] = obi.count()
     #     datalist['sent'] = int(datalist['all']) - int(datalist['notsent'])
-    #     avg = duration_record.objects.filter(duration_id=durationid).aggregate(Avg("time"))
+    #     avg = duration_record.objects.filter(relation_id=durationid).aggregate(Avg("time"))
     #     datalist['avg'] = 1 / avg['time__avg']
 
     def setFlag(self, parm):  # 外部停止线程的操作函数

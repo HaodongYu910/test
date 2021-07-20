@@ -9,7 +9,7 @@ from AutoDicom.common.delete_pacs import *
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.serializers import install_Deserializer
 from AutoProject.scheduletask import *
-from AutoDicom.common.deletepatients import *
+from AutoDicom.common.duration import NormalSend
 from AutoStress.models import stress_result, stress_record, stress
 from AutoDicom.common.dicomBase import checkuid
 

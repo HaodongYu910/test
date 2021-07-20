@@ -15,7 +15,11 @@ from .api import dynamic
 from .api import member
 from .api import apiMessage
 from .api.apiSonar import getsonar
-from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,DisableVersion ,EnableVersion
+from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,\
+    DisableVersion, EnableVersion, SaveVersion
+from .api.BuildPackage import BuildList, UpdateBuild, AddBuild, DelBuild, DisableBuild, EnableBuild
+from .api.apiGit import getGitBranch
+from .api.user_info import userInfo, AddUser, UpdateUser, DelUser, EnableUser, DisableUser
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
 
@@ -45,7 +49,13 @@ urlpatterns = [
     url(r'global/disable_protocol', DisableProtocol.as_view()),
     url(r'global/enable_protocol', EnableProtocol.as_view()),
     url(r'user/login', user.obtain_auth_token),
-    url(r'user/info', userinfo.as_view()),
+    url(r'user/userInfo', userInfo.as_view()),
+    url(r'user/Disable', DisableUser.as_view()),
+    url(r'user/Enable', EnableUser.as_view()),
+    url(r'user/Del', DelUser.as_view()),
+    url(r'user/Update', UpdateUser.as_view()),
+    url(r'user/add', AddUser.as_view()),
+    url(r'user/list', getVersion.as_view()),
     url(r'jira/list', jiradata.as_view()),
     url(r'jira/figure', jira_figure.as_view()),
     url(r'addupload', AddUpload.as_view()),  # 文件上传
@@ -59,6 +69,13 @@ urlpatterns = [
     url(r'dictionary/del', DelDictionary.as_view()),
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
+    url(r'build/list', BuildList.as_view()),
+    url(r'build/add', AddBuild.as_view()),
+    url(r'build/update', UpdateBuild.as_view()),
+    url(r'build/del', DelBuild.as_view()),
+    url(r'build/disable', DelBuild.as_view()),
+    url(r'build/enable', EnableBuild.as_view()),
+    url(r'git/Branch', getGitBranch.as_view()),
     url(r'install/add', AddInstall.as_view()),
     url(r'install/update', UpdateInstall.as_view()),
     url(r'install/del', DelInstall.as_view()),
@@ -68,10 +85,11 @@ urlpatterns = [
     url(r'install/getReport', getInstallReport.as_view()),
     url(r'install/list', getInstall.as_view()),
     url(r'install/version', getInstallVersion.as_view()),
-    url(r'version/enable', EnableVersion.as_view()),
-    url(r'version/disable', DisableVersion.as_view()),
-    url(r'version/del', DelVersion.as_view()),
-    url(r'version/update', UpdateVersion.as_view()),
+    url(r'version/Enable', EnableVersion.as_view()),
+    url(r'version/Disable', DisableVersion.as_view()),
+    url(r'version/Save', SaveVersion.as_view()),
+    url(r'version/Del', DelVersion.as_view()),
+    url(r'version/Update', UpdateVersion.as_view()),
     url(r'version/add', AddVersion.as_view()),
     url(r'version/list', getVersion.as_view()),
     url(r'version/info', getVersionInfo.as_view()),

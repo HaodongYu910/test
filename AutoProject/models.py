@@ -75,12 +75,16 @@ def create_auth_token(sender, instance=None, created=False, **kwargs):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, verbose_name='用户', related_name='user')
     phone = models.CharField(max_length=11, default='', blank=True, verbose_name='手机号')
+    mail = models.CharField(max_length=50, default='', blank=True, verbose_name='邮件')
+    roles = models.CharField(max_length=10, default='', blank=True, verbose_name='角色')
+    userphoto = models.CharField(max_length=100, default='', blank=True, verbose_name='头像')
 
     def __unicode__(self):
         return self.user.username
 
     def __str__(self):
         return self.phone
+
 
 class Project(models.Model):
     """
@@ -117,6 +121,30 @@ class Project(models.Model):
         db_table = 'Project'
 
 
+class project_version(models.Model):
+    """
+          项目版本
+        """
+    id = models.AutoField(primary_key=True)
+    version = models.CharField(max_length=50, blank=True, null=True, verbose_name="版本")
+    branch = models.CharField(max_length=20, blank=True, null=True, verbose_name="分支")
+    package_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="包名")
+    path = models.TextField(max_length=1000, blank=True, null=True, verbose_name="路径")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型 -1、 删除  2、保存")
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='所属项目')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, verbose_name='修改时间')
+    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "project_version"
+        verbose_name_plural = "project_version"
+        db_table = 'project_version'
+
+
 class ProjectDynamic(models.Model):
     """
     项目动态
@@ -145,8 +173,10 @@ class ProjectMember(models.Model):
     """
     CHOICES = (
         ('超级管理员', '超级管理员'),
-        ('开发人员', '开发人员'),
-        ('测试人员', '测试人员')
+        ('开发', '开发'),
+        ('测试', '测试'),
+        ('运维', '运维'),
+        ('PM', 'PM')
     )
     id = models.AutoField(primary_key=True)
     permissionType = models.CharField(max_length=50, verbose_name='权限角色', choices=CHOICES)
@@ -163,6 +193,7 @@ class ProjectMember(models.Model):
         verbose_name = '项目成员'
         verbose_name_plural = '项目成员'
         db_table = 'ProjectMember'
+
 
 class Server(models.Model):
     """
@@ -206,7 +237,6 @@ class dictionary(models.Model):
     type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
 
-
     def __unicode__(self):
         return self.id
 
@@ -214,6 +244,7 @@ class dictionary(models.Model):
         verbose_name = "dictionary表"
         verbose_name_plural = "dictionary表"
         db_table = 'dictionary'
+
 
 class dds_data(models.Model):
     """
@@ -225,10 +256,13 @@ class dds_data(models.Model):
     accesionNumber = models.CharField(max_length=30, blank=True, null=True, verbose_name="accessionNumber")
     studyInstanceUID = models.CharField(max_length=30, blank=True, null=True, verbose_name="studyInstanceUID")
     pacsImageCount = models.IntegerField(blank=True, null=True, verbose_name="pacsImageCount")
-    pacsImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="pacsImageInsertionTime")
+    pacsImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=True,
+                                                  verbose_name="pacsImageInsertionTime")
     orthancImageCount = models.IntegerField(blank=True, null=True, verbose_name="orthancImageCount")
-    orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageInsertionTime")
-    orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False, verbose_name="orthancImageLastBuildTime")
+    orthancImageInsertionTime = models.DateTimeField(auto_now=False, auto_now_add=False,
+                                                     verbose_name="orthancImageInsertionTime")
+    orthancImageLastBuildTime = models.DateTimeField(auto_now=False, auto_now_add=False,
+                                                     verbose_name="orthancImageLastBuildTime")
 
     def __unicode__(self):
         return self.id
@@ -237,7 +271,6 @@ class dds_data(models.Model):
         verbose_name = "dds_data_record"
         verbose_name_plural = "dds_data_record"
         db_table = 'DDS_data'
-
 
 
 class uploadfile(models.Model):
@@ -263,6 +296,7 @@ class uploadfile(models.Model):
         verbose_name_plural = "uploadfile"
         db_table = 'uploadfile'
 
+
 class install(models.Model):
     """
           部署安装信息表
@@ -276,10 +310,9 @@ class install(models.Model):
     smokeid = models.IntegerField(blank=True, null=True, verbose_name='smoke_id')
     uid = models.IntegerField(blank=True, null=True, verbose_name="UIuid")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
-    crontab =models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     status = models.BooleanField(default=False, verbose_name='状态')
     installstatus = models.BooleanField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
-
 
     def __unicode__(self):
         return self.id
@@ -292,6 +325,7 @@ class install(models.Model):
         verbose_name = "install"
         verbose_name_plural = "install"
         db_table = 'install'
+
 
 class message_group(models.Model):
     """
@@ -336,25 +370,86 @@ class message_detail(models.Model):
         db_table = 'message_detail'
 
 
-class project_version(models.Model):
+class build_package(models.Model):
     """
-          项目版本
+          部署打包信息表
         """
     id = models.AutoField(primary_key=True)
-    version = models.CharField(max_length=50, blank=True, null=True, verbose_name="版本")
-    branch = models.CharField(max_length=20, blank=True, null=True, verbose_name="分支")
-    package_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="包名")
-    path = models.TextField(max_length=1000, blank=True, null=True, verbose_name="路径")
-    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='所属项目')
+    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="构建名称")
+    service = models.CharField(max_length=30, blank=True, null=True, verbose_name="服务单元")
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name="代码库")
+    branch = models.CharField(max_length=30, blank=True, null=True, verbose_name="分支")
+    type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
+    packStatus = models.IntegerField(default=False, verbose_name='打包状态 0 checkout 1 build ')
+    Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    rely = models.BooleanField(default=False, verbose_name='依赖状态')
     status = models.BooleanField(default=False, verbose_name='状态')
-    update_time = models.DateTimeField(auto_now=True, verbose_name='修改时间')
-    create_time = models.DateTimeField(auto_now_add=True, verbose_name='创建时间')
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    @property
+    def pwd(self):
+        return Server.pwd
+
+    class Meta:
+        verbose_name = "build_package"
+        verbose_name_plural = "build_package"
+        db_table = 'build_package'
+
+
+class build_package_detail(models.Model):
+    """
+          部署打包信息表
+        """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="构建名称")
+    service = models.CharField(max_length=30, blank=True, null=True, verbose_name="服务单元")
+    code = models.CharField(max_length=50, blank=True, null=True, verbose_name="代码库")
+    branch = models.CharField(max_length=30, blank=True, null=True, verbose_name="分支")
+    type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
+    crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
+    packStatus = models.IntegerField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
+    Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    rely = models.BooleanField(default=False, verbose_name='依赖状态')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
     def __unicode__(self):
         return self.id
 
     class Meta:
-        verbose_name = "project_version"
-        verbose_name_plural = "project_version"
-        db_table = 'project_version'
+        verbose_name = "build_package_detail"
+        verbose_name_plural = "build_package_detail"
+        db_table = 'build_package_detail'
+
+
+class project_git(models.Model):
+    """
+          项目git 仓库存储
+        """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="项目名称")
+    gitname = models.CharField(max_length=30, blank=True, null=True, verbose_name="仓库名")
+    code = models.CharField(max_length=100, blank=True, null=True, verbose_name="代码库")
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "project_git"
+        verbose_name_plural = "project_git"
+        db_table = 'project_git'

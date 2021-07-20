@@ -82,11 +82,11 @@ def checkuid(serverID, serverIP, dicomid):
 
 
 # 数据跳转listview url
-def listUrl(hostid, studyuid):
-    obj = Server.objects.get(id=hostid)
-    kc = login_keycloak(hostid)
+def listUrl(HostId, studyuid):
+    obj = Server.objects.get(id=HostId)
+    kc = login_keycloak(HostId)
     try:
-        result_db = connect_postgres(host=hostid, database="orthanc",
+        result_db = connect_postgres(host=HostId, database="orthanc",
                                         sql='select publicid from study_view where studyinstanceuid = \'{0}\''.format(studyuid))
 
         url = '{0}://{1}/imageViewer/#!/brain?study={2}'.format(obj.protocol, obj.host, result_db["publicid"][0])

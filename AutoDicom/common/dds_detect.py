@@ -3,8 +3,8 @@ from pip._internal.utils import logging
 from AutoProject.common.PostgreSQL import *
 from ..models import duration_record
 
-def dataVerify(ip,duration_id):
-    UIDsql = getStudyUIDsql(duration_id)
+def dataVerify(ip,relation_id):
+    UIDsql = getStudyUIDsql(relation_id)
     logger.info("find uid in testplatform success")
     verify_list = searchDataInDDS(UIDsql,ip)
     a = 0
@@ -18,12 +18,12 @@ def dataVerify(ip,duration_id):
 def getStudyUIDsql(id):
     """
     input
-        id: duration_id corresponding to the number of duration
+        id: relation_id corresponding to the number of duration
     output
         str: a sql string combined by Study UID which are collected from Test Platform table "duration_record"
     """
-    # get studyUID from duration_record table, where duration_id is same as we required
-    temp_record = duration_record.objects.filter(duration_id=id)
+    # get studyUID from duration_record table, where relation_id is same as we required
+    temp_record = duration_record.objects.filter(relation_id=id)
     str = ""
     for i in range(len(temp_record)-1):
         str = str + " studyinstanceuid = " + "\'" + temp_record[i].studyinstanceuid + "\'" + " or "

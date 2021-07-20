@@ -26,9 +26,10 @@ import time
 import queue
 import threading
 
+
 # 链接mysql数据库
 def sqlDB(sql, type):
-    conn = pymysql.connect(host='192.168.1.121', user='root', passwd='P@ssw0rd2o8', db='auto_test',
+    conn = pymysql.connect(host='192.168.1.120', user='root', passwd='test123456', db='auto_test',
                            charset="utf8");  # 连接数据库
     cur = conn.cursor(cursor=pymysql.cursors.DictCursor)
     if type == 'select':
@@ -78,7 +79,6 @@ def Myinster(dicomList):
         except:
             continue
 
-
     diseasesDict = dict(sorted(diseasesDict.items(), key=lambda i: -len(i[1])))
     listsum = []
     l = 0
@@ -119,7 +119,7 @@ def grouping(dictsum, dicom):
 
 class DurationThread:
     def __init__(self, **kwargs):
-        self.id = kwargs["durationId"]
+        self.id = kwargs["relation_id"]
         try:
             result = sqlDB(f"select * from duration where id ={self.id}", "select")[0]
         except Exception as e:
@@ -127,6 +127,7 @@ class DurationThread:
 
         self.aec = result["aet"]
         self.server = result["server"]
+        self.Host_id = result["Host_id"]
         self.port = result["port"]
         self.groupIds = result["dicom"]
         self.end = result["sendcount"]
@@ -139,10 +140,10 @@ class DurationThread:
             self.local_aet = 'QA38'
         else:
             self.local_aet = 'QA120'
-        self.full_fn_fake = f'/home/biomind/Biomind_Test_Platform/logs/Duration{self.id}'
+        self.full_fn_fake = f'/lfs/QA/durationlogs/Duration{self.id}'
         if not os.path.exists(self.full_fn_fake):
             os.makedirs(self.full_fn_fake)
-        logging.basicConfig(filename=f"/home/biomind/Biomind_Test_Platform/logs/Duration{self.id}/send.log",
+        logging.basicConfig(filename=f"/lfs/QA/durationlogs/Duration{self.id}/send.log",
                             filemode='a+',
                             format="%(asctime)s [%(funcName)s:%(lineno)s] %(levelname)s: %(message)s",
                             datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG)
@@ -175,8 +176,8 @@ class DurationThread:
             ds.SOPInstanceUID = self.norm_string(
                 '{0}.{1}'.format(ds.SOPInstanceUID, rand_uid), 64)
             ds.StudyInstanceUID = info.get("study_uid")
-            ds.PatientID = f"{ds.PatientID}{self.id}"
-            ds.PatientName = f"{ds.PatientName}{self.id}"
+            ds.PatientID = info.get("PatientID")
+            ds.PatientName = info.get("PatientName")
             ds.AccessionNumber = fake_acc_number
             ds.StudyDate = cur_date
             ds.StudyTime = cur_time
@@ -193,7 +194,9 @@ class DurationThread:
         try:
             if int(saveID) == 0:
                 create_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
-                sqlDB(f"INSERT INTO duration_record VALUES (NULL, '{ds.PatientID}', '{ds.PatientName}', '{ds.AccessionNumber}', '{ds.StudyInstanceUID}', '{studyolduid}', NULL, NULL, NULL, NULL, '{self.server}', NULL, NULL, NULL, NULL, NULL, NULL, NULL, {self.id}, '{info.get('diseases')}', '{create_time}', '{create_time}')", "sql")
+                sqlDB(
+                    f"INSERT INTO duration_record (`patientid`, `patientname`, `studyinstanceuid`, `studyolduid`, `diseases`, `relation_id`, `type`, `status`, `update_time`, `create_time`, `Host_id`) VALUES ('{ds.PatientID}', '{ds.PatientName}', '{ds.StudyInstanceUID}', '{studyolduid}',  '{info.get('diseases')}', {self.id}, 3, 1, '{create_time}', '{create_time}', {self.Host_id});",
+                    "sql")
         except Exception as e:
             logging.error('[获取数据失败]： [{0}]'.format(e))
         return Seriesinstanceuid
@@ -211,6 +214,7 @@ class DurationThread:
         listsum = copylist(listsum, int(self.end))
         logging.info("listsum:{}".format(listsum))
         # 优先查询组
+        dcm = 0
         for j in listsum:
             dcmcount = 0
             src_folder = str(j["route"])
@@ -221,10 +225,13 @@ class DurationThread:
             try:
                 rand_uid = get_rand_uid()
                 info = {
+                    "PatientID": "DR{0}{1}".format(j["patientid"], dcm),
+                    "PatientName": "DR{0}{1}".format(j["patientname"], dcm),
                     "diseases": j["diseases"],
                     "rand_uid": rand_uid,
                     "study_uid": self.norm_string('{0}.{1}'.format(j["studyinstanceuid"], rand_uid), 64),
                 }
+                dcm = dcm + 1
                 file_names = os.listdir(src_folder)
                 file_names.sort()
                 for fn in file_names:
@@ -272,7 +279,7 @@ class DurationThread:
             # logging.info(testdata)
             full_fn_fake = test_data[1]
             try:
-                Seriesinstanceuid=self.anonymization(test_data)
+                Seriesinstanceuid = self.anonymization(test_data)
             except Exception as e:
                 logging.error("匿名失败:{}".format(e))
 
@@ -289,10 +296,17 @@ class DurationThread:
     # 存储 每张发送信息
     def connect_influx(self, data):
         try:
-            tamp = int(round(time.time() * 1000000000))
-            influxdata = f'test,id={self.id},studyuid={data["studyuid"]},Seriesinstanceuid={data["Seriesinstanceuid"]} value={data["time"]} {tamp}'
+            tamp = int(time.time())
+
+            influxdata = f'duration,id={self.id},studyuid={data["studyuid"]},type={data["Seriesinstanceuid"]} value={data["time"]} {tamp}'
             logging.info(f"influx data:{influxdata}")
-            requests.post('http://192.168.1.121:8086/write?db=auto_test', data=influxdata)
+            r = requests.post("http://192.168.1.120:8086/api/v2/write?org=admin&bucket=auto_test&precision=s",
+                              headers={
+                                  "Authorization": "Token DDPD7qqzXMZAHxXJI-ZIoiKQaiQfDmVI1Eiq_IMvoiBSZnCHTKo4Wceh3dd0gGnjzn_SVAwHTgAci8QyvXIjTw=="
+                              },
+                              data=influxdata)
+            print(r.status_code)
+            # requests.post('http://192.168.1.121:8086/write?db=auto_test', data=)
         except Exception as e:
             logging.error("保存connect_influx数据错误{}".format(e))
 
@@ -334,32 +348,31 @@ class DurationThread:
 
     # 随机等待
     def delayed(self):
-        if int(random.randint(1, 100)) > 80:
-            hour = int(datetime.datetime.now().strftime("%H"))
-            if 9 < hour < 11:
-               return True
-            elif 11 < hour < 13:
-                sleepTime = random.randint(1, 50)
-            elif 14 < hour < 18:
-                sleepTime = random.randint(1, 10)
-            elif hour > 21:
-                return True
+        d = int(random.randint(1, 100))
+        hour = int(datetime.datetime.now().strftime("%H"))
+        if d > 80:
+            if hour < 9:
+                time.sleep(int(random.randint(1, 600)))
+            if 11 < hour < 13:
+                time.sleep(int(random.randint(1, 50)))
+            elif 18 < hour < 21:
+                time.sleep(int(random.randint(200, 400)))
             else:
-                sleepTime = random.randint(100, 600)
-            time.sleep(int(sleepTime))
+                pass
+
 
 if __name__ == '__main__':
     try:
         opts, args = getopt.getopt(sys.argv[1:], "h",
-                                   ["durationid="])
+                                   ["relation_id="])
 
         for opt, arg in opts:
             if opt == '-h':
                 sys.exit()
-            elif opt in ("--durationid"):
-                durationId = arg
+            elif opt in ("--relation_id"):
+                relation_id = arg
 
-        DT = DurationThread(durationId=durationId)
+        DT = DurationThread(relation_id=relation_id)
         DT.run()
     except Exception as e:
         logging.error("failed to start:{}".format(e))
