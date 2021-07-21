@@ -340,7 +340,7 @@ export const addupload = (headers, params) => {
 // 文件发送上传zip文件
 export const addzipupload = (headers, params) => {
   return axios
-    .post(`${test}/project/addzipupload`, params, {timeout:1200000},  headers)
+    .post(`${test}/project/addzipupload`, params, { timeout: 1200000 }, headers)
     .then((res) => res.data);
 };
 // 上传文件
@@ -1043,5 +1043,38 @@ export const getAutofigure = (headers, params) => {
 export const getFileUploadProgress = (headers, params) => {
   return axios
     .post(`${test}/project/getProgress`, params, headers)
+    .then((res) => res.data);
+};
+// 打包列表
+export const getPublishList = (headers, params) => {
+  return axios
+    .get(`${test}/project/build/list`, { params }, { headers })
+    .then((res) => res.data);
+};
+// 新建build任务
+export const submitPublishAddTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/add`, params, headers)
+    .then((res) => res.data);
+};
+
+// 修改build任务
+export const submitPublishUpdateTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/update`, params, headers)
+    .then((res) => res.data);
+};
+
+// 删除build任务
+export const submitPublishDeleteTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/del`, params, headers)
+    .then((res) => res.data);
+};
+
+// 查询服务单元下的git分支
+export const queryGitBranchService = (headers, params) => {
+  return axios
+    .post(`${test}/project/git/Branch`, params, headers)
     .then((res) => res.data);
 };
