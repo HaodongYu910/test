@@ -213,6 +213,7 @@ INSTALLED_APPS = [
     'AutoDicom',
     'AutoInterface',
     'corsheaders',
+    'AutoSmoke',
     'rest_framework',
     'rest_framework.authtoken',
     'rest_framework_swagger',
