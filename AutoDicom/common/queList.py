@@ -97,7 +97,6 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                     "patientname": patientname,
                     "cur_date": get_date(),
                     "cur_time": get_time(),
-                    "fileID": fileID,
                     "relation_id": relation_id,
                  }
             except Exception as e:
@@ -121,12 +120,13 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                         info=info
                     )
                 try:
-                    data = [full_fn, full_fake, info]
+                    data = [full_fn, full_fake, info, fileID]
                     q.put(data)
-                    info["fileID"] = ""
+                    fileID = ""
                 except Exception as e:
                     logging.error("[匿名错误]:{}".format(e))
                     continue
+
         except Exception as e:
             logger.error("遍历文件：{}".format(e))
             continue

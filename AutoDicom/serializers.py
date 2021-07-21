@@ -80,8 +80,8 @@ class duration_Serializer(serializers.ModelSerializer):
         model = duration
         fields = (
             'id', 'version', 'server', 'port', 'aet', 'patientname', 'patientid', 'dicom', 'end_time', 'sleepcount',
-            'sleeptime', 'series', 'project',
-            'sendstatus', 'status', 'sendcount', 'group', 'dds', 'type', 'Host', 'update_time', 'create_time')
+            'sleeptime', 'series', 'project', 'sendstatus', 'status', 'sendcount', 'group', 'dds', 'type', 'Host',
+            'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 
 

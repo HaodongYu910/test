@@ -95,13 +95,13 @@ class SendThread(threading.Thread):
                     info["time"] = str('%.2f' % (float(info["endtime"] - info["starttime"])))
                     self.connect_influx(file_data, error)
                     # 变更 发送状态
-                    if info["fileID"]:
+                    if file_data[3]:
                         try:
-
+                            logger.info("变更 状态")
+                            self.UpdateStatus([file_data[3], '0'])
                             self.UpdateStatus([self.studyID, '1'])
-                            self.UpdateStatus([info["fileID"], '0'])
-                            # map(self.UpdateStatus, [[self.studyID, '1'], info["fileID"], '0']])
-                            self.studyID = info["fileID"]
+                            # map(self.UpdateStatus, [[self.studyID, '1'], file_data[3], '0']])
+                            self.studyID = file_data[3]
                         except Exception as e:
                             logger.error(f"duration_record 更新状态失败{e}")
                 except Exception as e:

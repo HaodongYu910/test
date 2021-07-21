@@ -68,7 +68,7 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["start_time"], status=1).count()
+            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["update_time"], status=1).count()
             i['totalsend'] = duration_record.objects.filter(relation_id=i["id"]).count()
             i['todaysend'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
             if i['version'] is not None:
@@ -146,7 +146,7 @@ class durationData(APIView):
         for i in serialize.data:
             try:
                 result = client.query(
-                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and patientid=\'{i["patientid"]}\';')
+                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
                 i["time"] = list(result)[0][0]['mean']
                 i["imagecount"] = list(result)[0][0]['count']
             except:
