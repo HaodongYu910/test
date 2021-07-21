@@ -13,7 +13,7 @@ from AutoInterface.models import gold_test
 from AutoInterface.common.gold import GoldThread
 
 from AutoDicom.models import duration
-from AutoDicom.common.durationSend import DurationThread
+from AutoDicom.common.duration import durationSend
 from AutoProject.common.message import sendMessage
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
@@ -118,11 +118,7 @@ def durationTest(**kwargs):
         obj = duration.objects.create(**data)
 
         logger.info("Nightly Build Version:{}：执行持续化测试".format(kwargs["version"]))
-        testThread = DurationThread(id=obj.id)
-        # 设为保护线程，主进程结束会关闭线程
-        testThread.setDaemon(True)
-        # 开始线程
-        testThread.start()
+        durationSend(obj.id)
     except Exception as e:
         logger.error("Version:{0}：执行持续化测试报错{1}".format(kwargs["version"], e))
 

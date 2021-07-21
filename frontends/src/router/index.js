@@ -255,8 +255,8 @@ export default new Router({
                     meta: {title: '文件上传'}
                 },
                 {
-                    // vue-schart组件
-                    path: '/person',
+                    // 个人中心
+                    path: '/Personal',
                     component: resolve => require(['../components/settings/personal/PersonSetting.vue'], resolve),
                     meta: {title: '个人中心'}
                 },

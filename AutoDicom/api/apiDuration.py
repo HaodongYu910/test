@@ -11,19 +11,17 @@ import shutil
 
 from influxdb import InfluxDBClient
 from ..common.getdicom import *
-from ..models import duration, dicom_relation, dicom
-from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer, \
-    dicomdata_Deserializer
+from ..models import duration, dicom_relation
+from ..serializers import duration_Deserializer, duration_Serializer, duration_record_Deserializer
 from ..common.anonymization import onlyDoAnonymization
 from ..common.dds_detect import *
 from ..common.deletepatients import *
 from AutoDicom.common.dicomBase import baseTransform
-from ..common.durationSend import DurationThread
 
 from AutoProject.scheduletask import DurationSyTask
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.models import project_version
-from ..common.duration import durationSend,NormalSend
+from ..common.duration import durationSend, NormalSend
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -70,7 +68,7 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["update_time"]).count()
+            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["start_time"], status=1).count()
             i['totalsend'] = duration_record.objects.filter(relation_id=i["id"]).count()
             i['todaysend'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
             if i['version'] is not None:
@@ -144,11 +142,11 @@ class durationData(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = duration_record_Deserializer(obm, many=True)  # obi是从数据库取出来的全部数据，obm是数据库取出来的数据分页之后的数据
 
-        client = InfluxDBClient(host='192.168.1.121', port=8086, database='auto_test')
+        client = InfluxDBClient(host='192.168.1.120', port=8089, database='auto_test')
         for i in serialize.data:
             try:
                 result = client.query(
-                    f'select count(value),MEAN(value) from duration where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
+                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and patientid=\'{i["patientid"]}\';')
                 i["time"] = list(result)[0][0]['mean']
                 i["imagecount"] = list(result)[0][0]['count']
             except:
@@ -339,14 +337,18 @@ class DisableDuration(APIView):
             return result
         try:
             obj = duration.objects.get(id=data["id"])
+            obj.sendstatus = False
+            obj.save()
+
             if obj.type == 2:
                 full_fn_fake = f'/lfs/QA/durationlogs/Duration{obj.id}'
             else:
                 full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
-            shutil.rmtree(full_fn_fake)
-            obj.sendstatus = False
-            obj.save()
 
+            try:
+                shutil.rmtree(full_fn_fake)
+            except KeyError:
+                logger.error("shutil fail")
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="无法正常关闭！")
@@ -386,10 +388,6 @@ class EnableDuration(APIView):
             SendStatus = True
             if obj.type == 1:
                 SendStatus = durationSend(data["id"])
-                # durationThread = DurationThread(id=data["id"])
-                # durationThread.setDaemon(True)
-                # # 开始线程
-                # durationThread.start()
             elif obj.type == 0:
                 SendStatus = NormalSend(data["id"])
             else:

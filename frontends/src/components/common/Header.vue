@@ -48,6 +48,9 @@
                         <a href="" target="_blank">
                             <el-dropdown-item>设置</el-dropdown-item>
                         </a>
+                        <router-link to="Personal">
+                            <el-dropdown-item>个人中心</el-dropdown-item>
+                        </router-link>
                         <el-dropdown-item divided  command="loginout">退出登录</el-dropdown-item>
                     </el-dropdown-menu>
                 </el-dropdown>

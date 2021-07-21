@@ -9,7 +9,6 @@ from AutoProject.models import Server, dictionary
 from AutoProject.common.PostgreSQL import connect_postgres
 from AutoProject.common.regexUtil import savecsv
 import os
-from ..common.Dicom import SendQueThread
 
 logger = logging.getLogger(__name__)
 

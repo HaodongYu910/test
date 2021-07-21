@@ -63,7 +63,7 @@
 
             getUser() {
                 let params = {
-                    token: sessionStorage.getItem("token")
+                    token: sessionStorage.getItem("Token")
                 };
                 let headers = {
                     'Content-Type': 'application/x-www-form-urlencoded'
