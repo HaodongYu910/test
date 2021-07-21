@@ -18,5 +18,5 @@ router = routers.DefaultRouter()
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
     # url(r'dicomData', dicomData.as_view()),
-    url(r'smokeTest', smokeTest.as_view()),
+    # url(r'smokeTest', smokeTest.as_view()),
 ]

@@ -437,9 +437,10 @@ class project_git(models.Model):
           项目git 仓库存储
         """
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="项目名称")
-    gitname = models.CharField(max_length=30, blank=True, null=True, verbose_name="仓库名")
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="项目名称")
+    gitname = models.CharField(max_length=80, blank=True, null=True, verbose_name="仓库名")
     code = models.CharField(max_length=100, blank=True, null=True, verbose_name="代码库")
+    jenkins = models.CharField(max_length=50, blank=True, null=True, verbose_name="jenkins")
     Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
     status = models.BooleanField(default=False, verbose_name='状态')

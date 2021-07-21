@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.common.common import record_dynamic
-from AutoProject.models import build_package, build_package_detail, Server
+from AutoProject.models import build_package, build_package_detail, Server, Token
 from AutoProject.serializers import build_packageSerializer, build_packageDeserializer
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
@@ -85,7 +85,7 @@ class AddBuild(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        data["user"] = request.user.pk
+        data["user"] = Token.objects.get(key=data["user"]).user_id
         build_package_serializer = build_packageDeserializer(data=data)
 
         try:

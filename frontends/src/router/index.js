@@ -33,6 +33,12 @@ Vue.use(Router);
 export default new Router({
 
     routes: [
+        //  登录页面
+        {
+            path: '/login',
+            component: resolve => require(['../components/login/Login.vue'], resolve)
+        },
+
         {
             path: '/',
             redirect: '/home'
@@ -47,6 +53,7 @@ export default new Router({
                     component: resolve => require(['../components/home/Dashboard.vue'], resolve),
                     meta: {title: '系统首页'}
                 },
+                /* *******    项目 页面    *******   */
                 {
                     path: '/project',
                     component: resolve => require(['../components/project/Projectlist.vue'], resolve),
@@ -58,10 +65,110 @@ export default new Router({
                     meta: {title: '项目版本'}
                 },
                 {
-                    path: '/message',
-                    component: resolve => require(['../components/page/Tabs.vue'], resolve),
-                    meta: {title: '消息中心'}
+                    //安装部署
+                    path: '/deploy',
+                    component: resolve => require(['../components/deploy/deployList.vue'], resolve),
+                    meta: {title: '安装部署'}
                 },
+                {
+                    //publish
+                    path: '/Publish',
+                    component: resolve => require(['../components/publish/Publish.vue'], resolve),
+                    meta: {title: '持续集成'}
+                },
+                {
+                    //Publish Detail
+                    path: '/PublishDetail',
+                    component: resolve => require(['../components/publish/PublishDetail.vue'], resolve),
+                    meta: {title: '集成详情'}
+                },
+                {
+                    path: '/host',
+                    component: resolve => require(['../components/project/global/ServerList.vue'], resolve),
+                    meta: {title: 'Host配置'}
+                },
+                {
+                    path: '/projectDynamic',
+                    component: ProjectDynamic,
+                    meta: {title: '项目动态'},
+                    name: '项目动态',
+                    leaf: true
+                },
+                /* *******    UI 页面    *******   */
+                {
+                    // UICase 用例
+                    path: '/UICase',
+                    component: resolve => require(['../components/autoui/UICase.vue'], resolve),
+                    meta: { title: 'UI用例' }
+
+                },
+                {
+                    path: '/UICase/caseid=:caseid',
+                    component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                    meta: {title: 'UI用例详情'},
+                    hidden: true,
+                    children: [
+                        {
+                            path: '/UICase/caseid=:caseid',
+                            component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
+                            meta: {title: 'UI用例详情'}, name: 'UI用例详情', leaf: true
+                        }
+                    ]
+                },
+                /* *******    UI列表 页面    *******   */
+                {
+                    path: '/UIList',
+                    component: resolve => require(['../components/autoui/UIList.vue'], resolve),
+                    meta: {title: 'UI自动化列表'}
+
+                },
+                {
+                    path: '/UI/UIid=:UIid',
+                    component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
+                    meta: {title: 'UI自动化详情'},
+                    hidden: true,
+                    children: [
+                        {
+                            path: '/UI/UIid=:UIid',
+                            component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
+                            meta: {title: 'UI自动化详情'}, name: 'UI自动化详情', leaf: true
+                        }
+                    ]
+                },
+                /* *******    性能页面     *******   */
+                {
+                    path: '/stressdata',
+                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
+                    meta: {title: '性能数据'}
+                },
+                {
+                    path: '/stressHome',
+                    component: resolve => require(['../components/stress/stressList.vue'], resolve),
+                    meta: {title: '性能测试'}
+                },
+                {
+                    path: '/stressDetail',
+                    component: resolve => require(['../components/stress/stressDetail.vue'], resolve),
+                    meta: {title: '性能详情'},
+                    name: "stressDetail"
+                },
+                {
+                    path: '/data',
+                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
+                    meta: {title: '性能数据'}
+                },
+                {
+                    path: '/stressReport',
+                    component: resolve => require(['../components/stress/stressReport.vue'], resolve),
+                    meta: {title: '性能报告'},
+                    name: '性能报告', leaf: true
+                },
+                {
+                    path: '/monitor',
+                    component: resolve => require(['../components/stress/stressMonitor.vue'], resolve),
+                    meta: {title: '性能监控'}
+                },
+                /* *******    Dicom 工具页面     *******   */
                 {
                     path: '/DicomSend',
                     component: resolve => require(['../components/DicomTool/duration/DicomSend.vue'], resolve),
@@ -101,51 +208,121 @@ export default new Router({
 
                 },
                 {
-                    // dds监控界面
-                    path: '/dds',
-                    component: resolve => require(['../components/DicomTool/DDS/dds.vue'], resolve),
-                    meta: { title: 'DDS监控' }
-
+                    //基础配置
+                    path: '/base',
+                    component: resolve => require(['../components/DicomTool/DicomFile/dicomFile.vue'], resolve),
+                    meta: {title: 'dicom文件'}
                 },
                 {
-                    // UICase 用例
-                    path: '/UICase',
-                    component: resolve => require(['../components/autoui/UICase.vue'], resolve),
-                    meta: { title: 'UI用例' }
-
+                    //duration 删除
+                    path: '/deldicom',
+                    component: resolve => require(['../components/DicomTool/orthanc/deldicom.vue'], resolve),
+                    meta: {title: 'dicom删除'}
                 },
+                /* *******      接口自动化 页面     *******   */
+                //  接口自动化 页面
                 {
-                    path: '/UICase/caseid=:caseid',
-                    component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
-                    meta: {title: 'UI用例详情'},
-                    hidden: true,
+                    path: '/api',
+                    component: API,
+                    meta: {title: 'API接口'},
                     children: [
                         {
-                            path: '/UICase/caseid=:caseid',
-                            component: resolve => require(['../components/autoui/UIMarkdown.vue'], resolve),
-                            meta: {title: 'UI用例详情'}, name: 'UI用例详情', leaf: true
-                        }
+                            path: '/apiList/project=:project_id',
+                            component: ApiList,
+                            meta: {title: '接口列表'},
+                            name: '接口列表'
+                        },
+                        {
+                            path: '/apiList/project=:project_id/first=:firstGroup',
+                            meta: {title: '分组接口列表'},
+                            component: ApiListGroup,
+                            name: '分组接口列表'
+                        },
+                        {
+                            path: '/fastTest/project=:project_id',
+                            component: FestTest,
+                            meta: {title: '快速测试'},
+                            name: '快速测试'
+                        },
+                        {
+                            path: '/addApi/project=:project_id',
+                            component: addApi,
+                            meta: {title: '新增接口'},
+                            name: '新增接口'
+                        },
+                        {
+                            path: '/detail/project=:project_id/api=:api_id',
+                            component: detail,
+                            name: '接口',
+                            children: [
+                                {
+                                    path: '/apiInfo/project=:project_id/api=:api_id',
+                                    component: ApiInfo,
+                                    meta: {title: '基础信息'},
+                                    name: '基础信息'
+                                },
+                                {
+                                    path: '/testApi/project=:project_id/api=:api_id',
+                                    component: testApi,
+                                    meta: {title: '测试'},
+                                    name: '测试'
+                                },
+                                {
+                                    path: '/apiDynamic/project=:project_id/api=:api_id',
+                                    component: ApiDynamic,
+                                    meta: {title: '历史'},
+                                    name: '历史'
+                                },
+                            ]
+                        },
+                        {path: '/updateApi/project=:project_id/api=:api_id', component: UpdateApi, name: '修改'},
                     ]
                 },
-                // UI列表
                 {
-                    path: '/UIList',
-                    component: resolve => require(['../components/autoui/UIList.vue'], resolve),
-                    meta: {title: 'UI自动化列表'}
-
-                },
-                {
-                    path: '/UI/UIid=:UIid',
-                    component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
-                    meta: {title: 'UI自动化详情'},
-                    hidden: true,
+                    path: '/automationTest',
+                    component: AutomationTest,
+                    name: '自动化测试',
+                    meta: {title: '自动化测试'},
+                    child: true,
                     children: [
                         {
-                            path: '/UI/UIid=:UIid',
-                            component: resolve => require(['../components/autoui/UIDetails.vue'], resolve),
-                            meta: {title: 'UI自动化详情'}, name: 'UI自动化详情', leaf: true
-                        }
+                            path: '/caseList/project=:project_id',
+                            component: CaseList,
+                            meta: {title: '用例列表'},
+                            name: '用例列表'
+                        },
+                        {
+                            path: '/caseList/project=:project_id/first=:firstGroup',
+                            component: CaseListGroup,
+                            meta: {title: '分组用例列表'},
+                            name: '分组用例列表'
+                        },
+                        {
+                            path: '/caseApiList/project=:project_id/case=:case_id',
+                            component: CaseApiList,
+                            meta: {title: '用例接口列表'},
+                            name: '用例接口列表'
+                        },
+                        {
+                            path: '/addCaseApi/project=:project_id/case=:case_id',
+                            component: AddCaseApi,
+                            meta: {title: '添加新接口'},
+                            name: '添加新接口'
+                        },
+                        {
+                            path: '/updateCaseApi/project=:project_id/case=:case_id/api=:api_id',
+                            component: UpdateCaseApi,
+                            name: '修改接口'
+                        },
+                        {path: '/testReport/project=:project_id', component: TestReport, name: '测试报告'},
                     ]
+                },
+                {
+                    path: '/projectReport',
+                    component: ProjectReport,
+                    meta: {title: '自动化测试报告'},
+                    name: '自动化测试报告',
+                    leaf: true
                 },
                 {
                     path: '/SmokeList',
@@ -158,7 +335,7 @@ export default new Router({
                     component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准详情'},
                     name: '金标准详情'
-                    
+
                 },
                 {
                     path: '/report/goldid=:goldid',
@@ -178,50 +355,35 @@ export default new Router({
                     meta: {title: '金标准结果'}
 
                 },
+                /* *******       系统消息     *******   */
                 {
-                    path: '/monitor',
-                    component: resolve => require(['../components/stress/stressMonitor.vue'], resolve),
-                    meta: {title: '性能监控'}
+                    path: '/message',
+                    component: resolve => require(['../components/page/Tabs.vue'], resolve),
+                    meta: {title: '消息中心'}
+                },
+                /* *******       系统设置页面     *******   */
+                // 成员管理
+                {
+                    path: '/projectMember',
+                    component: ProjectMember, meta: {title: '成员管理'},
+                    name: '成员管理',
+                    leaf: true
                 },
                 {
-                    path: '/stressdata',
-                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
-                    meta: {title: '性能数据'}
+                    // dds监控界面
+                    path: '/dds',
+                    component: resolve => require(['../components/DicomTool/DDS/dds.vue'], resolve),
+                    meta: { title: 'DDS监控' }
+
                 },
-                {
-                    path: '/stressHome',
-                    component: resolve => require(['../components/stress/stressList.vue'], resolve),
-                    meta: {title: '性能测试'}
-                },
-                {
-                    path: '/stressDetail',
-                    component: resolve => require(['../components/stress/stressDetail.vue'], resolve),
-                    meta: {title: '性能详情'},
-                    name: "stressDetail"
-                },
-                {
-                    path: '/data',
-                    component: resolve => require(['../components/stress/stressData.vue'], resolve),
-                    meta: {title: '性能数据'}
-                },
-                {
-                    path: '/stressReport',
-                    component: resolve => require(['../components/stress/stressReport.vue'], resolve),
-                    meta: {title: '性能报告'},
-                    name: '性能报告', leaf: true
-                },
+
                 {
                     //邮件配置
                     path: '/mailconfig',
                     component: resolve => require(['../components/report/Mailset.vue'], resolve),
                     meta: {title: '邮件配置'}
                 },
-                {
-                    //安装部署
-                    path: '/deploy',
-                    component: resolve => require(['../components/deploy/deployList.vue'], resolve),
-                    meta: {title: '安装部署'}
-                },
+
                 //邮件詳情頁面
                 {
                     path: '/',
@@ -248,66 +410,21 @@ export default new Router({
                     meta: {title: '质量分析报告'}
 
                 },
-                {
-                    // 图片上传组件
-                    path: '/upload',
-                    component: resolve => require(['../components/page/Upload.vue'], resolve),
-                    meta: {title: '文件上传'}
-                },
+
                 {
                     // 个人中心
                     path: '/Personal',
                     component: resolve => require(['../components/settings/personal/PersonSetting.vue'], resolve),
                     meta: {title: '个人中心'}
                 },
-                {
-                    // 拖拽Dialog组件
-                    path: '/dialog',
-                    component: resolve => require(['../components/page/DragList.vue'], resolve),
-                    meta: {title: '拖拽弹框'}
-                },
-                {
-                    // QR code
-                    path: '/reportdemo',
-                    component: resolve => require(['../components/page/Mychart.vue'], resolve),
-                    meta: {title: '版本下载'}
-                },
-                {
-                    // sonar
-                    path: '/sonar',
-                    component: resolve => require(['../components/page/qrcode.vue'], resolve),
-                    meta: {title: '版本下载'}
-                },
-                {
-                    //基础配置
-                    path: '/base',
-                    component: resolve => require(['../components/DicomTool/DicomFile/dicomFile.vue'], resolve),
-                    meta: {title: 'dicom文件'}
-                },
-                {
-                    //duration 删除
-                    path: '/deldicom',
-                    component: resolve => require(['../components/DicomTool/orthanc/deldicom.vue'], resolve),
-                    meta: {title: 'dicom删除'}
-                },
+
                 {
                     //dictionary 字典
                     path: '/dictionary',
                     component: resolve => require(['../components/settings/dictionary/dictionaryData.vue'], resolve),
                     meta: {title: '字典'}
                 },
-                {
-                    //publish
-                    path: '/Publish',
-                    component: resolve => require(['../components/publish/Publish.vue'], resolve),
-                    meta: {title: 'dicom删除'}
-                },
-                {
-                    //Publish Detail
-                    path: '/PublishDetail',
-                    component: resolve => require(['../components/publish/PublishDetail.vue'], resolve),
-                    meta: {title: '字典'}
-                },
+
                 {
                     // 权限页面
                     path: '/permission',
@@ -335,17 +452,6 @@ export default new Router({
                     meta: {title: '403'}
                 },
                 {
-                    path: '/host',
-                    component: resolve => require(['../components/project/global/ServerList.vue'], resolve),
-                    meta: {title: 'Host配置'}
-                },
-                // {
-                //     path: '/Service',
-                //     component: resolve => require(['../components/settings/organization/ServiceIntegration.vue'], resolve),
-                //     meta: { title: '服务集成' }
-                // },
-                //項目詳情頁面
-                {
                     path: '/project/project=:project_id',
                     component: ProjectInfo,
                     meta: {title: '項目'},
@@ -358,263 +464,14 @@ export default new Router({
                             name: '项目概况',
                             leaf: true
                         },
-                        {
-                            path: '/Server/project=:project_id',
-                            component: Server,
-                            meta: {title: 'Host配置'},
-                            name: 'Host配置',
-                            leaf: true
-                        },
-                        {
-                            path: '/api/project=:project_id',
-                            component: API,
-                            name: 'API接口',
-                            leaf: true,
-                            child: true,
-                            children: [
-                                {
-                                    path: '/apiList/project=:project_id',
-                                    component: ApiList,
-                                    meta: {title: '接口列表'},
-                                    name: '接口列表'
-                                },
-                                {
-                                    path: '/apiList/project=:project_id/first=:firstGroup',
-                                    meta: {title: '分组接口列表'},
-                                    component: ApiListGroup,
-                                    name: '分组接口列表'
-                                },
-                                {
-                                    path: '/fastTest/project=:project_id',
-                                    component: FestTest,
-                                    meta: {title: '快速测试'},
-                                    name: '快速测试'
-                                },
-                                {
-                                    path: '/addApi/project=:project_id',
-                                    component: addApi,
-                                    meta: {title: '新增接口'},
-                                    name: '新增接口'
-                                },
-                                {
-                                    path: '/detail/project=:project_id/api=:api_id',
-                                    component: detail,
-                                    name: '接口',
-                                    children: [
-                                        {
-                                            path: '/apiInfo/project=:project_id/api=:api_id',
-                                            component: ApiInfo,
-                                            meta: {title: '基础信息'},
-                                            name: '基础信息'
-                                        },
-                                        {
-                                            path: '/testApi/project=:project_id/api=:api_id',
-                                            component: testApi,
-                                            meta: {title: '测试'},
-                                            name: '测试'
-                                        },
-                                        {
-                                            path: '/apiDynamic/project=:project_id/api=:api_id',
-                                            component: ApiDynamic,
-                                            meta: {title: '历史'},
-                                            name: '历史'
-                                        },
-                                    ]
-                                },
-                                {path: '/updateApi/project=:project_id/api=:api_id', component: UpdateApi, name: '修改'},
-                            ]
-                        },
-                        {
-                            path: '/automationTest/project=:project_id',
-                            component: AutomationTest,
-                            name: '自动化测试',
-                            meta: {title: '自动化测试'},
-                            leaf: true,
-                            child: true,
-                            children: [
-                                {
-                                    path: '/caseList/project=:project_id',
-                                    component: CaseList,
-                                    meta: {title: '用例列表'},
-                                    name: '用例列表'
-                                },
-                                {
-                                    path: '/caseList/project=:project_id/first=:firstGroup',
-                                    component: CaseListGroup,
-                                    meta: {title: '分组用例列表'},
-                                    name: '分组用例列表'
-                                },
-                                {
-                                    path: '/caseApiList/project=:project_id/case=:case_id',
-                                    component: CaseApiList,
-                                    meta: {title: '用例接口列表'},
-                                    name: '用例接口列表'
-                                },
-                                {
-                                    path: '/addCaseApi/project=:project_id/case=:case_id',
-                                    component: AddCaseApi,
-                                    meta: {title: '添加新接口'},
-                                    name: '添加新接口'
-                                },
-                                {
-                                    path: '/updateCaseApi/project=:project_id/case=:case_id/api=:api_id',
-                                    component: UpdateCaseApi,
-                                    name: '修改接口'
-                                },
-                                {path: '/testReport/project=:project_id', component: TestReport, name: '测试报告'},
-                            ]
-                        },
-                        {
-                            path: '/projectMember/project=:project_id',
-                            component: ProjectMember,
-                            meta: {title: '成员管理'},
-                            name: '成员管理',
-                            leaf: true
-                        },
-                        {
-                            path: '/projectDynamic/project=:project_id',
-                            component: ProjectDynamic,
-                            meta: {title: '项目动态'},
-                            name: '项目动态',
-                            leaf: true
-                        },
-                        {
-                            path: '/projectReport/project=:project_id',
-                            component: ProjectReport,
-                            meta: {title: '自动化测试报告'},
-                            name: '自动化测试报告',
-                            leaf: true
-                        },
                     ]
                 }
             ]
         },
-        {
-            path: '/login',
-            component: resolve => require(['../components/login/Login.vue'], resolve)
-        },
+        // 错误页面
         {
             path: '*',
             redirect: '/404'
         }
     ]
 })
-
-
-// //項目詳情頁面
-// {
-//   path: '/project/project=:project_id',
-//   component: ProjectInfo,
-//   meta: {title: '項目'},
-//   hidden: true,
-//   children: [
-//     {
-//       path: '/ProjectTitle/project=:project_id',
-//       component: '@/views//project/projectTitle/ProjectTitle.vue',
-//       name: '项目概况',
-//       leaf: true
-//     },
-//     {
-//       path: '/Server/project=:project_id',
-//       component: '@/views//project/global/ServerList.vue',
-//       name: 'Host配置',
-//       leaf: true
-//     },
-//     {
-//       path: '/api/project=:project_id',
-//       component: API,
-//       name: 'API接口',
-//       leaf: true,
-//       child: true,
-//       children: [
-//         {
-//           path: '/apiList/project=:project_id/first=:firstGroup',
-//           component: '@/views//project/api/ApiListGroup.vue',
-//           name: '分组接口列表'
-//         },
-//         {path: '/fastTest/project=:project_id', component: '@/views//project/api/FestTest.vue', name: '快速测试'},
-//         {path: '/addApi/project=:project_id', component: '@/views//project/api/Addapi.vue', name: '新增接口'},
-//         {
-//           path: '/detail/project=:project_id/api=:api_id',
-//           component: detail,
-//           name: '接口',
-//           children: [
-//             {
-//               path: '/apiInfo/project=:project_id/api=:api_id',
-//               component: '@/views//project/api/updateApi/ApiInfo.vue',
-//               name: '基础信息'
-//             },
-//             {
-//               path: '/testApi/project=:project_id/api=:api_id',
-//               component: '@/views//project/api/updateApi/TestApi',
-//               name: '测试'
-//             },
-//             {
-//               path: '/apiDynamic/project=:project_id/api=:api_id',
-//               component: '@/views//project/api/updateApi/ApiDynamic',
-//               name: '历史'
-//             },
-//           ]
-//         },
-//         {
-//           path: '/updateApi/project=:project_id/api=:api_id',
-//           component: '@/views//project/updateApi/UpdateApi.vue',
-//           name: '修改'
-//         },
-//       ]
-//     },
-//     {
-//       path: '/automationTest/project=:project_id',
-//       component: '@/views//project/automation/AutomationTest.vue',
-//       name: '自动化测试',
-//       leaf: true,
-//       child: true,
-//       children: [
-//         {path: '/caseList/project=:project_id', component: '@/views//project/automation/CaseList.vue', name: '用例列表'},
-//         {
-//           path: '/caseList/project=:project_id/first=:firstGroup',
-//           component: '@/views//project/automation/CaseListGroup',
-//           name: '分组用例列表'
-//         },
-//         {
-//           path: '/caseApiList/project=:project_id/case=:case_id',
-//           component: '@/views//project/automation/CaseApiList.vue',
-//           name: '用例接口列表'
-//         },
-//         {
-//           path: '/addCaseApi/project=:project_id/case=:case_id',
-//           component: '@/views//project/automation/AddCaseApi.vue',
-//           name: '添加新接口'
-//         },
-//         {
-//           path: '/updateCaseApi/project=:project_id/case=:case_id/api=:api_id',
-//           component: '@/views//project/automation/UpdateCaseApi.vue',
-//           name: '修改接口'
-//         },
-//         {
-//           path: '/testReport/project=:project_id',
-//           component: '@/views//project/automation/TestReport.vue',
-//           name: '测试报告'
-//         },
-//       ]
-//     },
-//     {
-//       path: '/projectMember/project=:project_id',
-//       component: '@/views//project/ProjectMember.vue',
-//       name: '成员管理',
-//       leaf: true
-//     },
-//     {
-//       path: '/projectDynamic/project=:project_id',
-//       component: '@/views//project/ProjectDynamic.vue',
-//       name: '项目动态',
-//       leaf: true
-//     },
-//     {
-//       path: '/projectReport/project=:project_id',
-//       component: '@/views//project/ProjectReport.vue',
-//       name: '自动化测试报告',
-//       leaf: true
-//     },
-//   ]
-// },

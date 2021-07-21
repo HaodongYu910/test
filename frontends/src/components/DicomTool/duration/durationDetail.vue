@@ -46,11 +46,6 @@
 
                     </template>
                 </el-table-column>
-                <el-table-column prop="studyolduid" label="studyolduid" min-width="20%">
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.studyolduid }}</span>
-                    </template>
-                </el-table-column>
                 <el-table-column label="studyuid" min-width="20%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
@@ -58,12 +53,17 @@
                 </el-table-column>
                 <el-table-column prop="发送张数" label="发送张数" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.imagecount }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.image }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="失败张数" label="失败张数" min-width="12%" sortable>
+                    <template slot-scope="scope">
+                        <span style="margin-left: 10px">{{ scope.row.imagefail }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="接收张数" label="接收张数" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.imagecount_server }}</span>
+                        <span style="margin-left: 10px">{{ scope.row.image_receive }}</span>
                     </template>
                 </el-table-column>
                 <el-table-column prop="预测结果" label="预测结果" min-width="9%">

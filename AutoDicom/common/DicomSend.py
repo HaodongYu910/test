@@ -97,7 +97,6 @@ class SendThread(threading.Thread):
                     # 变更 发送状态
                     if file_data[3]:
                         try:
-                            logger.info("变更 状态")
                             self.UpdateStatus([file_data[3], '0'])
                             self.UpdateStatus([self.studyID, '1'])
                             # map(self.UpdateStatus, [[self.studyID, '1'], file_data[3], '0']])

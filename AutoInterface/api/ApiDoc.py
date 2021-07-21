@@ -344,7 +344,7 @@ class AddApi(APIView):
                     except ObjectDoesNotExist:
                         return JsonResponse(code="999991", msg="分组不存在!")
                     api_id = serialize.data.get("id")
-                    if len(get("headDict")):
+                    if len(data.get("headDict")):
                         for i in data["headDict"]:
                             if i.get("name"):
                                 i["api"] = api_id
@@ -352,7 +352,7 @@ class AddApi(APIView):
                                 if head_serialize.is_valid():
                                     head_serialize.save(api=ApiInfo.objects.get(id=api_id))
                     if data["requestParameterType"] == "form-data":
-                        if len(get("requestList")):
+                        if len(data.get("requestList")):
                             for i in data["requestList"]:
                                 if i.get("name"):
                                     i["api"] = api_id
@@ -360,9 +360,9 @@ class AddApi(APIView):
                                     if param_serialize.is_valid():
                                         param_serialize.save(api=ApiInfo.objects.get(id=api_id))
                     else:
-                        if len(get("requestList")):
+                        if len(data.get("requestList")):
                             ApiParameterRaw(api=ApiInfo.objects.get(id=api_id), data=data["requestList"]).save()
-                    if len(get("responseList")):
+                    if len(data.get("responseList")):
                         for i in data["responseList"]:
                             if i.get("name"):
                                 i["api"] = api_id

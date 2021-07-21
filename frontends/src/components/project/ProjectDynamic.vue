@@ -25,6 +25,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 tableData: [],
                 total: 0,
                 page: 1,
@@ -41,7 +42,7 @@
                 this.listLoading = true;
                 let self = this;
                 let params = {
-                    project_id: Number(this.$route.params.project_id),
+                    project_id: Number(this.project_id),
                     page: self.page
                 };
                 let headers = {

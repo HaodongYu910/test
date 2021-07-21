@@ -1075,6 +1075,13 @@ export const submitPublishDeleteTaskService = (headers, params) => {
 // 查询服务单元下的git分支
 export const queryGitBranchService = (headers, params) => {
   return axios
-    .post(`${test}/project/git/Branch`, params, headers)
+    .get(`${test}/project/git/Branch`, { params }, { headers })
+    .then((res) => res.data);
+};
+
+// 查询git 仓库服务单元
+export const queryGit = (headers, params) => {
+  return axios
+    .get(`${test}/project/git/projectlist`, { params }, { headers })
     .then((res) => res.data);
 };

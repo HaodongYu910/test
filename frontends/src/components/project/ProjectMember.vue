@@ -57,6 +57,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 memberData: [],
                 total: 0,
                 page: 1,
@@ -97,7 +98,7 @@
                 this.listLoading = true;
                 let self = this;
                 let params = {
-                    project_id: this.$route.params.project_id,
+                    project_id: this.project_id,
                     page: self.page
                 };
                 let headers = {
@@ -122,7 +123,7 @@
             getEmailConfig(){
                 let self = this;
                 let params = {
-                    project_id: this.$route.params.project_id,
+                    project_id: this.project_id,
                 };
                 let headers = {
                     "Content-Type": "application/json",
@@ -152,7 +153,7 @@
             DelEmail(){
                 let self = this;
                 let params = {
-                    project_id: Number(this.$route.params.project_id)
+                    project_id: Number(this.project_id)
                 };
                 let headers = {
                     "Content-Type": "application/json",
@@ -184,7 +185,7 @@
                             self.editLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                project_id: Number(this.project_id),
                                 reportFrom: this.editForm.reportFrom,
                                 mailUser: this.editForm.mailUser,
                                 mailPass: this.editForm.mailPass,

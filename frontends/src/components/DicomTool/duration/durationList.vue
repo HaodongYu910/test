@@ -249,6 +249,7 @@
             return {
                 project_id:localStorage.getItem("project_id"),
                 Hosts:[],
+                groupOptions:[],
                 versionlist:[],
                 typeoptions: [{
                     value: 1,
