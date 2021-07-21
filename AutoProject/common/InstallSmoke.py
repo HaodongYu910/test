@@ -5,7 +5,7 @@ from django.db.models import Count, When, Case
 from ..models import install, dictionary, Server
 from AutoInterface.models import gold_test, gold_record
 from AutoDicom.models import duration
-from AutoDicom.common.durationSend import DurationThread
+from AutoDicom.common.duration import durationSend
 from AutoInterface.common.gold import GoldThread
 from AutoUI.models import autoui, auto_uirecord
 import time
@@ -135,11 +135,7 @@ class InGoldThread(threading.Thread):
             duobj = duration.objects.create(**data)
 
             logger.info("Nightly Build Version:{}：执行金标准测试".format(self.version))
-            testThread = DurationThread(id=duobj.id)
-            # 设为保护线程，主进程结束会关闭线程
-            testThread.setDaemon(True)
-            # 开始线程
-            testThread.start()
+            durationSend(duobj.id)
         except Exception as e:
             logger.error("Nightly Build Version:{0}：执行金标准测试报错{1}".format(self.version, e))
 

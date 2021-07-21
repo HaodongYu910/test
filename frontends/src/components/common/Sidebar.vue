@@ -166,8 +166,8 @@
                         title: '系统设置',
                         subs: [
                             {
-                                index: 'person',
-                                title: '用户配置'
+                                index: 'Personal',
+                                title: '用户中心'
                             },
                             {
                                 index: 'analysisReport',

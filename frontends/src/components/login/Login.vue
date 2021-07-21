@@ -61,7 +61,8 @@
                             console.log("code:"+code);
                             if(code ==='0'){
                                 sessionStorage.setItem('username', JSON.stringify(data.username));
-                                sessionStorage.setItem('token', data.key);
+                                sessionStorage.setItem('token', JSON.stringify(data.key));
+                                sessionStorage.setItem('Token', data.key);
                                 this.$message.success(data.username+":欢迎登录！~");
                                 localStorage.setItem('ms_username',this.ruleForm.username);
                                 localStorage.setItem('date_joined',JSON.stringify(data.date_joined));

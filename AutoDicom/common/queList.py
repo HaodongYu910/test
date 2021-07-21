@@ -114,6 +114,7 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                 if (os.path.splitext(fn)[1] in '.dcm' == False):
                     continue
                 elif anonymous is True:
+                    logger.info("anonymous is True")
                     anonymization(
                         full_fn=full_fn,
                         full_fn_fake=full_fake,

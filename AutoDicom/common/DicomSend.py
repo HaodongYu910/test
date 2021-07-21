@@ -7,7 +7,7 @@ import socket
 import requests
 import queue
 import threading
-from AutoDicom.models import duration_record
+from AutoDicom.models import duration_record, duration
 from AutoProject.models import Server
 from ..common.dataSort import *
 from ..common.anonymous import anonymization
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 
 class SendThread(threading.Thread):
-    def __init__(self, q, hostID, full_fn_fake, sleepCount=0, sleepTime=0, series=None, anonymous=False):
+    def __init__(self, q, hostID, full_fn_fake, stop, sleepCount=0, sleepTime=0, series=None, anonymous=False):
         threading.Thread.__init__(self)
         self.obj = Server.objects.get(id=hostID)
         self.q = q
@@ -29,6 +29,7 @@ class SendThread(threading.Thread):
         self.anonymous = anonymous
         self.full_fn_fake = full_fn_fake
         self.studyID = ''
+        self.stop = stop
 
         # 获取计算机名称
         if socket.gethostname() == "biomindqa38":
@@ -49,6 +50,7 @@ class SendThread(threading.Thread):
                 t.join()
                 time.sleep(1)
             self.UpdateStatus([self.studyID, '1'])
+            self.SendStop()
             # for i in range(self.thread_num):
             #     threads[i].start()
             # for i in range(self.thread_num):
@@ -84,52 +86,73 @@ class SendThread(threading.Thread):
                         file_name
                     ]
                     info["starttime"] = time.time()
-                    popen = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
-                    popen.communicate()
-                    # 变更 发送状态
-                    if info["fileID"]:
-                        try:
-                            self.UpdateStatus([self.studyID, '1'])
-                            self.UpdateStatus([info["fileID"], '0'])
-                            #map(self.UpdateStatus, [[self.studyID, '1'], info["fileID"], '0']])
-                            self.studyID = info["fileID"]
-                        except Exception as e:
-                            logger.error(f"duration_record 更新状态失败{e}")
-
+                    error = self.SP_Popen(commands)
                 except Exception as e:
                     logging.error('error msg: failed to sync_send [{0}]---报错：{1}'.format(file_name, e))
                     continue
                 try:
                     info["endtime"] = time.time()
                     info["time"] = str('%.2f' % (float(info["endtime"] - info["starttime"])))
-                    self.connect_influx(info)
+                    self.connect_influx(file_data, error)
+                    # 变更 发送状态
+                    if info["fileID"]:
+                        try:
+
+                            self.UpdateStatus([self.studyID, '1'])
+                            self.UpdateStatus([info["fileID"], '0'])
+                            # map(self.UpdateStatus, [[self.studyID, '1'], info["fileID"], '0']])
+                            self.studyID = info["fileID"]
+                        except Exception as e:
+                            logger.error(f"duration_record 更新状态失败{e}")
                 except Exception as e:
                     logging.error('error msg: failed to connect_influx  [{0}]---报错：{1}'.format(file_name, e))
                     continue
                 try:
-                    os.remove(file_name)
+                    os.remove(file_data[1])
                 except Exception as e:
-                    logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_name, e))
-                    continue
+                    logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_data[1], e))
         except Exception as e:
             logging.error('error msg: while failed to [{0}]}'.format(e))
 
+    #  发送失败  重试 4次 机制
+    def SP_Popen(self, commands):
+        error = '0'
+        try:
+            for i in range(10):
+                Send = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
+                SendResult = Send.communicate()
+
+                for j in SendResult:
+                    if len(bytes.decode(j)) > 0:
+                        error = bytes.decode(j)
+                        continue
+                if error.strip() == '0':
+                    break
+        except Exception as e:
+            error = e
+            logger.error("发送数据错误{}".format(e))
+        return error
+
     # 更新 状态
     def UpdateStatus(self, data):
+        logger.info('UpdateStatus ')
         if data[0]:
             obj = duration_record.objects.get(id=data[0])
             obj.status = data[1]
             obj.save()
 
     # 存储 每张发送信息
-    def connect_influx(self, info):
+    def connect_influx(self, file_data, error):
+        info = file_data[2]
         try:
             tamp = int(round(time.time() * 1000000000))
-            influxdata = f'duration,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},type={info["type"]} value={info["time"]} {tamp}'
-            requests.post('http://192.168.1.120:8086/write?db=auto_test', data=influxdata)
+            influxdata = f'test,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},patientid={info["patientid"]},patientname={info["patientname"]},cur_time={info["cur_time"]},cur_date={info["cur_date"]},file={file_data[0]},file_url={file_data[1]},error={error} value={info["time"]} {tamp}'
+
+            requests.post('http://192.168.1.120:8089/write?db=auto_test', data=influxdata)
             self.delayed("")
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
+
 
     # 判断是否 同一个 Series
     def delayed(self, SeriesID):
@@ -149,4 +172,7 @@ class SendThread(threading.Thread):
     # 停止
     def SendStop(self):
         # 删除 文件夹
-        shutil.rmtree(self.full_fn_fake)
+        if self.stop[0] == 1:
+            obj = duration.objects.get(id=self.stop[1])
+            obj.sendstatus =False
+            obj.save()

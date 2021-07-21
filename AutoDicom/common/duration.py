@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import logging
+import datetime
 from AutoDicom.common.queList import QueData, dicomSort
 from AutoDicom.common.DicomSend import SendThread
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 def durationSend(ID):
     obj = duration.objects.get(id=ID)
+    obj.start_time = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    obj.save()
     full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
     try:
         if obj.sendcount is None:
@@ -45,7 +48,8 @@ def durationSend(ID):
             anonymous=True,
             full_fn_fake=full_fn_fake,
             sleepTime=obj.sleeptime,
-            sleepCount=obj.sleepcount
+            sleepCount=obj.sleepcount,
+            stop=[1, ID]
         )
         ST.setDaemon(True)
         ST.start()

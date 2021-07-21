@@ -107,7 +107,7 @@ class AddVersion(APIView):
             return result
         try:
             package = 1
-            obj = project_version.objects.filter(~Q(type='-1'), version=data["version"], type=data["type"])
+            obj = project_version.objects.filter(type__in=['1', '-1'], version=data["version"])
             try:
                 # 版本打包个数
                 vesionCount = int(obj.count())
