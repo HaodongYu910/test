@@ -57,6 +57,10 @@
                                 index: 'projectVersion',
                                 title: '版本管理'
                             },
+                            {   index: 'Publish',
+                                title: 'Build版本'
+
+                            },
                             {
                                 index: 'deploy',
                                 title: '安装部署',

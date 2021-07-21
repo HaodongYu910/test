@@ -297,6 +297,18 @@ export default new Router({
                     meta: {title: '字典'}
                 },
                 {
+                    //publish
+                    path: '/Publish',
+                    component: resolve => require(['../components/publish/Publish.vue'], resolve),
+                    meta: {title: 'dicom删除'}
+                },
+                {
+                    //Publish Detail
+                    path: '/PublishDetail',
+                    component: resolve => require(['../components/publish/PublishDetail.vue'], resolve),
+                    meta: {title: '字典'}
+                },
+                {
                     // 权限页面
                     path: '/permission',
                     component: resolve => require(['../components/page/Permission.vue'], resolve),
