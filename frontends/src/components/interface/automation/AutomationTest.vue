@@ -5,7 +5,7 @@
                 <el-button class="addGroup" @click="handleAddGroup">新增分组</el-button>
                 <div class="api-title"><strong>用例分组</strong></div>
                 <div class="api-title" style="cursor:pointer;">
-                    <router-link :to="{ name: '用例列表', params: {project_id: this.$route.params.project_id}}" style='text-decoration: none;color: aliceblue;'>
+                    <router-link :to="{ name: '用例列表', params: {project_id: this.project_id}}" style='text-decoration: none;color: aliceblue;'>
                         所有用例
                     </router-link>
                 </div>
@@ -69,6 +69,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 project: "",
                 groupData: [],
                 addGroupFormVisible: false,
@@ -121,7 +122,7 @@
                     type: "get",
                     url: test+"/api/automation/group",
                     async: true,
-                    data: { project_id: Number(this.$route.params.project_id)},
+                    data: { project_id: Number(this.project_id)},
                     headers: {
                         Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
                     },
@@ -163,7 +164,7 @@
                                 url: test+"/api/automation/add_group",
                                 async: true,
                                 data: JSON.stringify({
-                                        project_id: Number(this.$route.params.project_id),
+                                        project_id: Number(this.project_id),
                                         name: self.addGroupForm.firstgroup
                                     }),
                                 headers: {
@@ -215,7 +216,7 @@
                                 type: "post",
                                 url: test+"/api/automation/update_name_group",
                                 async: true,
-                                data: JSON.stringify({ project_id: Number(this.$route.params.project_id),
+                                data: JSON.stringify({ project_id: Number(this.project_id),
                                     name: self.editFirstGroupForm.secondFirstGroup,
                                     id: self.editFirstGroupForm.second_id}),
                                 headers: {
@@ -268,7 +269,7 @@
                         url: test+"/api/automation/del_group",
                         async: true,
                         data: JSON.stringify({id: Number(id),
-                            project_id: Number(this.$route.params.project_id)}),
+                            project_id: Number(this.project_id)}),
                         headers: {
                             "Content-Type": "application/json",
                             Authorization: 'Token '+JSON.parse(sessionStorage.getItem('token'))
@@ -297,7 +298,7 @@
         },
         mounted() {
             this.getCaseGroup();
-            this.project = this.$route.params.project_id
+            this.project = this.project_id
 
         }
     }

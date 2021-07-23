@@ -16,6 +16,7 @@ router = routers.DefaultRouter()
 # Wire up our API using slicenumber URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
+    url(r'api/group', ApiDoc.Group.as_view()),
     url(r'api/add_group', ApiDoc.AddGroup.as_view()),
     url(r'api/update_name_group', ApiDoc.UpdateNameGroup.as_view()),
     url(r'api/del_group', ApiDoc.DelGroup.as_view()),

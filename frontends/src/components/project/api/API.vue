@@ -3,12 +3,12 @@
         <el-row :span="24" class="row-title">
             <el-col :span="4">
                 <el-button class="addGroup" @click="handleAddGroup">新增分组</el-button>
-                <router-link :to="{ name: '快速测试', params: {project_id: this.$route.params.project_id}}" style='text-decoration: none;color: aliceblue;'>
+                <router-link :to="{ name: '快速测试', params: {project_id: this.project_id}}" style='text-decoration: none;color: aliceblue;'>
                     <el-button class="addGroup">快速测试</el-button>
                 </router-link>
                 <div class="api-title"><strong>接口分组</strong></div>
                 <div class="api-title" style="cursor:pointer;">
-                    <router-link :to="{ name: '接口列表', params: {project_id: this.$route.params.project_id}}" style='text-decoration: none;color: aliceblue;'>
+                    <router-link :to="{ name: '接口列表', params: {project_id: this.project_id}}" style='text-decoration: none;color: aliceblue;'>
                         所有接口
                     </router-link>
                 </div>
@@ -71,6 +71,7 @@
     export default {
         data() {
             return {
+                project_id:localStorage.getItem("project_id"),
                 project: "",
                 groupData: [],
                 addGroupFormVisible: false,
@@ -120,7 +121,7 @@
             getApiGroup() {
                 let self = this;
                 let params = {
-                    project_id: this.$route.params.project_id
+                    project_id: this.project_id
                 };
                 let headers = {
                     "Content-Type": "application/json",
@@ -159,7 +160,7 @@
                             self.addGroupLoading = true;
                             //NProgress.start();
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                project_id: Number(this.project_id),
                                 name: self.addGroupForm.firstgroup
                             };
                             let headers = {
@@ -207,7 +208,7 @@
                         this.$confirm('确认提交吗？', '提示', {}).then(() => {
                             self.editFirstGroupLoading = true;
                             let params = {
-                                project_id: Number(this.$route.params.project_id),
+                                project_id: Number(this.project_id),
                                 name: self.editFirstGroupForm.secondFirstGroup,
                                 id: self.editFirstGroupForm.second_id
                             };
@@ -257,7 +258,7 @@
                     let self = this;
                     let params = {
                         id: Number(id),
-                        project_id: Number(this.$route.params.project_id)
+                        project_id: Number(this.project_id)
                     };
                     let headers = {
                         "Content-Type": "application/json",
@@ -284,7 +285,7 @@
         },
         mounted() {
             this.getApiGroup();
-            this.project = this.$route.params.project_id
+            this.project = this.project_id
 
         }
     }

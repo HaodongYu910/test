@@ -26,14 +26,16 @@ class JenkinsApi:
 
     def get_jobs_info(self, name):
         """
-                    # 查询 版本信息
-                              """
+        parm name: 构建名称
+         查询 job信息
+         """
 
         # 入参 构建版本名称
         # Refer Example #1 for definition of function 'get_server_instance'
         job = self.JenkinsServer.get_job_info(name)
         number = job['builds'][0]["number"]  # 构建版本
         print(number)
+
 
         for i in range(int(number)):
             try:
@@ -57,26 +59,25 @@ class JenkinsApi:
         """
             启动job  入参 job名 参数变量 dict 类型
         """
-        build = self.JenkinsServer.build_job(job_name, param_dict)
+        self.JenkinsServer.build_job(job_name, param_dict)
+        job = self.JenkinsServer.get_job_info(job_name)
+        number = job['builds'][0]["number"]
         # Refer Example #1 for definition of function 'get_server_instance'
         # print(server.get_build_info(job_name,48))
-        return build
+        return number
 
-    def stop_job(self, job_name):
+    def stop_job(self, job_name, number):
         """
                    停止job 构建  入参 job名
                 """
-        while True:
-            job = self.JenkinsServer.get_job_info(job_name)
-            number = job['builds'][0]["number"]
-            print(number)
-            stopBuild = self.JenkinsServer.stop_build(job_name, number)
+        self.JenkinsServer.stop_build(job_name, number)
 
 
 
 if __name__ == '__main__':
     # 构建参数化job
-    # a = JenkinsApi()
+    a = JenkinsApi()
+    a.get_job("Radiology_Prod_Build")
     # print(a.build_job("install", {"reset": 0,
     #                               "passwd": "biomind",
     #                               "path": "oss://biomind/Radiology/Prod/2.20.10-radiology2.tgz",

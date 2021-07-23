@@ -68,7 +68,7 @@ class getDuration(APIView):
         dataSerializer = duration_Serializer(obm, many=True)
         for i in dataSerializer.data:
             # 已发送的数据统计
-            i['send'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=i["start_time"], status=1).count()
+            i['send'] = duration_record.objects.filter(relation_id=i["id"], update_time__gte=i["update_time"], status=1).count()
             i['totalsend'] = duration_record.objects.filter(relation_id=i["id"]).count()
             i['todaysend'] = duration_record.objects.filter(relation_id=i["id"], create_time__gte=datetime.datetime.now().strftime("%Y-%m-%d 00:00:00")).count()
             if i['version'] is not None:
@@ -103,14 +103,15 @@ class durationData(APIView):
 
         # 判断是否有查询时间
         if request.GET.get("startdate"):
-            startdate = request.GET.get("startdate")
+            start = request.GET.get("startdate")
         else:
-            startdate = '2000-01-01 00:00:00'
+            start_time = duration.objects.get(id=relation_id).start_time
+            start = '2000-01-01 00:00:00' if start_time is None else start_time
 
         if request.GET.get("enddate"):
-            enddate = request.GET.get("enddate")
+            end = request.GET.get("enddate")
         else:
-            enddate = datetime.datetime.now()
+            end = '2050-01-01 00:00:00'
 
         # 判断查询数据类型
         if patientname:
@@ -118,19 +119,20 @@ class durationData(APIView):
                 "-id")
         elif type == 'Not_sent':
             obi = duration_record.objects.filter(relation_id=relation_id, aistatus__isnull=True,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+                                                 update_time__lte=end, update_time__gte=start).order_by("-status")
         elif type == 'sent':
             obi = duration_record.objects.filter(relation_id=relation_id, aistatus__isnull=False,
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+                                                 update_time__lte=end, update_time__gte=start).order_by("-status")
         elif type == 'AiTrue':
-            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__in=[3, 2], create_time__lte=enddate,
-                                                 create_time__gte=startdate).order_by("-id")
+            obi = duration_record.objects.filter(relation_id=relation_id, aistatus__in=[3, 2], update_time__lte=end,
+                                                 update_time__gte=start).order_by("-status")
         elif type == 'AiFalse':
             obi = duration_record.objects.filter(relation_id=relation_id, aistatus__in=[-1, -2, 1],
-                                                 create_time__lte=enddate, create_time__gte=startdate).order_by("-id")
+                                                 update_time__lte=end, update_time__gte=start).order_by("-status")
         else:
-            obi = duration_record.objects.filter(relation_id=relation_id, create_time__lte=enddate,
-                                                 create_time__gte=startdate).order_by("-id")
+            obi = duration_record.objects.filter(relation_id=relation_id, update_time__lte=end,
+                                                 update_time__gte=start).order_by("-status")
+
         paginator = Paginator(obi, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         count = paginator.count  # 总页数
@@ -146,9 +148,12 @@ class durationData(APIView):
         for i in serialize.data:
             try:
                 result = client.query(
-                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and patientid=\'{i["patientid"]}\';')
+                    f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
+                error = client.query(
+                    f'select count(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\' and error=\'0\';')
                 i["time"] = list(result)[0][0]['mean']
-                i["imagecount"] = list(result)[0][0]['count']
+                i["image"] = list(result)[0][0]['count']
+                i["imagefail"] = int(list(result)[0][0]['count'])-int(list(error)[0][0]['count'])
             except:
                 i["time"] = 0
                 i["imagecount"] = 0

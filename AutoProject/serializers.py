@@ -23,7 +23,8 @@ class TokenSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Token
-        fields = ('userID', 'username', 'first_name', 'last_name', 'phone', 'email', 'key', 'roles', 'userphoto', 'date_joined')
+        fields = (
+        'userID', 'username', 'first_name', 'last_name', 'phone', 'email', 'key', 'roles', 'userphoto', 'date_joined')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -81,7 +82,8 @@ class ProjectVersionDeserializer(serializers.ModelSerializer):
     class Meta:
         model = project_version
         fields = (
-        'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+            'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time',
+            'create_time')
 
 
 class ProjectVersionSerializer(serializers.ModelSerializer):
@@ -95,7 +97,8 @@ class ProjectVersionSerializer(serializers.ModelSerializer):
     class Meta:
         model = project_version
         fields = (
-        'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time', 'create_time')
+            'id', 'version', 'branch', 'package_name', 'path', 'type', 'project', 'status', 'update_time',
+            'create_time')
 
 
 class ProjectDynamicDeserializer(serializers.ModelSerializer):
@@ -105,7 +108,7 @@ class ProjectDynamicDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectDynamic
-        fields = ('id', 'project', 'time', 'type', 'operationObject', 'user', 'description')
+        fields = ('id', 'project', 'module', 'time', 'type', 'operationObject', 'user', 'description')
 
 
 class ProjectDynamicSerializer(serializers.ModelSerializer):
@@ -117,7 +120,7 @@ class ProjectDynamicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ProjectDynamic
-        fields = ('id', 'time', 'type', 'operationObject', 'operationUser', 'description')
+        fields = ('id', 'time', 'type', 'module', 'operationObject', 'operationUser', 'description')
 
 
 class ProjectMemberDeserializer(serializers.ModelSerializer):
@@ -151,7 +154,7 @@ class ServerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Server
         fields = (
-        'id', 'project_id', 'name', 'host', 'port', 'user', 'pwd', 'remarks', 'description', 'protocol', 'status')
+            'id', 'project_id', 'name', 'host', 'port', 'user', 'pwd', 'remarks', 'description', 'protocol', 'status')
 
 
 class dictionary_Serializer(serializers.ModelSerializer):
@@ -193,8 +196,9 @@ class install_Deserializer(serializers.ModelSerializer):
     class Meta:
         model = install
         fields = (
-        'id', 'server', 'testcase', 'version', 'starttime', 'Host', 'smokeid', 'uid', 'type', 'status', 'installstatus',
-        'crontab')
+            'id', 'server', 'testcase', 'version', 'starttime', 'Host', 'smokeid', 'uid', 'type', 'status',
+            'installstatus',
+            'crontab')
 
 
 class build_packageDeserializer(serializers.ModelSerializer):
@@ -205,7 +209,7 @@ class build_packageDeserializer(serializers.ModelSerializer):
     class Meta:
         model = build_package
         fields = (
-            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab',
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git',
             'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user')
 
 
@@ -215,12 +219,69 @@ class build_packageSerializer(serializers.ModelSerializer):
     """
     update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
     create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
-    # Host = serializers.CharField(source='Server.host')
+    service = serializers.CharField(source='git.name')
     user = serializers.CharField(source='user.first_name')
+    jenkins_job = serializers.CharField(source='git.jenkins_job')
+    jenkins_view = serializers.CharField(source='git.jenkins_view')
 
     class Meta:
         model = build_package
         fields = (
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git', 'jenkins_job',
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'jenkins_view'
+        )
+
+
+class build_package_detailDeserializer(serializers.ModelSerializer):
+    """
+    打包部署详情信息反序列化
+    """
+
+    class Meta:
+        model = build_package_detail
+        fields = (
             'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab',
-            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user'
+            'packStatus', 'rely', 'Host', 'job', 'build', 'create_time', 'update_time', 'user')
+
+class build_package_detailSerializer(serializers.ModelSerializer):
+    """
+    打包部署详情 信息序列化
+    """
+    update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    # Host = serializers.CharField(source='Host.host')
+    user = serializers.CharField(source='user.username')
+
+    class Meta:
+        model = build_package_detail
+        fields = (
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab',
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'job', 'build',
+        )
+
+
+class project_git_Deserializer(serializers.ModelSerializer):
+    """
+    项目仓库信息反序列化
+    """
+
+    class Meta:
+        model = project_git
+        fields = (
+            'id', 'name', 'gitname', 'jenkin_view', 'jenkins_job', 'code', 'Project', 'status', 'create_time', 'update_time', 'user')
+
+
+class project_git_Serializer(serializers.ModelSerializer):
+    """
+    项目仓库信息 信息序列化
+    """
+    update_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    create_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
+    Project = serializers.CharField(source='Project.name')
+    user = serializers.CharField(source='user.username')
+
+    class Meta:
+        model = project_git
+        fields = (
+            'id', 'name', 'gitname', 'jenkins_view', 'jenkins_job', 'code', 'Project', 'status', 'create_time', 'update_time', 'user'
         )

@@ -1072,9 +1072,38 @@ export const submitPublishDeleteTaskService = (headers, params) => {
     .then((res) => res.data);
 };
 
+// 构建build任务
+export const PublishEnableTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/enable`, params, headers)
+    .then((res) => res.data);
+};
+
+// 停止build任务
+export const PublishDisableTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/disable`, params, headers)
+    .then((res) => res.data);
+};
+
+// 查询Build Detail
+export const getBuildDetail = (headers, params) => {
+  return axios
+    .get(`${test}/project/build/detail`, { params }, { headers })
+    .then((res) => res.data);
+};
+
 // 查询服务单元下的git分支
 export const queryGitBranchService = (headers, params) => {
   return axios
-    .post(`${test}/project/git/Branch`, params, headers)
+    .get(`${test}/project/git/Branch`, { params }, { headers })
     .then((res) => res.data);
 };
+
+// 查询git 仓库服务单元
+export const queryGit = (headers, params) => {
+  return axios
+    .get(`${test}/project/git/projectlist`, { params }, { headers })
+    .then((res) => res.data);
+};
+

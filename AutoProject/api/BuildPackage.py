@@ -12,8 +12,9 @@ from rest_framework.views import APIView
 
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.common.common import record_dynamic
-from AutoProject.models import build_package, build_package_detail, Server
-from AutoProject.serializers import build_packageSerializer, build_packageDeserializer
+from AutoProject.models import build_package, build_package_detail, Server, Token
+from AutoProject.serializers import build_packageSerializer, build_packageDeserializer, build_package_detailSerializer
+from ..common.jenkins_api import JenkinsApi
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
 
@@ -47,13 +48,32 @@ class BuildList(APIView):
         except EmptyPage:
             obm = paginator.page(paginator.num_pages)
         serialize = build_packageSerializer(obm, many=True)
-        for i in serialize.data:
-            if i["Host"] is not None:
-                i["Host"] = Server.objects.get(id=i["Host"]).host
 
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
                                   "total": total
+                                  }, code="0", msg="成功")
+
+
+class BuildDetail(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取构建历史详情
+        :param request:
+        :return:
+        """
+        try:
+            build_id = int(request.GET.get("build_id"))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="build_id must be integer!")
+        obj = build_package_detail.objects.filter(build__id=build_id).order_by("-id")
+
+        serialize = build_package_detailSerializer(obj, many=True)
+
+        return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
 
 
@@ -69,7 +89,7 @@ class AddBuild(APIView):
         """
         try:
             # 必传参数 name, service
-            if not data["name"] or not data["service"]:
+            if not data["name"] or not data["git"]:
                 return JsonResponse(code="999996", msg="参数有误！")
 
         except KeyError:
@@ -85,7 +105,7 @@ class AddBuild(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        data["user"] = request.user.pk
+        data["user"] = Token.objects.get(key=data["user"]).user_id
         build_package_serializer = build_packageDeserializer(data=data)
 
         try:
@@ -97,8 +117,8 @@ class AddBuild(APIView):
                     # 保持新项目
                     build_package_serializer.save()
                     return JsonResponse(data={
-                            "build_package_id": build_package_serializer.data.get("id")
-                        }, code="0", msg="成功")
+                        "build_package_id": build_package_serializer.data.get("id")
+                    }, code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg=build_package_serializer.errors)
 
@@ -190,7 +210,7 @@ class DelBuild(APIView):
                 try:
                     obj = build_package.objects.get(id=i)
                     if not request.user.is_superuser and obj.user.is_superuser:
-                        return JsonResponse(code="999983", msg=str(obj)+"无操作权限！")
+                        return JsonResponse(code="999983", msg=str(obj) + "无操作权限！")
                 except ObjectDoesNotExist:
                     return JsonResponse(code="999995", msg="项目不存在！")
             for j in data["ids"]:
@@ -231,18 +251,22 @@ class DisableBuild(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        # 查找项目是否存在
+        # 查找构建是否存在
         try:
             obj = build_package.objects.get(id=data["build_package_id"])
-            if not request.user.is_superuser and obj.user.is_superuser:
-                return JsonResponse(code="999983", msg=str(obj) + "无操作权限！")
+            # 停止构建
+            jenkins = JenkinsApi()
+            jenkins.stop_job(obj.git.jenkins, obj.job)
+            # if not request.user.is_superuser and obj.user.is_superuser:
+            #     return JsonResponse(code="999983", msg=str(obj) + "无操作权限！")
             obj.status = False
             obj.save()
-            record_dynamic(build_package=data["build_package_id"],
-                           _type="禁用", operationObject="项目", user=request.user.pk, data=obj.name)
+            record_dynamic(project=obj.Project_id, module='devops',
+                           _type="停止构建", operationObject="持续集成",
+                           user=request.user.pk, data=f"停止构建：{obj.name}-{obj.service}-{obj.branch}")
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
+            return JsonResponse(code="999995", msg="构建不存在！")
 
 
 class EnableBuild(APIView):
@@ -272,17 +296,29 @@ class EnableBuild(APIView):
         result = self.parameter_check(data)
         if result:
             return result
-        # 查找项目是否存在
+        # 查找构建是否存在
         try:
+            # if not request.user.is_superuser and obj.user.is_superuser:
+            #     return JsonResponse(code="999983", msg=str(obj) + "无操作权限！")
             obj = build_package.objects.get(id=data["build_package_id"])
-            if not request.user.is_superuser and obj.user.is_superuser:
-                return JsonResponse(code="999983", msg=str(obj) + "无操作权限！")
-            obj.status = True
-            obj.save()
-            record_dynamic(build_package=data["build_package_id"],
-                           _type="禁用", operationObject="项目", user=request.user.pk, data=obj.name)
+            param_dict = {'BRANCH': obj.branch}
+
+            try:
+                jenkins = JenkinsApi()
+                job = jenkins.build_job(obj.git.jenkins, param_dict)
+                obj.job = job
+                obj.status = True
+                obj.save()
+                build_package_detail.objects.create(**{'name': obj.name, 'service': obj.git.name, 'code': obj.code,
+                                                       'branch': obj.branch, 'type': obj.type, 'build_id': obj.id,
+                                                       'Host_id': obj.Host_id, 'user_id': obj.user_id, 'job': job,
+                                                       'status': True})
+
+                record_dynamic(project=obj.Project_id, module='devops',
+                               _type="构建", operationObject="持续集成", user=request.user.pk,
+                               data=f"构建：{obj.name}-{obj.service}-{obj.branch}")
+            except KeyError:
+                return JsonResponse(code="999991", msg="保存记录失败！")
             return JsonResponse(code="0", msg="成功")
-        except ObjectDoesNotExist:
-            return JsonResponse(code="999995", msg="项目不存在！")
-
-
+        except Exception as e:
+            return JsonResponse(code="999995", msg="构建失败！")

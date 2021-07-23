@@ -17,8 +17,8 @@ from .api import apiMessage
 from .api.apiSonar import getsonar
 from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,\
     DisableVersion, EnableVersion, SaveVersion
-from .api.BuildPackage import BuildList, UpdateBuild, AddBuild, DelBuild, DisableBuild, EnableBuild
-from .api.apiGit import getGitBranch
+from .api.BuildPackage import BuildList, UpdateBuild, AddBuild, DelBuild, DisableBuild, EnableBuild, BuildDetail
+from .api.apiGit import getGitBranch, getProjectGit
 from .api.user_info import userInfo, AddUser, UpdateUser, DelUser, EnableUser, DisableUser
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册
@@ -36,6 +36,8 @@ urlpatterns = [
     url(r'disable_project', DisableProject.as_view()),
     url(r'enable_project', EnableProject.as_view()),
     url(r'title/project_info', ProjectInfo.as_view()),
+    url(r'member/project_member', member.ProjectMemberList.as_view()),
+    url(r'member/email_config', member.EmailConfig.as_view()),
     url(r'member/del_email', member.DelEmail.as_view()),
     url(r'member/get_email', member.GetEmail.as_view()),
     url(r'dynamic/dynamic', dynamic.Dynamic.as_view()),
@@ -69,11 +71,13 @@ urlpatterns = [
     url(r'dictionary/del', DelDictionary.as_view()),
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
+    url(r'git/projectlist', getProjectGit.as_view()), # git 仓库
     url(r'build/list', BuildList.as_view()),
+    url(r'build/detail', BuildDetail.as_view()),
     url(r'build/add', AddBuild.as_view()),
     url(r'build/update', UpdateBuild.as_view()),
     url(r'build/del', DelBuild.as_view()),
-    url(r'build/disable', DelBuild.as_view()),
+    url(r'build/disable', DisableBuild.as_view()),
     url(r'build/enable', EnableBuild.as_view()),
     url(r'git/Branch', getGitBranch.as_view()),
     url(r'install/add', AddInstall.as_view()),

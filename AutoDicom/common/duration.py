@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义
 
 def durationSend(ID):
     obj = duration.objects.get(id=ID)
-    obj.start_time = str(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    obj.start_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     obj.save()
     full_fn_fake = f'{settings.LOG_PATH}/{obj.type}{obj.id}'
     try:

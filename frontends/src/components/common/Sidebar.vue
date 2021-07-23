@@ -57,6 +57,10 @@
                                 index: 'projectVersion',
                                 title: '版本管理'
                             },
+                            {   index: 'Publish',
+                                title: '持续集成'
+
+                            },
                             {
                                 index: 'deploy',
                                 title: '安装部署',
@@ -65,6 +69,10 @@
                                 index: 'host',
                                 title: 'Host配置'
                             },
+                            {
+                                index: 'projectDynamic',
+                                title: '项目动态'
+                            },
                         ]
                     },
                     {
@@ -72,6 +80,18 @@
                         index: 'interface',
                         title: '接口自动化',
                         subs: [
+                            {
+                                index: 'api',
+                                title: 'API管理'
+                            },
+                            {
+                                index: 'automationTest',
+                                title: 'API测试'
+                            },
+                            {
+                                index: 'projectReport',
+                                title: '测试报告'
+                            },
                             {
                                 index: 'SmokeList',
                                 title: '金标准测试'
@@ -137,29 +157,8 @@
                                 index: 'duration',
                                 title: '持续化工具'
                             },
-                            // {
-                            //     // dds监控页面
-                            //     index: 'dds',
-                            //     title: 'DDS监控'
-                            // }
                         ]
                     },
-
-                    // {
-                    //     icon: 'el-icon-message',
-                    //     index: '6',
-                    //     title: '邮件管理',
-                    //     subs: [
-                    //         {
-                    //             index: 'testreport',
-                    //             title: '邮件配置'
-                    //         },
-                    //         {
-                    //             index: 'testreport',
-                    //             title: '邮件模板'
-                    //         }
-                    //     ]
-                    // },
                     {
                         icon: 'el-icon-s-tools',
                         index: '7',
@@ -168,6 +167,10 @@
                             {
                                 index: 'Personal',
                                 title: '用户中心'
+                            },
+                            {
+                                index: 'projectMember',
+                                title: '成员管理'
                             },
                             {
                                 index: 'analysisReport',
