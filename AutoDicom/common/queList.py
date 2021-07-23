@@ -11,6 +11,55 @@ from ..common.dataSort import *
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
+def singleDicom(model, single):
+    dicomObj = dicom.objects.filter(predictor=model,
+                                    stressstatus__in=['1', '2'],
+                                    status=True).order_by("slicenumber")
+    # 补充数据
+    if len(dicomObj):
+        if int(model) in [9, 12]:
+            dicomList = list(dicomObj)
+            # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+            dictsum = {}
+            listsum = []
+            for i in dicomList:
+                if dictsum.get(i.slicenumber) is None:
+                    sum = set()
+                    sum.add(i)
+                else:
+                    sum = dictsum.get(i.slicenumber)
+                    sum.add(i)
+                dictsum[i.slicenumber] = sum
+            for k, v in dictsum.items():
+                copyList = copylist(list(v), int(single))
+                listsum = listsum + copyList
+            # print(listsum)
+        else:
+            listSum = copylist(list(dicomObj), int(single))
+    return listSum
+
+def HybridDicom(dicomlist, sendCount):
+    logger.info("测试queue集合{}".format(dicomlist))
+    # 查询发送数据
+    obj = dicom.objects.filter(predictor__in=dicomlist,
+                                    stressstatus__in=['1', '2'],
+                                    status=True)
+
+    if len(obj):
+        dicomList = list(obj)
+        # 变成{"病种"：（病人对象，病人对象），"病种"：（病人对象，病人对象，...}
+        dictsum = {}
+        for i in dicomList:
+            grouping(dictsum, i)
+
+        # 变成排好序的数据
+        listsum = Myinster(dictsum)
+
+        # 补充数据
+        listsum = copylist(listsum, sendCount)
+
+    return listsum
+
 def dicomSort(dicomlist, sendCount):
     dicomID = []
     # 查询 所以 dicom ID  优先组数据

@@ -401,9 +401,9 @@ class build_package(models.Model):
           部署打包信息表
         """
     id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=30, blank=True, null=True, verbose_name="构建名称")
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="构建名称")
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name="代码库")
-    branch = models.CharField(max_length=30, blank=True, null=True, verbose_name="分支")
+    branch = models.CharField(max_length=50, blank=True, null=True, verbose_name="分支")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
     packStatus = models.IntegerField(default=False, verbose_name='打包状态 0 checkout 1 build ')
@@ -420,9 +420,9 @@ class build_package(models.Model):
     def __unicode__(self):
         return self.id
 
-    @property
-    def Project(self):
-        return Project.name
+    # @property
+    # def Project(self):
+    #     return Project.name
 
     class Meta:
         verbose_name = "build_package"

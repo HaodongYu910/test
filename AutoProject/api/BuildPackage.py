@@ -77,6 +77,39 @@ class BuildDetail(APIView):
                                   }, code="0", msg="成功")
 
 
+class BuildDetailStatus(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def get(self, request):
+        """
+        获取构建详情状态
+        :param request:
+        :return:
+        """
+        try:
+            build_id = int(request.GET.get("build_id"))
+        except (TypeError, ValueError):
+            return JsonResponse(code="999985", msg="build_id must be integer!")
+        try:
+            obj = build_package.objects.get(id=build_id)
+            job = JenkinsApi()
+            jobStatus = job.buildStatus(obj.git.jenkins_job, obj.job)
+            if jobStatus == 'SUCCESS':
+                progress = 100
+            else:
+                progress = job.speedProgress(obj.git.jenkins_job, obj.job)
+            if jobStatus is None:
+                jobStatus = 'pending'
+
+            return JsonResponse(data={
+                obj.packStatus: jobStatus,
+                "progress":progress
+            }, code="0", msg="成功")
+
+        except Exception as e:
+            return JsonResponse(code="999984", msg=f"获取失败:{e}")
+
 class AddBuild(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -135,11 +168,12 @@ class UpdateBuild(APIView):
         """
         try:
             # 校验package_id类型为int
-            if not isinstance(data["package_id"], int):
-                return JsonResponse(code="999996", msg="参数有误！")
+            if not isinstance(data["build_id"], int):
+                return JsonResponse(code="999996", msg="build_id 参数有误！")
             # 必传参数 service
-            if not data["service"] or not data["code"] or not data["type"]:
-                return JsonResponse(code="999996", msg="参数有误！")
+            if not data["name"]  or not data["branch"]:
+                return JsonResponse(code="999996", msg="branch name 参数有误！")
+
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
 
@@ -155,13 +189,13 @@ class UpdateBuild(APIView):
             return result
         # 查找项目是否存在
         try:
-            obj = build_package.objects.get(id=data["package_id"])
-            if not request.user.is_superuser and obj.user.is_superuser:
-                return JsonResponse(code="999983", msg="无操作权限！")
+            obj = build_package.objects.get(id=data["build_id"])
+            # if not request.user.is_superuser and obj.user.is_superuser:
+            #     return JsonResponse(code="999983", msg="无操作权限！")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")
         # 查找是否相同名称的项目
-        build_name = build_package.objects.filter(name=data["name"]).exclude(id=data["package_id"])
+        build_name = build_package.objects.filter(name=data["name"]).exclude(id=data["build_id"])
         if len(build_name):
             return JsonResponse(code="999997", msg="存在相同构建名称")
         else:
@@ -307,6 +341,7 @@ class EnableBuild(APIView):
                 jenkins = JenkinsApi()
                 job = jenkins.build_job(obj.git.jenkins, param_dict)
                 obj.job = job
+                obj.packStatus = 0
                 obj.status = True
                 obj.save()
                 build_package_detail.objects.create(**{'name': obj.name, 'service': obj.git.name, 'code': obj.code,

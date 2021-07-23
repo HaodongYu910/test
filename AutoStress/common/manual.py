@@ -156,11 +156,5 @@ class ManualThread(threading.Thread):
         except Exception as e:
             logger.error("执行预测基准测试数据失败：{0}".format(e))
 
-    def setFlag(self, parm):  # 外部停止线程的操作函数
+    def stop(self, parm):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
-
-    def setParm(self, parm):  # 外部修改内部信息函数
-        self.Parm = parm
-
-    def getParm(self):  # 外部获得内部信息函数
-        return self.parm

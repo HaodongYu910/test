@@ -18,7 +18,7 @@ def monitor(operation="restart", host_id=1):
         ssh = SSHConnection(host=host.host, port=22, user=host.user, pwd=host.pwd)
         path = os.path.abspath(os.path.join(os.getcwd(), ".."))
         logger.info(f"path:{path}")
-        ssh.upload(f"{path}/AutoProject/script/monitor_setup.sh", "/home/biomind/")
+        ssh.upload(f"{path}/Biomind_Test_Platform/AutoProject/script/monitor_setup.sh", "/home/biomind/")
         ssh.cmd(f"sshpass -p {host.pwd} bash monitor_setup.sh")
         ssh.close()
     except Exception as e:

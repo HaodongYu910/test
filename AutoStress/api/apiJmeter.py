@@ -11,10 +11,7 @@ from ..serializers import stress_Deserializer, stress_jmeter_Serializer, stress_
 
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
-from ..common.hybrid import HybridThread
-from ..common.single import SingleThread
 from ..common.manual import ManualThread
-from ..common.stressTest import StressThread
 from ..common.jmeter import JmeterThread
 from ..common.StrategyDetail import strategyList
 

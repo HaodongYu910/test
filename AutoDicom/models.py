@@ -190,7 +190,7 @@ class duration_record(models.Model):
     model = models.CharField(max_length=30, blank=True, null=True, verbose_name="模型")
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种")
     relation_id = models.CharField(max_length=20, blank=True, null=True, verbose_name='关联id')
-    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型")
+    type = models.CharField(max_length=20, blank=True, null=True, verbose_name="类型 正常 1 匿名 2  持续化  3 night  5 单一 6 混合")
     status = models.CharField(max_length=5, blank=True, null=True, verbose_name="状态")
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
