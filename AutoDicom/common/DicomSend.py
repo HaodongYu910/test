@@ -39,6 +39,7 @@ class SendThread(threading.Thread):
 
     # 匿名数据队列
     def run(self):
+        logger.info('-----------------------------发送数据-----------------------------')
         threads = []
         try:
             for i in range(self.thread_num):
@@ -134,8 +135,8 @@ class SendThread(threading.Thread):
 
     # 更新 状态
     def UpdateStatus(self, data):
-        logger.info('UpdateStatus ')
         if data[0]:
+            logger.info(f'UpdateStatus:{data} ')
             obj = duration_record.objects.get(id=data[0])
             obj.status = data[1]
             obj.save()

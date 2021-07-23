@@ -1,8 +1,12 @@
 from django.db import transaction
 from django.db.models import Count, Case, When, Sum, Avg, Max, Min
-from ..models import stress_record, stress_result, stress
-from ..serializers import stress_result_Deserializer, stress_record_Deserializer
+from ..models import stress_result, stress
+from ..serializers import stress_result_Deserializer
+from AutoDicom.models import duration_record
+from AutoDicom.serializers import duration_record_Deserializer, duration_record_Serializer
+
 from AutoProject.common.PostgreSQL import connect_postgres
+
 from AutoProject.models import dictionary
 from AutoProject.utils.graphql.graphql import *
 
@@ -59,7 +63,7 @@ class ResultStatistics:
         """
         uids = ''
         # 测试数据查询
-        for i in stress_record.objects.filter(Stress_id=self.stressId, type=self.stressType):
+        for i in duration_record.objects.filter(relation_id=self.stressId, type=self.stressType):
             uids = uids + '\'' + str(i.studyuid) + '\','
 
         for j in ['aistatus', 'predictionrecord']:
@@ -78,25 +82,29 @@ class ResultStatistics:
                     if j == "predictionrecord":
                         data = {
                             "sec": str(i["sec"]),
-                            "start": str(i["start"])[:19],
-                            "end": str(i["end"])[:19],
-                            "aistatus": 3
+                            "start": str(i["start"]),
+                            "end": str(i["end"]),
+                            "aistatus": 3,
+                            "model": i["model"]
                         }
                     else:
                         data = {
                             "error": str(i["error"]),
                             "aistatus": str(i["aistatus"]),
-                            "job_time": str('%.2f' % (float(i["job_time"]))),
-                            "job_end": str(i["job_end"])[:19]
+                            "job_sec": str('%.2f' % (float(i["job_time"]))),
+                            "job_start": str(i["job_start"]),
+                            "job_end": str(i["job_end"]),
+                            "diagnosis": str(i["diagnosis"]),
 
                         }
                     try:
-                        recordObj = stress_record.objects.get(Stress_id=self.stressId, studyuid=i["studyuid"])
-                        serializer = stress_record_Deserializer(data=data)
+                        recordObj = duration_record.objects.get(relation_id=self.stressId, studyuid=i["studyuid"], type=self.stressType)
+                        serializer = duration_record_Serializer(data=data)
                         with transaction.atomic():
                             if serializer.is_valid():
                                 # 修改数据
                                 serializer.update(instance=recordObj, validated_data=i)
+
                     except Exception as e:
                         logger.error("数据写入失败{}".format(e))
                         continue
@@ -127,18 +135,18 @@ class ResultStatistics:
             logger.error("删除旧的性能结果数据数据失败")
 
         # 按模型 查询成功失败 数量
-        recordObj = stress_record.objects.filter(
-            Stress_id=self.obj.stressid, type=self.stressType, slicenumber__isnull=True, modelname__in=self.modelID).values("modelname").annotate(
+        recordObj = duration_record.objects.filter(
+            relation_id=self.stressId, type=self.stressType, slicenumber__isnull=True, modelname__in=self.modelID).values("model").annotate(
             count=Count(1),
             ModelAvg=Avg('sec'),
             ModelMax=Max('sec'),
             ModelMin=Min('sec'),
-            JobAvg=Avg('job_time'),
-            JobMax=Max('job_time'),
-            JobMin=Min('job_time'),
-            imagesAvg=Avg('images'),
-            imagesMax=Max('images'),
-            imagesMin=Min('images'),
+            JobAvg=Avg('job_sec'),
+            JobMax=Max('job_sec'),
+            JobMin=Min('job_sec'),
+            imagesAvg=Avg('image'),
+            imagesMax=Max('image'),
+            imagesMin=Min('image'),
             success=Count(Case(When(aistatus=3, then=0))),
             warn=Count(Case(When(aistatus=2, then=0))),
             fail=Count(Case(When(aistatus=1, then=0))),
@@ -183,19 +191,19 @@ class ResultStatistics:
         self.sliceResults()
 
     def sliceResults(self):
-        ObjRecord = stress_record.objects.filter(
-            Stress_id=self.stressId, type=self.stressType, slicenumber__isnull=False,modelname__in=self.modelID).values(
+        ObjRecord = duration_record.objects.filter(
+            Stress_id=self.stressId, type=self.stressType, slicenumber__isnull=False, model__in=self.modelID).values(
             "slicenumber").annotate(
             count=Count(1),
             ModelAvg=Avg('sec'),
             ModelMax=Max('sec'),
             ModelMin=Min('sec'),
-            JobAvg=Avg('job_time'),
-            JobMax=Max('job_time'),
-            JobMin=Min('job_time'),
-            imagesAvg=Avg('images'),
-            imagesMax=Max('images'),
-            imagesMin=Min('images'),
+            JobAvg=Avg('job_sec'),
+            JobMax=Max('job_sec'),
+            JobMin=Min('job_sec'),
+            imagesAvg=Avg('image'),
+            imagesMax=Max('image'),
+            imagesMin=Min('image'),
             success=Count(Case(When(aistatus=3, then=0))),
             warn=Count(Case(When(aistatus=2, then=0))),
             fail=Count(Case(When(aistatus=1, then=0))),
@@ -219,7 +227,7 @@ class ResultStatistics:
                 imagesMax = 0 if i["imagesMax"] is None else '%.2f' % (float(i["imagesMax"]))
                 imagesAvg = 0 if i["imagesAvg"] is None else '%.2f' % (float(i["imagesAvg"]))
                 try:
-                    modelname = stress_record.objects.filter(Stress_id=self.stressId, type=self.stressType, slicenumber=i["slicenumber"])[0]["modelname"]
+                    modelname = duration_record.objects.filter(Stress_id=self.stressId, type=self.stressType, slicenumber=i["slicenumber"])[0]["model"]
                 except:
                     modelname = 9
 

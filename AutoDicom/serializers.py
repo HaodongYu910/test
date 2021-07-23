@@ -53,7 +53,7 @@ class duration_record_Serializer(serializers.ModelSerializer):
         fields = (
             'id', 'patientid', 'patientname', 'studyinstanceuid', 'studyolduid', 'image',
             'image_receive', 'sec', 'start', 'end', 'job_sec', 'job_start', 'job_end',
-            'aistatus', 'diagnosis', 'slicenumber', 'relation_id', 'type' , 'status'
+            'aistatus', 'diagnosis', 'slicenumber', 'relation_id', 'type', 'status'
             'diseases', 'Host', 'error', 'model', 'update_time', 'create_time')
         read_only_fields = ('id',)  # 指定只读的 field
 

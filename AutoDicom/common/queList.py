@@ -38,12 +38,13 @@ def singleDicom(model, single):
             listSum = copylist(list(dicomObj), int(single))
     return listSum
 
+
 def HybridDicom(dicomlist, sendCount):
     logger.info("测试queue集合{}".format(dicomlist))
     # 查询发送数据
     obj = dicom.objects.filter(predictor__in=dicomlist,
-                                    stressstatus__in=['1', '2'],
-                                    status=True)
+                               stressstatus__in=['1', '2'],
+                               status=True)
 
     if len(obj):
         dicomList = list(obj)
@@ -59,6 +60,7 @@ def HybridDicom(dicomlist, sendCount):
         listsum = copylist(listsum, sendCount)
 
     return listsum
+
 
 def dicomSort(dicomlist, sendCount):
     dicomID = []
@@ -130,6 +132,7 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                     "patientname": patientname,
                     "slicenumber": i.slicenumber,
                     "image": i.imagecount,
+                    "model": i.predictor,
                     "diseases": i.diseases,
                     "relation_id": relation_id,
                     "type": Type,
@@ -147,7 +150,7 @@ def QueData(relation_id, Host_id, Type, DicomList, full_fn_fake, patientID=None,
                     "cur_date": get_date(),
                     "cur_time": get_time(),
                     "relation_id": relation_id,
-                 }
+                }
             except Exception as e:
                 logger.error(f"Info fail {e}")
                 continue

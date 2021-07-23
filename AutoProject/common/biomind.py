@@ -27,7 +27,7 @@ def Restart(**kwargs):
         ssh = SSHConnection(host=server.host, pwd=server.pwd)
         ssh.configure(server.host, str(server.protocol))
         logger.info("Server:{}：重启服务".format(server.host))
-        ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(server.pwd))
+        ssh.command(f"nohup sshpass -p {server.pwd} biomind restart > restart.log 2>&1 &")
         time.sleep(300)
         createUser(protocol=server.protocol, server=server.host)
         ssh.close()

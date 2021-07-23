@@ -398,7 +398,7 @@ class EnableStress(APIView):
             return result
         # 查找是否存在
         try:
-            st = StressTest(stressID=data["stressid"])
+            st = StressTest(stressID=data["stressid"], Type=data["type"])
             st.setDaemon(True)
             st.start()
 

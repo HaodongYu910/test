@@ -15,7 +15,6 @@ from django.conf import settings
 from ..models import stress_record, stress_result, stress
 
 from AutoProject.utils.graphql.graphql import *
-from AutoProject.common.biomind import Restart
 from AutoProject.models import dictionary
 from ..common.manual import ManualThread
 from AutoProject.common.transport import SSHConnection
@@ -40,19 +39,21 @@ class StressTest(threading.Thread):
 
     def run(self):
         if self.Flag is True and self.Type in ["JZ", "test"]:
+            logger.info('-----------------------------基准测试开始-----------------------------')
             self.Manual()
         elif self.Flag is True and self.Type in ["HH", "test"]:
+            logger.info('-----------------------------混合测试开始-----------------------------')
             self.Hybrid()
         elif self.Flag is True and self.Type in ["DY", "test"]:
+            logger.info('-----------------------------单一测试开始-----------------------------')
             self.Single()
 
     def Manual(self):
         try:
-            logger.info("基准测试开始")
             Manual = ManualThread(stressid=self.id, modelID=self.modelID)
             Manual.setDaemon(True)
             Manual.run()
-            Restart(id=self.obj.Host_id)
+            self.restart()
             time.sleep(300)
         except Exception as e:
             logger.error("基准测试失败：{}".format(e))
@@ -69,7 +70,7 @@ class StressTest(threading.Thread):
             self.obj.save()
         except Exception as e:
             logger.error(f"更新stress 表 数据失败:{e}")
-        logger.info('-----------------------------混合测试开始-----------------------------')
+
         if self.obj.jmeterstatus is True:
             logger.info('-----------------------------jmeter 测试开始-----------------------------')
             jmeter = JmeterThread(stressid=self.id)
@@ -77,21 +78,21 @@ class StressTest(threading.Thread):
             jmeter.start()
 
         try:
+            # 预计发送数量
             count = int(self.obj.duration) * 60
             DicomList = HybridDicom(self.obj.testdata.split(","), count)
-            logger.info(f"DicomList:{len(DicomList)}")
+            logger.info(f"Hybrid dicom list:{len(DicomList)}")
         except Exception as e:
-            logger.error(f"DicomList fail: {e}")
+            logger.error(f"Hybrid dicom list fail: {e}")
             return False
 
-        self.Send(DicomList, 6)
+        self.Send(DicomList, "HH")
 
         end_date = int(time.time()) + int(self.obj.duration)*3600
         while True:
             if int(time.time()) >= int(end_date):
                 shutil.rmtree(self.full_fn_fake)
-                Restart(id=self.obj.Host_id)
-                time.sleep(500)
+                self.restart()
                 break
 
     def Single(self):
@@ -111,21 +112,23 @@ class StressTest(threading.Thread):
                 count = int(self.obj.single) * 100
                 DicomList = singleDicom(i, count)
                 start_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.Send(DicomList, 5)
+                self.Send(DicomList, 'DY')
                 end_date = int(time.time()) + int(self.obj.single) * 3600
                 while True:
                     if int(time.time()) >= int(end_date):
                         shutil.rmtree(self.full_fn_fake)
-                        Result = ResultStatistics(
-                            stressid=self.id,
-                            stressType='DY',
-                            start_date=start_date,
-                            end_date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-                            modelID=i
-                        )
-                        Result.QueryResults()
-                        Restart(id=self.obj.Host_id)
-                        time.sleep(500)
+                        try:
+                            Result = ResultStatistics(
+                                stressid=self.id,
+                                stressType='DY',
+                                start_date=start_date,
+                                end_date=datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                modelID=i
+                            )
+                            Result.QueryResults()
+                        except Exception as e:
+                            logger.error(f"单一测试保存结果失败 ：{e}")
+                        self.restart()
                         break
 
             if self.obj.jmeterstatus is True:
@@ -137,6 +140,7 @@ class StressTest(threading.Thread):
             logger.error("单一测试失败：{}".format(e))
 
     def Send(self, DicomList, Type):
+        logger.info('-----------------------------生成队列-----------------------------')
         try:
             que = QueData(
                 relation_id=self.id,
@@ -206,6 +210,16 @@ class StressTest(threading.Thread):
     #             logger.info("Forecast not completed sleep 300")
     #             time.sleep(300)
     #             a = a + 1
+    # 重启服务器
+    def restart(self):
+        try:
+            ssh = SSHConnection(host=self.obj.Host.host, pwd=self.obj.Host.pwd)
+            logger.info("Server:{}：重启服务".format(self.obj.Host.host))
+            ssh.command(f"nohup sshpass -p {self.obj.Host.pwd} biomind restart &")
+            time.sleep(500)
+            ssh.close()
+        except Exception as e:
+            logger.error("Server::{0}：重启服务失败----失败原因：{1}".format(self.obj.Host.host, e))
 
     def stop(self, parm=False):  # 外部停止线程的操作函数
         self.Flag = parm  # boolean
