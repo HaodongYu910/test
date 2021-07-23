@@ -34,28 +34,31 @@
         <div class="con">
             <div class="con-item con-title">
                 <span class="con-name">构建名称</span>
-                <span>创建时间</span>
                 <span>服务单元</span>
+                <span>分支</span>
                 <span>环境</span>
+                <span>创建时间</span>
                 <span>状态</span>
                 <span>操作</span>
             </div>
 
             <div class="con-item" v-for="(item, index) in buildList" :key="index">
                 <span>{{ item.name }}</span>
-                <span>{{ item.create_time }}</span>
                 <span>{{ item.service }}</span>
+                <span>{{ item.branch }}</span>
                 <span>测试</span>
+                <span>{{ item.create_time }}</span>
                 <span>
           <span class="status" :class="item.status === 0 ? 'success' : 'failed'"
           >部署成功</span
           >
         </span>
                 <span class="operation">
-          <el-button type="text" class="operation-item" :disabled="true"
-          >构建</el-button
-          >
-          <el-button type="text" class="operation-item" @click="jumpDetail"
+          <el-button type="text" class="operation-item"
+                                       @click="handleChangeStatus(item)">
+                                {{item.status===false?'构建':'停止'}}
+                            </el-button>
+          <el-button type="text" class="operation-item" @click="jumpDetail(item)"
           >流水线</el-button
           >
           <el-button type="text" class="operation-item">日志</el-button>
@@ -142,6 +145,8 @@
         submitPublishAddTaskService,
         submitPublishUpdateTaskService,
         submitPublishDeleteTaskService,
+        PublishEnableTaskService,
+        PublishDisableTaskService,
         queryGitBranchService,
         queryGit,
         getHost
@@ -176,11 +181,13 @@
             this.queryPublishList();
         },
         methods: {
-            jumpDetail() {
+            jumpDetail(item) {
                 this.$router.push({
-                    path: "/publish-detail",
+                    path: "/PublishDetail",
                     query: {
-                        id: "",
+                        id: item.id,
+                        jenkins_job: item.jenkins_job,
+                        jenkins_view: item.jenkins_view,
                     },
                 });
             },
@@ -210,7 +217,7 @@
                 const params = {
                     name: this.buildName,
                     code: this.githubName,
-                    service:this.branchName[0],
+                    git:this.branchName[0],
                     branch: this.branchName[1],
                     Host: this.createModeType,
                     user: JSON.parse(sessionStorage.getItem('token')),
@@ -220,7 +227,14 @@
                 submitPublishAddTaskService(headers, params).then((res) => {
                     const {data = {},msg, code} = res;
                     if (code === "0") {
-                        this.$message.info({
+                        this.dialogVisible= false;
+                        this.$message.success({
+                            message: msg,
+                            center: true
+                        })
+                        this.queryPublishList();
+                    }else {
+                        this.$message.error({
                             message: msg,
                             center: true
                         })
@@ -339,6 +353,59 @@
                 //     return;
                 // }
             },
+            // 构建 : 停止
+            handleChangeStatus: function (item) {
+                let self = this;
+                this.listLoading = true;
+                let params = {
+                    build_package_id: item.id,
+                    project_id:this.project_id
+                };
+                let headers = {
+                    "Content-Type": "application/json",
+                    Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
+                };
+                if (item.status) {
+                    PublishDisableTaskService(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '停止成功',
+                                center: true,
+                                type: 'success'
+                            });
+                            item.status = !item.status;
+                            this.queryPublishList();
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                } else {
+                    PublishEnableTaskService(headers, params).then(_data => {
+                        let {msg, code, data} = _data;
+                        self.listLoading = false;
+                        if (code === '0') {
+                            self.$message({
+                                message: '构建开始',
+                                center: true,
+                                type: 'success'
+                            });
+                            item.status = !item.status;
+                            this.queryPublishList();
+                        } else {
+                            self.$message.error({
+                                message: msg,
+                                center: true,
+                            })
+                        }
+                    });
+                }
+            }
+            ,
             replaceSpace(str) {
                 if (!str) return str;
                 let rule = /\r|\n|\s/g;

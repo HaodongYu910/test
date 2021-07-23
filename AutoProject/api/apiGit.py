@@ -32,12 +32,13 @@ class getGitBranch(APIView):
         :return:
         """
         try:
-            children = []
+
             groupOptions = []
             project_id = request.GET.get("project_id", 1)
             try:
                 Obj = project_git.objects.filter(status=True, Project_id=project_id).order_by("-id")
                 for i in Obj:
+                    children = []
                     Branch = GitMethod().gitBranch(i.gitname)
                     for j in Branch:
                         children.append(
@@ -48,7 +49,7 @@ class getGitBranch(APIView):
                         )
 
                     groupOptions.append({
-                        "value": i.name,
+                        "value": i.id,
                         "label": i.name,
                         "children": children
                     })

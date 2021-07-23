@@ -144,6 +144,31 @@ class project_version(models.Model):
         verbose_name_plural = "project_version"
         db_table = 'project_version'
 
+class project_git(models.Model):
+    """
+          项目git 仓库存储
+        """
+    id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="项目名称")
+    gitname = models.CharField(max_length=80, blank=True, null=True, verbose_name="仓库名")
+    code = models.CharField(max_length=100, blank=True, null=True, verbose_name="代码库")
+    jenkins = models.CharField(max_length=50, blank=True, null=True, verbose_name="jenkins")
+    jenkins_view = models.CharField(max_length=50, blank=True, null=True, verbose_name="jenkins_view")
+    jenkins_job = models.CharField(max_length=50, blank=True, null=True, verbose_name="jenkins_job")
+    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    status = models.BooleanField(default=False, verbose_name='状态')
+    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
+    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "project_git"
+        verbose_name_plural = "project_git"
+        db_table = 'project_git'
+
 
 class ProjectDynamic(models.Model):
     """
@@ -151,6 +176,7 @@ class ProjectDynamic(models.Model):
     """
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, related_name='dynamic_project', on_delete=models.CASCADE, verbose_name='所属项目')
+    module = models.CharField(max_length=50, blank=True, null=True, verbose_name='模块')
     time = models.DateTimeField(max_length=128, verbose_name='操作时间')
     type = models.CharField(max_length=50, verbose_name='操作类型')
     operationObject = models.CharField(max_length=50, verbose_name='操作对象')
@@ -376,14 +402,15 @@ class build_package(models.Model):
         """
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30, blank=True, null=True, verbose_name="构建名称")
-    service = models.CharField(max_length=30, blank=True, null=True, verbose_name="服务单元")
     code = models.CharField(max_length=50, blank=True, null=True, verbose_name="代码库")
     branch = models.CharField(max_length=30, blank=True, null=True, verbose_name="分支")
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
     packStatus = models.IntegerField(default=False, verbose_name='打包状态 0 checkout 1 build ')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
+    job = models.IntegerField(default=False, verbose_name='job ID')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
+    git = models.ForeignKey(project_git, null=True,  on_delete=models.CASCADE, verbose_name='关联项目')
     rely = models.BooleanField(default=False, verbose_name='依赖状态')
     status = models.BooleanField(default=False, verbose_name='状态')
     Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
@@ -394,8 +421,8 @@ class build_package(models.Model):
         return self.id
 
     @property
-    def pwd(self):
-        return Server.pwd
+    def Project(self):
+        return Project.name
 
     class Meta:
         verbose_name = "build_package"
@@ -415,11 +442,12 @@ class build_package_detail(models.Model):
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     crontab = models.CharField(max_length=30, blank=True, null=True, verbose_name="定时")
     packStatus = models.IntegerField(default=False, verbose_name='部署状态 0升级安装 1全新安装')
+    build = models.ForeignKey(build_package, null=True, on_delete=models.CASCADE, verbose_name='build')
     Host = models.ForeignKey(Server, null=True, on_delete=models.CASCADE, verbose_name='Host')
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
     rely = models.BooleanField(default=False, verbose_name='依赖状态')
+    job = models.IntegerField(default=False, verbose_name='job ID')
     status = models.BooleanField(default=False, verbose_name='状态')
-    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
@@ -432,25 +460,4 @@ class build_package_detail(models.Model):
         db_table = 'build_package_detail'
 
 
-class project_git(models.Model):
-    """
-          项目git 仓库存储
-        """
-    id = models.AutoField(primary_key=True)
-    name = models.CharField(max_length=50, blank=True, null=True, verbose_name="项目名称")
-    gitname = models.CharField(max_length=80, blank=True, null=True, verbose_name="仓库名")
-    code = models.CharField(max_length=100, blank=True, null=True, verbose_name="代码库")
-    jenkins = models.CharField(max_length=50, blank=True, null=True, verbose_name="jenkins")
-    Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
-    user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
-    status = models.BooleanField(default=False, verbose_name='状态')
-    update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
-    create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")
 
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "project_git"
-        verbose_name_plural = "project_git"
-        db_table = 'project_git'

@@ -159,7 +159,7 @@ def del_task_crontab(project):
     my_user_cron.write()
 
 
-def record_dynamic(project, _type, operationObject,  user, data):
+def record_dynamic(project, _type, operationObject,  user, data, module='project'):
     """
     记录动态
     :param project: 项目ID
@@ -167,12 +167,14 @@ def record_dynamic(project, _type, operationObject,  user, data):
     :param operationObject:  操作对象
     :param user:  用户ID
     :param data:  操作内容
+    :param module: 操作的模块
     :return:
     """
     time = datetime.datetime.now()
     dynamic_serializer = ProjectDynamicDeserializer(
         data={
             "time": time,
+            'module': module,
             "project": project, "type": _type,
             "operationObject": operationObject, "user": user,
             "description": data
