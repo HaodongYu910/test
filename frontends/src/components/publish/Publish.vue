@@ -56,7 +56,7 @@
                 <span class="operation">
           <el-button type="text" class="operation-item"
                                        @click="handleChangeStatus(item)">
-                                {{item.status===false?'构建':'停止'}}
+                                {{item.build_status===false?'构建':'停止'}}
                             </el-button>
           <el-button type="text" class="operation-item" @click="jumpDetail(item)"
           >流水线</el-button
@@ -365,7 +365,7 @@
                     "Content-Type": "application/json",
                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
                 };
-                if (item.status) {
+                if (item.build_status) {
                     PublishDisableTaskService(headers, params).then(_data => {
                         let {msg, code, data} = _data;
                         self.listLoading = false;
@@ -375,7 +375,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            item.status = !item.status;
+                            item.build_status = !item.build_status;
                             this.queryPublishList();
                         } else {
                             self.$message.error({
@@ -394,7 +394,7 @@
                                 center: true,
                                 type: 'success'
                             });
-                            item.status = !item.status;
+                            item.build_status = !item.build_status;
                             this.queryPublishList();
                         } else {
                             self.$message.error({

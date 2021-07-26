@@ -2,6 +2,7 @@
 # coding=utf-8
 
 import jenkins
+import time
 from django.conf import settings
 
 __author__ = "vte"
@@ -12,14 +13,18 @@ __version__ = "0.0.1"
 class JenkinsApi:
     def __init__(self, url='http://10.10.10.2:8095/', username='admin', password='hana#ony'):
         """
-                 链接 Jenkins 服务
-              """
+            链接 Jenkins 服务
+            parm：
+            url：Jenkins 地址
+            username: admin 用户名
+            password：密码
+        """
         self.JenkinsServer = jenkins.Jenkins(url, username=username, password=password)
 
     def get_job(self, jobName):
         """
             获取全部job 信息
-                      """
+        """
         job = self.JenkinsServer.get_jobs(jobName)
 
         return job
@@ -34,8 +39,6 @@ class JenkinsApi:
         # Refer Example #1 for definition of function 'get_server_instance'
         job = self.JenkinsServer.get_job_info(name)
         number = job['builds'][0]["number"]  # 构建版本
-        print(number)
-
 
         for i in range(int(number)):
             try:
@@ -72,12 +75,25 @@ class JenkinsApi:
                 """
         self.JenkinsServer.stop_build(job_name, number)
 
+    def buildStatus(self, job_name, number):
+        build_state = self.JenkinsServer.get_build_info(job_name, number)['result']
+        return build_state
+
+    def speedProgress(self, job_name, number):
+        job_info = self.JenkinsServer.get_build_info(job_name, number)
+        job_start_time = job_info['timestamp']  # 任务启动时间
+        now_timestamp = int(round(time.time() * 1000))  # 当前时间戳
+        estimatedDuration = job_info['estimatedDuration']  # 上次构建时间
+        building_process = int(((now_timestamp - job_start_time) / estimatedDuration) * 100) if estimatedDuration > -1 else -1  # 如果estimatedDuration是-1，则说明是首次构建
+        if building_process >= 100:
+            building_process = 99  # 因为是预估，即使超过了100，也位于99
+        return building_process
 
 
 if __name__ == '__main__':
     # 构建参数化job
-    a = JenkinsApi()
-    a.get_job("Radiology_Prod_Build")
+
+
     # print(a.build_job("install", {"reset": 0,
     #                               "passwd": "biomind",
     #                               "path": "oss://biomind/Radiology/Prod/2.20.10-radiology2.tgz",
@@ -85,6 +101,3 @@ if __name__ == '__main__':
     #                               "package_name": "2.20.10-radiology2.tgz",
     #                               "environment": "187"}))
     pass
-
-
-

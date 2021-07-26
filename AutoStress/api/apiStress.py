@@ -11,15 +11,13 @@ from ..serializers import stress_Deserializer, stress_result_Deserializer, stres
 
 from AutoDicom.common.dicomBase import baseTransform
 from AutoDicom.common.deletepatients import *
-from ..common.hybrid import HybridThread
-from ..common.single import SingleThread
+
 from ..common.manual import ManualThread
-from ..common.stressTest import StressThread
-from ..common.jmeter import JmeterThread
+from ..common.stress import StressTest
 from ..common.StrategyDetail import strategyList
 
 from AutoProject.models import uploadfile, project_version
-from AutoProject.serializers import uploadfile_Deserializer
+
 from ..models import stress, stress_record, stress_result
 import os
 import shutil
@@ -59,32 +57,9 @@ class stressRun(APIView):
         if result:
             return result
         try:
-            # 基准测试
-            if data['type'] == 'JZ':
-                Manual = ManualThread(stressid=stressId, modelID=data['modelId'])
-                Manual.setDaemon(True)
-                Manual.start()
-            # 混合测试
-            elif data['type'] == 'HH':
-                Hybrid = HybridThread(stressid=stressId)
-                Hybrid.setDaemon(True)
-                Hybrid.start()
-            # 单一测试
-            elif data['type'] == 'DY':
-                single = SingleThread(stressid=stressId, modelID=data['modelId'])
-                single.setDaemon(True)
-                single.start()
-            # jmeter测试
-            elif data['type'] == 'jmeter':
-                jmeter = JmeterThread(stressid=stressId)
-                jmeter.setDaemon(True)
-                jmeter.start()
-            # 性能测试
-            else:
-                logger.info("全部测试开始")
-                stresstest = StressThread(stressid=stressId)
-                stresstest.setDaemon(True)
-                stresstest.start()
+            st = StressTest(stressID=stressId, modelID=data['modelId'], Type=data['type'])
+            st.setDaemon(True)
+            st.start()
 
             return JsonResponse(code="0", msg="运行成功")
         except Exception as e:
@@ -125,26 +100,18 @@ class stressStop(APIView):
             obj.status = False
             obj.teststatus = '已停止'
             obj.save()
-            if obj.teststatus == "单一测试":
-                stoptest = SingleThread(stressid=stressid)
-
-            elif obj.teststatus == "混合开始":
-                stoptest = HybridThread(stressid=stressid)
-                # 删除文件夹
-                try:
-                    folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))
-                    if os.path.exists(folder):
-                        shutil.rmtree(folder)
-                except Exception as e:
-                    logger.error("删除文件夹失败：{}".format(e))
-
-            elif obj.teststatus == "基准测试":
-                stoptest = ManualThread(stressid=stressid)
+            if obj.teststatus == "基准测试":
+                stop = ManualThread(stressid=stressid, modelID='')
             else:
-                stoptest = StressThread(stressid=stressid)
-
-            # 设为保护线程，主进程结束会关闭线程
-            stoptest.setFlag = False
+                stop = StressTest(stressID=stressid, Type='')
+            stop.stop = False
+            # 删除文件夹
+            try:
+                folder = "/home/biomind/Biomind_Test_Platform/logs/ST{0}".format(str(obj.stressid))
+                if os.path.exists(folder):
+                    shutil.rmtree(folder)
+            except Exception as e:
+                logger.error("删除文件夹失败：{}".format(e))
 
             return JsonResponse(code="0", msg="已停止")
         except Exception as e:
@@ -431,9 +398,9 @@ class EnableStress(APIView):
             return result
         # 查找是否存在
         try:
-            stresstest = StressThread(stressid=data["stressid"])
-            stresstest.setDaemon(True)
-            stresstest.start()
+            st = StressTest(stressID=data["stressid"], Type=data["type"])
+            st.setDaemon(True)
+            st.start()
 
             return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:

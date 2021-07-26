@@ -66,29 +66,14 @@ def DurationSyTask():
             try:
                 _result = connect_postgres(host=k, sql=Psql, database="orthanc")
                 _dict = _result.to_dict(orient='records')
-                for ii in _dict:
-                    obj = duration_record.objects.filter(studyinstanceuid=ii["studyuid"])
-                    if int(len(obj)) == 1:
-                        try:
-                            obj = duration_record.objects.get(studyinstanceuid=ii["studyuid"])
-                            obj.sec = ii["sec"]
-                            obj.model = ii["model"]
-                            obj.start = ii["start"]
-                            obj.end = ii["end"]
-                            obj.save()
-                        except Exception as e:
-                            logger.error(
-                                '[Schedule Synchronization DurationSyTask Error]:predictionsec fail '.format(e))
-                            continue
-                    elif int(len(obj)) > 1:
-                        for kk in obj:
-                            kk.sec = ii["sec"]
-                            kk.model = ii["model"]
-                            kk.start = ii["start"]
-                            kk.end = ii["end"]
-                            kk.save()
-                    else:
-                        continue
+                for j in _dict:
+                    obj = duration_record.objects.filter(studyinstanceuid=j["studyuid"])
+                    for i in obj:
+                        i.sec = j["sec"]
+                        i.model = j["model"]
+                        i.start = j["start"]
+                        i.end = j["end"]
+                        i.save()
             except Exception as e:
                 logger.error('[Schedule DurationSyTask Error]: error '.format(e))
                 continue
@@ -115,33 +100,15 @@ def JobSyTask():
                 resultdict = result.to_dict(orient='records')
                 for j in resultdict:
                     obj = duration_record.objects.filter(studyinstanceuid=j["studyuid"])
-                    if int(len(obj)) == 1:
-                        try:
-                            obj = duration_record.objects.get(studyinstanceuid=j["studyuid"])
-                            obj.image_receive = j["image_receive"]
-                            obj.aistatus = j["aistatus"]
-                            obj.error = j["error"]
-                            obj.diagnosis = j["diagnosis"]
-                            obj.job_sec = j["job_sec"]
-                            obj.job_end = j["job_end"]
-                            obj.job_start = j["job_start"]
-                            obj.save()
-                        except Exception as e:
-                            logger.error('[Schedule Task Error]:duration_record update fail '.format(e))
-                            continue
-                    elif int(len(obj)) > 1:
-                        for kk in obj:
-                            kk.image_receive = j["image_receive"]
-                            kk.aistatus = j["aistatus"]
-                            kk.error = j["error"]
-                            kk.diagnosis = j["diagnosis"]
-                            kk.job_sec = j["job_sec"]
-                            kk.job_end = j["job_end"]
-                            kk.job_start = j["job_start"]
-                            kk.save()
-                    else:
-                        continue
-
+                    for i in obj:
+                        i.image_receive = j["image_receive"]
+                        i.aistatus = j["aistatus"]
+                        i.error = j["error"]
+                        i.diagnosis = j["diagnosis"]
+                        i.job_sec = j["job_sec"]
+                        i.job_end = j["job_end"]
+                        i.job_start = j["job_start"]
+                        i.save()
             except Exception as e:
                 logger.error('[Schedule JobSyTask Error]: error '.format(e))
                 continue

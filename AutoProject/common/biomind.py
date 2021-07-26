@@ -19,7 +19,6 @@ from AutoProject.common.message import sendMessage
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
 
-# biomind命令
 # 服务器重启
 def Restart(**kwargs):
     try:
@@ -27,10 +26,10 @@ def Restart(**kwargs):
         ssh = SSHConnection(host=server.host, pwd=server.pwd)
         ssh.configure(server.host, str(server.protocol))
         logger.info("Server:{}：重启服务".format(server.host))
-        ssh.command("nohup sshpass -p {} biomind restart > restart.log 2>&1 &".format(server.pwd))
+        ssh.command(f"nohup sshpass -p {server.pwd} biomind restart > restart.log 2>&1 &")
         time.sleep(300)
         createUser(protocol=server.protocol, server=server.host)
-        ssh.close()
+
     except Exception as e:
         logger.error("Server::{0}：重启服务失败----失败原因：{1}".format(server.host, e))
 
@@ -121,27 +120,3 @@ def durationTest(**kwargs):
         durationSend(obj.id)
     except Exception as e:
         logger.error("Version:{0}：执行持续化测试报错{1}".format(kwargs["version"], e))
-
-# 创建UI测试且执行
-# def UiTest(**kwargs):
-#     try:
-#         data = {"version": self.obj.version,
-#                 "setup": "1",
-#                 "cases": "1",
-#                     "tearDown": "1",
-#                     "status": True,
-#                     "hostid": self.obj.hostid,
-#                     "thread": 1
-#                     }
-#             logger.info("Nightly Build Version:{}：创建UI测试".format(self.version))
-#             uobj = autoui.objects.create(**data)
-#             self.obj.type = 6
-#             self.obj.uid = uobj.id
-#             self.obj.save()
-#             # testThread = GoldThread(smokeobj.id)
-#             # # 设为保护线程，主进程结束会关闭线程
-#             # testThread.setDaemon(True)
-#             # # 开始线程
-#             # testThread.start()
-#         except Exception as e:
-#             logger.error("Nightly Build Version:{0}：执行UI自动化报错{1}".format(self.version, e))

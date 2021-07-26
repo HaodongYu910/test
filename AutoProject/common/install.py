@@ -33,6 +33,7 @@ class InstallThread(threading.Thread):
     def Reset(self):
         self.reset = "y"
         try:
+            logger.info("删除开始")
             sendMessage(touser='', toparty='132', message='【安装部署】： - 开始删除旧版本')
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：停止旧服务，删除旧版本")
             self.ssh.cmd(f"sshpass -p {self.pwd} biomind stop;")
@@ -54,7 +55,6 @@ class InstallThread(threading.Thread):
 
     def checkDisk(self):
         self.installStatus(status=True, type=2)
-        # 删除旧缓存
         try:
             sendMessage(touser='', toparty='132', message='【安装部署】：（{0}）安装部署开始'.format(self.obj.Host.host))
             AddJournal(name="Installation{}".format(self.id), content="【安装部署】：删除旧缓存\n")
@@ -73,22 +73,23 @@ class InstallThread(threading.Thread):
             if int(size[:-1]) > 90:
                 sendMessage(touser='', toparty='132', message='【注意】： {0} 磁盘空间已使用：{1}'.format(self.obj.Host.host, size))
                 sendMessage(touser='', toparty='132', message='【注意】： {0} {1}'.format(self.obj.Host.host, Disk))
+            if self.obj.installstatus is True:
+                self.Reset()
         except Exception as e:
             logger.error(e)
 
     def run(self):
         try:
-            self.obj.starttime = datetime.datetime.now()
-            if self.obj.installstatus is True:
-                self.Reset()
             self.installStatus(status=True, type=1)
+            self.obj.starttime = datetime.datetime.now()
             self.checkDisk()
             # 上传安装版本
             try:
                 if self.Flag is True:
                     self.installStatus(status=True, type=3)
-                    self.ssh.upload('{}/AutoProject/script/install_qa.sh'.format(settings.BASE_DIR),
-                                    '/home/biomind/install_qa.sh')
+                    #
+                    # self.ssh.upload(f'{settings.BASE_DIR}/AutoProject/script/install_qa.sh',
+                    #                 '/home/biomind/install_qa.sh')
                     AddJournal(name="Installation{}".format(self.id), content="【安装部署】：rclone 下载安装版本\n")
 
                     self.ssh.command(
