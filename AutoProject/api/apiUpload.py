@@ -69,19 +69,21 @@ class AddUpload(APIView):
                 os.makedirs(file_path)
             File = request.FILES.get("file", None)
 
-            with open("{0}/{1}".format(file_path,File.name) , 'wb+') as f:
+            with open("{0}/{1}".format(file_path, File.name), 'wb+') as f:
                 # 分块写入文件
                 for chunk in File.chunks():
                     f.write(chunk)
 
-            data={
+            fileData = uploadfile.objects.create(**{
                 "filename": File.name,
                 "fileurl": file_path,
                 "type": filetype,
                 "status": True
+            })
+            return JsonResponse(code="0", msg="成功", data={
+                "filename": File.name,
+                "fileid": fileData.id
             }
-            filedata = uploadfile.objects.create(**data)
-            return JsonResponse(code="0", msg="成功",data={"filename":File.name,"fileid": filedata.id}
                                 )
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="没有需要上传的文件！")

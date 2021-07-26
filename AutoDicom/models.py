@@ -15,6 +15,7 @@ class dicom(models.Model):
     diseases = models.CharField(max_length=20, blank=True, null=True, verbose_name="病种类型")
     slicenumber = models.CharField(max_length=6, blank=True, null=True, verbose_name="肺炎层厚")
     imagecount = models.CharField(max_length=5, blank=True, null=True, verbose_name="张数")
+    total = models.IntegerField(blank=True, null=True, verbose_name="共计")
     vote = models.CharField(max_length=800, blank=True, null=True, verbose_name="挂载")
     graphql = models.TextField(max_length=5000, blank=True, null=True, verbose_name="graphql")
     fileid = models.CharField(max_length=5, blank=True, null=True, verbose_name="文件ID")

@@ -86,6 +86,26 @@ class UserProfile(models.Model):
         return self.phone
 
 
+class dictionary(models.Model):
+    """
+          dictionary 表
+        """
+    id = models.AutoField(primary_key=True)
+    key = models.CharField(max_length=50, blank=True, null=True, verbose_name="key")
+    value = models.CharField(max_length=2500, blank=True, null=True, verbose_name="value")
+    remarks = models.CharField(max_length=500, blank=True, null=True, verbose_name="说明")
+    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
+    status = models.BooleanField(default=False, verbose_name='状态')
+
+    def __unicode__(self):
+        return self.id
+
+    class Meta:
+        verbose_name = "dictionary表"
+        verbose_name_plural = "dictionary表"
+        db_table = 'dictionary'
+
+
 class Project(models.Model):
     """
     项目表
@@ -233,6 +253,7 @@ class Server(models.Model):
     protocol = models.CharField(max_length=10, blank=True, null=True, verbose_name='协议')
     user = models.CharField(max_length=20, verbose_name='用户名')
     pwd = models.CharField(max_length=50, verbose_name='密码')
+    type = models.ForeignKey(dictionary, null=True, on_delete=models.CASCADE, verbose_name='类型')
     remarks = models.CharField(max_length=50, verbose_name='备注')
     description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
     status = models.BooleanField(default=True, verbose_name='状态')
@@ -250,26 +271,6 @@ class Server(models.Model):
         verbose_name = 'Server'
         verbose_name_plural = 'Server管理'
         db_table = 'Server'
-
-
-class dictionary(models.Model):
-    """
-          dictionary 表
-        """
-    id = models.AutoField(primary_key=True)
-    key = models.CharField(max_length=50, blank=True, null=True, verbose_name="key")
-    value = models.CharField(max_length=2500, blank=True, null=True, verbose_name="value")
-    remarks = models.CharField(max_length=500, blank=True, null=True, verbose_name="说明")
-    type = models.CharField(max_length=10, blank=True, null=True, verbose_name="类型")
-    status = models.BooleanField(default=False, verbose_name='状态')
-
-    def __unicode__(self):
-        return self.id
-
-    class Meta:
-        verbose_name = "dictionary表"
-        verbose_name_plural = "dictionary表"
-        db_table = 'dictionary'
 
 
 class dds_data(models.Model):
@@ -412,6 +413,7 @@ class build_package(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name='用户')
     git = models.ForeignKey(project_git, null=True,  on_delete=models.CASCADE, verbose_name='关联项目')
     rely = models.BooleanField(default=False, verbose_name='依赖状态')
+    build_status = models.BooleanField(default=False, verbose_name='build状态')
     status = models.BooleanField(default=False, verbose_name='状态')
     Project = models.ForeignKey(Project, null=True, on_delete=models.CASCADE, verbose_name='Project')
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")

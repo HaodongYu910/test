@@ -18,7 +18,7 @@ from .api.apiSonar import getsonar
 from .api.apiVersion import getVersionInfo, getVersion, AddVersion, UpdateVersion, DelVersion,\
     DisableVersion, EnableVersion, SaveVersion
 from .api.BuildPackage import BuildList, UpdateBuild, AddBuild, DelBuild, DisableBuild, \
-    EnableBuild, BuildDetail, BuildDetailStatus
+    EnableBuild, BuildDetail, BuildDetailStatus, BuildStatus
 from .api.apiGit import getGitBranch, getProjectGit
 from .api.user_info import userInfo, AddUser, UpdateUser, DelUser, EnableUser, DisableUser
 # Routers provide an easy way of slicenumberally determining the URL conf.
@@ -73,11 +73,12 @@ urlpatterns = [
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
     url(r'git/projectlist', getProjectGit.as_view()), # git 仓库
+    url(r'build/UpateStatus', BuildStatus.as_view()),
     url(r'build/list', BuildList.as_view()),
     url(r'build/detail', BuildDetail.as_view()),
-    url(r'build/Status', BuildDetailStatus.as_view()),
+    url(r'build/DetailStatus', BuildDetailStatus.as_view()),
     url(r'build/add', AddBuild.as_view()),
-    url(r'build/update', UpdateBuild.as_view()),
+    url(r'build/update', UpdateBuild.as_view()), # 修改
     url(r'build/del', DelBuild.as_view()),
     url(r'build/disable', DisableBuild.as_view()),
     url(r'build/enable', EnableBuild.as_view()),

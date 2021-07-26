@@ -27,11 +27,6 @@ class SSHConnection:
         self.__transport.connect(username=self.user, password=self.pwd)
         self.sftp = paramiko.SFTPClient
 
-    # 关闭通道
-    def close(self):
-        self.sftp.close()
-        self.__transport.close()
-
     # 上传文件到远程主机
     def upload(self, local_path, remote_path):
         self.sftp.put(local_path, remote_path)
@@ -61,7 +56,7 @@ class SSHConnection:
         try:
             list = self.sftp.listdir_attr(target_path)
         except BaseException as e:
-            print(e)
+            print( e )
         return list
 
     # 获取文件详情
@@ -73,25 +68,23 @@ class SSHConnection:
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
         ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command, get_pty=True)
-        logger.debug(stdout)
+        stdin, stdout, stderr = ssh.exec_command( command, get_pty=True )
+        logger.debug( stdout )
         result = stdout.read()
         return result
-
 
     # SSHClient输入命令远程操作主机
     def shcmd(self, command):
         ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy)
+        ssh.set_missing_host_key_policy( paramiko.AutoAddPolicy )
         ssh._transport = self.__transport
-        stdin, stdout, stderr = ssh.exec_command(command, timeout=10)
-        stdin.write("yes\n")
+        stdin, stdout, stderr = ssh.exec_command( command, timeout=10 )
+        stdin.write( "yes\n" )
         out, err = stdout.read(), stderr.read()
-        logger.debug(stdout)
+        logger.debug( stdout )
         result = stdout.read()
 
         return result
-
 
     def configure(self, host, PROTOCOL):
 
@@ -111,21 +104,30 @@ class SSHConnection:
     def command(self, cmd, result_print=None, nohup=False):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(hostname=self.host, port=self.port, username=self.user,
+        ssh.connect(hostname=self.host,
+                    port=self.port,
+                    username=self.user,
                     password=self.pwd)
         if nohup:
             cmd += ' & \n '
             invoke = ssh.invoke_shell()
-            invoke.send(cmd)
+            invoke.send( cmd )
             # 等待命令执行完成
             time.sleep(2)
         else:
-            stdin, stdout, stderr = ssh.exec_command(cmd)
+            stdin, stdout, stderr = ssh.exec_command( cmd )
             result = stdout.read()
             if result_print:
                 lines = result
                 for line in lines:
-                    print(line)
+                    print( line )
+
+    # 关闭通道
+    def close(self):
+        self.sftp.close()
+        self.__transport.close()
+
+
 #
 # if __name__ == '__main__':
 #     ssh = SSHConnection()
@@ -133,3 +135,12 @@ class SSHConnection:
 #     print(bytes.decode(a))
 #
 #     ssh.close()
+
+#!/bin/expect
+
+
+
+
+
+
+

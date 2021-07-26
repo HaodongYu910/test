@@ -210,7 +210,7 @@ class build_packageDeserializer(serializers.ModelSerializer):
         model = build_package
         fields = (
             'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git',
-            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user')
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'build_status')
 
 
 class build_packageSerializer(serializers.ModelSerializer):
@@ -228,7 +228,7 @@ class build_packageSerializer(serializers.ModelSerializer):
         model = build_package
         fields = (
             'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git', 'jenkins_job',
-            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'jenkins_view'
+            'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'jenkins_view', 'build_status'
         )
 
 
