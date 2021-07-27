@@ -30,7 +30,7 @@ class test(APIView):
 
         # data = JSONParser().parse(request)
         try:
-            JobSyTask()
+            NightlyReportTask()
             DurationSyTask()
             return JsonResponse(code="0", msg="成功")
         except Exception as e:

@@ -132,7 +132,6 @@ class SendThread(threading.Thread):
     # 更新 状态
     def UpdateStatus(self, data):
         if data[0]:
-            logger.info(f'UpdateStatus:{data} ')
             obj = duration_record.objects.get(id=data[0])
             obj.status = data[1]
             obj.save()
@@ -149,7 +148,7 @@ class SendThread(threading.Thread):
         try:
             tamp = int(round(time.time() * 1000000000))
             influxdata = f'test,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},patientid={info["patientid"]},patientname={info["patientname"]},cur_time={info["cur_time"]},cur_date={info["cur_date"]},file={file_data[0]},file_url={file_data[1]},error={error} value={info["time"]} {tamp}'
-
+            logger.info(f"influxdata:{influxdata}")
             requests.post('http://192.168.1.120:8089/write?db=auto_test', data=influxdata)
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))

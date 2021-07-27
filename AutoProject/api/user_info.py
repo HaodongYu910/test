@@ -109,7 +109,7 @@ class UpdateUser(APIView):
         if result:
             return result
         try:
-            token =Token.objects.get(key=data["token"])
+            token = Token.objects.get(key=data["token"])
             user = User.objects.get(id=token.user_id)
         except EnvironmentError:
             return JsonResponse(code="999995", msg="数据不存在！")

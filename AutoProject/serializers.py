@@ -209,7 +209,7 @@ class build_packageDeserializer(serializers.ModelSerializer):
     class Meta:
         model = build_package
         fields = (
-            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git',
+            'id', 'name', 'service', 'type', 'code', 'branch', 'status', 'crontab', 'git'
             'packStatus', 'rely', 'Host', 'create_time', 'update_time', 'user', 'build_status')
 
 

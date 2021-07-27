@@ -175,7 +175,7 @@ def DurationReportTask():
 
 def NightlyReportTask():
     logger.info("持续化报告定时任务启动！~~")
-    obj = duration.objects.filter(status=True, type='Nightly')
+    obj = duration.objects.filter(status=True, type=3)
     for i in obj:
         try:
             record = duration_record.objects.filter(relation_id=i.id).values(
