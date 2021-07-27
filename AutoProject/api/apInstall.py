@@ -11,7 +11,7 @@ from AutoProject.serializers import install_Deserializer
 from ..common.install import InstallThread
 from ..common.installReport import InstallReportThread
 from AutoDicom.common.deletepatients import *
-from ..models import install, Server ,project_version
+from ..models import install, Server, project_version
 from ..common.Journal import readJournal
 from ..common.biomind import Restart, createUser
 from AutoInterface.models import gold_record

@@ -972,9 +972,10 @@
                     var enddate = end_date.replace(/-/g, '/');
                     var endstamp = new Date(enddate).getTime();
                 }
-                const url = "http://10.10.10.2:8084/d/Ss3q6hSZk/server-monitor-test?orgId=1&from=" +
-                    startstamp + "&to=" + endstamp + "&var-host_name=" +
-                    this.detailForm.loadserver + "&var-gpu_exporter_port=9445&var-node_exporter_port=9100&var-cadvisor_port=8080"
+                const url = "http://10.10.10.2:8084/d/MTWM-LW7z/qa-jian-kong-zhan-shi-kan-ban?from="+
+                            startstamp + "&to=" + endstamp + "&var-interval=$__auto_interval_interval&var-env=&var-name=&var-node="
+                            +this.detailForm.loadserver +" &var-maxmount=&var-node_port=9100&var-cadvisor_port=8080&gpu_port=9445"
+
                 const dualScreenLeft = window.screenLeft !== undefined ? window.screenLeft : screen.left
                 const dualScreenTop = window.screenTop !== undefined ? window.screenTop : screen.top
 

@@ -41,7 +41,8 @@ def AddJournal(**kw):
 
 
 def readJournal(server, name, pwd):
-    full_log = '{0}/{1}.log'.format( settings.LOG_PATH, name )
+    full_log = '{0}/{1}.log'.format(settings.LOG_PATH, name)
+    logger.info(f"full_log:{full_log}")
     if not os.path.exists(full_log):
         strTxt = "------------暂无日志输出-------------"
     else:
@@ -60,7 +61,6 @@ def readJournal(server, name, pwd):
             except:
                 Journal.append("------------暂无日志输出-------------")
                 continue
-        downssh.close()
         return strTxt, Journal[0], Journal[1]
     except Exception as e:
         logger.error(e)

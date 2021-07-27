@@ -25,6 +25,7 @@ class Dynamic(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
+            module = request.GET.get("module", 'project')
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer！")
         project_id = request.GET.get("project_id")
@@ -37,7 +38,7 @@ class Dynamic(APIView):
         pro_data = ProjectSerializer(pro_data)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        obj = ProjectDynamic.objects.filter(project=project_id).order_by("-time")
+        obj = ProjectDynamic.objects.filter(project=project_id, module=module).order_by("-time")
         paginator = Paginator(obj, page_size)  # paginator对象
         total = paginator.num_pages  # 总页数
         try:

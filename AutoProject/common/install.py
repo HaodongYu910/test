@@ -7,9 +7,7 @@ from .transport import SSHConnection
 import threading
 from django.conf import settings
 from ..models import install, project_version, Server
-from ..common.biomind import createUser, cache, Restart, goldsmoke, durationTest
 from ..common.message import sendMessage
-from ..common.loadVersion import backup
 from ..common.Journal import log, AddJournal
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置

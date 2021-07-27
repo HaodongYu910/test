@@ -5,7 +5,6 @@ from ..models import Server
 import os
 import subprocess
 import time
-import logging
 from ..utils.keycloak.keycloakadmin import KeycloakAdm
 from ..common.transport import SSHConnection
 
@@ -14,7 +13,8 @@ from AutoInterface.common.gold import GoldThread
 
 from AutoDicom.models import duration
 from AutoDicom.common.duration import durationSend
-from AutoProject.common.message import sendMessage
+from AutoProject.models import project_version, Server
+import logging
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -57,9 +57,9 @@ def cache(**kwargs):
         ssh = SSHConnection(host=server.host, pwd=server.pwd)
         ssh.cmd("rm -rf cache.zip;")
         ssh.upload("/files1/classifier/orthanc.json",
-                   "/home/biomind/orthanc.json")
+                    "/home/biomind/orthanc.json")
         ssh.upload("/files1/classifier/cache.zip",
-                   "/home/biomind/cache.zip")
+                    "/home/biomind/cache.zip")
         ssh.cmd(
             "unzip -o cache.zip -d /home/biomind/.biomind/var/biomind/;")
         ssh.cmd(
@@ -110,7 +110,7 @@ def durationTest(**kwargs):
             "sendstatus": True,
             "status": True,
             "Host_id": 13,
-            "type": "Nightly",
+            "type": 3,
             "version": kwargs["version"]
         }
         logger.info("创建持续化测试:{}".format(data))
@@ -120,3 +120,38 @@ def durationTest(**kwargs):
         durationSend(obj.id)
     except Exception as e:
         logger.error("Version:{0}：执行持续化测试报错{1}".format(kwargs["version"], e))
+
+
+def smoke(version):
+    try:
+        obj = project_version.objects.get(version=version, type='3')
+        versionID = obj.id
+    except:
+        try:
+            versionOBJ = project_version.objects.create(**{
+                "version": version,
+                "branch": "master",
+                "package_name": None,
+                "path": None,
+                "type": "3",
+                "project_id": 1,
+                "status": True,
+            })
+            versionID = versionOBJ.id
+        except Exception as e:
+            logger.error(e)
+
+    try:
+        logger.info("Nightly Build Version:{}：更新配置文件".format(version))
+        cache(id=13)
+        logger.info("Nightly Build Version:{}：重启服务".format(version))
+        Restart(id=13)
+        time.sleep(300)
+        createUser(server="192.168.2.103")
+        logger.info("Nightly Build Version:{}：金标准测试".format(version))
+        goldsmoke(version=versionID)
+        HostObj = Server.objects.get(id=13)
+        logger.info("Nightly Build Version:{}：持续化测试".format(version))
+        durationTest(version=versionID, server=HostObj.host, aet=HostObj.remarks)
+    except Exception as e:
+        logger.error("Nightly Build Version：执行{0}版本冒烟失败----失败原因：{1}".format(version, e))
