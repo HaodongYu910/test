@@ -14,13 +14,13 @@ export const getUserInfo = (headers, params) => {
     .then((res) => res.data);
 };
 // 修改 用户信息
-export const UpdateUserInfo  = (headers, params) => {
+export const UpdateUserInfo = (headers, params) => {
   return axios
     .post(`${test}/project/user/Update`, params, headers)
     .then((res) => res.data);
 };
 // 删除 用户信息
-export const DelUserInfo  = (headers, params) => {
+export const DelUserInfo = (headers, params) => {
   return axios
     .post(`${test}/project/user/Del`, params, headers)
     .then((res) => res.data);
@@ -1107,3 +1107,15 @@ export const queryGit = (headers, params) => {
     .then((res) => res.data);
 };
 
+// 编辑任务
+export const submitPublishEditTaskService = (headers, params) => {
+  return axios
+    .post(`${test}/project/build/update`, params, headers)
+    .then((res) => res.data);
+};
+// 查询build状态
+export const queryBuildStateService = (headers, params) => {
+  return axios
+    .get(`${test}/project/build/DetailStatus`, { params }, { headers })
+    .then((res) => res.data);
+};
