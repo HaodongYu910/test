@@ -77,6 +77,7 @@
             }}</span
           >
         </span>
+
         <span class="operation">
           <el-button
             type="text"
@@ -100,6 +101,7 @@
             @click="submitDelete(index, item.id)"
             :disabled="deleteLoading"
             >删除</el-button
+
           >
         </span>
       </div>
@@ -188,6 +190,7 @@
 </template>
 
 <script>
+
 import {
   getPublishList,
   submitPublishAddTaskService,

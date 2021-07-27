@@ -51,17 +51,15 @@
                         <span style="margin-left: 10px">{{ scope.row.studyinstanceuid }}</span>
                     </template>
                 </el-table-column>
-                <el-table-column prop="发送张数" label="发送张数" min-width="12%">
+                <el-table-column prop="影像总数" label="影像总数" min-width="12%">
                     <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.image }}</span>
+                        <el-tooltip placement="top">
+                            <div slot="content">发送成功：{{ scope.row.success }}<br/>发送失败：{{ scope.row.fail }}</div>
+                            <span style="margin-left: 10px">{{ scope.row.image }}</span>
+                        </el-tooltip>
                     </template>
                 </el-table-column>
-                <el-table-column prop="失败张数" label="失败张数" min-width="12%" sortable>
-                    <template slot-scope="scope">
-                        <span style="margin-left: 10px">{{ scope.row.imagefail }}</span>
-                    </template>
-                </el-table-column>
-                <el-table-column prop="接收张数" label="接收张数" min-width="12%">
+                <el-table-column prop="接收影像" label="接收影像" min-width="12%">
                     <template slot-scope="scope">
                         <span style="margin-left: 10px">{{ scope.row.image_receive }}</span>
                     </template>
@@ -237,10 +235,9 @@
                         return '发送中'
                     } else if (i === '1') {
                         return '发送成功'
-                    }
-                    else if (i === null) {
+                    } else if (i === null) {
                         return '未发送'
-                    }else {
+                    } else {
                         return "已发送"
                     }
                 }

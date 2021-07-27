@@ -5,7 +5,6 @@ import subprocess as sp
 import shutil
 import socket
 import requests
-import queue
 import threading
 from AutoDicom.models import duration_record, duration
 from AutoProject.models import Server
@@ -39,6 +38,7 @@ class SendThread(threading.Thread):
 
     # 匿名数据队列
     def run(self):
+        logger.info('-----------------------------发送数据-----------------------------')
         threads = []
         try:
             for i in range(self.thread_num):
@@ -62,13 +62,13 @@ class SendThread(threading.Thread):
         try:
             while not self.q.empty():
                 if not os.path.exists(self.full_fn_fake):
-                    logger.info(f"file_name：{self.full_fn_fake} 文件不存在 跳过")
+                    logger.info(f"file_name：{self.full_fn_fake} 文件夹不存在 跳过")
                     break
                 file_data = self.q.get()
                 file_name = file_data[1]
                 info = file_data[2]
 
-                # 判断是否 去匿名
+                # 判断是否 匿名处理
                 if self.anonymous is True:
                     anonymization(
                         full_fn=file_data[0],
@@ -76,65 +76,61 @@ class SendThread(threading.Thread):
                         info=info
                     )
                 try:
-                    commands = [
-                        "storescu",
-                        "-xs",  # 压缩方式
-                        self.obj.host,
-                        self.obj.port,
-                        "-aec", self.obj.remarks,
-                        "-aet", self.local_aet,
-                        file_name
-                    ]
-                    info["starttime"] = time.time()
-                    error = self.SP_Popen(commands)
+                    self.SP_Popen(
+                        commands=[
+                            "storescu",
+                            "-xs",  # 压缩方式
+                            self.obj.host,
+                            self.obj.port,
+                            "-aec", self.obj.remarks,
+                            "-aet", self.local_aet,
+                            file_name
+                        ], file_data=file_data)
                 except Exception as e:
                     logging.error('error msg: failed to sync_send [{0}]---报错：{1}'.format(file_name, e))
                     continue
-                try:
-                    info["endtime"] = time.time()
-                    info["time"] = str('%.2f' % (float(info["endtime"] - info["starttime"])))
-                    self.connect_influx(file_data, error)
-                    # 变更 发送状态
-                    if file_data[3]:
-                        try:
-                            self.UpdateStatus([file_data[3], '0'])
-                            self.UpdateStatus([self.studyID, '1'])
-                            # map(self.UpdateStatus, [[self.studyID, '1'], file_data[3], '0']])
-                            self.studyID = file_data[3]
-                        except Exception as e:
-                            logger.error(f"duration_record 更新状态失败{e}")
-                except Exception as e:
-                    logging.error('error msg: failed to connect_influx  [{0}]---报错：{1}'.format(file_name, e))
-                    continue
-                try:
-                    os.remove(file_data[1])
-                except Exception as e:
-                    logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_data[1], e))
         except Exception as e:
             logging.error('error msg: while failed to [{0}]}'.format(e))
 
     #  发送失败  重试 4次 机制
-    def SP_Popen(self, commands):
+    def SP_Popen(self, commands, file_data):
+
+        """
+            parm :
+            commands： {dicom 传输命令}
+            file_data:[dicom数据信息]
+
+        """
+        info = file_data[2]
         error = '0'
+        info["starttime"] = time.time()
         try:
+            # 发送失败 重试 10 次
             for i in range(10):
                 Send = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
                 SendResult = Send.communicate()
-
                 for j in SendResult:
                     if len(bytes.decode(j)) > 0:
                         error = bytes.decode(j)
                         continue
                 if error.strip() == '0':
                     break
+            try:
+                info["endtime"] = time.time()
+                info["time"] = str('%.2f' % (float(info["endtime"] - info["starttime"])))
+                self.connect_influx(file_data, error)
+            except Exception as e:
+                logging.error('error msg: failed to connect_influx  [{0}]---报错：{1}'.format(file_data, e))
+
+            try:
+                os.remove(file_data[1])
+            except Exception as e:
+                logging.error('error msg: remove failed to [{0}]---报错：{1}'.format(file_data[1], e))
         except Exception as e:
-            error = e
             logger.error("发送数据错误{}".format(e))
-        return error
 
     # 更新 状态
     def UpdateStatus(self, data):
-        logger.info('UpdateStatus ')
         if data[0]:
             obj = duration_record.objects.get(id=data[0])
             obj.status = data[1]
@@ -142,20 +138,37 @@ class SendThread(threading.Thread):
 
     # 存储 每张发送信息
     def connect_influx(self, file_data, error):
+        """
+            保存发送影像结果 到数据库
+            parm:
+                file_data:[dicom 数据信息]
+                error：str(发送错误信息)
+        """
         info = file_data[2]
         try:
             tamp = int(round(time.time() * 1000000000))
             influxdata = f'test,id={info["relation_id"]},studyuid={info["studyinstanceuid"]},patientid={info["patientid"]},patientname={info["patientname"]},cur_time={info["cur_time"]},cur_date={info["cur_date"]},file={file_data[0]},file_url={file_data[1]},error={error} value={info["time"]} {tamp}'
-
+            logger.info(f"influxdata:{influxdata}")
             requests.post('http://192.168.1.120:8089/write?db=auto_test', data=influxdata)
-            self.delayed("")
         except Exception as e:
             logger.error("保存connect_influx数据错误{}".format(e))
-
+            # 变更 发送状态
+        try:
+            if file_data[3]:
+                self.UpdateStatus([file_data[3], '0'])
+                self.UpdateStatus([self.studyID, '1'])
+                # map(self.UpdateStatus, [[self.studyID, '1'], file_data[3], '0']])
+                self.studyID = file_data[3]
+        except Exception as e:
+            logger.error(f"duration_record 更新状态失败{e}")
+        try:
+            self.delayed("")
+        except Exception as e:
+            logger.error(f"delayed 延时发送失败{e}")
 
     # 判断是否 同一个 Series
     def delayed(self, SeriesID):
-        try: 
+        try:
             if self.series is True:
                 if SeriesID != self.SeriesInstanceUID:
                     time.sleep(int(self.sleepTime))
@@ -173,5 +186,5 @@ class SendThread(threading.Thread):
         # 删除 文件夹
         if self.stop[0] == 1:
             obj = duration.objects.get(id=self.stop[1])
-            obj.sendstatus =False
+            obj.sendstatus = False
             obj.save()

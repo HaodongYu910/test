@@ -147,13 +147,14 @@ class durationData(APIView):
         client = InfluxDBClient(host='192.168.1.120', port=8089, database='auto_test')
         for i in serialize.data:
             try:
+                i["image"] = dicom.objects.get(studyinstanceuid=i["studyolduid"]).total
                 result = client.query(
                     f'select count(value),MEAN(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\';')
-                error = client.query(
+                success = client.query(
                     f'select count(value) from test where id=\'{i["relation_id"]}\' and studyuid=\'{i["studyinstanceuid"]}\' and error=\'0\';')
                 i["time"] = list(result)[0][0]['mean']
-                i["image"] = list(result)[0][0]['count']
-                i["imagefail"] = int(list(result)[0][0]['count'])-int(list(error)[0][0]['count'])
+                i["success"] = int(list(success)[0][0]['count'])
+                i["fail"] = int(list(result)[0][0]['count'])-int(list(success)[0][0]['count'])
             except:
                 i["time"] = 0
                 i["imagecount"] = 0
