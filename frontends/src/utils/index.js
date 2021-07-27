@@ -374,14 +374,19 @@ export const buildStateMapFunc = function() {
       className: "el-icon-s-cooperation",
     },
     {
-      name: "打包成功",
+      name: "部署",
       status: 3,
+      className: "el-icon-s-promotion",
+    },
+    {
+      name: "部署完成",
+      status: 4,
       className: "el-icon-finished",
     },
   ];
   const failedMap = {
     name: "打包失败",
-    status: 4,
+    status: 5,
     className: "el-icon-error",
   };
   return { stateList, failedMap };

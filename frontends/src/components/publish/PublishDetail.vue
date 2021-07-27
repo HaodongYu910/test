@@ -4,37 +4,38 @@
       <div class="title">
         <div class="title-left">
           <span>{{ taskName }}</span>
-          <span class="mode">{{ taskUnit }}</span>
           <span class="mode">
+            <i class="el-icon-monitor"></i>
+            {{ taskUnit }}</span
+          >
+          <!-- <span class="mode">
             <i class="el-icon-suitcase"></i>
             {{ taskMode ? taskMode : "--" }}</span
-          >
+          > -->
         </div>
         <div class="title-right">
-          <el-button
-            type="primary"
-            icon="el-icon-orange"
-            @click="buildStart"
-            :disabled="startFlag"
-            >构建</el-button
-          >
+          <el-button type="primary" icon="el-icon-orange" @click="buildStart">
+            {{ stepStart ? "取消" : "构建" }}
+          </el-button>
           <el-button
             icon="el-icon-edit"
             @click="editBtnClick"
             :disabled="startFlag"
             >编辑</el-button
           >
-          <el-button
+          <!-- <el-button
             type="danger"
             icon="el-icon-delete-solid"
             :disabled="startFlag"
+            @click="submitDelete"
+            :loading="deleteLoading"
             >删除</el-button
-          >
+          > -->
         </div>
       </div>
       <div class="status">
         <span>状态：</span>
-        <span>打包成功</span>
+        <span>{{ this.statusText }}</span>
       </div>
     </div>
     <div class="build bg-color">
@@ -43,14 +44,16 @@
         finish-status="success"
         class="build-step"
         align-center
-        v-if="startFlag"
+        :process-status="progressFailActive ? 'error' : 'wait'"
       >
         <el-step
           v-for="item in progressList"
           :key="item.status"
           :title="item.name"
           :icon="
-            stepActive === item.status ? 'el-icon-loading' : item.className
+            stepActive === item.status && !progressFailActive
+              ? 'el-icon-loading'
+              : item.className
           "
         ></el-step>
       </el-steps>
@@ -59,17 +62,24 @@
         <div class="build-item build-item-title">
           <span>构建序号</span>
           <span>构建分支</span>
-          <span>状态</span>
           <span>发起人</span>
           <span>开始时间</span>
+          <span>状态</span>
+
           <span>操作</span>
         </div>
         <div class="build-item" v-for="(item, index) in buildList" :key="index">
           <span>{{ item.job }}</span>
           <span>{{ item.branch }}</span>
-          <span>{{ item.service }}</span>
           <span>{{ item.user }}</span>
           <span>{{ item.create_time }}</span>
+          <span>{{
+            item.packStatus === "0"
+              ? "打包成功"
+              : item.packStatus === "2"
+              ? "打包失败"
+              : "已取消"
+          }}</span>
           <span class="highlight">
             <el-button
               type="text"
@@ -138,7 +148,8 @@
           :on-change="upfileOnChange"
           :file-list="fileList"
           :limit="1"
-          :auto-upload="false"
+          :http-request="subUploadFile"
+          accept=".zip"
         >
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -149,7 +160,12 @@
         </el-upload>
       </div>
       <div slot="footer" class="dialog-footer">
-        <el-button type="primary" class="btn" @click="submitPublishEditTask"
+        <el-button
+          type="primary"
+          class="btn"
+          @click="submitPublishEditTask"
+          :disabled="submitLoading"
+          :loading="submitLoading"
           >修 改
         </el-button>
       </div>
@@ -168,8 +184,12 @@ import {
   queryGitBranchService,
   queryGit,
   getHost,
+  submitPublishEditTaskService,
+  addupload,
+  queryBuildStateService,
 } from "./../../router/api";
 import { buildStateMapFunc } from "./../../utils/index.js";
+import bus from "./../../utils/bus";
 
 export default {
   name: "publishDetail",
@@ -177,7 +197,7 @@ export default {
   data() {
     return {
       buildList: [],
-      stepActive: 0,
+      stepActive: null,
       progressList: buildStateMapFunc().stateList,
       startFlag: false,
       dialogVisible: false,
@@ -191,6 +211,15 @@ export default {
       taskName: "",
       taskMode: "",
       taskUnit: "",
+      submitLoading: false,
+      project_id: localStorage.getItem("project_id"),
+      upfileId: "",
+      deleteLoading: false,
+      startLoading: false,
+      stepStart: false,
+      statusText: "",
+      timer: null,
+      progressFailActive: null,
     };
   },
   created() {
@@ -198,21 +227,24 @@ export default {
     this.getgroupbase();
     const { query } = this.$route;
     console.log("query", query);
-    const { name = "", branch = "", Host = "", service = "" } = query;
-    this.branchName = branch;
-    this.buildName = name;
-    this.createModeType = Host;
-    this.taskName = name;
-    this.taskUnit = service;
-    this.taskMode = Host;
+    const { name = "", branch = "", Host = "", service = "", git = "" } = query;
+    this.branchName = [+git, branch];
+    this.buildName = name || "";
+    this.createModeType = Host || "";
+    this.taskName = name || "";
+    this.taskUnit = service || "";
+    this.taskMode = Host || "";
   },
   activated() {
     this.getParams();
   },
+  mounted() {
+    this.checkBuildState();
+  },
   methods: {
     //获取由路由传递过来的参数
     getParams() {
-      this.build_id = this.$route.query.id;
+      this.build_id = +this.$route.query.id;
       this.jenkins_job = this.$route.query.jenkins_job;
       this.jenkins_view = this.$route.query.jenkins_view;
       this.BuildDetail();
@@ -296,6 +328,56 @@ export default {
     },
     buildStart() {
       this.startFlag = true;
+      this.startLoading = true;
+      let self = this;
+      this.listLoading = true;
+      const { id = "" } = this.$route.query;
+      let params = {
+        build_package_id: +id,
+        project_id: this.project_id,
+      };
+      let headers = {
+        "Content-Type": "application/json",
+        Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
+      };
+      if (this.stepStart) {
+        PublishDisableTaskService(headers, params).then((_data) => {
+          this.stepStart = !this.stepStart;
+          let { msg, code, data } = _data;
+          if (code === "0") {
+            this.stepActive = null;
+            this.startFlag = false;
+            this.timer && clearTimeout(this.timer);
+            self.$message({
+              message: "停止成功",
+              center: true,
+              type: "success",
+            });
+          } else {
+            self.$message.error({
+              message: msg,
+              center: true,
+            });
+          }
+        });
+      } else {
+        PublishEnableTaskService(headers, params)
+          .then((_data) => {
+            let { msg, code, data } = _data;
+            self.listLoading = false;
+            if (code === "0") {
+              this.stepStart = !this.stepStart;
+              this.stepActive = 0;
+
+              this.checkBuildState(3000);
+            } else {
+              this.changeBuildFailResult();
+            }
+          })
+          .catch((err) => {
+            this.changeBuildFailResult();
+          });
+      }
     },
     // 获取host数据列表
     gethost() {
@@ -315,6 +397,7 @@ export default {
           self.list = data.data;
           var json = JSON.stringify(self.list);
           this.Hosts = JSON.parse(json);
+          console.log(this.Hosts);
         } else {
           self.$message.error({
             message: msg,
@@ -346,31 +429,85 @@ export default {
       });
     },
     upfileOnChange(file, fileList) {
-      console.log(fileList);
+      console.log(file);
     },
     submitPublishEditTask() {
+      let { buildName, createModeType = "", githubName, branchName } = this;
+      if (!createModeType) {
+        this.ModalAlert("请选择环境！");
+        return;
+      }
+      if (!buildName) {
+        this.ModalAlert("构建名称不能为空！");
+        return;
+      }
+
+      if (!githubName) {
+        this.ModalAlert("请输入git代码库ssh地址！");
+        return;
+      }
+      if (!branchName) {
+        this.ModalAlert("请输入代码分支！");
+        return;
+      }
       const headers = {
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };
       const params = {
         name: this.buildName,
         code: this.githubName,
-        git: this.branchName[0],
+        git_id: this.branchName[0],
         branch: this.branchName[1],
-        Host: this.createModeType,
-        user: JSON.parse(sessionStorage.getItem("token")),
-        Project: this.project_id,
-        status: true,
+        Host_id: this.createModeType,
+        user_id: JSON.parse(sessionStorage.getItem("token")),
+        Project_id: this.project_id,
+        build_id: +this.build_id,
+        file_id: this.upfileId,
       };
-      submitPublishAddTaskService(headers, params).then((res) => {
-        const { data = {}, msg, code } = res;
+      this.submitLoading = true;
+      submitPublishEditTaskService(headers, params)
+        .then((res) => {
+          const { data = {}, msg, code } = res;
+          this.submitLoading = false;
+          if (code === "0") {
+            this.$message.success({
+              message: msg,
+              center: true,
+            });
+            this.dialogVisible = false;
+            this.updateCurrTitleInfo();
+          } else {
+            this.$message.error({
+              message: msg,
+              center: true,
+            });
+          }
+        })
+        .catch((err) => {
+          this.submitLoading = false;
+        });
+    },
+    editBtnClick() {
+      this.dialogVisible = !this.dialogVisible;
+    },
+    ModalAlert(message, type = "error") {
+      this.$message({
+        message,
+        type,
+      });
+    },
+    subUploadFile(data) {
+      console.log(data);
+      let params = new FormData();
+      params.append("file", data.file);
+      params.append("type", "stress");
+      const headers = {
+        Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
+      };
+      addupload(headers, params).then((res) => {
+        const { msg, code, data } = res;
         if (code === "0") {
-          this.dialogVisible = false;
-          this.$message.success({
-            message: msg,
-            center: true,
-          });
-          this.queryPublishList();
+          this.upfileId = data.fileid || "";
         } else {
           this.$message.error({
             message: msg,
@@ -379,8 +516,70 @@ export default {
         }
       });
     },
-    editBtnClick() {
-      this.dialogVisible = !this.dialogVisible;
+    updateCurrTitleInfo() {
+      this.taskName = this.buildName || "";
+      const hostList = this.Hosts;
+      const { createModeType } = this;
+      const unitName = hostList.filter((item) => +item.id === +createModeType);
+      console.log("unitName", unitName);
+      this.taskMode = unitName.length ? unitName[0].name : "";
+    },
+    checkBuildState(time = 0) {
+      this.timer && clearTimeout(this.timer);
+      this.timer = setTimeout(() => {
+        const { id = "" } = this.$route.query;
+        let params = {
+          build_id: +id,
+          project_id: this.project_id,
+        };
+        let headers = {
+          "Content-Type": "application/json",
+          Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
+        };
+
+        queryBuildStateService(headers, params)
+          .then((res) => {
+            const { code, data } = res;
+            if (code === "0") {
+              this.stepActive = +data.step === 0 ? null : +data.step - 1;
+              const statusMap =
+                this.stepActive !== null
+                  ? this.progressList[this.stepActive]
+                  : { name: "未开始" };
+              this.stepStart = this.stepActive !== null;
+
+              this.statusText = statusMap.name;
+              if (this.stepActive === 4) {
+                this.startFlag = false;
+                this.stepStart = false;
+                this.BuildDetail();
+              } else {
+                this.checkBuildState(3000);
+              }
+            } else {
+              this.timer && clearTimeout(this.timer);
+              this.changeBuildFailResult();
+            }
+          })
+          .catch((err) => {
+            this.timer && clearTimeout(this.timer);
+            this.changeBuildFailResult();
+          });
+      }, time);
+    },
+    changeBuildFailResult() {
+      this.$message.error({
+        message: "构建异常",
+        center: true,
+      });
+      this.progressFailActive = true;
+      this.startFlag = false;
+      this.stepStart = false;
+      this.progressList.splice(this.stepActive || 0, 1, {
+        name: "构建异常",
+        status: this.stepActive,
+        className: "el-icon-error",
+      });
     },
   },
 };
@@ -479,6 +678,14 @@ export default {
             width: 1px;
             height: 80%;
           }
+          &:last-child {
+            &::after {
+              display: none;
+            }
+          }
+        }
+        &:hover {
+          background-color: #fafafa;
         }
       }
 

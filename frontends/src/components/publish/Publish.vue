@@ -60,18 +60,18 @@
         <span>{{ item.create_time }}</span>
         <span>
           <span
-            class="status failed"
+            class="status"
             :class="
-              item.status !== 0 && item.status !== 4
+              item.packStatus === '1'
                 ? 'building'
-                : item.status === 4
-                ? 'failed'
-                : ''
+                : item.packStatus === '0'
+                ? ''
+                : 'failed'
             "
             >{{
-              item.status !== 0 && item.status !== 4
+              item.packStatus === "1"
                 ? "构建中"
-                : item.status === 0
+                : item.packStatus === "0"
                 ? "打包成功"
                 : "打包失败"
             }}</span
@@ -82,16 +82,25 @@
             type="text"
             class="operation-item"
             @click="handleChangeStatus(item)"
+            :disabled="deleteLoading"
           >
-            {{ item.status === false ? "构建" : "停止" }}
+            {{ item.build_status ? "停止" : "构建" }}
           </el-button>
           <el-button
             type="text"
             class="operation-item"
             @click="jumpDetail(item)"
+            :disabled="deleteLoading"
             >流水线</el-button
           >
-          <el-button type="text" class="operation-item">日志</el-button>
+          <!-- <el-button type="text" class="operation-item">日志</el-button> -->
+          <el-button
+            type="text"
+            class="operation-item"
+            @click="submitDelete(index, item.id)"
+            :disabled="deleteLoading"
+            >删除</el-button
+          >
         </span>
       </div>
     </div>
@@ -158,7 +167,8 @@
           :on-change="upfileOnChange"
           :file-list="fileList"
           :limit="1"
-          :auto-upload="false"
+          :http-request="subUploadFile"
+          accept=".zip"
         >
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -188,6 +198,7 @@ import {
   queryGitBranchService,
   queryGit,
   getHost,
+  addupload,
 } from "./../../router/api";
 
 export default {
@@ -213,6 +224,8 @@ export default {
       buildList: [],
       totalSize: 0,
       addLoadingFlag: true,
+      upfileId: "",
+      deleteLoading: false,
     };
   },
   mounted() {
@@ -257,6 +270,7 @@ export default {
         user: JSON.parse(sessionStorage.getItem("token")),
         Project: this.project_id,
         status: true,
+        file_id: this.upfileId,
       };
       submitPublishAddTaskService(headers, params).then((res) => {
         const { data = {}, msg, code } = res;
@@ -453,6 +467,57 @@ export default {
         type,
       });
     },
+    subUploadFile(data) {
+      let params = new FormData();
+      params.append("file", data.file);
+      params.append("type", "stress");
+      const headers = {
+        Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
+      };
+      addupload(headers, params).then((res) => {
+        const { msg, code, data } = res;
+        if (code === "0") {
+          this.upfileId = data.fileid || "";
+        } else {
+          this.$message.error({
+            message: msg,
+            center: true,
+          });
+        }
+      });
+    },
+    submitDelete(index, id) {
+      this.$confirm("确定要删除当前构建任务?", "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning",
+      })
+        .then(() => {
+          this.deleteLoading = true;
+          this.confirmDelete(index, id);
+        })
+        .catch(() => {});
+    },
+    confirmDelete(index, build_id) {
+      const headers = {
+        Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
+      };
+      const params = {
+        build_id,
+      };
+      submitPublishDeleteTaskService(headers, params)
+        .then((res) => {
+          this.startFlag = false;
+          this.deleteLoading = false;
+          const { code, data } = res;
+          if (code === "0") {
+            this.buildList.splice(index, 1);
+          }
+        })
+        .catch((err) => {
+          this.startFlag = false;
+        });
+    },
   },
 };
 </script>
@@ -494,27 +559,6 @@ export default {
     border-radius: 5px;
     flex: 1;
 
-    &-title {
-      background-color: #fafafa;
-      font-size: 14px;
-
-      span {
-        position: relative;
-        font-weight: 500;
-
-        &::after {
-          position: absolute;
-          right: 0;
-          top: 30%;
-          content: "";
-          display: block;
-          background-color: #ddd;
-          width: 1px;
-          height: 40%;
-        }
-      }
-    }
-
     &-name {
       width: 230px;
     }
@@ -555,6 +599,33 @@ export default {
         }
         &.building {
           background-color: #e6a23c;
+        }
+      }
+    }
+    &-title {
+      background-color: #fafafa;
+      font-size: 14px;
+      &:hover {
+        background-color: #fafafa;
+      }
+      span {
+        position: relative;
+        font-weight: 500;
+
+        &::after {
+          position: absolute;
+          right: 0;
+          top: 30%;
+          content: "";
+          display: block;
+          background-color: #ddd;
+          width: 1px;
+          height: 40%;
+        }
+        &:last-child {
+          &::after {
+            display: none;
+          }
         }
       }
     }
