@@ -74,7 +74,10 @@ class BuildList(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = build_packageSerializer(obm, many=True)
         for i in serialize.data:
-            i["packStatus"] = i["packStatus"].split(",")[1]
+            try:
+                i["packStatus"] = i["packStatus"].split(",")[1]
+            except(TypeError, ValueError):
+                i["packStatus"] = 0
 
         return JsonResponse(data={"data": serialize.data,
                                   "page": page,
