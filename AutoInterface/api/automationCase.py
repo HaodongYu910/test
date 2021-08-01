@@ -19,11 +19,11 @@ from AutoProject.common.addTask import add
 from AutoProject.common.api_response import JsonResponse
 from AutoProject.common.common import record_dynamic, create_json, del_task_crontab
 from AutoInterface.common.confighttp import test_api
-from AutoInterface.models import AutomationGroupLevelFirst, \
+from AutoInterface.models import AutomationGroup, \
     AutomationTestCase, AutomationCaseApi, AutomationParameter, Server, AutomationHead, AutomationTestTask, \
     AutomationTestResult, ApiInfo, AutomationParameterRaw, AutomationResponseJson
 
-from AutoInterface.serializers import AutomationGroupLevelFirstSerializer, AutomationTestCaseSerializer, \
+from AutoInterface.serializers import AutomationGroupSerializer, AutomationTestCaseSerializer, \
     AutomationCaseApiSerializer, AutomationCaseApiListSerializer, AutomationTestTaskSerializer, \
     AutomationTestResultSerializer, ApiInfoSerializer, CorrelationDataSerializer, AutomationTestReportSerializer, \
     AutomationTestCaseDeserializer, AutomationCaseApiDeserializer, AutomationHeadDeserializer, \
@@ -55,8 +55,8 @@ class Group(APIView):
         pro_data = ProjectSerializer(pro_data)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        obi = AutomationGroupLevelFirst.objects.filter(project=project_id)
-        serialize = AutomationGroupLevelFirstSerializer(obi, many=True)
+        obi = AutomationGroup.objects.filter(project=project_id)
+        serialize = AutomationGroupSerializer(obi, many=True)
         return JsonResponse(data=serialize.data, code="0", msg="成功！")
 
 
@@ -99,7 +99,7 @@ class AddGroup(APIView):
         pro_data = ProjectSerializer(obj)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        serializer = AutomationGroupLevelFirstSerializer(data=data)
+        serializer = AutomationGroupSerializer(data=data)
         if serializer.is_valid():
             serializer.save(project=obj)
         else:
@@ -148,7 +148,7 @@ class DelGroup(APIView):
         pro_data = ProjectSerializer(pro_data)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        obi = AutomationGroupLevelFirst.objects.filter(id=data["id"], project=data["project_id"])
+        obi = AutomationGroup.objects.filter(id=data["id"], project=data["project_id"])
         if obi:
             name = obi[0].name
             obi.delete()
@@ -199,10 +199,10 @@ class UpdateNameGroup(APIView):
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
         try:
-            obj = AutomationGroupLevelFirst.objects.get(id=data["id"], project=data["project_id"])
+            obj = AutomationGroup.objects.get(id=data["id"], project=data["project_id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999991", msg="分组不存在！")
-        serializer = AutomationGroupLevelFirstSerializer(data=data)
+        serializer = AutomationGroupSerializer(data=data)
         if serializer.is_valid():
             serializer.update(instance=obj, validated_data=data)
         else:
@@ -225,10 +225,10 @@ class UpdateGroup(APIView):
         """
         try:
             # 校验project_id, id类型为int
-            if not data["project_id"] or not data["ids"] or not data["automationGroupLevelFirst_id"]:
+            if not data["project_id"] or not data["ids"] or not data["AutomationGroup_id"]:
                 return JsonResponse(code="999996", msg="参数有误！")
             if not isinstance(data["project_id"], int) or not isinstance(data["ids"], list) \
-                    or not isinstance(data["automationGroupLevelFirst_id"], int):
+                    or not isinstance(data["AutomationGroup_id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
             for i in data["ids"]:
                 if not isinstance(i, int):
@@ -256,7 +256,7 @@ class UpdateGroup(APIView):
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
         try:
-            obj = AutomationGroupLevelFirst.objects.get(id=data["automationGroupLevelFirst_id"])
+            obj = AutomationGroup.objects.get(id=data["AutomationGroup_id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999991", msg="分组不存在！")
         id_list = Q()
@@ -264,7 +264,7 @@ class UpdateGroup(APIView):
             id_list = id_list | Q(id=i)
         case_list = AutomationTestCase.objects.filter(id_list, project=data["project_id"])
         with transaction.atomic():
-            case_list.update(automationGroupLevelFirst=obj)
+            case_list.update(AutomationGroup=obj)
             name_list = []
             for j in case_list:
                 name_list.append(str(j.caseName))
@@ -289,7 +289,7 @@ class CaseList(APIView):
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer！")
         project_id = request.GET.get("project_id")
-        first_group_id = request.GET.get("first_group_id")
+        group_id = request.GET.get("group_id")
         name = request.GET.get("name")
         if not project_id:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -302,15 +302,15 @@ class CaseList(APIView):
         pro_data = ProjectSerializer(pro_data)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        if first_group_id:
-            if not first_group_id.isdecimal():
+        if group_id:
+            if not group_id.isdecimal():
                 return JsonResponse(code="999996", msg="参数有误！")
             if name:
                 obi = AutomationTestCase.objects.filter(project=project_id, caseName__contains=name,
-                                                        automationGroupLevelFirst=first_group_id).order_by("id")
+                                                        AutomationGroup=group_id).order_by("id")
             else:
                 obi = AutomationTestCase.objects.filter(project=project_id,
-                                                        automationGroupLevelFirst=first_group_id).order_by("id")
+                                                        AutomationGroup=group_id).order_by("id")
         else:
             if name:
                 obi = AutomationTestCase.objects.filter(project=project_id, caseName__contains=name, ).order_by(
@@ -344,9 +344,9 @@ class AddCase(APIView):
         """
         try:
             # 校验project_id, id类型为int
-            if not data["project_id"] or not data["caseName"] or not data["automationGroupLevelFirst_id"]:
+            if not data["project_id"] or not data["caseName"] or not data["AutomationGroup_id"]:
                 return JsonResponse(code="999996", msg="参数有误！")
-            if not isinstance(data["project_id"], int) or not isinstance(data["automationGroupLevelFirst_id"], int):
+            if not isinstance(data["project_id"], int) or not isinstance(data["AutomationGroup_id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -380,10 +380,10 @@ class AddCase(APIView):
                     serialize = AutomationTestCaseDeserializer(data=data)
                     if serialize.is_valid():
                         try:
-                            if not isinstance(data["automationGroupLevelFirst_id"], int):
+                            if not isinstance(data["AutomationGroup_id"], int):
                                 return JsonResponse(code="999996", msg="参数有误！")
-                            obi = AutomationGroupLevelFirst.objects.get(id=data["automationGroupLevelFirst_id"], project=data["project_id"])
-                            serialize.save(project=obj, automationGroupLevelFirst=obi, user=get(id=data["user"]))
+                            obi = AutomationGroup.objects.get(id=data["AutomationGroup_id"], project=data["project_id"])
+                            serialize.save(project=obj, AutomationGroup=obi, user=get(id=data["user"]))
                         except KeyError:
                             serialize.save(project=obj, user=get(id=data["user"]))
                         record_dynamic(project=data["project_id"],
@@ -409,10 +409,10 @@ class UpdateCase(APIView):
         try:
             # 校验project_id, id类型为int
             if not data["project_id"] or not data["caseName"] or not data["id"] \
-                    or not data["automationGroupLevelFirst_id"]:
+                    or not data["AutomationGroup_id"]:
                 return JsonResponse(code="999996", msg="参数有误！")
             if not isinstance(data["project_id"], int) or not isinstance(data["id"], int) \
-                    or not isinstance(data["automationGroupLevelFirst_id"], int):
+                    or not isinstance(data["AutomationGroup_id"], int):
                 return JsonResponse(code="999996", msg="参数有误！")
         except KeyError:
             return JsonResponse(code="999996", msg="参数有误！")
@@ -441,7 +441,7 @@ class UpdateCase(APIView):
         except ObjectDoesNotExist:
             return JsonResponse(code="999987", msg="用例不存在！")
         try:
-            AutomationGroupLevelFirst.objects.get(id=data["automationGroupLevelFirst_id"], project=data["project_id"])
+            AutomationGroup.objects.get(id=data["AutomationGroup_id"], project=data["project_id"])
         except ObjectDoesNotExist:
             return JsonResponse(code="999991", msg="分组不存在！")
         case_name = AutomationTestCase.objects.filter(caseName=data["caseName"], project=data["project_id"]).exclude(id=data["id"])
@@ -1385,7 +1385,7 @@ class DownLoadCase(APIView):
         pro_data = ProjectSerializer(obj)
         if not pro_data.data["status"]:
             return JsonResponse(code="999985", msg="该项目已禁用")
-        obi = AutomationGroupLevelFirst.objects.filter(project=project_id).order_by("id")
+        obi = AutomationGroup.objects.filter(project=project_id).order_by("id")
         data = AutomationCaseDownSerializer(obi, many=True).data
         path = "./AutoProject/ApiDoc/%s.xlsx" % str(obj.name)
         result = Write(path).write_case(data)

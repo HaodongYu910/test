@@ -105,8 +105,8 @@ class SendThread(threading.Thread):
         error = '0'
         info["starttime"] = time.time()
         try:
-            # 发送失败 重试 10 次
-            for i in range(10):
+            # 发送失败 重试 4 次
+            for i in range(4):
                 Send = sp.Popen(commands, stderr=sp.PIPE, stdout=sp.PIPE, shell=False)
                 SendResult = Send.communicate()
                 for j in SendResult:

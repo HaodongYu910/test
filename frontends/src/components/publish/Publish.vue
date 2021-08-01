@@ -62,18 +62,22 @@
           <span
             class="status"
             :class="
-              item.packStatus === '1'
+              item.packStatus === '0'
+                ? 'not_built'
+                : item.packStatus === '1'
                 ? 'building'
-                : item.packStatus === '0'
-                ? ''
+                : item.packStatus === '2'
+                ? 'success'
                 : 'failed'
             "
             >{{
-              item.packStatus === "1"
+              item.packStatus === "0"
+                ? "未构建"
+                : item.packStatus === "1"
                 ? "构建中"
-                : item.packStatus === "0"
-                ? "打包成功"
-                : "打包失败"
+                : item.packStatus === "2"
+                ? "构建成功"
+                : "构建失败"
             }}</span
           >
         </span>
@@ -227,7 +231,7 @@ export default {
       buildList: [],
       totalSize: 0,
       addLoadingFlag: true,
-      upfileId: "",
+      upfileId: [],
       deleteLoading: false,
     };
   },
@@ -419,7 +423,7 @@ export default {
         "Content-Type": "application/json",
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };
-      if (item.status) {
+      if (item.build_status) {
         PublishDisableTaskService(headers, params).then((_data) => {
           let { msg, code, data } = _data;
           self.listLoading = false;
@@ -429,7 +433,7 @@ export default {
               center: true,
               type: "success",
             });
-            item.status = !item.status;
+            item.build_status = !item.build_status;
             this.queryPublishList();
           } else {
             self.$message.error({
@@ -448,7 +452,7 @@ export default {
               center: true,
               type: "success",
             });
-            item.status = !item.status;
+            item.build_status = !item.build_status;
             this.queryPublishList();
           } else {
             self.$message.error({
@@ -473,14 +477,15 @@ export default {
     subUploadFile(data) {
       let params = new FormData();
       params.append("file", data.file);
-      params.append("type", "stress");
+      params.append("type", "build");
       const headers = {
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };
       addupload(headers, params).then((res) => {
         const { msg, code, data } = res;
         if (code === "0") {
-          this.upfileId = data.fileid || "";
+          const fileid = data.fileid || "";
+          this.upfileId.push(fileid)
         } else {
           this.$message.error({
             message: msg,

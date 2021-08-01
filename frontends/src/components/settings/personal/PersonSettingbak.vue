@@ -82,9 +82,9 @@
 </template>
 
 <script>
-  import {TokenKey} from "../../../../common/js/constants";
+  import {TokenKey} from "../../../common/js/constants";
   import MsDialogFooter from "../../common/components/MsDialogFooter";
-  import {getCurrentUser, listenGoBack, removeGoBackListener} from "../../../../common/js/utils";
+  import {getCurrentUser, listenGoBack, removeGoBackListener} from "../../../common/js/utils";
   import MsTableOperatorButton from "../../common/components/MsTableOperatorButton";
 
   export default {

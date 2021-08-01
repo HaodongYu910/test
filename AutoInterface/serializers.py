@@ -70,24 +70,24 @@ class ProjectSerializer(serializers.ModelSerializer):
         return obj.member_project.all().count()
 
 
-class ApiGroupLevelFirstSerializer(serializers.ModelSerializer):
+class ApiGroupSerializer(serializers.ModelSerializer):
     """
-    接口一级分组信息序列化
-    """
-
-    class Meta:
-        model = ApiGroupLevelFirst
-        fields = ('id', 'project_id', 'name')
-
-
-class ApiGroupLevelFirstDeserializer(serializers.ModelSerializer):
-    """
-    接口一级分组信息反序列化
+    接口分组信息序列化
     """
 
     class Meta:
-        model = ApiGroupLevelFirst
-        fields = ('id', 'project_id', 'name')
+        model = ApiGroup
+        fields = ('id', 'project_id', 'name', 'type', 'level', 'status')
+
+
+class ApiGroupDeserializer(serializers.ModelSerializer):
+    """
+    接口分组信息反序列化
+    """
+
+    class Meta:
+        model = ApiGroup
+        fields = ('id', 'project_id', 'name', 'type', 'level', 'status')
 
 
 class ApiHeadSerializer(serializers.ModelSerializer):
@@ -97,7 +97,7 @@ class ApiHeadSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiHead
-        fields = ('id', 'api', 'name', 'value')
+        fields = ('id', 'Interface', 'name', 'value')
 
 
 class ApiHeadDeserializer(serializers.ModelSerializer):
@@ -107,7 +107,7 @@ class ApiHeadDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiHead
-        fields = ('id', 'api', 'name', 'value')
+        fields = ('id', 'Interface', 'name', 'value')
 
 
 class ApiParameterSerializer(serializers.ModelSerializer):
@@ -117,7 +117,7 @@ class ApiParameterSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiParameter
-        fields = ('id', 'api', 'name', 'value', '_type', 'required', 'restrict', 'description')
+        fields = ('id', 'Interface', 'name', 'value', '_type', 'required', 'restrict', 'description')
 
 
 class ApiParameterDeserializer(serializers.ModelSerializer):
@@ -127,7 +127,7 @@ class ApiParameterDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiParameter
-        fields = ('id', 'api', 'name', 'value', '_type', 'required', 'restrict', 'description')
+        fields = ('id', 'Interface', 'name', 'value', '_type', 'required', 'restrict', 'description')
 
 
 class ApiParameterRawSerializer(serializers.ModelSerializer):
@@ -137,7 +137,7 @@ class ApiParameterRawSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiParameterRaw
-        fields = ('id', 'api', 'data')
+        fields = ('id', 'Interface', 'data')
 
 
 class ApiParameterRawDeserializer(serializers.ModelSerializer):
@@ -147,7 +147,7 @@ class ApiParameterRawDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiParameterRaw
-        fields = ('id', 'api', 'data')
+        fields = ('id', 'Interface', 'data')
 
 
 class ApiResponseSerializer(serializers.ModelSerializer):
@@ -157,7 +157,7 @@ class ApiResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiResponse
-        fields = ('id', 'api', 'name', 'value', '_type', 'required', 'description')
+        fields = ('id', 'Interface', 'name', 'value', '_type', 'required', 'description')
 
 
 class ApiResponseDeserializer(serializers.ModelSerializer):
@@ -167,7 +167,7 @@ class ApiResponseDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiResponse
-        fields = ('id', 'api', 'name', 'value', '_type', 'required', 'description')
+        fields = ('id', 'Interface', 'name', 'value', '_type', 'required', 'description')
 
 
 class ApiInfoSerializer(serializers.ModelSerializer):
@@ -183,7 +183,7 @@ class ApiInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ApiInfo
-        fields = ('id', 'apiGroupLevelFirst', 'name', 'httpType', 'requestType', 'apiAddress', 'headers',
+        fields = ('id', 'ApiGroup', 'name', 'httpType', 'requestType', 'apiAddress', 'headers',
                   'requestParameterType', 'requestParameter', 'requestParameterRaw', 'status',
                   'response', 'mockCode', 'data', 'lastUpdateTime', 'userUpdate', 'description')
 
@@ -207,7 +207,7 @@ class ApiInfoDocSerializer(serializers.ModelSerializer):
     First = ApiInfoSerializer(many=True, read_only=True)
 
     class Meta:
-        model = ApiGroupLevelFirst
+        model = ApiGroup
         fields = ('id', 'name', 'First')
 
 
@@ -266,13 +266,13 @@ class ApiOperationHistoryDeserializer(serializers.ModelSerializer):
         fields = ('id', 'apiInfo', 'user', 'time', 'description')
 
 
-class AutomationGroupLevelFirstSerializer(serializers.ModelSerializer):
+class AutomationGroupSerializer(serializers.ModelSerializer):
     """
     自动化用例一级分组信息序列化
     """
 
     class Meta:
-        model = AutomationGroupLevelFirst
+        model = AutomationGroup
         fields = ('id', 'project_id', 'name')
 
 
@@ -281,11 +281,11 @@ class AutomationTestCaseSerializer(serializers.ModelSerializer):
     自动化用例信息序列化
     """
     updateTime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
-    createUser = serializers.CharField(source='user.first_name')
+    updateUser = serializers.CharField(source='user.first_name')
 
     class Meta:
         model = AutomationTestCase
-        fields = ('id', 'automationGroupLevelFirst', 'caseName', 'createUser',
+        fields = ('id', 'ApiGroup', 'caseName', 'updateUser', 'type', 'level', 'status',
                   'description', 'updateTime')
 
 
@@ -296,7 +296,7 @@ class AutomationTestCaseDeserializer(serializers.ModelSerializer):
 
     class Meta:
         model = AutomationTestCase
-        fields = ('id', 'project_id', 'automationGroupLevelFirst', 'caseName', 'user',
+        fields = ('id', 'project_id', 'ApiGroup', 'caseName', 'user', 'type', 'level', 'status',
                   'description', 'updateTime')
 
 
@@ -402,22 +402,22 @@ class AutomationCaseApiSerializer(serializers.ModelSerializer):
     class Meta:
         model = AutomationCaseApi
         fields = ('id', 'name', 'httpType', 'requestType', 'apiAddress', 'header', 'requestParameterType', 'formatRaw',
-                  'parameterList', 'parameterRaw', 'examineType', 'httpCode', 'responseData')
+                  'parameterList', 'parameterRaw', 'examineType', 'httpCode', 'responseData', 'type', 'stepname', 'step')
 
 
 class AutomationCaseDownloadSerializer(serializers.ModelSerializer):
     """
     下载用例读取数据序列
     """
-    # api = AutomationCaseApiSerializer(many=True, read_only=True)
+    # Interface = AutomationCaseApiSerializer(many=True, read_only=True)
     updateTime = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S", required=False, read_only=True)
-    # automationGroupLevelFirst = serializers.CharField(source='automationGroupLevelFirst.name')
+    # AutomationGroup = serializers.CharField(source='AutomationGroup.name')
     user = serializers.CharField(source="user.first_name")
     api = serializers.SerializerMethodField()
 
     class Meta:
         model = AutomationTestCase
-        fields = ('caseName', 'user', 'updateTime', 'api')
+        fields = ('caseName', 'user', 'updateTime', 'Interface')
 
     def get_api(self, obj):
         return AutomationCaseApiSerializer(
@@ -430,11 +430,11 @@ class AutomationCaseDownSerializer(serializers.ModelSerializer):
     """
     下载用例读取数据序列
     """
-    automationGroup = AutomationCaseDownloadSerializer(many=True, read_only=True)
+    AutomationGroup = AutomationCaseDownloadSerializer(many=True, read_only=True)
 
     class Meta:
-        model = AutomationGroupLevelFirst
-        fields = ("name", "automationGroup")
+        model = AutomationGroup
+        fields = ("name", "AutomationGroup")
 
 
 class AutomationCaseApiDeserializer(serializers.ModelSerializer):

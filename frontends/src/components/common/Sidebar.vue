@@ -68,11 +68,7 @@
                             {
                                 index: 'host',
                                 title: 'Host配置'
-                            },
-                            {
-                                index: 'projectDynamic',
-                                title: '项目动态'
-                            },
+                            }
                         ]
                     },
                     {
@@ -80,6 +76,10 @@
                         index: 'interface',
                         title: '接口自动化',
                         subs: [
+                            {
+                                index: 'scene',
+                                title: '接口场景'
+                            },
                             {
                                 index: 'api',
                                 title: 'API管理'

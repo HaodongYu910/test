@@ -3,7 +3,7 @@ from github import Github
 
 class GitMethod:
     """
-       git api 仓库获取 信息
+       git Interface 仓库获取 信息
        github 文档  https://pygithub.readthedocs.io/en/latest/introduction.html
     """
 

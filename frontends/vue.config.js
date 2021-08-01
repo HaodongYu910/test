@@ -5,20 +5,20 @@ module.exports = {
     productionSourceMap: false,
     devServer: {
         proxy: {
-            /*'/api':{
+            /*'/Interface':{
                 target:'http://jsonplaceholder.typicode.com',
                 changeOrigin:true,
                 pathRewrite:{
-                    '/api':''
+                    '/Interface':''
                 }
             },*/
-            // '/api':{
+            // '/Interface':{
             //     // 测试环境
             //     target:'http://127.0.0.1:8000',
             //     ws:true,
             //     changeOrigin:true,
             //     pathRewrite:{
-            //         '/api':''
+            //         '/Interface':''
             //     }
             // },
             // '/prod': {
@@ -26,7 +26,7 @@ module.exports = {
             //     ws:true,
             //     changOrigin:true,
             //     pathRewrite:{
-            //         '^/api':'/'
+            //         '^/Interface':'/'
             //     }
             // },
             '/ms':{

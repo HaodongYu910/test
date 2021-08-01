@@ -168,7 +168,7 @@
 <script>
   import MsCreateBox from "../CreateBox";
   import {Message} from "element-ui";
-  import {DEFAULT} from "../../../../common/js/constants";
+  import {DEFAULT} from "../../../common/js/constants";
   import MsTablePagination from "../../common/pagination/TablePagination";
   import MsTableHeader from "../../common/components/MsTableHeader";
   import MsRolesTag from "../../common/components/MsRolesTag";
@@ -180,7 +180,7 @@
     getCurrentUser,
     getCurrentWorkspaceId, listenGoBack,
     refreshSessionAndCookies, removeGoBackListener
-  } from "../../../../common/js/utils";
+  } from "../../../common/js/utils";
   import MsDeleteConfirm from "../../common/components/MsDeleteConfirm";
 
   export default {

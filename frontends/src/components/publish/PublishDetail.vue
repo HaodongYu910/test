@@ -75,10 +75,12 @@
           <span>{{ item.create_time }}</span>
           <span>{{
             item.packStatus === "0"
-              ? "打包成功"
-              : item.packStatus === "2"
-              ? "打包失败"
-              : "已取消"
+                ? "未构建"
+                : item.packStatus === "1"
+                ? "构建中"
+                : item.packStatus === "2"
+                ? "构建成功"
+                : "构建失败"
           }}</span>
           <span class="highlight">
             <el-button
@@ -500,7 +502,7 @@ export default {
       console.log(data);
       let params = new FormData();
       params.append("file", data.file);
-      params.append("type", "stress");
+      params.append("type", "build");
       const headers = {
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };

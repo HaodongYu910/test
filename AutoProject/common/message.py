@@ -167,12 +167,13 @@ def sendMessage(touser='', toparty='', message='Message'):
     发送消息
     """
     try:
+        logger.info(params)
         requests.post(msgsend_url, data=json.dumps(params))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))
 
 
-# devopsMessage 消息推送
+# Message 消息推送
 def devopsMessage(**kwargs):
     data = kwargs["data"]
     obj = message_group.objects.get(type=data["type"], status=True)
@@ -181,7 +182,7 @@ def devopsMessage(**kwargs):
             try:
                 data["params"]["text"]["mentioned_list"] = obj.mentioned_list.split(",")
             except KeyError:
-                data["params"]["text"]["mentioned_list"] =[]
+                data["params"]["text"]["mentioned_list"] = []
         requests.post(obj.send_url, data=json.dumps(data["params"]))
     except Exception as e:
         logger.error("send Message fail :{}".format(e))

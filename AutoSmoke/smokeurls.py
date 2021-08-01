@@ -1,11 +1,11 @@
 from django.conf.urls import url
 from rest_framework import routers
 #
-# from .api.apiDicom import *
-# from .api.apiDuration import *
-# from .api.apiDicombase import *
-# from .api.apiDurationReport import DurationReport
-# from .api.apiGroup import *
+# from .Interface.apiDicom import *
+# from .Interface.apiDuration import *
+# from .Interface.apiDicombase import *
+# from .Interface.apiDurationReport import DurationReport
+# from .Interface.apiGroup import *
 
 # Routers provide an easy way of slicenumberally determining the URL conf.
 # 注册

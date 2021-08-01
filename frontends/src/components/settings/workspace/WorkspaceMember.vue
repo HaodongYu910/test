@@ -108,7 +108,7 @@
   import MsRolesTag from "../../common/components/MsRolesTag";
   import MsTableOperator from "../../common/components/MsTableOperator";
   import MsDialogFooter from "../../common/components/MsDialogFooter";
-  import {getCurrentUser, listenGoBack, removeGoBackListener} from "../../../../common/js/utils";
+  import {getCurrentUser, listenGoBack, removeGoBackListener} from "../../../common/js/utils";
 
   export default {
     name: "MsMember",

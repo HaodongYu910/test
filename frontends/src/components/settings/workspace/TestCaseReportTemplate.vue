@@ -20,7 +20,7 @@
     import MsTableHeader from "../../common/components/MsTableHeader";
     import TestCaseReportTemplateEdit from "../../track/plan/view/comonents/report/TestCaseReportTemplateEdit";
     import TestcaseTemplateItem from "../../track/plan/view/comonents/report/TestcaseTemplateItem";
-    import {WORKSPACE_ID} from '../../../../common/js/constants';
+    import {WORKSPACE_ID} from '../../../common/js/constants';
     import MsMainContainer from "../../common/components/MsMainContainer";
 
     export default {

@@ -180,7 +180,7 @@ import MsTablePagination from "../../common/pagination/TablePagination";
 import MsTableHeader from "../../common/components/MsTableHeader";
 import MsTableOperator from "../../common/components/MsTableOperator";
 import MsDialogFooter from "../../common/components/MsDialogFooter";
-import {listenGoBack, removeGoBackListener} from "../../../../common/js/utils";
+import {listenGoBack, removeGoBackListener} from "../../../common/js/utils";
 
 export default {
   name: "MsTestResourcePool",

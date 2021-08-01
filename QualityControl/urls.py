@@ -32,7 +32,7 @@ from AutoInterface.api.ApiDoc import MockRequest
 schema_view = get_schema_view(title='测试平台 API', renderer_classes=[OpenAPIRenderer, SwaggerUIRenderer]
                               , permission_classes=())
 urlpatterns = [
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^Interface-auth/', include('rest_framework.urls', namespace='rest_framework')),
     url(r'^docs/', schema_view, name="docs"),
     path('admin/', admin.site.urls),  # back login
     url(r'^$', TemplateView.as_view(template_name="index.html")),  # home
@@ -41,7 +41,7 @@ urlpatterns = [
     url(r'^dicom/', include(dicomurls)),
     url(r'^smoke/', include(smokeurls)),
     url(r'^project/', include(urls)),
-    url(r'^api/', include(apiUrls)),
+    url(r'^Interface/', include(apiUrls)),
     # re_path(r'^accounts/', include('allauth.urls')),
     path('mock/<path:test_tool_platformAdr>', MockRequest.as_view()),   #fake backend return   mock js
 ]

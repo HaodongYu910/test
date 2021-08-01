@@ -364,22 +364,22 @@ export const buildStateMapFunc = function() {
       className: "el-icon-refresh",
     },
     {
-      name: "依赖集成",
+      name: "集成编译",
       status: 1,
       className: "el-icon-sold-out",
     },
     {
-      name: "打包",
+      name: "打包上传",
       status: 2,
       className: "el-icon-s-cooperation",
     },
     {
-      name: "部署",
+      name: "部署安装",
       status: 3,
       className: "el-icon-s-promotion",
     },
     {
-      name: "部署完成",
+      name: "完成",
       status: 4,
       className: "el-icon-finished",
     },

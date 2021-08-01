@@ -115,7 +115,7 @@
     import {
         getHost, getsmokerecord, getsmokestart, deldicomresult, getdicomurl
     } from '@/router/api'
-    import {stresssave} from "../../../router/api";
+    import {stresssave} from "../../../router/Interface";
 
     // import ElRow from "element-ui/packages/row/src/row";
     export default {

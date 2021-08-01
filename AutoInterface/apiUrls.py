@@ -2,7 +2,7 @@ from django.conf.urls import url
 from rest_framework import routers
 
 from .api.apiGold import *
-from .api import ApiDoc, automationCase as Case
+from .api import ApiDoc, ApiGroup, ApiScene, automationCase as Case
 
 from .api import automationReport as Report
 from .api.apiSmoke import *
@@ -16,24 +16,26 @@ router = routers.DefaultRouter()
 # Wire up our API using slicenumber URL routing.
 # Additionally, we include login URLs for the browsable API.
 urlpatterns = [
-    url(r'api/group', ApiDoc.Group.as_view()),
-    url(r'api/add_group', ApiDoc.AddGroup.as_view()),
-    url(r'api/update_name_group', ApiDoc.UpdateNameGroup.as_view()),
-    url(r'api/del_group', ApiDoc.DelGroup.as_view()),
-    url(r'api/api_list', ApiDoc.ApiList.as_view()),
-    url(r'api/add_api', ApiDoc.AddApi.as_view()),
-    url(r'api/updateMock', ApiDoc.UpdateApiMockStatus.as_view()),
-    url(r'api/lead_swagger', ApiDoc.LeadSwagger.as_view()),
-    url(r'api/update_api', ApiDoc.UpdateApi.as_view()),
-    url(r'api/del_api', ApiDoc.DelApi.as_view()),
-    url(r'api/update_group', ApiDoc.UpdateGroup.as_view()),
-    url(r'api/api_info', ApiDoc.ApiInfoDetail.as_view()),
-    url(r'api/add_history', ApiDoc.AddHistory.as_view()),
-    url(r'api/history_list', ApiDoc.HistoryList.as_view()),
-    url(r'api/del_history', ApiDoc.DelHistory.as_view()),
-    url(r'api/operation_history', ApiDoc.OperationHistory.as_view()),
-    url(r'api/Download', ApiDoc.DownLoad.as_view()),
-    url(r'api/download_doc', ApiDoc.download_doc),
+    url(r'Interface/group', ApiGroup.Group.as_view()),
+    url(r'Interface/add_group', ApiGroup.AddGroup.as_view()),
+    url(r'Interface/update_name_group', ApiGroup.UpdateNameGroup.as_view()),
+    url(r'Interface/del_group', ApiGroup.DelGroup.as_view()),
+    url(r'Interface/api_list', ApiDoc.ApiList.as_view()),
+    url(r'Interface/add_api', ApiDoc.AddApi.as_view()),
+    url(r'scene/list', Case.CaseList.as_view()),
+    url(r'scene/Detail', ApiScene.ApiSceneDetail.as_view()),
+    url(r'Interface/updateMock', ApiDoc.UpdateApiMockStatus.as_view()),
+    url(r'Interface/lead_swagger', ApiDoc.LeadSwagger.as_view()),
+    url(r'Interface/update_api', ApiDoc.UpdateApi.as_view()),
+    url(r'Interface/del_api', ApiDoc.DelApi.as_view()),
+    url(r'Interface/update_group', ApiDoc.UpdateGroup.as_view()),
+    url(r'Interface/api_info', ApiDoc.ApiInfoDetail.as_view()),
+    url(r'Interface/add_history', ApiDoc.AddHistory.as_view()),
+    url(r'Interface/history_list', ApiDoc.HistoryList.as_view()),
+    url(r'Interface/del_history', ApiDoc.DelHistory.as_view()),
+    url(r'Interface/operation_history', ApiDoc.OperationHistory.as_view()),
+    url(r'Interface/Download', ApiDoc.DownLoad.as_view()),
+    url(r'Interface/download_doc', ApiDoc.download_doc),
     url(r'automation/group', Case.Group.as_view()),
     url(r'automation/add_group', Case.AddGroup.as_view()),
     url(r'automation/del_group', Case.DelGroup.as_view()),

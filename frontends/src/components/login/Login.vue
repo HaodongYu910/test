@@ -24,7 +24,7 @@
 
 <script>
     /* eslint-disable */
-    // import { requestLogin, recordVisitor } from '../../router/api';
+    // import { requestLogin, recordVisitor } from '../../router/Interface';
 
     import {requestLogin} from "../../router/api";
 

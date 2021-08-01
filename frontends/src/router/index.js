@@ -3,23 +3,23 @@ import Router from 'vue-router';
 
 const ProjectInfo = () => import('../components/project/Projectdetail.vue');
 const Server = () => import('../components/project/global/ServerList.vue');
-const API = () => import('../components/project/api/API.vue');
-const ApiList = () => import('../components/project/api/ApiList.vue');
-const ApiListGroup = () => import('../components/project/api/ApiListGroup.vue');
-const FestTest = () => import('../components/project/api/FestTest.vue');
-const addApi = () => import('../components/project/api/Addapi.vue');
-const detail = () => import('../components/project/api/updateApi/ApiForm.vue');
-const ApiInfo = () => import('../components/project/api/updateApi/ApiInfo.vue');
-const testApi = () => import('../components/project/api/updateApi/TestApi.vue');
-const UpdateApi = () => import('../components/project/api/updateApi/UpdateApi.vue');
-const ApiDynamic = () => import('../components/project/api/updateApi/ApiDynamic.vue');
-const AutomationTest = () => import('../components/interface/automation/AutomationTest.vue');
-const CaseList = () => import('../components/interface/automation/CaseList.vue');
-const CaseListGroup = () => import('../components/interface/automation/CaseListGroup.vue');
-const CaseApiList = () => import('../components/interface/automation/CaseApiList.vue');
-const AddCaseApi = () => import('../components/interface/automation/AddCaseApi.vue');
-const UpdateCaseApi = () => import('../components/interface/automation/UpdateCaseApi.vue');
-const TestReport = () => import('../components/interface/automation/TestReport.vue');
+const API = () => import('../components/Interface/api/API.vue');
+const ApiList = () => import('../components/Interface/api/ApiList.vue');
+const ApiListGroup = () => import('../components/Interface/api/ApiListGroup.vue');
+const FestTest = () => import('../components/Interface/api/FestTest.vue');
+const addApi = () => import('../components/Interface/api/Addapi.vue');
+const detail = () => import('../components/Interface/api/updateApi/ApiForm.vue');
+const ApiInfo = () => import('../components/Interface/api/updateApi/ApiInfo.vue');
+const testApi = () => import('../components/Interface/api/updateApi/TestApi.vue');
+const UpdateApi = () => import('../components/Interface/api/updateApi/UpdateApi.vue');
+const ApiDynamic = () => import('../components/Interface/api/updateApi/ApiDynamic.vue');
+const AutomationTest = () => import('../components/Interface/automation/AutomationTest.vue');
+const CaseList = () => import('../components/Interface/automation/CaseList.vue');
+const CaseListGroup = () => import('../components/Interface/automation/CaseListGroup.vue');
+const CaseApiList = () => import('../components/Interface/automation/CaseApiList.vue');
+const AddCaseApi = () => import('../components/Interface/automation/AddCaseApi.vue');
+const UpdateCaseApi = () => import('../components/Interface/automation/UpdateCaseApi.vue');
+const TestReport = () => import('../components/Interface/automation/TestReport.vue');
 const ProjectMember = () => import('../components/project/ProjectMember.vue');
 const ProjectDynamic = () => import('../components/project/ProjectDynamic.vue');
 const ProjectTitle = () => import('../components/project/projectTitle/ProjectTitle.vue');
@@ -99,7 +99,7 @@ export default new Router({
                     // UICase 用例
                     path: '/UICase',
                     component: resolve => require(['../components/autoui/UICase.vue'], resolve),
-                    meta: { title: 'UI用例' }
+                    meta: {title: 'UI用例'}
 
                 },
                 {
@@ -221,10 +221,16 @@ export default new Router({
                 },
                 /* *******      接口自动化 页面     *******   */
                 //  接口自动化 页面
+                // {
+                //     //duration 删除
+                //     path: '/apiHome',
+                //     component: resolve => require(['../components/Interface/home/ApiTestHome.vue'], resolve),
+                //     meta: {title: 'API接口'}
+                // },
                 {
-                    path: '/api',
+                    path: '/Interface',
                     component: API,
-                    meta: {title: 'API接口'},
+                    meta: {title: 'API列表'},
                     children: [
                         {
                             path: '/apiList/project=:project_id',
@@ -251,31 +257,31 @@ export default new Router({
                             name: '新增接口'
                         },
                         {
-                            path: '/detail/project=:project_id/api=:api_id',
+                            path: '/detail/project=:project_id/Interface=:api_id',
                             component: detail,
                             name: '接口',
                             children: [
                                 {
-                                    path: '/apiInfo/project=:project_id/api=:api_id',
+                                    path: '/apiInfo/project=:project_id/Interface=:api_id',
                                     component: ApiInfo,
                                     meta: {title: '基础信息'},
                                     name: '基础信息'
                                 },
                                 {
-                                    path: '/testApi/project=:project_id/api=:api_id',
+                                    path: '/testApi/project=:project_id/Interface=:api_id',
                                     component: testApi,
                                     meta: {title: '测试'},
                                     name: '测试'
                                 },
                                 {
-                                    path: '/apiDynamic/project=:project_id/api=:api_id',
+                                    path: '/apiDynamic/project=:project_id/Interface=:api_id',
                                     component: ApiDynamic,
                                     meta: {title: '历史'},
                                     name: '历史'
                                 },
                             ]
                         },
-                        {path: '/updateApi/project=:project_id/api=:api_id', component: UpdateApi, name: '修改'},
+                        {path: '/updateApi/project=:project_id/Interface=:api_id', component: UpdateApi, name: '修改'},
                     ]
                 },
                 {
@@ -310,7 +316,7 @@ export default new Router({
                             name: '添加新接口'
                         },
                         {
-                            path: '/updateCaseApi/project=:project_id/case=:case_id/api=:api_id',
+                            path: '/updateCaseApi/project=:project_id/case=:case_id/Interface=:api_id',
                             component: UpdateCaseApi,
                             name: '修改接口'
                         },
@@ -324,22 +330,37 @@ export default new Router({
                     name: '自动化测试报告',
                     leaf: true
                 },
+                //
+                {
+
+                    path: '/scene',
+                    component: resolve => require(['../components/Interface/scene/sceneList.vue'], resolve),
+                    meta: {title: '接口场景'},
+                    child: true,
+                    children: []
+                },
+                {
+                    path: '/SceneCase',
+                    component: resolve => require(['../components/Interface/scene/sceneCase.vue'], resolve),
+                    meta: {title: '场景用例'},
+                    name: '场景用例'
+                },
                 {
                     path: '/SmokeList',
-                    component: resolve => require(['../components/interface/gold/goldList.vue'], resolve),
+                    component: resolve => require(['../components/Interface/gold/goldList.vue'], resolve),
                     meta: {title: '金标准列表'}
 
                 },
                 {
                     path: '/goldDetail',
-                    component: resolve => require(['../components/interface/gold/goldDetails.vue'], resolve),
+                    component: resolve => require(['../components/Interface/gold/goldDetails.vue'], resolve),
                     meta: {title: '金标准详情'},
                     name: '金标准详情'
 
                 },
                 {
                     path: '/report/goldid=:goldid',
-                    component: resolve => require(['../components/interface/gold/goldReport.vue'], resolve),
+                    component: resolve => require(['../components/Interface/gold/goldReport.vue'], resolve),
                     meta: {title: '金标准报告'},
                     name: '金标准报告', leaf: true
                 },
@@ -351,7 +372,7 @@ export default new Router({
                 },
                 {
                     path: '/SmokeResult',
-                    component: resolve => require(['../components/interface/gold/goldtest.vue'], resolve),
+                    component: resolve => require(['../components/Interface/gold/goldtest.vue'], resolve),
                     meta: {title: '金标准结果'}
 
                 },
@@ -373,7 +394,7 @@ export default new Router({
                     // dds监控界面
                     path: '/dds',
                     component: resolve => require(['../components/DicomTool/DDS/dds.vue'], resolve),
-                    meta: { title: 'DDS监控' }
+                    meta: {title: 'DDS监控'}
 
                 },
 

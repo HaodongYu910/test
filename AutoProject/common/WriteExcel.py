@@ -44,8 +44,8 @@ class Write:
             'align': 'center',
         })
         for i in data:
-            for api in i["automationGroup"]:
-                for n in api["api"]:
+            for api in i["AutomationGroup"]:
+                for n in api["Interface"]:
                     self.worksheet.write(row, 0, row)
                     self.worksheet.write(row, 3, n["name"])
                     self.worksheet.write(row, 4, n["httpType"].lower()+"://xxxx"+n["apiAddress"])
@@ -85,7 +85,7 @@ class Write:
                     row = row+1
                     _module_row = _module_row+1
                 if row-1 != case_row:
-                    self.worksheet.merge_range(case_row, 2, case_row + len(api["api"]) - 1, 2, api["caseName"], merge_format)
+                    self.worksheet.merge_range(case_row, 2, case_row + len(api["Interface"]) - 1, 2, api["caseName"], merge_format)
                 else:
                     self.worksheet.write(case_row, 2, api["caseName"], row_format)
                 case_row = row

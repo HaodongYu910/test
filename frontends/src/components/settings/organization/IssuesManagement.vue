@@ -63,7 +63,7 @@
 </template>
 
 <script>
-import {getCurrentUser} from "../../../../common/js/utils";
+import {getCurrentUser} from "../../../common/js/utils";
 
 export default {
   name: "IssuesManagement",

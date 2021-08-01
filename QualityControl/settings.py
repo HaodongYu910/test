@@ -30,7 +30,7 @@ DEBUG = False
 
 # MySql 数据库配置
 MS_DB = "192.168.1.120"  # 数据库 地址 auto_test
-MySqlName = "auto_test"
+MySqlName = "dev"
 MySqlUser = "root"
 MySql_Pwd = "test123456"
 

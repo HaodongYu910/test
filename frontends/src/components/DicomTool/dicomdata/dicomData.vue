@@ -28,7 +28,7 @@
                     <el-form-item>
                         <el-button type="primary" @click="getdata">查询</el-button>
                     </el-form-item>
-                    <!--                    <el-button type="warning" :disabled="this.sels.length===0" @click="batchCsv">生成CSV</el-button>-->
+                    <el-button type="primary" :disabled="this.sels.length===0" @click="handleAnonymization">重新匿名</el-button>
                     <el-button type="primary" :disabled="this.sels.length===0" @click="handleCollection">收藏</el-button>
                     <el-button type="warning" :disabled="this.sels.length===0" @click.native="Unbind">解除绑定</el-button>
                 </el-form>
@@ -109,6 +109,18 @@
                        style="width: 75%; left: 12.5%">
                 <el-form :model="editForm" label-width="80px" :rules="editFormRules" ref="editForm">
                     <el-row :gutter="24">
+                        <el-col :span="12">
+                            <el-form-item label="患者ID:">
+                                <el-input v-model="editForm.patientid"></el-input>
+                            </el-form-item>
+                        </el-col>
+                        <el-col :span="12">
+                            <el-form-item label="患者姓名:">
+                                <el-input v-model="editForm.patientname"></el-input>
+                            </el-form-item>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
                         <el-col :span="8">
                             <el-form-item label="别名">
                                 <el-input v-model="editForm.remark"></el-input>
@@ -173,30 +185,36 @@
 
             </el-dialog>
 
-            <!--收藏界面-->
+            <!--重新匿名界面-->
             <el-dialog
-                    title="新增"
-                    :visible.sync="addFormVisible"
+                    title="重新匿名"
+                    :visible.sync="AnonymizationFormVisible"
                     :close-on-click-modal="false"
                     style="width: 75%; left: 12.5%"
             >
-                <el-form ref="addForm" :model="addForm" label-width="80px" :rules="addFormRules">
+                <el-form ref="AnonymizationForm" :model="AnonymizationForm" label-width="80px" :rules="AnonymizationRules">
                     <el-row :gutter="24">
-                        <el-col :span="12">
-                            <el-form-item label="patientid" prop="patientid">
-                                <el-input v-model.trim="addForm.patientid" auto-complete="off"/>
-                            </el-form-item>
+                        <el-col span="8">
+                            <span>患者ID(PatientID):</span>
                         </el-col>
                         <el-col :span="12">
-                            <el-form-item label="studyinstanceuid" prop="studyinstanceuid">
-                                <el-input v-model.trim="addForm.studyinstanceuid" auto-complete="off"/>
-                            </el-form-item>
+                            <el-input v-model.trim="AnonymizationForm.PatientID" auto-complete="off"/>
+                        </el-col>
+                    </el-row>
+                    <el-row :gutter="24">
+                        <el-col span="8">
+                            <span>患者姓名(PatientName):</span>
+                        </el-col>
+                        <el-col :span="12">
+
+                            <el-input v-model.trim="AnonymizationForm.PatientName" auto-complete="off"/>
+
                         </el-col>
                     </el-row>
                 </el-form>
                 <div slot="footer" class="dialog-footer">
-                    <el-button @click.native="addFormVisible = false">取消</el-button>
-                    <el-button type="primary" :loading="addLoading" @click.native="addSubmit">提交</el-button>
+                    <el-button @click.native="AnonymizationFormVisible = false">取消</el-button>
+                    <el-button type="primary" :loading="addLoading" @click.native="addSubmit">修改</el-button>
                 </div>
             </el-dialog>
         </div>
@@ -246,6 +264,7 @@
                 groupId: "",
                 groupOptions: null,
                 sels: [], // 列表选中列
+
                 editFormRules: {
                     diagnosis: [
                         {required: true, message: '请输入名称', trigger: 'blur'},
@@ -270,16 +289,19 @@
                 editFormVisible: false, // 编辑界面是否显示
                 editLoading: false,
                 // 新增界面数据
-                addForm: {
-                    diseases: '',
-                    server: '192.168.1.208',
-                    studyinstanceuid: ''
+                AnonymizationForm: {
+                    PatientID: '',
+                    PatientName: ''
                 },
-                addFormVisible: false, // 新增界面是否显示
+                AnonymizationFormVisible: false, // 重新页面显示状态
                 addLoading: false,
-                addFormRules: {
-                    diseases: [
-                        {required: true, message: '请输入名称', trigger: 'blur'},
+                AnonymizationRules: {
+                    PatientID: [
+                        {required: true, message: '请输入PatientID', trigger: 'blur'},
+                        {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
+                    ],
+                    PatientName: [
+                        {required: true, message: '请输入PatientName', trigger: 'blur'},
                         {min: 1, max: 50, message: '长度在 1 到 50 个字符', trigger: 'blur'}
                     ]
                 }
@@ -435,24 +457,22 @@
                 this.page = val
                 this.getdata()
             },
+            // 显示关联组页面
             handleCollection: function (index, row) {
                 this.CollectionFormVisible = true,
                     this.getdicomgrouplist()
+            },
+            // 显示重新匿名页面
+            handleAnonymization: function (index, row) {
+                this.AnonymizationFormVisible = true,
+                    this.Anonymization()
             },
             // 显示编辑界面
             handleEdit: function (index, row) {
                 this.editFormVisible = true
                 this.editForm = Object.assign({}, row)
             },
-            // 显示新增界面
-            handleAdd: function () {
-                this.addFormVisible = true
-                this.addForm = {
-                    patientid: null,
-                    diseases: null,
-                    studyinstanceuid: null,
-                }
-            },
+
             // 编辑
             editSubmit: function () {
                 const self = this
@@ -463,6 +483,8 @@
                             // NProgress.start();
                             const params = {
                                 id: self.editForm.id,
+                                patientid: self.editForm.patientid,
+                                patientname: self.editForm.patientname,
                                 diseases: self.editForm.diseases,
                                 slicenumber: self.editForm.slicenumber,
                                 vote: self.editForm.vote,
@@ -529,55 +551,6 @@
                     }
                 })
             },
-            // // 新增
-            // addSubmit: function () {
-            //     this.$refs.addForm.validate((valid) => {
-            //         if (valid) {
-            //             const self = this
-            //             this.$confirm('确认提交吗？', '提示', {}).then(() => {
-            //                 self.addLoading = true
-            //                 // NProgress.start();
-            //                 const params = JSON.stringify({
-            //                     diseases: self.addForm.diseases,
-            //                     patientid: self.addForm.patientid,
-            //                     server: self.addForm.server,
-            //                     studyinstanceuid: self.addForm.studyinstanceuid
-            //                 })
-            //                 const header = {
-            //                     'Content-Type': 'application/json',
-            //                     Authorization: 'Token ' + JSON.parse(sessionStorage.getItem('token'))
-            //                 }
-            //                 adddicomdata(header, params).then(_data => {
-            //                     const {msg, code, data} = _data
-            //                     self.addLoading = false
-            //                     if (code === '0') {
-            //                         self.$message({
-            //                             message: '添加成功',
-            //                             center: true,
-            //                             type: 'success'
-            //                         })
-            //                         self.$refs['addForm'].resetFields()
-            //                         self.addFormVisible = false
-            //                         self.getdata()
-            //                     } else if (code === '999997') {
-            //                         self.$message.error({
-            //                             message: msg,
-            //                             center: true
-            //                         })
-            //                     } else {
-            //                         self.$message.error({
-            //                             message: msg,
-            //                             center: true
-            //                         })
-            //                         self.$refs['addForm'].resetFields()
-            //                         self.addFormVisible = false
-            //                         self.getdata()
-            //                     }
-            //                 })
-            //             })
-            //         }
-            //     })
-            // },
             selsChange: function (sels) {
                 this.sels = sels
             },
