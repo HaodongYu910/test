@@ -5,12 +5,15 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.parsers import JSONParser
 from rest_framework.views import APIView
 from AutoProject.common.api_response import JsonResponse
-from ..models import dicom_group, duration_record, duration, dicom_group_detail
+from ..models import dicom_group, duration_record, duration, dicom_record
 from ..serializers import dicomdata_Deserializer
 from ..common.deletepatients import *
 from ..common.dicomBase import listUrl, voteData, graphql_query, dicomsavecsv
 from ..common.Dicom import SendQueThread
 from AutoInterface.models import gold_record
+from ..common.anonymous import anonymization
+import time
+import os
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置
 
@@ -59,7 +62,7 @@ class dicomDetail(APIView):
                         objdictionary = dictionary.objects.get(id=i.predictor)
                         if i.vote is None:
                             i.vote, i.imagecount, i.slicenumber = voteData(i.studyinstanceuid, obj.host,
-                                                                           i.predictor, kc)
+                                                                            i.predictor, kc)
                         vote = i.vote
                         i.graphql = graphql_query(i.studyinstanceuid, vote, i.predictor, objdictionary.value)
                         i.save()
@@ -87,7 +90,7 @@ class dicomData(APIView):
         try:
             page_size = int(request.GET.get("page_size", 20))
             page = int(request.GET.get("page", 1))
-            project_id =request.GET.get("project_id", 1)
+            project_id = request.GET.get("project_id", 1)
         except (TypeError, ValueError):
             return JsonResponse(code="999985", msg="page and page_size must be integer!")
         diseases = request.GET.get("diseases")
@@ -120,13 +123,12 @@ class dicomData(APIView):
             obm = paginator.page(paginator.num_pages)
         serialize = dicomdata_Deserializer(obm, many=True)
         return JsonResponse(data={"data": serialize.data,
-                                  "page": page,
-                                  "total": total
-                                  }, code="0", msg="成功")
+                                   "page": page,
+                                   "total": total
+                                   }, code="0", msg="成功")
 
 
-
-# 修改duration
+# 修改dicom
 class dicomUpdate(APIView):
     authentication_classes = (TokenAuthentication,)
     permission_classes = ()
@@ -157,6 +159,48 @@ class dicomUpdate(APIView):
             return result
         try:
             obj = dicom.objects.get(id=data["id"])
+            if data['patientid'] == obj.patientid and data['patientname'] == obj.patientname:
+                pass
+            else:
+                # 组装匿名数据
+                info = {
+                    'patientid': data['patientid'],
+                    'patientname': data['patientname'],
+                    'studyinstanceuid': "",
+                }
+                # 生成新的路径
+                route = obj.route.split("/")
+                del route[-1]
+                route = '/'.join(route)
+                try:
+                    file_names = os.listdir(obj.route)
+                except ObjectDoesNotExist:
+                    return JsonResponse(code="999995", msg="数据不存在！")
+
+                # 判断是否有新增的文件夹
+                data['route'] = f"{route}/{data['patientid']}"
+                if not os.path.exists(data['route']):
+                    os.makedirs(data['route'])
+                else:
+                    return JsonResponse(code="999993", msg=f"该匿名地址已经存在，请检查：{data['route']}！")
+                # 遍历文件匿名相关id name
+                for fn in file_names:
+                    full_fn = os.path.join(obj.route, fn)
+                    full_fake = os.path.join(data['route'], fn)
+                    # 调用匿名方法
+                    anonymization(
+                        full_fn=full_fn,
+                        info=info,
+                        full_fn_fake=full_fake
+                    )
+            # 保存修改前信息
+            dicom_record.objects.create(**{
+                "patientid": obj.patientid,
+                "patientname": obj.patientname,
+                "studyinstanceuid": obj.studyinstanceuid,
+                "dicom_id": obj.id,
+                "route": obj.route})
+            # 保存修改结果
             serializer = dicomdata_Deserializer(data=data)
             with transaction.atomic():
                 if serializer.is_valid():
@@ -323,7 +367,7 @@ class dicomSend(APIView):
                     dicomobj = dicom.objects.filter(fileid=i.id)
                     for j in dicomobj:
                         delete_patients_duration(j.studyinstanceuid, data["server"], "StudyInstanceUID", False)
-                    thread_Send = SendQueThread(route=i.content,hostid=host.id)
+                    thread_Send = SendQueThread(route=i.content, hostid=host.id)
                     thread_Send.start()
             else:
                 obj = dicom.objects.filter(id__in=data['id'])
@@ -420,5 +464,79 @@ class dicomUrl(APIView):
                 "url": url,
                 "kc": kc
             })
+        except ObjectDoesNotExist:
+            return JsonResponse(code="999995", msg="数据不存在！")
+
+
+class dicomAnonymization(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    def parameter_check(self, data):
+        """
+        校验参数
+        :param data:
+        :return:
+        """
+        try:
+            # 校验project_id类型为int
+            if not isinstance(data["ids"], list):
+                return JsonResponse(code="999996", msg="参数有误！")
+        except KeyError:
+            return JsonResponse(code="999996", msg="参数有误！")
+
+    def post(self, request):
+        """
+        修改成功失败
+        :param request:
+        :return:
+        """
+        data = JSONParser().parse(request)
+        result = self.parameter_check(data)
+        if result:
+            return result
+        try:
+            count = 1
+            try:
+                obj = dicom.objects.filter(id__in=data["ids"])
+                for i in obj:
+                    if len(data["ids"]) == 1:
+                        info = {
+                            "studyinstanceuid": '',
+                            "patientid": data['PatientID'],
+                            "patientname": data['PatientName']
+
+                        }
+                    else:
+                        info = {
+                            "studyinstanceuid": '',
+                            "patientid": f"{data['PatientID']}_{count}",
+                            "patientname": f"{data['PatientName']}_{count}"
+
+                        }
+                    url = i.route.split("/")
+                    del url[-1]
+                    url = '/'.join(url)
+                    file_names = os.listdir(i.route)
+                    full_fn_fake = f"{url}/{info['patientid']}"
+                    file_names.sort()
+                    count = count + 1
+                    for fn in file_names:
+                        full_fn = os.path.join(i.route, fn)
+                        full_fake = os.path.join(full_fn_fake, fn)
+
+                        anonymization(
+                            full_fn=full_fn,
+                            info=info,
+                            full_fn_fake=full_fake
+                        )
+                    i.patientid = info["patientid"]
+                    i.patientname = info["patientname"]
+                    i.route = full_fn_fake
+                    i.save()
+
+            except ObjectDoesNotExist:
+                return JsonResponse(code="999994", msg="数据错误！")
+            return JsonResponse(code="0", msg="成功")
         except ObjectDoesNotExist:
             return JsonResponse(code="999995", msg="数据不存在！")

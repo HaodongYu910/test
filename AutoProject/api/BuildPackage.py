@@ -1,4 +1,6 @@
 import logging
+import requests
+import json
 import os
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -14,34 +16,9 @@ from AutoProject.common.common import record_dynamic
 from AutoProject.models import build_package, build_package_detail, uploadfile, Token
 from AutoProject.serializers import build_packageSerializer, build_packageDeserializer, build_package_detailSerializer
 from ..common.jenkins_api import JenkinsApi
+from ..common.message import sendMessage
 
 logger = logging.getLogger(__name__)  # 这里使用 __name__ 动态搜索定义的 logger 配置，这里有一个层次关系的知识点。
-
-
-class BuildStatus(APIView):
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = ()
-
-    def get(self, request):
-        """
-        变更构建状态
-        :param request:
-        :return:
-        """
-        try:
-            build_id = int(request.GET.get("build_id"))
-            build_status = int(request.GET.get("status"))
-        except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="build_id must be integer!")
-
-        try:
-            obj = build_package.objects.get(id=build_id)
-            obj.packStatus = build_status
-            obj.save()
-        except (TypeError, ValueError):
-            return JsonResponse(code="999985", msg="修改失败!" )
-
-        return JsonResponse(code="0", msg="成功")
 
 
 class BuildList(APIView):
@@ -102,6 +79,8 @@ class BuildDetail(APIView):
         obj = build_package_detail.objects.filter(build__id=build_id).order_by("-id")
 
         serialize = build_package_detailSerializer(obj, many=True)
+        for i in serialize.data:
+            i["packStatus"] = i["packStatus"].split(",")[1]
 
         return JsonResponse(data={"data": serialize.data
                                   }, code="0", msg="成功")
@@ -151,10 +130,61 @@ class BuildDetailStatus(APIView):
                 data = {"step": packStatus[0]}
                 code = "999981"
 
-            return JsonResponse(data=data, code=code, msg="成功" )
+            return JsonResponse(data=data, code=code, msg="成功")
 
         except Exception as e:
             return JsonResponse(code="999984", msg=f"获取失败:{e}")
+
+class BuildStatus(APIView):
+    authentication_classes = (TokenAuthentication,)
+    permission_classes = ()
+
+    """
+        变更构建状态
+        :param request:
+                build_id: int '构建id'  非必传
+                status: str:步骤：状态（ 1 成功 3失败）]
+                content：dict {发送消息内容}
+                reboot： 机器人
+                user ： @ 人员
+        :return:
+    """
+    def post(self, request):
+        try:
+            data = JSONParser().parse(request)
+            build_id = str(data["build_id"]).strip()
+            packStatus = str(data["status"]).split(",")
+            content = data["content"]
+            reboot = str(data["reboot"]).strip()
+            user = str(data["user"]).strip()
+
+        except Exception as e:
+            return JsonResponse(code="999985", msg=f"参数错误:{e}!")
+
+        if build_id:
+            try:
+                obj = build_package.objects.get(id=data["build_id"])
+                if packStatus[0] == '5':
+                    obj.build_status = False
+                    data["status"] = '5,2'
+                try:
+                    detailObj = build_package_detail.objects.get(build_id=data["build_id"], status=False)
+                    detailObj.packStatus = data["status"]
+                    detailObj.save()
+                except (TypeError, ValueError):
+                    logger.error("build_package_detail update fail")
+
+                obj.packStatus = data["status"]
+                obj.save()
+            except Exception as e:
+                return JsonResponse(code="999984", msg=f"修改 build_package 失败!：{e}")
+
+        if content and reboot and user:
+            requests.post(reboot, data=json.dumps(content))
+        elif reboot == '' and content and user:
+            sendMessage(touser=user, message=content)
+        return JsonResponse(code="0", msg="成功")
+
 
 class AddBuild(APIView):
     authentication_classes = (TokenAuthentication,)
@@ -186,6 +216,7 @@ class AddBuild(APIView):
             return result
         data["user"] = Token.objects.get(key=data["user"]).user_id
         data["packStatus"] = '0,0'
+
         build_package_serializer = build_packageDeserializer(data=data)
 
         try:
@@ -196,11 +227,15 @@ class AddBuild(APIView):
                 if build_package_serializer.is_valid():
                     # 保持新项目
                     build_package_serializer.save()
+                    build_id = build_package_serializer.data.get("id")
                     if data['file_id']:
-                        uploadObj = uploadfile.objects.get(id=data['file_id'])
-                        uploadObj.fileid = build_package_serializer.data.get("id")
-                        uploadObj.save()
-                        #os.system(f"rclone sync {uploadObj.fileurl} oss://minio/biomind-ha-se/Biomind-Viewer-Web/")
+                        for i in data['file_id']:
+                            uploadObj = uploadfile.objects.get(id=i)
+                            uploadObj.fileid = build_id
+                            uploadObj.remark = data['branch']
+                            uploadObj.minIO = f"oss://minio/biomind-ha-se/Biomind-Viewer-Web/{data['branch']}/"
+                            uploadObj.save()
+                            os.system(f"rclone sync {uploadObj.fileurl}/{uploadObj.filename} {uploadObj.minIO}")
                     return JsonResponse(data={
                         "build_id": build_package_serializer.data.get("id")
                     }, code="0", msg="成功")
@@ -259,9 +294,13 @@ class UpdateBuild(APIView):
                     # 修改项目
                     serializer.update(instance=obj, validated_data=data)
                     if data['file_id']:
-                        uploadObj = uploadfile.objects.get(id=data['file_id'])
-                        uploadObj.fileid = serializer.data.get("id")
-                        uploadObj.save()
+                        for i in data['file_id']:
+                            uploadObj = uploadfile.objects.get(id=i)
+                            uploadObj.fileid = obj.id
+                            uploadObj.remark = obj.branch
+                            uploadObj.minIO = f"oss://minio/biomind-ha-se/Biomind-Viewer-Web/{obj.branch}/"
+                            uploadObj.save()
+                            os.system(f"rclone sync {uploadObj.fileurl}/{uploadObj.filename} {uploadObj.minIO}")
                     return JsonResponse(code="0", msg="成功")
                 else:
                     return JsonResponse(code="999998", msg="失败")
@@ -392,6 +431,10 @@ class EnableBuild(APIView):
                 obj.packStatus = '1,1'
                 obj.build_status = True
                 obj.save()
+                detailObj = build_package_detail.objects.filter(build_id=obj.id)
+                for i in detailObj:
+                    i.status = False
+                    i.save()
                 build_package_detail.objects.create(**{'name': obj.name, 'service': obj.git.name, 'code': obj.code,
                                                        'branch': obj.branch, 'type': obj.type, 'build_id': obj.id,
                                                        'Host_id': obj.Host_id, 'user_id': obj.user_id, 'job': job,

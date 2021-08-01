@@ -15,7 +15,7 @@ class graphRequest():
         endts = round(time.time(),3)
         # dt = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(ts))
         self.base_url = 'http://192.168.2.22:9090'
-        self.api = '/api/v1/query_range?query=container_memory_usage_bytes%7Bname%3D%22280_biomindserver_1%22%7D&start=1589836394.076&end=1589882392.578&step=172&_=1589879583090'
+        self.api = '/Interface/v1/query_range?query=container_memory_usage_bytes%7Bname%3D%22280_biomindserver_1%22%7D&start=1589836394.076&end=1589882392.578&step=172&_=1589879583090'
         self.common_params = {
             'query': "container_memory_usage_bytes%7Bname%3D%22280_biomindserver_1%22%7D",
             'start': 1589836394.076,

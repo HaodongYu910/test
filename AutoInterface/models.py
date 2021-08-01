@@ -86,13 +86,17 @@ class CustomMethod(models.Model):
         db_table = 'CustomMethod'
 
 
-class ApiGroupLevelFirst(models.Model):
+class ApiGroup(models.Model):
     """
-    接口一级分组
+    接口分组
     """
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='项目')
-    name = models.CharField(max_length=50, verbose_name='接口一级分组名称')
+    name = models.CharField(max_length=50, verbose_name='分组名称')
+    type = models.CharField(blank=True, null=True, max_length=50, verbose_name='类型')
+    level = models.IntegerField(blank=True, null=True, verbose_name='级别')
+    higher_level = models.IntegerField(blank=True, null=True, verbose_name='级别')
+    status = models.BooleanField(default=True, verbose_name='状态')
 
     def __unicode__(self):
         return self.name
@@ -103,7 +107,7 @@ class ApiGroupLevelFirst(models.Model):
     class Meta:
         verbose_name = '接口分组'
         verbose_name_plural = '接口分组'
-        db_table = 'ApiGroupLevelFirst'
+        db_table = 'ApiGroup'
 
 
 class ApiInfo(models.Model):
@@ -112,9 +116,9 @@ class ApiInfo(models.Model):
     """
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, related_name='api_project', on_delete=models.CASCADE, verbose_name='所属项目')
-    apiGroupLevelFirst = models.ForeignKey(ApiGroupLevelFirst, blank=True, null=True,
+    ApiGroup = models.ForeignKey(ApiGroup, blank=True, null=True,
                                            related_name='First',
-                                           on_delete=models.SET_NULL, verbose_name='所属一级分组')
+                                           on_delete=models.SET_NULL, verbose_name='所属分组')
     name = models.CharField(max_length=50, verbose_name='接口名称')
     httpType = models.CharField(max_length=50, default='HTTP', verbose_name='http/https', choices=HTTP_CHOICE)
     requestType = models.CharField(max_length=50, verbose_name='请求方式', choices=REQUEST_TYPE_CHOICE)
@@ -254,13 +258,13 @@ class ApiOperationHistory(models.Model):
         db_table = 'ApiOperationHistory'
 
 
-class AutomationGroupLevelFirst(models.Model):
+class AutomationGroup(models.Model):
     """
-    自动化用例一级分组
+    自动化用例分组
     """
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='项目')
-    name = models.CharField(max_length=50, verbose_name='用例一级分组')
+    name = models.CharField(max_length=50, verbose_name='用例分组')
 
     def __unicode__(self):
         return self.name
@@ -271,7 +275,7 @@ class AutomationGroupLevelFirst(models.Model):
     class Meta:
         verbose_name = '用例分组'
         verbose_name_plural = '用例分组管理'
-        db_table = 'AutomationGroupLevelFirst'
+        db_table = 'AutomationGroup'
 
 
 class AutomationTestCase(models.Model):
@@ -280,15 +284,17 @@ class AutomationTestCase(models.Model):
     """
     id = models.AutoField(primary_key=True)
     project = models.ForeignKey(Project, on_delete=models.CASCADE, verbose_name='所属项目')
-    automationGroupLevelFirst = models.ForeignKey(AutomationGroupLevelFirst, blank=True, null=True,
-                                                  on_delete=models.SET_NULL, verbose_name='所属用例一级分组',
-                                                  related_name="automationGroup")
-    # automationGroupLevelSecond = models.ForeignKey(AutomationGroupLevelSecond, blank=True, null=True,
-    #                                                on_delete=models.SET_NULL, verbose_name='所属用例二级分组')
+    ApiGroup = models.ForeignKey(ApiGroup, blank=True, null=True,
+                                 on_delete=models.SET_NULL, verbose_name='所属用分组',
+                                 related_name="ApiGroup")
+
     caseName = models.CharField(max_length=50, verbose_name='用例名称')
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=True, null=True, verbose_name="创建人",
                              related_name="createUser")
     description = models.CharField(max_length=1024, blank=True, null=True, verbose_name='描述')
+    type = models.CharField(blank=True, null=True, max_length=50, verbose_name='类型')
+    level = models.IntegerField(blank=True, null=True, verbose_name='级别')
+    status = models.BooleanField(default=True, verbose_name='状态')
     updateTime = models.DateTimeField(auto_now=True, verbose_name='更新时间')
 
     def __unicode__(self):
@@ -309,13 +315,16 @@ class AutomationCaseApi(models.Model):
     """
     id = models.AutoField(primary_key=True)
     automationTestCase = models.ForeignKey(AutomationTestCase, on_delete=models.CASCADE,
-                                           verbose_name='用例', related_name="api")
+                                           verbose_name='用例', related_name="Interface")
     name = models.CharField(max_length=50, verbose_name='接口名称')
+    stepname = models.CharField(blank=True, null=True, max_length=50, verbose_name='接口名称')
+    step = models.IntegerField(blank=True, null=True, verbose_name='步骤')
     httpType = models.CharField(max_length=50, default='HTTP', verbose_name='HTTP/HTTPS', choices=HTTP_CHOICE)
     requestType = models.CharField(max_length=50, verbose_name='请求方式', choices=REQUEST_TYPE_CHOICE)
     apiAddress = models.CharField(max_length=1024, verbose_name='接口地址')
     requestParameterType = models.CharField(max_length=50, verbose_name='参数请求格式', choices=REQUEST_PARAMETER_TYPE_CHOICE)
     formatRaw = models.BooleanField(default=False, verbose_name="是否转换成源数据")
+    type = models.CharField(blank=True, null=True, max_length=50, verbose_name='类型')
     examineType = models.CharField(default='no_check', max_length=50, verbose_name='校验方式', choices=EXAMINE_TYPE_CHOICE)
     httpCode = models.CharField(max_length=50, blank=True, null=True, verbose_name='HTTP状态', choices=HTTP_CODE_CHOICE)
     responseData = models.TextField(blank=True, null=True, verbose_name='返回内容')

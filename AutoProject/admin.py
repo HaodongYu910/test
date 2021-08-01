@@ -7,9 +7,9 @@ from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 
 from AutoProject.models import Project, Server, ProjectDynamic, ProjectMember, UserProfile
-from AutoInterface.models import ApiGroupLevelFirst, ApiInfo, \
+from AutoInterface.models import ApiGroup, ApiInfo, \
     APIRequestHistory, ApiOperationHistory, \
-    AutomationGroupLevelFirst, AutomationTestCase, AutomationParameter, AutomationCaseApi, \
+    AutomationGroup, AutomationTestCase, AutomationParameter, AutomationCaseApi, \
     AutomationTestResult, AutomationTestTask, AutomationHead, ApiHead, ApiParameter, ApiResponse, \
     ApiParameterRaw, AutomationParameterRaw, AutomationResponseJson, AutomationTaskRunTime, AutomationReportSendConfig
 
@@ -173,7 +173,7 @@ class CustomMethodForm(admin.ModelAdmin):
         }],)
 
 
-class ApiGroupLevelFirstForm(admin.ModelAdmin):
+class ApiGroupForm(admin.ModelAdmin):
     search_fields = ('name', 'project')
     list_display = ('id', 'project', 'name')
     list_display_links = ('id', 'project', 'name')
@@ -185,7 +185,7 @@ class ApiGroupLevelFirstForm(admin.ModelAdmin):
         }],)
 
 
-admin.site.register(ApiGroupLevelFirst, ApiGroupLevelFirstForm)
+admin.site.register(ApiGroup, ApiGroupForm)
 
 
 class ApiHeadInline(admin.TabularInline):
@@ -215,7 +215,7 @@ class ApiInfoForm(admin.ModelAdmin):
     ordering = ('id',)
     fieldsets = ([
         '接口信息', {
-            'fields': ('project', 'apiGroupLevelFirst', 'name', 'httpType',
+            'fields': ('project', 'ApiGroup', 'name', 'httpType',
                        'requestParameterType', 'requestType', 'apiAddress', 'status', 'mockCode', 'data', 'userUpdate')
         }],)
 
@@ -255,7 +255,7 @@ class ApiOperationHistoryForm(ReadOnlyModelAdmin):
 admin.site.register(ApiOperationHistory, ApiOperationHistoryForm)
 
 
-class AutomationGroupLevelFirstForm(admin.ModelAdmin):
+class AutomationGroupForm(admin.ModelAdmin):
     search_fields = ('project', 'name')
     list_display = ('id', 'project', 'name')
     list_display_links = ('id', 'project', 'name')
@@ -268,7 +268,7 @@ class AutomationGroupLevelFirstForm(admin.ModelAdmin):
     )
 
 
-admin.site.register(AutomationGroupLevelFirst, AutomationGroupLevelFirstForm)
+admin.site.register(AutomationGroup, AutomationGroupForm)
 
 
 class AutomationTestCaseForm(admin.ModelAdmin):
@@ -280,7 +280,7 @@ class AutomationTestCaseForm(admin.ModelAdmin):
     ordering = ('id',)
     fieldsets = ([
         '用例接口列表', {
-            'fields': ('project', 'automationGroupLevelFirst',
+            'fields': ('project', 'AutomationGroup',
                        'caseName', 'user', 'description')
         }],)
 

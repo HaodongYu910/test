@@ -431,6 +431,13 @@ export const getTestTenResult = (headers, params) => {
     .get(`${test}/api/report/lately_ten`, { params: params, headers: headers })
     .then((res) => res.data);
 };
+
+// 获取所以接口列表
+export const getApiList = (headers, params) => {
+  return axios
+    .get(`${test}/api/api/api_list`, { params: params, headers: headers })
+    .then((res) => res.data);
+};
 // 添加接口
 export const addApiDetail = (headers, params) => {
   return axios
@@ -461,6 +468,19 @@ export const delApiGroup = (headers, params) => {
     .post(`${test}/api/api/del_group`, params, { headers })
     .then((res) => res.data);
 };
+// 获取场景列表 list 页面
+export const getApiScene = (headers, params) => {
+  return axios
+    .get(`${test}/api/scene/list`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+// 获取场景用例 Detail 页面
+export const getApiSceneDetail = (headers, params) => {
+  return axios
+    .get(`${test}/api/scene/Detail`, { params: params }, { headers })
+    .then((res) => res.data);
+};
+
 // 金标准冒烟测试报告
 export const getGoldreport = (headers, params) => {
   return axios
@@ -703,6 +723,12 @@ export const enableBenchmarkstatus = (headers, params) => {
 export const deldicomdata = (headers, params) => {
   return axios
     .post(`${test}/dicom/delDDD`, params, headers)
+    .then((res) => res.data);
+};
+// 重新 匿名dicom 数据
+export const dicomAnonymization = (headers, params) => {
+  return axios
+    .post(`${test}/dicom/Anonymization`, params, headers)
     .then((res) => res.data);
 };
 // 修改dicom数据

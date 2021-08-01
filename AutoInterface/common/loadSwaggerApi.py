@@ -92,7 +92,7 @@ def add_swagger_api(data, user):
                     if len(data.get("headDict")):
                         for i in data["headDict"]:
                             if i.get("name"):
-                                i["api"] = api_id
+                                i["Interface"] = api_id
                                 head_serialize = ApiHeadDeserializer(data=i)
                                 if head_serialize.is_valid():
                                     head_serialize.save(api=ApiInfo.objects.get(id=api_id))
@@ -100,7 +100,7 @@ def add_swagger_api(data, user):
                         if len(data.get("requestList")):
                             for i in data["requestList"]:
                                 if i.get("name"):
-                                    i["api"] = api_id
+                                    i["Interface"] = api_id
                                     param_serialize = ApiParameterDeserializer(data=i)
                                     if param_serialize.is_valid():
                                         param_serialize.save(api=ApiInfo.objects.get(id=api_id))
@@ -110,7 +110,7 @@ def add_swagger_api(data, user):
                     if len(data.get("responseList")):
                         for i in data["responseList"]:
                             if i.get("name"):
-                                i["api"] = api_id
+                                i["Interface"] = api_id
                                 response_serialize = ApiResponseDeserializer(data=i)
                                 if response_serialize.is_valid():
                                     response_serialize.save(api=ApiInfo.objects.get(id=api_id))

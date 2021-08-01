@@ -403,3 +403,5 @@
 #         annotations:
 #           summary: "{{$labels.mountpoint}} 磁盘分区使用率过高！"
 #           description: "{{$labels.mountpoint }} 磁盘分区使用大于80%(目前使用:{{$value}}%)"
+
+

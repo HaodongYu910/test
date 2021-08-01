@@ -73,7 +73,7 @@ urlpatterns = [
     url(r'dictionary/disable', DisableDictionary.as_view()),
     url(r'dictionary/enable', EnableDictionary.as_view()),
     url(r'git/projectlist', getProjectGit.as_view()), # git 仓库
-    url(r'build/UpateStatus', BuildStatus.as_view()),
+    url(r'build/UpdateStatus', BuildStatus.as_view()),
     url(r'build/list', BuildList.as_view()),
     url(r'build/detail', BuildDetail.as_view()),
     url(r'build/DetailStatus', BuildDetailStatus.as_view()),

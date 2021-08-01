@@ -311,6 +311,7 @@ class uploadfile(models.Model):
     type = models.CharField(max_length=30, blank=True, null=True, verbose_name="类型")
     size = models.CharField(max_length=30, blank=True, null=True, verbose_name="文件大小")
     status = models.BooleanField(default=False, verbose_name='状态')
+    minIO = models.CharField(max_length=300, blank=True, null=True, verbose_name="minIO路径")
     remark = models.CharField(max_length=50, blank=True, null=True, verbose_name="备注")
     update_time = models.DateTimeField(auto_now=True, auto_now_add=False, verbose_name="修改时间")
     create_time = models.DateTimeField(auto_now=False, auto_now_add=True, verbose_name="创建时间")

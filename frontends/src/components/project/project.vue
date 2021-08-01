@@ -284,7 +284,7 @@
         name: 'basetable',
         data() {
             return {
-                /*url: '/api/test_project',*/
+                /*url: '/Interface/test_project',*/
                 /*tableData: [{
                     "project_id": "2",
                     "project": "CoinNess",

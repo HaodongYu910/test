@@ -92,3 +92,4 @@ def NormalSend(ID):
         logger.error(f"SendThread fail: {e}")
         return False
     return True
+

@@ -28,17 +28,18 @@ def anonymization(**kwargs):
         logging.error('msg: failed to read file [{0}] error:{1}'.format(full_fn, e))
     # 匿名成新的数据
     try:
-        ds.SeriesInstanceUID = norm_string(f'{ds.SeriesInstanceUID}.{rand_uid}', 64)
-        ds.SOPInstanceUID = norm_string(f'{ds.SOPInstanceUID}.{rand_uid}', 64)
-        ds.AccessionNumber = norm_string(f'{ds.AccessionNumber}.{rand_uid}', 16)
-        ds.StudyInstanceUID = rand_uid
+        if rand_uid:
+            ds.SeriesInstanceUID = norm_string(f'{ds.SeriesInstanceUID}.{rand_uid}', 64)
+            ds.SOPInstanceUID = norm_string(f'{ds.SOPInstanceUID}.{rand_uid}', 64)
+            ds.AccessionNumber = norm_string(f'{ds.AccessionNumber}.{rand_uid}', 16)
+            ds.StudyInstanceUID = rand_uid
+            ds.StudyDate = kwargs["info"]["cur_date"]
+            ds.StudyTime = kwargs["info"]["cur_time"]
+            ds.SeriesDate = kwargs["info"]["cur_date"]
+            ds.SeriesTime = kwargs["info"]["cur_time"]
         ds.PatientID = PatientID
         ds.PatientName = PatientName
 
-        ds.StudyDate = kwargs["info"]["cur_date"]
-        ds.StudyTime = kwargs["info"]["cur_time"]
-        ds.SeriesDate = kwargs["info"]["cur_date"]
-        ds.SeriesTime = kwargs["info"]["cur_time"]
         # ds.ContentDate = cur_date
         # ds.ContentTime = cur_time
         # ds.AcquisitionDate = cur_date
@@ -50,3 +51,4 @@ def anonymization(**kwargs):
         ds.save_as(full_fn_fake)
     except Exception as e:
         logging.error('errormsg: failed to save file [{0}] --{1}'.format(full_fn_fake, e))
+

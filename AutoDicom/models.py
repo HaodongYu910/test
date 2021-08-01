@@ -61,6 +61,31 @@ class dicom_detail(models.Model):
         verbose_name_plural = "dicom数据详情表"
         db_table = 'dicom_detail'
 
+
+class dicom_record(models.Model):
+    """
+      dicom_record 修改记录表
+    """
+    id = models.AutoField(primary_key=True)
+    patientid = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientid")
+    patientname = models.CharField(max_length=50, blank=True, null=True, verbose_name="patientname")
+    studyinstanceuid = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    SeriesInstanceUID = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    SOPInstanceUID = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    AccessionNumber = models.CharField(max_length=120, blank=True, null=True, verbose_name="数据uid")
+    dicom = models.ForeignKey(to=dicom, null=True, on_delete=models.CASCADE, verbose_name='dicom' )
+    route = models.CharField(max_length=120, blank=True, null=True, verbose_name="路径")
+    status = models.BooleanField(default=True, verbose_name="0是关闭，1是启用")
+
+    def __unicode__(self):
+        return self.patientname
+
+    class Meta:
+        verbose_name = "dicom_record 修改记录"
+        verbose_name_plural = "dicom_record 修改记录"
+        db_table = 'dicom_record'
+
+
 class dicom_group(models.Model):
     """
         dicom 分组

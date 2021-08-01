@@ -231,7 +231,7 @@ export default {
       buildList: [],
       totalSize: 0,
       addLoadingFlag: true,
-      upfileId: "",
+      upfileId: [],
       deleteLoading: false,
     };
   },
@@ -477,14 +477,15 @@ export default {
     subUploadFile(data) {
       let params = new FormData();
       params.append("file", data.file);
-      params.append("type", "stress");
+      params.append("type", "build");
       const headers = {
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };
       addupload(headers, params).then((res) => {
         const { msg, code, data } = res;
         if (code === "0") {
-          this.upfileId = data.fileid || "";
+          const fileid = data.fileid || "";
+          this.upfileId.push(fileid)
         } else {
           this.$message.error({
             message: msg,

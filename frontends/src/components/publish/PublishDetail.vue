@@ -502,7 +502,7 @@ export default {
       console.log(data);
       let params = new FormData();
       params.append("file", data.file);
-      params.append("type", "stress");
+      params.append("type", "build");
       const headers = {
         Authorization: "Token " + JSON.parse(sessionStorage.getItem("token")),
       };

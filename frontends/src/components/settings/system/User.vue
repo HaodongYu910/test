@@ -307,7 +307,7 @@ import MsTableOperatorButton from "../../common/components/MsTableOperatorButton
 import {hasRole, listenGoBack, removeGoBackListener} from "@/common/js/utils";
 import MsRolesTag from "../../common/components/MsRolesTag";
 import {ROLE_ADMIN} from "@/common/js/constants";
-import {getCurrentUser} from "../../../../common/js/utils";
+import {getCurrentUser} from "../../../common/js/utils";
 
 export default {
   name: "MsUser",
